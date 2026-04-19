@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Systeme de Cosmetiques | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #4AE0E0; --aetherite: #9B59B6; --erinium: #FFD700;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+    --common: #2ECC71; --uncommon: #3498DB; --mythic: #E74C3C;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(74,224,224,0.09) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(255,215,0,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, #4AE0E0 40%, #FFD700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '>'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .ascii-diagram .ab { color: var(--rare); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Architecture Config-Driven</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Format des Fichiers Config</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Slots &amp; Types de Cosmetiques</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Modeles 3D &amp; Rendu</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Structures de Donnees</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> GUI Boutique Cosmetique</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Roulette d'Ouverture</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Packets Reseau</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Commandes &amp; Permissions</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Cas Limites &amp; Securite</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Systeme de Cosmetiques</h1>
+      <p>Un systeme de cosmetiques purement graphiques, auto-parses depuis un dossier de config serveur, obtenus via lootbox a collections. Les cosmetiques remplacent le rendu visuel de l'armure ou ajoutent un accessoire (backpack) sans aucun impact gameplay.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-violet">Config-Driven</span>
+        <span class="badge badge-cyan">Modeles 3D</span>
+        <span class="badge badge-gold">Lootbox Collections</span>
+        <span class="badge badge-green">Aucun impact PvP</span>
+        <span class="badge badge-orange">Monnaie Eris</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Vision du systeme</h3>
+      <p>Les cosmetiques sont des <strong>elements purement visuels</strong> qui n'existent pas en tant qu'items physiques dans l'inventaire du joueur. Ils ne peuvent pas etre perdus, droppes, voles, echanges ou detruits. Ils sont lies au compte du joueur de maniere permanente.</p>
+      <p>Le systeme repose sur un modele <strong>collection + lootbox</strong> : chaque cosmetique appartient a une collection thematique, et le joueur depense des Eris (monnaie premium) pour obtenir un cosmetique aleatoire parmi ceux qu'il ne possede pas encore dans cette collection.</p>
+      <p>Le serveur charge dynamiquement toutes les collections et leurs cosmetiques depuis le dossier <code>config/Cosmetics/</code> au demarrage. Aucun cosmetique n'est hardcode dans le mod — un administrateur peut ajouter, modifier ou supprimer des cosmetiques en modifiant simplement les fichiers de config, sans recompilation.</p>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Zero impact gameplay :</strong> un cosmetique ne donne aucun avantage en PvP ou PvE. Pas de stats, pas de hitbox modifiee, pas de visibilite reduite.</li>
+        <li><strong>Monetisation saine :</strong> les lootbox ne contiennent que des cosmetiques, jamais du pay-to-win. Le joueur est garanti d'obtenir un item qu'il ne possede pas encore (pas de doublons).</li>
+        <li><strong>Extensibilite :</strong> ajouter un cosmetique = deposer des fichiers dans un dossier. Pas de code Java, pas de rebuild, pas de mise a jour du mod.</li>
+        <li><strong>Performance :</strong> les modeles 3D sont charges une seule fois au demarrage, caches cote client, et rendus avec un budget GPU raisonnable (max ~2000 faces par modele).</li>
+        <li><strong>Synchronisation :</strong> les cosmetiques equipes d'un joueur sont visibles par tous les autres joueurs a proximite, synchronises via packets reseau.</li>
+      </ul>
+
+      <h3>Ce que le systeme ne fait pas</h3>
+      <ul>
+        <li><strong>Pas de trading :</strong> les cosmetiques ne sont pas echangeables entre joueurs.</li>
+        <li><strong>Pas de craft :</strong> aucune recette ne produit de cosmetique.</li>
+        <li><strong>Pas de drop :</strong> les mobs ne droppent jamais de cosmetiques.</li>
+        <li><strong>Pas de destruction :</strong> un cosmetique obtenu est permanent, il ne peut pas etre "detruit" ou "vendu".</li>
+        <li><strong>Pas de modification de hitbox :</strong> quelle que soit la taille du modele 3D, la hitbox du joueur reste identique (1.8 x 0.6 blocks).</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S2 — ARCHITECTURE CONFIG-DRIVEN ═══ -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Architecture Config-Driven</h2>
+
+      <h3 class="first">Principe general</h3>
+      <p>Au demarrage du serveur, le systeme scanne le dossier <code>config/Cosmetics/</code>. Chaque sous-dossier de premier niveau est une <strong>Collection</strong>. Chaque sous-dossier de second niveau est un <strong>Cosmetique</strong>. Cette arborescence est la seule source de verite — il n'existe aucun registre hardcode dans le code Java.</p>
+
+      <div class="ascii-diagram"><span class="ac">config/Cosmetics/</span>
+<span class="av">├── SamuraiSet/</span>                         <span class="as">&lt;-- Collection "SamuraiSet"</span>
+<span class="av">│   ├── collection.info</span>                  <span class="as">&lt;-- Metadonnees de la collection</span>
+<span class="av">│   ├── icon.png</span>                          <span class="as">&lt;-- Icone 64x64+ de la collection</span>
+<span class="av">│   ├── SamuraiHelmet/</span>                    <span class="as">&lt;-- Cosmetique 1</span>
+<span class="av">│   │   ├── cosmetic.info</span>                 <span class="as">&lt;-- Metadonnees du cosmetique</span>
+<span class="av">│   │   ├── model.json</span>                    <span class="as">&lt;-- Definition du modele 3D</span>
+<span class="av">│   │   └── texture.png</span>                   <span class="as">&lt;-- Texture du modele</span>
+<span class="av">│   ├── SamuraiChestplate/</span>
+<span class="av">│   │   ├── cosmetic.info</span>
+<span class="av">│   │   ├── model.json</span>
+<span class="av">│   │   └── texture.png</span>
+<span class="av">│   ├── SamuraiLeggings/</span>
+<span class="av">│   │   ├── cosmetic.info</span>
+<span class="av">│   │   ├── model.json</span>
+<span class="av">│   │   └── texture.png</span>
+<span class="av">│   ├── SamuraiBoots/</span>
+<span class="av">│   │   ├── cosmetic.info</span>
+<span class="av">│   │   ├── model.json</span>
+<span class="av">│   │   └── texture.png</span>
+<span class="av">│   └── SamuraiBackpack/</span>
+<span class="av">│       ├── cosmetic.info</span>
+<span class="av">│       ├── model.json</span>
+<span class="av">│       └── texture.png</span>
+<span class="av">├── CyberpunkSet/</span>                         <span class="as">&lt;-- Collection "CyberpunkSet"</span>
+<span class="av">│   ├── collection.info</span>
+<span class="av">│   ├── icon.png</span>
+<span class="av">│   └── ...</span>
+<span class="av">└── DragonSet/</span>                            <span class="as">&lt;-- Collection "DragonSet"</span>
+<span class="av">    ├── collection.info</span>
+<span class="av">    ├── icon.png</span>
+<span class="av">    └── ...</span></div>
+
+      <h3>Cycle de chargement</h3>
+      <ul>
+        <li><strong>1. Scan des dossiers :</strong> au FMLServerStartingEvent, scanner <code>config/Cosmetics/</code> recursivement.</li>
+        <li><strong>2. Validation :</strong> chaque collection doit contenir un <code>collection.info</code> et un <code>icon.png</code> valides. Chaque cosmetique doit contenir un <code>cosmetic.info</code>, un <code>model.json</code> et au moins un fichier texture. Les entrees invalides sont ignorees avec un WARNING dans les logs.</li>
+        <li><strong>3. Indexation :</strong> construire un registre en memoire (<code>CosmeticRegistry</code>) qui mappe les IDs (nom du dossier) vers les metadonnees et chemins de fichiers.</li>
+        <li><strong>4. Distribution client :</strong> au login du joueur, envoyer la liste des collections et cosmetiques disponibles (IDs + metadonnees) via un packet de sync. Les modeles 3D et textures sont distribues via un packet de ressources dedie (chunked si necessaire) ou pre-deployes dans le resourcepack serveur.</li>
+        <li><strong>5. Hot-reload :</strong> la commande <code>/cosmetic reload</code> (admin) re-scanne le dossier et met a jour le registre sans redemarrer le serveur. Les clients connectes recoivent un packet de re-sync.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Performance au chargement :</strong> Le scan des fichiers se fait en <strong>async</strong> (EriScheduler.async) pour ne pas bloquer le thread serveur. Le registre n'est finalise (et rendu accessible) que quand le scan est termine. Pendant le chargement, les requetes de cosmetiques retournent des listes vides.</div>
+      </div>
+
+      <h3>Identification des cosmetiques</h3>
+      <p>Chaque cosmetique est identifie de maniere unique par la combinaison <code>collectionId:cosmeticId</code>, ou les deux IDs sont les noms des dossiers respectifs (en minuscules, espaces remplaces par des underscores). Exemple : <code>samuraiset:samurai_helmet</code>.</p>
+      <p>Ces identifiants sont utilises partout : stockage joueur, packets reseau, commandes admin, logs. Ils sont <strong>stables</strong> tant que les dossiers ne sont pas renommes.</p>
+    </section>
+
+    <!-- ═══ S3 — FORMAT DES FICHIERS CONFIG ═══ -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Format des Fichiers Config</h2>
+
+      <h3 class="first">collection.info</h3>
+      <p>Fichier texte simple (INI-like), un parametre par ligne, format <code>cle=valeur</code>. Encode en UTF-8.</p>
+
+      <div class="code-block"><span class="cm"># config/Cosmetics/SamuraiSet/collection.info</span>
+
+<span class="kw">name_fr</span>=<span class="st">Set Samourai</span>
+<span class="kw">name_en</span>=<span class="st">Samurai Set</span>
+<span class="kw">price</span>=<span class="nu">500</span>
+<span class="kw">description_fr</span>=<span class="st">L'armure ancestrale des guerriers de l'Est. Chaque piece est forgee dans l'acier plie mille fois.</span>
+<span class="kw">description_en</span>=<span class="st">The ancestral armor of Eastern warriors. Each piece forged from steel folded a thousand times.</span></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cle</th>
+              <th>Type</th>
+              <th>Obligatoire</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>name_fr</td>
+              <td>String</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Nom affiche de la collection en francais</td>
+            </tr>
+            <tr>
+              <td>name_en</td>
+              <td>String</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Nom affiche de la collection en anglais</td>
+            </tr>
+            <tr>
+              <td>price</td>
+              <td>int (>0)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Prix en Eris pour un tirage dans cette collection</td>
+            </tr>
+            <tr>
+              <td>description_fr</td>
+              <td>String</td>
+              <td><span class="tag-no">NON</span></td>
+              <td>Description affichee dans le GUI (francais). Defaut : vide.</td>
+            </tr>
+            <tr>
+              <td>description_en</td>
+              <td>String</td>
+              <td><span class="tag-no">NON</span></td>
+              <td>Description affichee dans le GUI (anglais). Defaut : vide.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>icon.png</h3>
+      <p>Image PNG de la collection. Dimensions minimales : <strong>64x64 pixels</strong>. Si l'image est plus grande, elle est redimensionnee (downscale) a 64x64 pour l'affichage dans le GUI. Format PNG uniquement, pas de JPEG, pas de GIF.</p>
+
+      <h3>cosmetic.info</h3>
+      <p>Fichier texte simple dans chaque sous-dossier cosmetique.</p>
+
+      <div class="code-block"><span class="cm"># config/Cosmetics/SamuraiSet/SamuraiHelmet/cosmetic.info</span>
+
+<span class="kw">name_fr</span>=<span class="st">Casque Samourai</span>
+<span class="kw">name_en</span>=<span class="st">Samurai Helmet</span>
+<span class="kw">slot</span>=<span class="st">Helmet</span></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cle</th>
+              <th>Type</th>
+              <th>Obligatoire</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>name_fr</td>
+              <td>String</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Nom affiche du cosmetique en francais</td>
+            </tr>
+            <tr>
+              <td>name_en</td>
+              <td>String</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Nom affiche du cosmetique en anglais</td>
+            </tr>
+            <tr>
+              <td>slot</td>
+              <td>Enum</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Slot d'equipement. Valeurs : <code>Helmet</code>, <code>Chestplate</code>, <code>Leggings</code>, <code>Boots</code>, <code>Backpack</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>model.json — Definition du modele 3D</h3>
+      <p>Fichier JSON definissant la geometrie du cosmetique. Le format est un sous-ensemble simplifie du format Blockbench, avec des cubes positionnes relativement au slot d'attachement.</p>
+
+      <div class="code-block"><span class="cm">// config/Cosmetics/SamuraiSet/SamuraiHelmet/model.json</span>
+{
+  "<span class="kw">texture</span>": "<span class="st">texture.png</span>",
+  "<span class="kw">texture_width</span>": <span class="nu">64</span>,
+  "<span class="kw">texture_height</span>": <span class="nu">64</span>,
+  "<span class="kw">elements</span>": [
+    {
+      "<span class="kw">name</span>": "<span class="st">base</span>",
+      "<span class="kw">from</span>": [<span class="nu">-4.5</span>, <span class="nu">-9</span>, <span class="nu">-4.5</span>],
+      "<span class="kw">to</span>": [<span class="nu">4.5</span>, <span class="nu">0</span>, <span class="nu">4.5</span>],
+      "<span class="kw">uv</span>": {
+        "<span class="kw">north</span>": [<span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">9</span>, <span class="nu">9</span>],
+        "<span class="kw">south</span>": [<span class="nu">18</span>, <span class="nu">0</span>, <span class="nu">27</span>, <span class="nu">9</span>],
+        "<span class="kw">east</span>":  [<span class="nu">9</span>, <span class="nu">0</span>, <span class="nu">18</span>, <span class="nu">9</span>],
+        "<span class="kw">west</span>":  [<span class="nu">27</span>, <span class="nu">0</span>, <span class="nu">36</span>, <span class="nu">9</span>],
+        "<span class="kw">up</span>":    [<span class="nu">9</span>, <span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">9</span>],
+        "<span class="kw">down</span>":  [<span class="nu">18</span>, <span class="nu">0</span>, <span class="nu">9</span>, <span class="nu">9</span>]
+      },
+      "<span class="kw">rotation</span>": { "<span class="kw">angle</span>": <span class="nu">0</span>, "<span class="kw">axis</span>": "<span class="st">y</span>", "<span class="kw">origin</span>": [<span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">0</span>] }
+    },
+    {
+      "<span class="kw">name</span>": "<span class="st">crest</span>",
+      "<span class="kw">from</span>": [<span class="nu">-0.5</span>, <span class="nu">-12</span>, <span class="nu">-2</span>],
+      "<span class="kw">to</span>": [<span class="nu">0.5</span>, <span class="nu">-9</span>, <span class="nu">5</span>],
+      "<span class="kw">uv</span>": { "<span class="cm">...</span>" },
+      "<span class="kw">rotation</span>": { "<span class="kw">angle</span>": <span class="nu">-15</span>, "<span class="kw">axis</span>": "<span class="st">x</span>", "<span class="kw">origin</span>": [<span class="nu">0</span>, <span class="nu">-9</span>, <span class="nu">0</span>] }
+    }
+  ]
+}</div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Champ</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>texture</td>
+              <td>String</td>
+              <td>Nom du fichier texture dans le meme dossier</td>
+            </tr>
+            <tr>
+              <td>texture_width / texture_height</td>
+              <td>int</td>
+              <td>Dimensions de la texture en pixels (pour le mapping UV)</td>
+            </tr>
+            <tr>
+              <td>elements[]</td>
+              <td>Array</td>
+              <td>Liste des cubes composant le modele</td>
+            </tr>
+            <tr>
+              <td>elements[].name</td>
+              <td>String</td>
+              <td>Identifiant du cube (pour debug)</td>
+            </tr>
+            <tr>
+              <td>elements[].from / to</td>
+              <td>float[3]</td>
+              <td>Coordonnees min/max du cube en unites Minecraft (1/16 de bloc = 1 pixel)</td>
+            </tr>
+            <tr>
+              <td>elements[].uv</td>
+              <td>Object</td>
+              <td>Mapping UV par face (north, south, east, west, up, down) — [u1, v1, u2, v2]</td>
+            </tr>
+            <tr>
+              <td>elements[].rotation</td>
+              <td>Object</td>
+              <td>Rotation optionnelle : angle (degres), axis (x/y/z), origin (pivot)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Limite de complexite :</strong> Un modele ne doit pas depasser <strong>50 elements</strong> (cubes) et <strong>2000 faces</strong> (50 cubes x 6 faces max = 300 faces standard). Le parseur rejette les modeles depassant cette limite avec un WARNING dans les logs. Cela garantit des performances acceptables meme avec 50 joueurs portant des cosmetiques a proximite.</div>
+      </div>
+
+      <h3>Fichiers texture</h3>
+      <p>Format PNG uniquement. Taille maximale : <strong>256x256 pixels</strong>. Plusieurs fichiers texture sont autorises par cosmetique (si le modele reference plusieurs textures dans differents elements). Le fichier texture reference dans <code>model.json</code> doit exister dans le meme dossier que le fichier model.</p>
+    </section>
+
+    <!-- ═══ S4 — SLOTS & TYPES DE COSMETIQUES ═══ -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Slots &amp; Types de Cosmetiques</h2>
+
+      <h3 class="first">Les 5 slots d'equipement cosmetique</h3>
+      <p>Chaque joueur dispose de 5 slots cosmetiques independants de ses slots d'armure reels. Un cosmetique equipe dans un slot <strong>remplace visuellement</strong> l'armure reelle portee dans le slot correspondant, sans modifier ses stats.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Slot</th>
+              <th>Valeur config</th>
+              <th>Point d'attache</th>
+              <th>Comportement visuel</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Casque</td>
+              <td><code>Helmet</code></td>
+              <td>Tete du joueur (bipedHead)</td>
+              <td>Remplace le rendu du casque d'armure. Le modele 3D suit la rotation de la tete.</td>
+            </tr>
+            <tr>
+              <td>Plastron</td>
+              <td><code>Chestplate</code></td>
+              <td>Corps du joueur (bipedBody)</td>
+              <td>Remplace le rendu du plastron. Suit les mouvements du corps (marche, sneaking).</td>
+            </tr>
+            <tr>
+              <td>Jambieres</td>
+              <td><code>Leggings</code></td>
+              <td>Jambes du joueur (bipedLeftLeg + bipedRightLeg)</td>
+              <td>Remplace le rendu des jambieres. Le modele est duplique pour chaque jambe et suit l'animation de marche.</td>
+            </tr>
+            <tr>
+              <td>Bottes</td>
+              <td><code>Boots</code></td>
+              <td>Pieds du joueur (bipedLeftLeg + bipedRightLeg, offset bas)</td>
+              <td>Remplace le rendu des bottes. Suit l'animation de marche avec un offset vers le bas.</td>
+            </tr>
+            <tr>
+              <td>Sac a dos</td>
+              <td><code>Backpack</code></td>
+              <td>Dos du joueur (bipedBody, offset arriere)</td>
+              <td>Accessoire additionnel affiche sur le dos, au-dessus de l'eventuel plastron cosmetique. Ne remplace rien.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Rendu : armure overlay vs backpack</h3>
+      <ul>
+        <li><strong>Helmet/Chestplate/Leggings/Boots :</strong> Ces slots sont de type "armor overlay". Quand un cosmetique est equipe, le rendu vanilla de la piece d'armure correspondante est <strong>supprime</strong> et remplace par le modele 3D du cosmetique. L'armure reelle continue de fonctionner normalement (protection, durabilite, enchantements) — seul le visuel change.</li>
+        <li><strong>Backpack :</strong> Ce slot est de type "accessoire". Il ne remplace rien — le modele 3D est ajoute <strong>en plus</strong> du rendu existant, attache au dos du joueur. Un joueur peut porter un plastron cosmetique ET un backpack cosmetique simultanement.</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Un cosmetique par slot :</strong> Un joueur ne peut equiper qu'un seul cosmetique par slot. Equiper un nouveau cosmetique dans un slot deja occupe remplace l'ancien automatiquement. Desequiper un cosmetique restaure le rendu vanilla de l'armure portee.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S5 — MODELES 3D & RENDU ═══ -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num orange-num">05</span> Modeles 3D &amp; Rendu</h2>
+
+      <h3 class="first">Pipeline de rendu</h3>
+      <p>Le rendu des cosmetiques s'integre dans le pipeline de rendu du joueur via un <strong>hook sur RenderPlayerEvent.Post</strong> (ou un LayerRenderer custom). La sequence est :</p>
+      <ul>
+        <li><strong>1.</strong> Forge rend le joueur (model biped + armure vanilla).</li>
+        <li><strong>2.</strong> Avant le rendu de chaque couche d'armure (LayerBipedArmor), verifier si le joueur a un cosmetique equipe dans ce slot. Si oui, <strong>annuler le rendu vanilla</strong> de cette couche (via Mixin cancel ou en remplacant le modele temporairement).</li>
+        <li><strong>3.</strong> Apres le rendu du joueur (RenderPlayerEvent.Post), rendre tous les modeles cosmetiques equipes dans le bon ordre : bottes, jambieres, plastron, casque, backpack.</li>
+        <li><strong>4.</strong> Chaque modele cosmetique est positionne relativement au point d'attache de son slot, en suivant les rotations/translations du modele biped sous-jacent.</li>
+      </ul>
+
+      <h3>Architecture du renderer</h3>
+
+      <div class="code-block"><span class="cm">// CosmeticRenderer — classe client responsable du rendu</span>
+<span class="kw">public class</span> <span class="cl">CosmeticRenderer</span> {
+
+    <span class="cm">// Cache : cosmeticId -> modele GL compile (display list ou VBO)</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">CosmeticModel</span>&gt; modelCache = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+
+    <span class="cm">// Appele dans RenderPlayerEvent.Post</span>
+    <span class="kw">public void</span> <span class="fn">renderCosmetics</span>(<span class="ty">EntityPlayer</span> player, <span class="kw">float</span> partialTick) {
+        <span class="ty">CosmeticEquipData</span> equip = <span class="fn">getEquipData</span>(player);
+        <span class="kw">if</span> (equip == <span class="kw">null</span>) <span class="kw">return</span>;
+
+        <span class="kw">for</span> (<span class="ty">CosmeticSlot</span> slot : <span class="ty">CosmeticSlot</span>.values()) {
+            <span class="ty">String</span> cosmeticId = equip.<span class="fn">getEquipped</span>(slot);
+            <span class="kw">if</span> (cosmeticId == <span class="kw">null</span>) <span class="kw">continue</span>;
+
+            <span class="ty">CosmeticModel</span> model = modelCache.<span class="fn">get</span>(cosmeticId);
+            <span class="kw">if</span> (model == <span class="kw">null</span>) <span class="kw">continue</span>;
+
+            <span class="fn">GlStateManager</span>.pushMatrix();
+            <span class="fn">applySlotTransform</span>(player, slot, partialTick);
+            model.<span class="fn">render</span>();
+            <span class="fn">GlStateManager</span>.popMatrix();
+        }
+    }
+}</div>
+
+      <h3>Suppression du rendu vanilla d'armure</h3>
+      <p>Pour les slots Helmet/Chestplate/Leggings/Boots, le rendu vanilla de la couche d'armure doit etre supprime quand un cosmetique est equipe. Deux approches possibles :</p>
+      <ul>
+        <li><strong>Approche Mixin (preferee) :</strong> Injecter dans <code>LayerBipedArmor.renderArmorLayer()</code> un check au HEAD. Si le joueur a un cosmetique equipe pour le slot en cours de rendu, appeler <code>ci.cancel()</code> pour ignorer le rendu vanilla de cette couche. Le callback de check est dans une classe hors du package mixin (convention du projet).</li>
+        <li><strong>Approche LayerRenderer :</strong> Enregistrer un LayerRenderer custom qui se substitue a LayerBipedArmor. Moins propre car cela implique de retirer le LayerBipedArmor vanilla.</li>
+      </ul>
+
+      <h3>Chargement et cache des modeles</h3>
+      <ul>
+        <li><strong>Chargement initial :</strong> Au login ou quand le client recoit le packet de sync des cosmetiques, les modeles JSON et textures sont parses et compiles en display lists OpenGL (ou VBOs). Un modele compile = une seule reference GPU, reutilisee pour tous les joueurs portant le meme cosmetique.</li>
+        <li><strong>Cache LRU :</strong> Si le nombre de cosmetiques uniques depasse un seuil configurable (defaut : 200), les modeles les moins recemment utilises sont decharges de la memoire GPU.</li>
+        <li><strong>Thread de chargement :</strong> Le parsing des JSON et le chargement des textures PNG se font sur un thread secondaire. La compilation GL se fait sur le render thread (OpenGL context obligatoire).</li>
+      </ul>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>OpenGL thread safety :</strong> Toute operation GL (bindTexture, glNewList, glDeleteLists) DOIT etre executee sur le main client thread (render thread). Le parsing des fichiers peut etre async, mais la compilation GL doit etre schedulee via <code>Minecraft.getMinecraft().addScheduledTask()</code>.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S6 — STRUCTURES DE DONNEES ═══ -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num red-num">06</span> Structures de Donnees</h2>
+
+      <h3 class="first">CosmeticRegistry (serveur, singleton)</h3>
+      <p>Registre global charge au demarrage du serveur. Contient toutes les collections et cosmetiques parses depuis le dossier config.</p>
+
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">CosmeticRegistry</span> {
+    <span class="kw">private static</span> <span class="ty">CosmeticRegistry</span> INSTANCE;
+
+    <span class="cm">// collectionId -> CosmeticCollection</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">CosmeticCollection</span>&gt; collections = <span class="kw">new</span> <span class="ty">LinkedHashMap</span>&lt;&gt;();
+
+    <span class="cm">// Lookup rapide : "collectionId:cosmeticId" -> CosmeticEntry</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">CosmeticEntry</span>&gt; allCosmetics = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+
+    <span class="kw">public</span> <span class="ty">Collection</span>&lt;<span class="ty">CosmeticCollection</span>&gt; <span class="fn">getCollections</span>() { ... }
+    <span class="kw">public</span> <span class="ty">CosmeticCollection</span> <span class="fn">getCollection</span>(<span class="ty">String</span> id) { ... }
+    <span class="kw">public</span> <span class="ty">CosmeticEntry</span> <span class="fn">getCosmetic</span>(<span class="ty">String</span> fullId) { ... }
+    <span class="kw">public void</span> <span class="fn">reload</span>() { ... } <span class="cm">// re-scan config/Cosmetics/</span>
+}</div>
+
+      <h3>CosmeticCollection</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">CosmeticCollection</span> {
+    <span class="kw">private final</span> <span class="ty">String</span> id;            <span class="cm">// "samuraiset"</span>
+    <span class="kw">private final</span> <span class="ty">String</span> nameFr;        <span class="cm">// "Set Samourai"</span>
+    <span class="kw">private final</span> <span class="ty">String</span> nameEn;        <span class="cm">// "Samurai Set"</span>
+    <span class="kw">private final</span> <span class="ty">String</span> descriptionFr;  <span class="cm">// Description FR</span>
+    <span class="kw">private final</span> <span class="ty">String</span> descriptionEn;  <span class="cm">// Description EN</span>
+    <span class="kw">private final</span> <span class="kw">int</span> price;            <span class="cm">// 500 Eris</span>
+    <span class="kw">private final</span> <span class="ty">String</span> iconPath;       <span class="cm">// Chemin absolu vers icon.png</span>
+    <span class="kw">private final</span> <span class="ty">List</span>&lt;<span class="ty">CosmeticEntry</span>&gt; cosmetics; <span class="cm">// Liste ordonnee</span>
+}</div>
+
+      <h3>CosmeticEntry</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">CosmeticEntry</span> {
+    <span class="kw">private final</span> <span class="ty">String</span> id;             <span class="cm">// "samurai_helmet"</span>
+    <span class="kw">private final</span> <span class="ty">String</span> fullId;         <span class="cm">// "samuraiset:samurai_helmet"</span>
+    <span class="kw">private final</span> <span class="ty">String</span> collectionId;   <span class="cm">// "samuraiset"</span>
+    <span class="kw">private final</span> <span class="ty">String</span> nameFr;         <span class="cm">// "Casque Samourai"</span>
+    <span class="kw">private final</span> <span class="ty">String</span> nameEn;         <span class="cm">// "Samurai Helmet"</span>
+    <span class="kw">private final</span> <span class="ty">CosmeticSlot</span> slot;     <span class="cm">// HELMET</span>
+    <span class="kw">private final</span> <span class="ty">String</span> modelPath;      <span class="cm">// Chemin absolu vers model.json</span>
+    <span class="kw">private final</span> <span class="ty">String</span> texturePath;    <span class="cm">// Chemin absolu vers texture.png</span>
+}</div>
+
+      <h3>CosmeticSlot (enum)</h3>
+      <div class="code-block"><span class="kw">public enum</span> <span class="cl">CosmeticSlot</span> {
+    <span class="an">HELMET</span>(<span class="st">"Helmet"</span>),
+    <span class="an">CHESTPLATE</span>(<span class="st">"Chestplate"</span>),
+    <span class="an">LEGGINGS</span>(<span class="st">"Leggings"</span>),
+    <span class="an">BOOTS</span>(<span class="st">"Boots"</span>),
+    <span class="an">BACKPACK</span>(<span class="st">"Backpack"</span>);
+
+    <span class="kw">private final</span> <span class="ty">String</span> configName; <span class="cm">// Valeur dans cosmetic.info</span>
+
+    <span class="kw">public static</span> <span class="ty">CosmeticSlot</span> <span class="fn">fromConfig</span>(<span class="ty">String</span> value) { ... }
+}</div>
+
+      <h3>CosmeticPlayerData (stockage joueur, @EriData)</h3>
+      <div class="code-block"><span class="an">@EriData</span>(modId = <span class="st">"eriniumfaction"</span>, scope = <span class="ty">DataScope</span>.PLAYER, persistOnDeath = <span class="kw">true</span>)
+<span class="kw">public class</span> <span class="cl">CosmeticPlayerData</span> {
+    <span class="cm">// Liste des cosmetiques possedes (fullIds) : "samuraiset:samurai_helmet", ...</span>
+    <span class="an">@Sync</span> <span class="kw">public</span> <span class="ty">List</span>&lt;<span class="ty">String</span>&gt; ownedCosmetics = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+
+    <span class="cm">// Cosmetiques actuellement equipes, par slot</span>
+    <span class="cm">// Cle : nom du slot ("HELMET", "CHESTPLATE", ...), Valeur : fullId ou "" si vide</span>
+    <span class="an">@Sync</span> <span class="kw">public</span> <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">String</span>&gt; equippedCosmetics = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+
+    <span class="cm">// Solde Eris du joueur (monnaie premium)</span>
+    <span class="an">@Sync</span> <span class="kw">public</span> <span class="kw">int</span> erisBalance = <span class="nu">0</span>;
+}</div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>persistOnDeath = true :</strong> Les cosmetiques possedes et equipes survivent a la mort du joueur. L'Eris balance aussi. Le joueur ne perd jamais ses cosmetiques.</div>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Coherence au reload :</strong> Quand le registre est recharge (<code>/cosmetic reload</code>), si un cosmetique possede par un joueur n'existe plus dans le registre (dossier supprime), il reste dans la liste <code>ownedCosmetics</code> mais n'est plus affichable. Si un cosmetique equipe n'existe plus, il est automatiquement desequipe (slot mis a ""). Un message d'avertissement est logue.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S7 — GUI BOUTIQUE COSMETIQUE ═══ -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num">07</span> GUI Boutique Cosmetique</h2>
+
+      <h3 class="first">Acces</h3>
+      <ul>
+        <li><strong>Keybind :</strong> Touche configurable (defaut : <code>V</code>). Enregistree via <code>EriKeys.create("eriniumfaction.open_cosmetics")</code>, contexte <code>KeyContext.IN_GAME</code>.</li>
+        <li><strong>Commande :</strong> <code>/cosmetic</code> (sans arguments) ouvre le GUI. Accessible a tous les joueurs.</li>
+      </ul>
+
+      <h3>Layout principal (1920x1080 design pixels)</h3>
+      <p>Le GUI est un ecran plein (EriGuiScreen) avec le style Liquid Glass du projet.</p>
+
+      <div class="ascii-diagram"><span class="ac">+==================================================================+</span>
+<span class="ac">|</span>  <span class="ay">BOUTIQUE COSMETIQUE</span>              <span class="ag">Solde : 2,450 Eris</span>             <span class="ac">|</span>
+<span class="ac">+==================================================================+</span>
+<span class="ac">|</span>                                                                  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">+------------------+  +------------------+  +---------------+</span>  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">|  [icon.png]      |  |  [icon.png]      |  |  [icon.png]   |</span>  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">|  Set Samourai    |  |  Set Cyberpunk   |  |  Set Dragon   |</span>  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">|  500 Eris        |  |  750 Eris        |  |  1000 Eris    |</span>  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">|  3/5 possedes    |  |  0/4 possedes    |  |  1/6 possedes |</span>  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">+------------------+  +------------------+  +---------------+</span>  <span class="ac">|</span>
+<span class="ac">|</span>                                                                  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">+------------------+  +------------------+</span>                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">|  [icon.png]      |  |  [icon.png]      |</span>                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">|  Set Angelique   |  |  Set Infernal    |</span>                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">|  600 Eris        |  |  800 Eris        |</span>                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">|  5/5 COMPLET     |  |  2/5 possedes    |</span>                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">+------------------+  +------------------+</span>                    <span class="ac">|</span>
+<span class="ac">|</span>                                                                  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Scrollable si plus de collections...</span>                          <span class="ac">|</span>
+<span class="ac">+==================================================================+</span></div>
+
+      <h3>Elements du layout</h3>
+      <ul>
+        <li><strong>Header :</strong> Titre "BOUTIQUE COSMETIQUE" a gauche. Solde Eris du joueur a droite, avec une icone monnaie animee (pulse lent).</li>
+        <li><strong>Grille de collections :</strong> ScrollPanel avec un GridLayout (3 colonnes, espacement 20px). Chaque cellule est une "carte collection" cliquable.</li>
+        <li><strong>Carte collection :</strong> Rectangle arrondi (280x200) avec fond translucide. Contient : icone de la collection (64x64 affiche en 48x48), nom de la collection, prix en Eris, compteur "X/Y possedes". Si la collection est complete (X == Y), afficher "COMPLET" en vert.</li>
+        <li><strong>Hover sur carte :</strong> Description de la collection (si presente) en tooltip. Bordure lumineuse.</li>
+        <li><strong>Click sur carte :</strong> Ouvre le popup de collection (voir ci-dessous).</li>
+      </ul>
+
+      <h3>Popup de collection (modal overlay)</h3>
+      <p>Quand le joueur clique sur une carte collection, un panneau modal s'ouvre par-dessus le GUI principal (fond assombri).</p>
+
+      <div class="ascii-diagram"><span class="ac">+==============================================================+</span>
+<span class="ac">|</span>  <span class="ay">SET SAMOURAI</span>                                     <span class="ar">[X fermer]</span>  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">L'armure ancestrale des guerriers de l'Est...</span>               <span class="ac">|</span>
+<span class="ac">+--------------------------------------------------------------+</span>
+<span class="ac">|</span>                                                              <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">[v] Casque Samourai</span>    <span class="ag">[v] Plastron Samourai</span>    <span class="ar">[X] ???</span>    <span class="ac">|</span>
+<span class="ac">|</span>      (HELMET)              (CHESTPLATE)          (LEGGINGS) <span class="ac">|</span>
+<span class="ac">|</span>                                                              <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">[v] Bottes Samourai</span>    <span class="ar">[X] ???</span>                              <span class="ac">|</span>
+<span class="ac">|</span>      (BOOTS)              (BACKPACK)                         <span class="ac">|</span>
+<span class="ac">|</span>                                                              <span class="ac">|</span>
+<span class="ac">+--------------------------------------------------------------+</span>
+<span class="ac">|</span>  <span class="av">[  Obtenir un item de cette collection — 500 Eris  ]</span>        <span class="ac">|</span>
+<span class="ac">+==============================================================+</span>
+
+<span class="as">[v] = possede (nom affiche, fond vert clair)</span>
+<span class="as">[X] = non possede (nom cache "???", fond rouge clair, croix rouge)</span></div>
+
+      <h3>Elements du popup</h3>
+      <ul>
+        <li><strong>Header :</strong> Nom de la collection + bouton fermer (X).</li>
+        <li><strong>Description :</strong> Texte de description de la collection (si presente dans collection.info).</li>
+        <li><strong>Grille des cosmetiques :</strong> Affiche TOUS les cosmetiques de la collection. Chaque cellule montre le nom (ou "???" si non possede), le slot entre parentheses, et un indicateur possede/non possede.</li>
+        <li><strong>Possede :</strong> Fond vert clair, check vert, nom complet visible.</li>
+        <li><strong>Non possede :</strong> Fond rouge clair, croix rouge, nom remplace par "???".</li>
+        <li><strong>Bouton "Obtenir" :</strong> En bas du popup. Affiche le prix. Desactive (grise) si le joueur n'a pas assez d'Eris OU si tous les cosmetiques sont deja possedes. Cliquer lance la roulette.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S8 — ROULETTE D'OUVERTURE ═══ -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num cyan-num">08</span> Roulette d'Ouverture</h2>
+
+      <h3 class="first">Principe</h3>
+      <p>Quand le joueur clique "Obtenir un item de cette collection", une animation de roulette style CSGO s'affiche. La roulette contient <strong>uniquement les cosmetiques non possedes</strong> de cette collection, afin de garantir zero doublons.</p>
+
+      <h3>Determination du resultat</h3>
+      <p>Le resultat est determine <strong>cote serveur</strong> AVANT que la roulette ne commence. La sequence est :</p>
+      <ul>
+        <li><strong>1. Client :</strong> Envoie un packet <code>PacketCosmeticPurchase</code> avec le <code>collectionId</code>.</li>
+        <li><strong>2. Serveur :</strong> Valide (solde suffisant, au moins 1 cosmetique non possede). Deduit les Eris. Choisit aleatoirement un cosmetique parmi les non-possedes (probabilite egale). L'ajoute a <code>ownedCosmetics</code>. Sauvegarde. Envoie un packet <code>PacketCosmeticResult</code> au client avec le <code>cosmeticFullId</code> gagnant.</li>
+        <li><strong>3. Client :</strong> Recoit le resultat et lance l'animation de roulette qui est <strong>predeterminee</strong> pour s'arreter sur l'item gagnant.</li>
+      </ul>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Anti-triche :</strong> Le resultat est TOUJOURS determine cote serveur. Le client ne fait qu'afficher l'animation. Un client modifie ne peut pas influencer le resultat. Les Eris sont deduites AVANT l'envoi du resultat — si le client deconnecte pendant la roulette, le cosmetique est quand meme attribue.</div>
+      </div>
+
+      <h3>Animation de la roulette</h3>
+
+      <div class="ascii-diagram"><span class="as">Phase 1 — Acceleration (0.5 sec)</span>
+<span class="ac">    |  ???  |  Casque  |  ???  |  Bottes  |  ???  |</span>
+<span class="ac">                   ▼ (curseur)</span>
+<span class="as">Les cellules defilent de droite a gauche, de plus en plus vite.</span>
+
+<span class="as">Phase 2 — Vitesse constante (2-3 sec)</span>
+<span class="ac">    |  ???  |  Plastron  |  ???  |  Casque  |  ???  |</span>
+<span class="ac">                      ▼</span>
+<span class="as">Defilement rapide a vitesse constante.</span>
+
+<span class="as">Phase 3 — Deceleration (2-3 sec)</span>
+<span class="ac">    |  ???  |  Bottes  |  [CASQUE SAMOURAI]  |  ???  |</span>
+<span class="ac">                              ▼</span>
+<span class="as">Ralentissement progressif (easing EASE_OUT_CUBIC).</span>
+<span class="as">Le defilement s'arrete pile sur l'item gagnant.</span>
+
+<span class="as">Phase 4 — Revelation (0.5 sec)</span>
+<span class="ag">    ★ ★ ★  CASQUE SAMOURAI  ★ ★ ★</span>
+<span class="as">L'item gagnant s'agrandit (scale animation), particules dorees,</span>
+<span class="as">flash lumineux, son de celebration.</span></div>
+
+      <h3>Details techniques de la roulette</h3>
+      <ul>
+        <li><strong>Bande horizontale :</strong> La roulette est un ruban horizontal de cellules (chacune ~120x80 pixels design). Chaque cellule affiche le nom d'un cosmetique non possede (ou le nom du cosmetique gagnant a la position finale).</li>
+        <li><strong>Remplissage :</strong> La bande contient les cosmetiques non possedes repetes en boucle (pour creer l'illusion d'un defilement infini). Minimum 30 cellules visibles dans le deplacement total.</li>
+        <li><strong>Position finale :</strong> Le cosmetique gagnant est place a une position predeterminee dans la bande (par exemple, cellule #25 sur 30). L'animation est calculee pour que le curseur central s'arrete exactement sur cette cellule.</li>
+        <li><strong>Easing :</strong> Phase acceleration = <code>EASE_IN_CUBIC</code>. Phase deceleration = <code>EASE_OUT_CUBIC</code>. Utiliser <code>AnimationManager</code> d'EriAPI.</li>
+        <li><strong>Duree totale :</strong> 5-6 secondes du clic au resultat final.</li>
+        <li><strong>Son :</strong> Un "tick" sonore a chaque cellule qui passe sous le curseur (comme une roue de la fortune). Frequence croissante puis decroissante. Son de celebration a la fin.</li>
+      </ul>
+
+      <h3>Ecran post-roulette</h3>
+      <p>Apres la revelation, le popup affiche le cosmetique gagne avec :</p>
+      <ul>
+        <li>Le nom complet du cosmetique en grand</li>
+        <li>Le slot (Helmet, Chestplate, etc.)</li>
+        <li>Un bouton "Equiper" qui equipe immediatement le cosmetique dans le slot correspondant</li>
+        <li>Un bouton "Fermer" qui retourne au popup de collection (la grille est mise a jour — le cosmetique fraichement obtenu est maintenant marque comme possede)</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S9 — PACKETS RESEAU ═══ -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num green-num">09</span> Packets Reseau</h2>
+
+      <h3 class="first">Vue d'ensemble des packets</h3>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Packet</th>
+              <th>Direction</th>
+              <th>Declencheur</th>
+              <th>Contenu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>PacketCosmeticRegistrySync</td>
+              <td>Serveur &#8594; Client</td>
+              <td>Login du joueur, /cosmetic reload</td>
+              <td>Liste de toutes les collections et cosmetiques (IDs, noms, prix, slots). Pas les modeles/textures.</td>
+            </tr>
+            <tr>
+              <td>PacketCosmeticPlayerSync</td>
+              <td>Serveur &#8594; Client</td>
+              <td>Login, achat, equip/desequip</td>
+              <td>Liste des cosmetiques possedes et equipes du joueur + solde Eris.</td>
+            </tr>
+            <tr>
+              <td>PacketCosmeticModelSync</td>
+              <td>Serveur &#8594; Client</td>
+              <td>Quand un joueur a proximite porte un cosmetique que le client n'a pas en cache</td>
+              <td>model.json + texture.png du cosmetique concerne (chunked si > 32KB).</td>
+            </tr>
+            <tr>
+              <td>PacketCosmeticPurchase</td>
+              <td>Client &#8594; Serveur</td>
+              <td>Click "Obtenir" dans le GUI</td>
+              <td>collectionId (String).</td>
+            </tr>
+            <tr>
+              <td>PacketCosmeticResult</td>
+              <td>Serveur &#8594; Client</td>
+              <td>Apres validation serveur de l'achat</td>
+              <td>cosmeticFullId (String) gagne, nouveau solde Eris.</td>
+            </tr>
+            <tr>
+              <td>PacketCosmeticEquip</td>
+              <td>Client &#8594; Serveur</td>
+              <td>Click "Equiper" ou "Desequiper" dans le GUI profil/cosmetique</td>
+              <td>cosmeticFullId (String), action ("equip" ou "unequip").</td>
+            </tr>
+            <tr>
+              <td>PacketCosmeticEquipBroadcast</td>
+              <td>Serveur &#8594; Clients proches</td>
+              <td>Un joueur equipe/desequipe un cosmetique</td>
+              <td>playerUUID, slot, cosmeticFullId (ou vide si desequip). Envoye a tous les joueurs dans un rayon de 64 blocs.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Chunking des modeles/textures</h3>
+      <p>Les fichiers model.json et texture.png peuvent etre volumineux. Si la taille totale depasse <strong>32 KB</strong>, le packet est decouped en chunks de 30 KB. Le client reassemble les chunks et compile le modele une fois tous les chunks recus. Un timeout de 10 secondes par cosmetique evite les fuites memoire si un chunk est perdu.</p>
+
+      <div class="info-box tip">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Optimisation bande passante :</strong> Le PacketCosmeticEquipBroadcast n'est envoye qu'aux joueurs dans un rayon de 64 blocs (distance de rendu des joueurs). Les joueurs au-dela ne voient pas le modele de toute facon. Le PacketCosmeticModelSync n'est envoye que si le client ne l'a pas deja en cache (le client envoie un hash des modeles qu'il connait au login).</div>
+      </div>
+
+      <h3>Utilisation d'EriAPI Network</h3>
+      <p>Les packets simples (Purchase, Equip, Result) utilisent <code>GuiNetworkHandler.sendAction()</code> et <code>GuiNetworkHandler.sendData()</code> d'EriAPI. Les packets de sync lourds (RegistrySync, ModelSync) utilisent des packets custom enregistres via le channel reseau Forge standard, car ils depassent les capacites du system GUI d'EriAPI.</p>
+    </section>
+
+    <!-- ═══ S10 — COMMANDES & PERMISSIONS ═══ -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num gold-num">10</span> Commandes &amp; Permissions</h2>
+
+      <h3 class="first">Commandes joueur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Commande</th>
+              <th>Permission</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/cosmetic</code></td>
+              <td>Aucune (tous)</td>
+              <td>Ouvre le GUI boutique cosmetique</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Commandes admin</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Commande</th>
+              <th>Permission</th>
+              <th>Description</th>
+              <th>Auto-completion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/cosmetic reload</code></td>
+              <td><code>eriniumfaction.cosmetic.reload</code></td>
+              <td>Recharge le registre des cosmetiques depuis config/Cosmetics/. Sync les clients connectes.</td>
+              <td>N/A</td>
+            </tr>
+            <tr>
+              <td><code>/cosmetic give &lt;player&gt; &lt;cosmeticFullId&gt;</code></td>
+              <td><code>eriniumfaction.cosmetic.give</code></td>
+              <td>Donne un cosmetique specifique a un joueur (l'ajoute a sa liste de possedes).</td>
+              <td>Joueurs en ligne + IDs cosmetiques du registre</td>
+            </tr>
+            <tr>
+              <td><code>/cosmetic remove &lt;player&gt; &lt;cosmeticFullId&gt;</code></td>
+              <td><code>eriniumfaction.cosmetic.remove</code></td>
+              <td>Retire un cosmetique de la liste d'un joueur. Le desequipe s'il etait equipe.</td>
+              <td>Joueurs en ligne + IDs cosmetiques possedes par le joueur cible</td>
+            </tr>
+            <tr>
+              <td><code>/cosmetic givecollection &lt;player&gt; &lt;collectionId&gt;</code></td>
+              <td><code>eriniumfaction.cosmetic.give</code></td>
+              <td>Donne TOUS les cosmetiques d'une collection a un joueur.</td>
+              <td>Joueurs en ligne + IDs de collections</td>
+            </tr>
+            <tr>
+              <td><code>/cosmetic list [player]</code></td>
+              <td><code>eriniumfaction.cosmetic.list</code></td>
+              <td>Affiche les cosmetiques possedes par un joueur (ou soi-meme si pas d'argument).</td>
+              <td>Joueurs en ligne</td>
+            </tr>
+            <tr>
+              <td><code>/eris give &lt;player&gt; &lt;amount&gt;</code></td>
+              <td><code>eriniumfaction.eris.give</code></td>
+              <td>Ajoute des Eris au solde d'un joueur.</td>
+              <td>Joueurs en ligne</td>
+            </tr>
+            <tr>
+              <td><code>/eris remove &lt;player&gt; &lt;amount&gt;</code></td>
+              <td><code>eriniumfaction.eris.remove</code></td>
+              <td>Retire des Eris du solde d'un joueur (minimum 0).</td>
+              <td>Joueurs en ligne</td>
+            </tr>
+            <tr>
+              <td><code>/eris set &lt;player&gt; &lt;amount&gt;</code></td>
+              <td><code>eriniumfaction.eris.set</code></td>
+              <td>Definit le solde Eris d'un joueur a une valeur exacte.</td>
+              <td>Joueurs en ligne</td>
+            </tr>
+            <tr>
+              <td><code>/eris balance [player]</code></td>
+              <td><code>eriniumfaction.eris.balance</code></td>
+              <td>Affiche le solde Eris d'un joueur (ou soi-meme).</td>
+              <td>Joueurs en ligne</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ S11 — CAS LIMITES & SECURITE ═══ -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num red-num">11</span> Cas Limites &amp; Securite</h2>
+
+      <h3 class="first">Achats concurrents</h3>
+      <p>Si un joueur envoie plusieurs <code>PacketCosmeticPurchase</code> rapidement (spam-click), le serveur doit appliquer un <strong>cooldown de 1 seconde</strong> par joueur. Les requetes pendant le cooldown sont ignorees silencieusement. De plus, la deduction d'Eris et l'attribution du cosmetique doivent etre atomiques (synchronisees sur le thread serveur) pour eviter les race conditions.</p>
+
+      <h3>Collection complete</h3>
+      <p>Si un joueur possede deja TOUS les cosmetiques d'une collection, le bouton "Obtenir" est desactive. Cote serveur, si un packet d'achat arrive pour une collection complete, il est rejete avec un message d'erreur ("Vous possedez deja tous les cosmetiques de cette collection").</p>
+
+      <h3>Cosmetique supprime apres achat</h3>
+      <p>Si un admin supprime un dossier cosmetique du config puis fait <code>/cosmetic reload</code>, les joueurs qui possedaient ce cosmetique le gardent dans leur liste (les donnees joueur ne sont jamais modifiees automatiquement). Mais le cosmetique n'est plus affichable (modele introuvable). S'il etait equipe, il est desequipe. Le joueur peut toujours le voir dans sa liste de possedes avec un indicateur "indisponible".</p>
+
+      <h3>Deconnexion pendant la roulette</h3>
+      <p>Les Eris sont deduites et le cosmetique attribue AVANT l'envoi du <code>PacketCosmeticResult</code>. Si le joueur deconnecte pendant l'animation, il retrouvera le cosmetique dans sa liste a la prochaine connexion. Aucune perte, aucun remboursement necessaire.</p>
+
+      <h3>Solde Eris insuffisant</h3>
+      <p>Le serveur valide le solde AVANT la deduction. Si le solde est insuffisant, le packet est rejete avec un message d'erreur en chat ("Vous n'avez pas assez d'Eris pour cette collection").</p>
+
+      <h3>Rendu : joueur invisible ou en spectateur</h3>
+      <p>Les cosmetiques ne sont PAS rendus pour les joueurs invisibles (potion d'invisibilite) ou en mode spectateur. Le renderer check <code>player.isInvisible()</code> et <code>player.isSpectator()</code> avant tout rendu.</p>
+
+      <h3>Performance avec beaucoup de joueurs</h3>
+      <ul>
+        <li><strong>Broadcast cible :</strong> Le <code>PacketCosmeticEquipBroadcast</code> n'est envoye qu'aux joueurs dans un rayon de 64 blocs, pas a tout le serveur.</li>
+        <li><strong>Cache modeles :</strong> Les modeles GL sont compiles une seule fois et partages entre tous les joueurs portant le meme cosmetique. Pas de duplication GPU.</li>
+        <li><strong>Batching :</strong> Si plusieurs joueurs equippent/desequippent dans le meme tick, les broadcasts sont groupes en un seul packet par joueur recepteur.</li>
+        <li><strong>Culling :</strong> Les cosmetiques de joueurs hors du frustum de la camera ne sont pas rendus (verifier via <code>RenderManager.isDebugBoundingBox</code> ou frustum check).</li>
+      </ul>
+
+      <h3>Validation des fichiers config</h3>
+      <ul>
+        <li><strong>collection.info invalide :</strong> La collection entiere est ignoree. WARNING dans les logs avec le chemin du fichier et la raison.</li>
+        <li><strong>cosmetic.info invalide :</strong> Le cosmetique est ignore, la collection reste valide (sans ce cosmetique).</li>
+        <li><strong>model.json invalide :</strong> Le cosmetique est ignore. WARNING avec l'erreur de parsing JSON.</li>
+        <li><strong>texture.png manquante :</strong> Le cosmetique est ignore.</li>
+        <li><strong>Slot inconnu :</strong> Si le champ <code>slot</code> ne correspond a aucune valeur de l'enum, le cosmetique est ignore.</li>
+        <li><strong>Collection vide :</strong> Si une collection n'a aucun cosmetique valide apres le parsing, elle est quand meme affichee dans le GUI mais le bouton "Obtenir" est desactive.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S12 — PLAN DE TESTS ═══ -->
+    <section class="section-card" id="s12">
+      <h2><span class="s-num green-num">12</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests fonctionnels</h3>
+      <ul class="checklist">
+        <li>Le dossier config/Cosmetics/ est scanne correctement au demarrage du serveur</li>
+        <li>Les collections et cosmetiques invalides sont ignores avec des WARNINGs (pas de crash)</li>
+        <li>Le GUI boutique s'ouvre via keybind (V) et commande (/cosmetic)</li>
+        <li>Les collections s'affichent avec icone, nom, prix, compteur possedes</li>
+        <li>Le popup de collection affiche tous les cosmetiques (possedes vs non possedes)</li>
+        <li>Le bouton "Obtenir" est desactive quand : pas assez d'Eris, collection complete</li>
+        <li>L'achat deduit les Eris et attribue un cosmetique non possede aleatoirement</li>
+        <li>La roulette affiche correctement l'animation et s'arrete sur l'item gagne</li>
+        <li>Le cosmetique gagne est ajouté a la liste des possedes immediatement</li>
+        <li>Le bouton "Equiper" equipe le cosmetique dans le bon slot</li>
+        <li>Un cosmetique equipe remplace visuellement l'armure pour tous les joueurs a proximite</li>
+        <li>Desequiper un cosmetique restaure le rendu vanilla de l'armure</li>
+        <li>Le slot Backpack ajoute un modele sur le dos sans remplacer le plastron</li>
+      </ul>
+
+      <h3>Tests admin</h3>
+      <ul class="checklist">
+        <li>/cosmetic reload re-scanne le dossier et met a jour le registre sans redemarrage</li>
+        <li>/cosmetic give attribue correctement un cosmetique a un joueur</li>
+        <li>/cosmetic remove retire un cosmetique et le desequipe si equipe</li>
+        <li>/cosmetic givecollection donne tous les cosmetiques d'une collection</li>
+        <li>/cosmetic list affiche les possedes d'un joueur</li>
+        <li>/eris give/remove/set/balance fonctionnent correctement</li>
+        <li>L'auto-completion fonctionne pour tous les arguments de toutes les commandes</li>
+      </ul>
+
+      <h3>Tests de securite</h3>
+      <ul class="checklist">
+        <li>Spam-click sur "Obtenir" : un seul achat par seconde maximum (cooldown serveur)</li>
+        <li>Packet forge avec un collectionId inexistant : rejete sans crash</li>
+        <li>Packet forge avec un cosmeticFullId invalide dans PacketCosmeticEquip : rejete</li>
+        <li>Deconnexion pendant la roulette : cosmetique attribue, Eris deduites, pas de dupe</li>
+        <li>Client modifie envoyant des packets d'achat avec solde insuffisant : rejete cote serveur</li>
+      </ul>
+
+      <h3>Tests de performance</h3>
+      <ul class="checklist">
+        <li>Chargement du registre avec 50+ collections et 200+ cosmetiques : &lt; 2 secondes</li>
+        <li>Rendu de 50 joueurs avec cosmetiques a proximite : pas de drop de FPS &gt; 5%</li>
+        <li>PacketCosmeticEquipBroadcast avec 500 joueurs : broadcast cible uniquement (rayon 64)</li>
+        <li>/cosmetic reload avec joueurs connectes : pas de lag spike, sync propre</li>
+        <li>Cache modeles GL : pas de fuite memoire apres chargement/dechargement repete</li>
+      </ul>
+
+      <h3>Tests de rendu</h3>
+      <ul class="checklist">
+        <li>Modele casque suit la rotation de la tete (pitch + yaw)</li>
+        <li>Modele plastron suit les mouvements du corps (marche, sneaking)</li>
+        <li>Modeles jambieres/bottes suivent l'animation de marche (alternance jambes)</li>
+        <li>Modele backpack reste fixe sur le dos, ne traverse pas le modele joueur</li>
+        <li>Cosmetiques non rendus pour joueurs invisibles ou spectateurs</li>
+        <li>Cosmetiques non rendus pour joueurs hors du frustum camera</li>
+        <li>Pas de Z-fighting entre cosmetique et armure vanilla (le vanilla est bien supprime)</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('navToggle');
+  if (toggle) toggle.addEventListener('click', function() { sidebar.classList.toggle('open'); });
+
+  // Highlight active nav link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        navLinks.forEach(function(link) { link.classList.remove('active'); });
+        const active = document.querySelector('.nav-link[href="#' + entry.target.id + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(function(s) { observer.observe(s); });
+</script>
+</body>
+</html>

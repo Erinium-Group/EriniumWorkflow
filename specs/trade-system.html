@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Systeme de Trade | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #4AE0E0; --aetherite: #9B59B6; --erinium: #FFD700;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(74,224,224,0.09) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(255,215,0,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, #4AE0E0 40%, #FFD700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '>'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Architecture Technique</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Structures de Donnees</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Forge Container</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Interface Graphique</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Machine a Etats</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Packets Reseau</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Commandes &amp; Permissions</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Configuration</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Cas Limites &amp; Securite</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Integration Mail</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Systeme de Trade</h1>
+      <p>Echange securise entre deux joueurs avec un vrai Container Forge anti-duplication, validation mutuelle avec reset anti-scam, et support multi-actifs (items, XP, Dollars, Eris).</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-red">Anti-Duplication</span>
+        <span class="badge badge-green">Anti-Scam</span>
+        <span class="badge badge-gold">Multi-Actifs</span>
+        <span class="badge badge-cyan">Forge Container</span>
+        <span class="badge badge-violet">Validation Mutuelle</span>
+        <span class="badge badge-orange">Mail Fallback</span>
+      </div>
+    </div>
+
+    <!-- S1 — CONTEXTE & OBJECTIFS -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Vision du systeme</h3>
+      <p>Le trade est l'<strong>echange direct et securise</strong> entre deux joueurs. Contrairement au HDV (asynchrone), le trade est synchrone : les deux joueurs doivent etre en ligne, proches l'un de l'autre, et valider la transaction simultanement. Le systeme est concu avec une priorite absolue : <strong>zero duplication, zero scam</strong>.</p>
+      <p>Les joueurs peuvent echanger :</p>
+      <ul>
+        <li><strong>Items :</strong> n'importe quel ItemStack, via un vrai Container Forge (pas de GUI fictif).</li>
+        <li><strong>Experience (XP) :</strong> points d'XP bruts (pas des niveaux).</li>
+        <li><strong>Dollars ($) :</strong> monnaie principale du serveur.</li>
+        <li><strong>Eris :</strong> monnaie premium du serveur.</li>
+      </ul>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Zero duplication :</strong> les items dans le trade sont dans un vrai inventaire Forge (Container). Ils ne sont JAMAIS dans deux endroits en meme temps. Pas de copie, pas de reference, pas de "ghost item".</li>
+        <li><strong>Anti-scam :</strong> si l'un des deux joueurs modifie quoi que ce soit apres que l'autre ait valide, les DEUX validations sont reinitilisees. Le joueur scamme est force de relire le contenu avant de revalider.</li>
+        <li><strong>Validations serveur :</strong> toute la logique de trade est cote serveur. Le client n'est qu'un affichage. Aucune action client ne peut creer un etat incoherent.</li>
+        <li><strong>Timeout :</strong> un trade inactif expire apres un delai configurable (defaut: 2 minutes). Les items sont rendus.</li>
+        <li><strong>Proximite :</strong> les deux joueurs doivent etre a moins de X blocs l'un de l'autre (configurable, defaut: 10 blocs).</li>
+      </ul>
+
+      <h3>Ce que le systeme ne fait pas</h3>
+      <ul>
+        <li><strong>Pas de trade asynchrone :</strong> les deux joueurs doivent etre en ligne et proches. Pour l'asynchrone, il y a le HDV.</li>
+        <li><strong>Pas de trade force :</strong> le joueur cible doit accepter la demande de trade.</li>
+        <li><strong>Pas de trade avec soi-meme :</strong> un joueur ne peut pas se trader.</li>
+        <li><strong>Pas de trade pendant le combat :</strong> si l'un des joueurs est en combat tag, le trade est refuse.</li>
+      </ul>
+    </section>
+
+    <!-- S2 — ARCHITECTURE TECHNIQUE -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Architecture Technique</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <div class="ascii-diagram"><span class="av">Joueur A : /trade JoueurB</span>
+         <span class="as">|</span>
+         <span class="as">v</span>
+<span class="ac">+---------------------+</span>
+<span class="ac">| TradeManager        |</span>  <span class="as">(Singleton serveur)</span>
+<span class="ac">| - activeTrades{}    |</span>  <span class="as">Map&lt;UUID, TradeSession&gt; (par joueur)</span>
+<span class="ac">| - pendingRequests{} |</span>  <span class="as">Map&lt;UUID, TradeRequest&gt; (demandes en attente)</span>
+<span class="ac">+----------+----------+</span>
+           <span class="as">|</span>
+           <span class="as">v</span>
+<span class="ay">+---------------------+</span>
+<span class="ay">| TradeSession        |</span>  <span class="as">(Un par trade actif)</span>
+<span class="ay">| - playerA, playerB  |</span>
+<span class="ay">| - containerA (Forge)|</span>  <span class="as">Inventaire Container reel, 4 slots items par joueur</span>
+<span class="ay">| - containerB (Forge)|</span>
+<span class="ay">| - offersA, offersB  |</span>  <span class="as">XP, Dollars, Eris proposes</span>
+<span class="ay">| - confirmedA/B      |</span>  <span class="as">Etat de validation</span>
+<span class="ay">| - state (enum)      |</span>  <span class="as">NEGOTIATING, CONFIRMING, COMPLETING, CANCELLED</span>
+<span class="ay">+----------+----------+</span>
+           <span class="as">|</span>
+   <span class="as">+-------+-------+</span>
+   <span class="as">v</span>               <span class="as">v</span>
+<span class="ag">+----------+</span>  <span class="ar">+----------+</span>
+<span class="ag">| GuiTrade |</span>  <span class="ar">| GuiTrade |</span>
+<span class="ag">| Joueur A |</span>  <span class="ar">| Joueur B |</span>
+<span class="ag">+----------+</span>  <span class="ar">+----------+</span></div>
+
+      <h3>Package</h3>
+      <p>Toutes les classes dans <code>fr.eriniumgroup.eriniumfaction.trade</code>.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Classe</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td>TradeManager</td><td>Singleton serveur. Gere les demandes de trade, les sessions actives, les timeouts.</td></tr>
+            <tr><td>TradeSession</td><td>Represente un trade actif entre deux joueurs. Contient les Containers, les offres monetaires, et l'etat.</td></tr>
+            <tr><td>TradeRequest</td><td>Demande de trade en attente : initiateur, cible, timestamp d'expiration.</td></tr>
+            <tr><td>TradeOffer</td><td>POJO : int xpPoints, long dollars, long eris. Offre non-item d'un joueur.</td></tr>
+            <tr><td>TradeState</td><td>Enum : PENDING, NEGOTIATING, BOTH_CONFIRMED, COMPLETING, COMPLETED, CANCELLED.</td></tr>
+            <tr><td>ContainerTrade</td><td>Vrai Container Forge. 4 slots pour joueur A (gauche), 4 slots pour joueur B (droite), pas d'acces au slot de l'autre.</td></tr>
+            <tr><td>GuiTrade</td><td>GUI client (extends EriGuiScreen, implements IGuiDataReceiver). Affiche les deux cotes du trade.</td></tr>
+            <tr><td>TradeCommand</td><td>Commande /trade &lt;player&gt;.</td></tr>
+            <tr><td>TradeGuiHandler</td><td>IGuiHandler Forge pour ouvrir le ContainerTrade.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Container Forge obligatoire :</strong> Les items du trade DOIVENT etre dans un vrai <code>Container</code> Forge (extends <code>Container</code>). C'est la SEULE facon d'eviter la duplication. Les items dans un Container Forge sont geres par le systeme d'inventaire de Minecraft : slot source vide, slot destination plein, transaction atomique. Un GUI fictif (sans Container) permet la duplication car les items restent dans l'inventaire du joueur.</div>
+      </div>
+    </section>
+
+    <!-- S3 — STRUCTURES DE DONNEES -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Structures de Donnees</h2>
+
+      <h3 class="first">TradeSession</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">TradeSession</span> {
+    <span class="kw">private final</span> <span class="ty">UUID</span> sessionId;          <span class="cm">// ID unique du trade</span>
+    <span class="kw">private final</span> <span class="ty">EntityPlayerMP</span> playerA;  <span class="cm">// Initiateur</span>
+    <span class="kw">private final</span> <span class="ty">EntityPlayerMP</span> playerB;  <span class="cm">// Cible</span>
+    <span class="kw">private final</span> <span class="ty">ContainerTrade</span> container; <span class="cm">// Container Forge partage</span>
+    <span class="kw">private final</span> <span class="ty">TradeOffer</span> offerA;      <span class="cm">// Offre monetaire de A</span>
+    <span class="kw">private final</span> <span class="ty">TradeOffer</span> offerB;      <span class="cm">// Offre monetaire de B</span>
+    <span class="kw">private</span> <span class="ty">boolean</span> confirmedA;           <span class="cm">// A a valide</span>
+    <span class="kw">private</span> <span class="ty">boolean</span> confirmedB;           <span class="cm">// B a valide</span>
+    <span class="kw">private</span> <span class="ty">TradeState</span> state;             <span class="cm">// Etat actuel</span>
+    <span class="kw">private</span> <span class="ty">long</span> lastActivityTimestamp;   <span class="cm">// Timestamp de la derniere action</span>
+    <span class="kw">private</span> <span class="ty">long</span> createdAt;               <span class="cm">// Timestamp de creation</span>
+}</div>
+
+      <h3>TradeOffer</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">TradeOffer</span> {
+    <span class="kw">private</span> <span class="ty">int</span> xpPoints;    <span class="cm">// Points d'XP offerts (pas des niveaux)</span>
+    <span class="kw">private</span> <span class="ty">long</span> dollars;    <span class="cm">// Dollars offerts</span>
+    <span class="kw">private</span> <span class="ty">long</span> eris;       <span class="cm">// Eris offerts</span>
+
+    <span class="kw">public boolean</span> <span class="fn">isEmpty</span>() {
+        <span class="kw">return</span> xpPoints == <span class="nu">0</span> && dollars == <span class="nu">0</span> && eris == <span class="nu">0</span>;
+    }
+}</div>
+
+      <h3>TradeState (enum)</h3>
+      <div class="code-block"><span class="kw">public enum</span> <span class="cl">TradeState</span> {
+    <span class="an">PENDING</span>,        <span class="cm">// Demande envoyee, en attente d'acceptation</span>
+    <span class="an">NEGOTIATING</span>,    <span class="cm">// Les deux joueurs ajoutent des items/offres</span>
+    <span class="an">BOTH_CONFIRMED</span>, <span class="cm">// Les deux ont clique "Valider" — fenetre de 3 sec avant execution</span>
+    <span class="an">COMPLETING</span>,     <span class="cm">// Execution en cours (atomique, quelques ticks)</span>
+    <span class="an">COMPLETED</span>,      <span class="cm">// Trade termine avec succes</span>
+    <span class="an">CANCELLED</span>       <span class="cm">// Trade annule (timeout, deconnexion, annulation manuelle)</span>
+}</div>
+
+      <h3>TradeRequest</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">TradeRequest</span> {
+    <span class="kw">private final</span> <span class="ty">UUID</span> initiatorUUID;
+    <span class="kw">private final</span> <span class="ty">UUID</span> targetUUID;
+    <span class="kw">private final</span> <span class="ty">long</span> expiresAt;      <span class="cm">// Timestamp d'expiration (30 sec par defaut)</span>
+}</div>
+    </section>
+
+    <!-- S4 — FORGE CONTAINER -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Forge Container — Anti-Duplication</h2>
+
+      <h3 class="first">ContainerTrade</h3>
+      <p>Le <code>ContainerTrade</code> est un vrai Container Forge qui gere les inventaires des deux joueurs pendant le trade. C'est la piece maitresse de la securite anti-duplication.</p>
+
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">ContainerTrade</span> <span class="kw">extends</span> <span class="ty">Container</span> {
+    <span class="cm">// Slots 0-3  : Items offerts par joueur A (cote gauche du GUI)</span>
+    <span class="cm">// Slots 4-7  : Items offerts par joueur B (cote droit du GUI)</span>
+    <span class="cm">// Slots 8-43 : Inventaire du joueur actuel (36 slots standard)</span>
+
+    <span class="kw">private final</span> <span class="ty">IInventory</span> tradeInvA;  <span class="cm">// InventoryBasic(4 slots) pour A</span>
+    <span class="kw">private final</span> <span class="ty">IInventory</span> tradeInvB;  <span class="cm">// InventoryBasic(4 slots) pour B</span>
+
+    <span class="cm">// Le joueur A peut interagir avec les slots 0-3 (ses offres)</span>
+    <span class="cm">// Le joueur B peut interagir avec les slots 4-7 (ses offres)</span>
+    <span class="cm">// Aucun joueur ne peut toucher les slots de l'autre</span>
+
+    @<span class="an">Override</span>
+    <span class="kw">public</span> <span class="ty">ItemStack</span> <span class="fn">transferStackInSlot</span>(<span class="ty">EntityPlayer</span> player, <span class="ty">int</span> index) {
+        <span class="cm">// Shift-click : transfert depuis inventaire vers ses propres slots trade</span>
+        <span class="cm">// Et inversement</span>
+    }
+
+    @<span class="an">Override</span>
+    <span class="kw">public</span> <span class="ty">boolean</span> <span class="fn">canInteractWith</span>(<span class="ty">EntityPlayer</span> player) {
+        <span class="cm">// Verifie que le joueur fait partie du trade</span>
+        <span class="cm">// Verifie la proximite</span>
+    }
+
+    @<span class="an">Override</span>
+    <span class="kw">public</span> <span class="kw">void</span> <span class="fn">onContainerClosed</span>(<span class="ty">EntityPlayer</span> player) {
+        <span class="cm">// Rendre les items de CE joueur a son inventaire</span>
+        <span class="cm">// Si inventaire plein, drop au sol ou mail</span>
+    }
+}</div>
+
+      <h3>Pourquoi un vrai Container</h3>
+      <ul>
+        <li><strong>Atomicite Forge :</strong> quand un joueur place un item dans un slot du Container, l'item est RETIRE de son inventaire et PLACE dans le Container. Il n'existe qu'a un seul endroit a tout moment.</li>
+        <li><strong>Slot locking :</strong> les slots de l'autre joueur sont en lecture seule. Le Container refuse les interactions sur les slots qui ne lui appartiennent pas.</li>
+        <li><strong>onContainerClosed :</strong> si le GUI est ferme (deconnexion, Escape), Forge appelle automatiquement <code>onContainerClosed</code> qui rend les items. Pas de perte possible.</li>
+        <li><strong>Synchro native :</strong> Forge synchronise automatiquement le contenu du Container entre client et serveur. Pas besoin de packets custom pour les items.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Deux Container instances :</strong> Chaque joueur ouvre le meme Container logique via <code>IGuiHandler</code>. Joueur A voit le Container avec ses slots editables (0-3) et les slots de B en lecture seule (4-7). Joueur B voit l'inverse. Le mapping des slots est gere dans <code>ContainerTrade</code> en fonction du joueur qui ouvre.</div>
+      </div>
+
+      <h3>Gestion des 4 slots par joueur</h3>
+      <ul>
+        <li><strong>4 slots :</strong> volontairement limite a 4 slots (pas 27) pour simplifier le GUI et reduire les risques. Si un joueur veut echanger plus, il fait plusieurs trades.</li>
+        <li><strong>Slot restrictions :</strong> aucune restriction sur le type d'item. Tout item Minecraft valide peut etre trade.</li>
+        <li><strong>Stack size :</strong> respecte les stack sizes natifs des items (64 pour la plupart, 16 pour les oeufs, 1 pour les outils).</li>
+      </ul>
+    </section>
+
+    <!-- S5 — INTERFACE GRAPHIQUE -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num orange-num">05</span> Interface Graphique</h2>
+
+      <h3 class="first">GUI du trade</h3>
+      <div class="ascii-diagram"><span class="ac">+====================================================================+</span>
+<span class="ac">|</span>  <span class="ay">ECHANGE</span>                                            <span class="ar">[Annuler]</span>    <span class="ac">|</span>
+<span class="ac">|====================================================================|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">VOS OFFRES</span>                         <span class="ar">OFFRES DE JoueurB</span>             <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">---------------------------</span>       <span class="as">---------------------------</span>    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">[Dia x64] [Epee  ] [     ]</span>       <span class="ar">[Or x32 ] [Arc   ] [     ]</span>    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">[        ] [     ] [     ]</span>       <span class="ar">[       ] [      ] [     ]</span>    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">---------------------------</span>       <span class="as">---------------------------</span>    <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">XP   : [___500___]</span>                <span class="ar">XP   : 200</span>                     <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">$    : [__1,000__]</span>                <span class="ar">$    : 0</span>                       <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">Eris : [____50___]</span>                <span class="ar">Eris : 25</span>                      <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">-------------------------------------------------------------</span>   <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Votre validation :</span> <span class="ar">[ ] Non valide</span>                                <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Validation de JoueurB :</span> <span class="ag">[X] Valide</span>                              <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>                          <span class="ag">[    VALIDER L'ECHANGE    ]</span>              <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">=========================================================</span>       <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">[VOTRE INVENTAIRE — 36 slots]</span>                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">=========================================================</span>       <span class="ac">|</span>
+<span class="ac">+====================================================================+</span></div>
+
+      <h3>Elements du GUI</h3>
+      <ul>
+        <li><strong>Titre :</strong> "ECHANGE" avec le nom de l'autre joueur.</li>
+        <li><strong>Cote gauche (vert) :</strong> vos offres. 4 slots de Container interactifs + champs XP/$/Eris (NumericField). Le joueur place ses items via drag&amp;drop standard Forge.</li>
+        <li><strong>Cote droit (rouge) :</strong> offres de l'autre joueur. 4 slots en lecture seule (le Container refuse les interactions). Affichage des offres monetaires non editables.</li>
+        <li><strong>Champs monetaires :</strong> NumericField pour XP, Dollars, Eris. Le joueur saisit le montant qu'il offre. Max = ce qu'il possede.</li>
+        <li><strong>Statut de validation :</strong> deux indicateurs montrant si chaque joueur a valide. Checkbox non cliquable, mise a jour en temps reel via packet.</li>
+        <li><strong>Bouton Valider :</strong> quand le joueur clique, son indicateur passe a "Valide". Si les deux sont valides, un countdown de 3 secondes apparait avant l'execution.</li>
+        <li><strong>Bouton Annuler :</strong> annule le trade immediatement. Les items sont rendus.</li>
+        <li><strong>Inventaire :</strong> les 36 slots d'inventaire du joueur en bas (standard Forge Container).</li>
+      </ul>
+
+      <h3>Reset anti-scam</h3>
+      <p>C'est la mecanique de securite cle du trade :</p>
+      <ul>
+        <li><strong>Toute modification = reset :</strong> si un joueur modifie quoi que ce soit (ajoute/retire un item, change un montant XP/$/Eris), les DEUX validations sont reinitalisees (confirmedA = false, confirmedB = false).</li>
+        <li><strong>Notification visuelle :</strong> un flash rouge et un message "L'offre a ete modifiee — veuillez revalider" apparait pour les deux joueurs.</li>
+        <li><strong>Countdown annule :</strong> si un countdown de 3 secondes etait en cours, il est annule.</li>
+        <li><strong>Raison :</strong> empeche le scam classique ou un joueur retire un item a la derniere seconde apres que l'autre ait valide.</li>
+      </ul>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Synchronisation des offres monetaires :</strong> Les offres XP/$/Eris ne sont PAS dans le Container Forge (qui ne gere que les ItemStack). Elles sont synchronisees via des packets custom (<code>trade_update_offer</code>). Chaque modification d'un champ monetaire envoie un packet au serveur, qui met a jour la TradeSession et notifie l'autre joueur.</div>
+      </div>
+    </section>
+
+    <!-- S6 — MACHINE A ETATS -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num red-num">06</span> Machine a Etats</h2>
+
+      <h3 class="first">Flux complet du trade</h3>
+      <div class="ascii-diagram"><span class="av">1. /trade JoueurB</span>
+   <span class="as">|</span>
+   <span class="as">v</span>
+<span class="ay">[PENDING]</span> ----<span class="as">JoueurB refuse ou timeout 30s</span>----> <span class="ar">[CANCELLED]</span>
+   <span class="as">|</span>
+   <span class="as">JoueurB accepte (/trade accept ou clic chat)</span>
+   <span class="as">|</span>
+   <span class="as">v</span>
+<span class="ag">[NEGOTIATING]</span> ----<span class="as">Annulation ou timeout 2min</span>----> <span class="ar">[CANCELLED]</span>
+   <span class="as">|</span>                                                  <span class="as">|</span>
+   <span class="as">Les deux joueurs cliquent Valider</span>                  <span class="as">Items rendus</span>
+   <span class="as">|</span>
+   <span class="as">v</span>
+<span class="ac">[BOTH_CONFIRMED]</span> ----<span class="as">Modification = retour a</span>----> <span class="ag">[NEGOTIATING]</span>
+   <span class="as">|</span>
+   <span class="as">Countdown 3 secondes termine</span>
+   <span class="as">|</span>
+   <span class="as">v</span>
+<span class="ay">[COMPLETING]</span>
+   <span class="as">|</span>
+   <span class="as">Execution atomique :</span>
+   <span class="as">- Items A -> inventaire B</span>
+   <span class="as">- Items B -> inventaire A</span>
+   <span class="as">- XP/$/Eris transferes</span>
+   <span class="as">|</span>
+   <span class="as">v</span>
+<span class="ag">[COMPLETED]</span> <span class="as">--- Message de confirmation aux deux joueurs</span></div>
+
+      <h3>Details des transitions</h3>
+      <ul>
+        <li><strong>PENDING &rarr; NEGOTIATING :</strong> la cible accepte. Le serveur ouvre le ContainerTrade pour les deux joueurs via <code>IGuiHandler</code>.</li>
+        <li><strong>NEGOTIATING &rarr; BOTH_CONFIRMED :</strong> les deux <code>confirmedA</code> et <code>confirmedB</code> sont <code>true</code>. Un countdown de 3 secondes commence (affiche dans le GUI).</li>
+        <li><strong>BOTH_CONFIRMED &rarr; NEGOTIATING :</strong> n'importe quelle modification (Container change ou offre monetaire) reset les confirmations.</li>
+        <li><strong>BOTH_CONFIRMED &rarr; COMPLETING :</strong> le countdown de 3 secondes se termine sans modification. L'execution commence.</li>
+        <li><strong>COMPLETING &rarr; COMPLETED :</strong> l'execution atomique est terminee avec succes.</li>
+        <li><strong>Tout etat &rarr; CANCELLED :</strong> annulation manuelle, timeout, deconnexion, distance trop grande, mort d'un joueur.</li>
+      </ul>
+
+      <h3>Countdown de 3 secondes</h3>
+      <p>Le countdown sert a donner un dernier moment de reflexion aux deux joueurs. Pendant le countdown :</p>
+      <ul>
+        <li><strong>Un timer visuel</strong> est affiche (3... 2... 1...).</li>
+        <li><strong>Toute modification</strong> annule le countdown et reset les validations.</li>
+        <li><strong>Les joueurs peuvent encore annuler.</strong></li>
+        <li><strong>Implementation :</strong> <code>EriScheduler.delay(60, ...)</code> (3 secondes = 60 ticks) avec verification de l'etat avant execution.</li>
+      </ul>
+    </section>
+
+    <!-- S7 — PACKETS RESEAU -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num cyan-num">07</span> Packets Reseau</h2>
+
+      <h3 class="first">Architecture des packets</h3>
+      <p>Les items sont geres par le Container Forge (synchro native). Les packets custom ne gerent que les offres monetaires et l'etat du trade.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Action</th><th>Direction</th><th>Payload</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>trade_request</td><td>C &rarr; S</td><td>String targetName</td><td>Demande de trade (aussi via /trade).</td></tr>
+            <tr><td>trade_request_notify</td><td>S &rarr; C</td><td>String initiatorName, UUID initiatorUUID</td><td>Notification a la cible qu'un trade est demande.</td></tr>
+            <tr><td>trade_accept</td><td>C &rarr; S</td><td>UUID initiatorUUID</td><td>La cible accepte la demande.</td></tr>
+            <tr><td>trade_decline</td><td>C &rarr; S</td><td>UUID initiatorUUID</td><td>La cible refuse.</td></tr>
+            <tr><td>trade_update_offer</td><td>C &rarr; S</td><td>int xp, long dollars, long eris</td><td>Mise a jour de l'offre monetaire d'un joueur.</td></tr>
+            <tr><td>trade_sync_state</td><td>S &rarr; C</td><td>TradeOffer otherOffer, boolean otherConfirmed, boolean myConfirmed, TradeState state, int countdown</td><td>Synchronisation complete de l'etat du trade. Envoyee a chaque changement.</td></tr>
+            <tr><td>trade_confirm</td><td>C &rarr; S</td><td>(vide)</td><td>Le joueur valide le trade.</td></tr>
+            <tr><td>trade_unconfirm</td><td>C &rarr; S</td><td>(vide)</td><td>Le joueur annule sa validation.</td></tr>
+            <tr><td>trade_cancel</td><td>C &rarr; S</td><td>(vide)</td><td>Le joueur annule le trade.</td></tr>
+            <tr><td>trade_result</td><td>S &rarr; C</td><td>boolean success, String messageKey</td><td>Resultat final du trade (succes ou echec avec raison).</td></tr>
+            <tr><td>trade_reset_notify</td><td>S &rarr; C</td><td>String reason</td><td>Notification que les validations ont ete reset (modification detectee).</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Items via Container Forge :</strong> Les items n'apparaissent JAMAIS dans les packets custom. Ils sont geres entierement par le systeme de Container Forge qui a sa propre synchronisation client/serveur. Cela evite toute possibilite de manipulation de packets pour dupliquer des items.</div>
+      </div>
+    </section>
+
+    <!-- S8 — COMMANDES & PERMISSIONS -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num">08</span> Commandes &amp; Permissions</h2>
+
+      <h3 class="first">Commandes joueur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Description</th><th>Permission</th></tr></thead>
+          <tbody>
+            <tr><td>/trade &lt;player&gt;</td><td>Envoie une demande de trade au joueur cible. Le joueur doit etre en ligne et a proximite.</td><td>Aucune</td></tr>
+            <tr><td>/trade accept</td><td>Accepte la demande de trade la plus recente.</td><td>Aucune</td></tr>
+            <tr><td>/trade deny</td><td>Refuse la demande de trade la plus recente.</td><td>Aucune</td></tr>
+            <tr><td>/trade toggle</td><td>Active/desactive la reception des demandes de trade.</td><td>Aucune</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Commandes administrateur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Description</th><th>Permission</th></tr></thead>
+          <tbody>
+            <tr><td>/tradeadmin cancel &lt;player&gt;</td><td>Force l'annulation du trade d'un joueur. Items rendus.</td><td>eriniumfaction.trade.admin.cancel</td></tr>
+            <tr><td>/tradeadmin list</td><td>Liste tous les trades actifs sur le serveur.</td><td>eriniumfaction.trade.admin.list</td></tr>
+            <tr><td>/tradeadmin spy &lt;player&gt;</td><td>Voir le contenu du trade d'un joueur (items + offres) dans le chat.</td><td>eriniumfaction.trade.admin.spy</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Auto-completion</h3>
+      <ul>
+        <li><strong>&lt;player&gt; :</strong> suggestions dynamiques des joueurs en ligne a proximite (pour /trade) ou tous les joueurs en trade (pour /tradeadmin).</li>
+      </ul>
+
+      <h3>Message chat d'invitation</h3>
+      <p>Quand un joueur recoit une demande de trade, un message chat cliquable apparait :</p>
+      <div class="code-block"><span class="ay">[Trade]</span> <span class="st">JoueurA</span> <span class="as">vous propose un echange !</span>
+<span class="ag">[ACCEPTER]</span>  <span class="ar">[REFUSER]</span>   <span class="as">(expire dans 30 secondes)</span></div>
+    </section>
+
+    <!-- S9 — CONFIGURATION -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num gold-num">09</span> Configuration</h2>
+
+      <h3 class="first">Fichier : config/eriniumfaction/trade.cfg</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Parametre</th><th>Type</th><th>Defaut</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>trade.maxDistance</td><td>int</td><td>10</td><td>Distance max en blocs entre les deux joueurs pour initier et maintenir un trade.</td></tr>
+            <tr><td>trade.requestTimeoutSeconds</td><td>int</td><td>30</td><td>Duree avant expiration d'une demande de trade non acceptee.</td></tr>
+            <tr><td>trade.inactivityTimeoutSeconds</td><td>int</td><td>120</td><td>Duree d'inactivite avant annulation automatique du trade (2 min).</td></tr>
+            <tr><td>trade.confirmCountdownTicks</td><td>int</td><td>60</td><td>Duree du countdown apres double validation (60 ticks = 3 sec).</td></tr>
+            <tr><td>trade.slotsPerPlayer</td><td>int</td><td>4</td><td>Nombre de slots d'items par joueur dans le trade (1-9).</td></tr>
+            <tr><td>trade.allowInCombat</td><td>boolean</td><td>false</td><td>Autoriser le trade pendant le combat tag.</td></tr>
+            <tr><td>trade.maxXpPerTrade</td><td>int</td><td>10000</td><td>Points d'XP maximum offerts en une seule trade.</td></tr>
+            <tr><td>trade.maxDollarsPerTrade</td><td>long</td><td>1000000</td><td>Dollars maximum offerts en une seule trade.</td></tr>
+            <tr><td>trade.maxErisPerTrade</td><td>long</td><td>100000</td><td>Eris maximum offerts en une seule trade.</td></tr>
+            <tr><td>trade.cooldownSeconds</td><td>int</td><td>5</td><td>Cooldown entre deux demandes de trade successives (anti-spam).</td></tr>
+            <tr><td>trade.blacklistedItems</td><td>String[]</td><td>[]</td><td>Items interdits au trade (format "modid:name:meta").</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- S10 — CAS LIMITES & SECURITE -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num red-num">10</span> Cas Limites &amp; Securite</h2>
+
+      <h3 class="first">Anti-duplication</h3>
+      <ul>
+        <li><strong>Container Forge :</strong> la base de toute la securite. Les items sont dans le Container, pas dans deux inventaires a la fois.</li>
+        <li><strong>Pas de snapshot :</strong> le systeme ne prend JAMAIS de "copie" ou de "snapshot" des items. Il deplace les ItemStack reels.</li>
+        <li><strong>Execution atomique :</strong> l'echange final (COMPLETING) deplace les items dans le meme tick. Si une erreur survient, les items restent dans le Container et sont rendus via <code>onContainerClosed</code>.</li>
+        <li><strong>Lock de session :</strong> chaque joueur ne peut avoir qu'un seul trade actif. <code>TradeManager</code> refuse toute nouvelle demande si le joueur est deja en trade.</li>
+      </ul>
+
+      <h3>Anti-scam</h3>
+      <ul>
+        <li><strong>Reset de validation :</strong> toute modification (item ou montant) reset les deux validations. Le scam "je retire un item apres que tu aies valide" est impossible.</li>
+        <li><strong>Countdown :</strong> 3 secondes d'attente apres double validation. Donne le temps de voir la modification eventuelle.</li>
+        <li><strong>Lecture seule :</strong> les offres de l'autre joueur sont toujours visibles en lecture seule. Pas de zone cachee.</li>
+        <li><strong>Detection Container :</strong> le Container Forge appelle <code>detectAndSendChanges()</code> a chaque tick. Toute modification des slots est detectee cote serveur et declenche le reset.</li>
+      </ul>
+
+      <h3>Deconnexion</h3>
+      <ul>
+        <li><strong>Pendant NEGOTIATING :</strong> le Container se ferme automatiquement (<code>onContainerClosed</code>). Les items sont rendus a l'inventaire du joueur. Si l'inventaire est plein, les items sont envoyes par mail (type TRADE).</li>
+        <li><strong>Pendant BOTH_CONFIRMED :</strong> le countdown est annule. Meme comportement que NEGOTIATING.</li>
+        <li><strong>Pendant COMPLETING :</strong> ce state dure un seul tick. Si par miracle le serveur crash pendant ce tick, les items sont dans le Container et seront perdus. C'est le seul cas de perte possible et il est extremement improbable.</li>
+        <li><strong>Items de l'autre joueur :</strong> quand un joueur se deconnecte, SES items sont rendus a SON inventaire. Les items de l'AUTRE joueur sont rendus a l'AUTRE joueur.</li>
+      </ul>
+
+      <h3>Distance</h3>
+      <ul>
+        <li><strong>Verification continue :</strong> a chaque tick pendant le trade, la distance entre les deux joueurs est verifiee. Si elle depasse <code>maxDistance</code>, le trade est annule.</li>
+        <li><strong>Dimension :</strong> les deux joueurs doivent etre dans la meme dimension.</li>
+        <li><strong>Monde different :</strong> un changement de dimension annule le trade.</li>
+      </ul>
+
+      <h3>Validation des offres monetaires</h3>
+      <ul>
+        <li><strong>Verification au confirm :</strong> au moment ou les deux joueurs valident (pas au moment de la saisie), le serveur verifie que chaque joueur possede bien les XP/$/Eris offerts.</li>
+        <li><strong>Verification a l'execution :</strong> re-verification au moment de l'execution (3 sec plus tard). Si un joueur a depense ses $ entre-temps (via une autre commande), le trade est annule.</li>
+        <li><strong>Debit atomique :</strong> les montants sont debites PUIS credites dans le meme tick. Si le debit echoue, pas de credit.</li>
+      </ul>
+
+      <h3>Divers</h3>
+      <ul>
+        <li><strong>Trade avec soi-meme :</strong> refuse avec un message d'erreur.</li>
+        <li><strong>Combat tag :</strong> si <code>allowInCombat = false</code>, refuse avec un message "Vous etes en combat".</li>
+        <li><strong>Demandes multiples :</strong> un joueur ne peut avoir qu'une demande sortante a la fois. Les anciennes expirent.</li>
+        <li><strong>Toggle off :</strong> si la cible a desactive les demandes de trade, le demandeur recoit "Ce joueur n'accepte pas les trades".</li>
+        <li><strong>Items blacklisted :</strong> si un joueur tente de placer un item blackliste dans le Container, le serveur le refuse et le rend.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Edge case XP :</strong> L'XP Minecraft est stockee en points d'experience (pas en niveaux). Un joueur peut offrir plus de points qu'il n'en a en niveaux apparents (car la courbe XP est non-lineaire). Le systeme doit toujours travailler en POINTS bruts, pas en niveaux. Verification : <code>player.experienceTotal >= offeredXP</code>.</div>
+      </div>
+    </section>
+
+    <!-- S11 — INTEGRATION MAIL -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num green-num">11</span> Integration Mail</h2>
+
+      <h3 class="first">Fallback en cas d'inventaire plein</h3>
+      <p>Si les items du trade ne peuvent pas etre rendus a l'inventaire d'un joueur (deconnexion + inventaire plein), ils sont envoyes par mail :</p>
+      <ul>
+        <li><strong>Type :</strong> <code>MailSenderType.TRADE</code></li>
+        <li><strong>Message :</strong> "Trade annule — vos items ont ete renvoyes"</li>
+        <li><strong>Items :</strong> les ItemStack qui etaient dans les slots de trade du joueur</li>
+        <li><strong>Argent :</strong> aucun montant n'est inclus dans le mail (les offres monetaires ne sont pas debitees si le trade est annule)</li>
+      </ul>
+
+      <h3>Cas d'utilisation</h3>
+      <ul>
+        <li><strong>Deconnexion :</strong> le joueur se deconnecte avec des items dans le trade. <code>onContainerClosed</code> tente de les rendre. Si echec, mail.</li>
+        <li><strong>Crash serveur :</strong> les items dans le Container sont perdus (pas de persistence du Container). Le systeme de mail ne peut pas couvrir ce cas. C'est un risque accepte (tres rare).</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Priorite : inventaire > drop > mail.</strong> Le systeme tente d'abord de placer les items dans l'inventaire. Si impossible (plein + hors ligne), il envoie par mail. Le drop au sol n'est utilise que si le joueur est en ligne et que son inventaire est plein (cas ou <code>onContainerClosed</code> echoue et que le joueur est encore la).</div>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#128295;</span>
+        <div class="content"><strong>Implementation — livraison hors ligne :</strong> utiliser <code>MailManager.getInstance().sendMail(UUID, ...)</code> pour envoyer les items et l'argent aux joueurs hors ligne. Le MailManager fonctionne par UUID et ne necessite pas que le joueur soit connecte.</div>
+      </div>
+    </section>
+
+    <!-- S12 — PLAN DE TESTS -->
+    <section class="section-card" id="s12">
+      <h2><span class="s-num gold-num">12</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests fonctionnels</h3>
+      <ul class="checklist">
+        <li><strong>Trade basique :</strong> A offre 32 diamants, B offre $5,000. Les deux valident. Verifier : A recoit $5,000, B recoit 32 diamants, inventaires corrects.</li>
+        <li><strong>Trade multi-actifs :</strong> A offre 16 diamants + $500 + 200 XP. B offre 1 epee + 50 Eris. Verifier tous les transferts.</li>
+        <li><strong>Annulation :</strong> A place des items, B place des items, A clique Annuler. Verifier que tous les items sont rendus.</li>
+        <li><strong>Demande refusee :</strong> A demande un trade, B refuse. Verifier pas de GUI ouvert, message de refus.</li>
+        <li><strong>Timeout demande :</strong> A demande un trade, attendre 30 secondes. Verifier l'expiration.</li>
+        <li><strong>Timeout inactivite :</strong> ouvrir un trade, ne rien faire pendant 2 minutes. Verifier l'annulation.</li>
+        <li><strong>Toggle off :</strong> B fait /trade toggle, A essaie /trade B. Verifier le refus.</li>
+      </ul>
+
+      <h3>Tests anti-scam</h3>
+      <ul class="checklist">
+        <li><strong>Reset au retrait :</strong> A valide. B valide. A retire un diamant. Verifier : les deux validations sont reset.</li>
+        <li><strong>Reset a l'ajout :</strong> les deux valident. B ajoute un item. Verifier le reset.</li>
+        <li><strong>Reset montant :</strong> les deux valident. A change son offre de $500 a $400. Verifier le reset.</li>
+        <li><strong>Countdown annule :</strong> countdown en cours (3... 2...). A retire un item. Verifier : countdown annule, reset.</li>
+        <li><strong>Scam impossible :</strong> A et B valident. Pendant le countdown, A retire un item. B est notifie et doit revalider. Le trade ne s'execute pas.</li>
+      </ul>
+
+      <h3>Tests anti-duplication</h3>
+      <ul class="checklist">
+        <li><strong>Item dans Container :</strong> A place un diamant dans le trade. Verifier que le diamant n'est plus dans son inventaire.</li>
+        <li><strong>Double trade :</strong> A est en trade avec B. A essaie /trade C. Verifier le refus.</li>
+        <li><strong>Packet forge — slot interdit :</strong> forger un packet pour interagir avec les slots de l'autre joueur. Verifier le refus.</li>
+        <li><strong>Fermeture GUI :</strong> A place des items, ferme le GUI (Escape). Verifier que les items sont rendus.</li>
+        <li><strong>Deconnexion :</strong> A place des items, se deconnecte. Verifier que les items sont dans son inventaire a la reconnexion (ou en mail si plein).</li>
+        <li><strong>Execution atomique :</strong> trade reussi. Verifier que AUCUN item n'a ete duplique (compter le total avant/apres).</li>
+      </ul>
+
+      <h3>Tests monetaires</h3>
+      <ul class="checklist">
+        <li><strong>Solde insuffisant au confirm :</strong> A offre $10,000 mais n'a que $5,000. Les deux valident. Verifier l'erreur "Solde insuffisant".</li>
+        <li><strong>Solde change entre confirm et execution :</strong> A offre $10,000 et a $10,000. Les deux valident. Pendant le countdown, A depense $5,000 via /shop. Verifier l'annulation du trade.</li>
+        <li><strong>XP insuffisant :</strong> A offre 5000 XP mais n'en a que 3000. Verifier le refus.</li>
+        <li><strong>Montant negatif :</strong> forger un packet avec dollars = -1000. Verifier le refus.</li>
+        <li><strong>Montant > max :</strong> offrir $2,000,000 (max = 1,000,000). Verifier le clamp.</li>
+      </ul>
+
+      <h3>Tests de distance</h3>
+      <ul class="checklist">
+        <li><strong>Hors de portee :</strong> A est a 15 blocs de B (max = 10). /trade B. Verifier le refus.</li>
+        <li><strong>S'eloigner :</strong> trade en cours, A marche au-dela de 10 blocs. Verifier l'annulation apres 1-2 secondes de delai.</li>
+        <li><strong>Dimension differente :</strong> A teleporte dans le Nether pendant le trade. Verifier l'annulation.</li>
+      </ul>
+
+      <h3>Tests de performance</h3>
+      <ul class="checklist">
+        <li><strong>100 trades simultanes :</strong> 200 joueurs en 100 trades paralleles. Verifier l'impact TPS (&lt; 2ms/tick).</li>
+        <li><strong>Verification de distance :</strong> 100 trades actifs, verification de distance chaque tick. Mesurer le cout.</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+<script>
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', () => document.getElementById('sidebar').classList.remove('open'));
+});
+window.addEventListener('scroll', () => {
+  const sections = document.querySelectorAll('.section-card[id]');
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  document.querySelectorAll('.nav-link').forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+</body>
+</html>

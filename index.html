@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EriniumFaction — Accueil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* =========================================================
+       RESET & BASE
+    ========================================================= */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --violet:       #6B2FA0;
+      --violet-light: #9B59D0;
+      --violet-dim:   rgba(107, 47, 160, 0.18);
+      --cyan:         #00E5FF;
+      --cyan-dim:     rgba(0, 229, 255, 0.12);
+      --green:        #2ECC71;
+      --green-dim:    rgba(46, 204, 113, 0.15);
+      --bg:           #0A0A0F;
+      --bg2:          #0E0E16;
+      --slate:        #8892A4;
+      --slate-dim:    rgba(136, 146, 164, 0.12);
+      --white:        #F0F2FF;
+      --white-soft:   rgba(240, 242, 255, 0.7);
+      --border:       rgba(255, 255, 255, 0.06);
+      --border-hover: rgba(255, 255, 255, 0.12);
+      --glass-bg:     rgba(14, 14, 22, 0.55);
+      --glass-bg2:    rgba(20, 20, 35, 0.45);
+      --radius:       18px;
+      --radius-sm:    10px;
+      --shadow:       0 8px 40px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.4);
+      --shadow-hover: 0 16px 60px rgba(0,0,0,0.7), 0 4px 16px rgba(107,47,160,0.18);
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font);
+      background-color: var(--bg);
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* =========================================================
+       BACKGROUND — noise + radial gradients
+    ========================================================= */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 90vw 70vh at 10% 5%,  rgba(107, 47, 160, 0.28) 0%, transparent 65%),
+        radial-gradient(ellipse 70vw 55vh at 90% 85%, rgba(0, 229, 255, 0.13) 0%, transparent 65%),
+        radial-gradient(ellipse 55vw 45vh at 50% 50%, rgba(107, 47, 160, 0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 40vw 35vh at 80% 15%, rgba(0, 229, 255, 0.07) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    /* =========================================================
+       LAYOUT WRAPPER
+    ========================================================= */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px 100px;
+    }
+
+    /* =========================================================
+       ANIMATIONS
+    ========================================================= */
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 200% center; }
+      100% { background-position: -200% center; }
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(28px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    @keyframes float-orb {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50%       { transform: translateY(-18px) scale(1.04); }
+    }
+
+    .anim-fade-up {
+      opacity: 0;
+      animation: fadeUp 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .delay-0  { animation-delay: 0ms; }
+    .delay-1  { animation-delay: 80ms; }
+    .delay-2  { animation-delay: 160ms; }
+    .delay-3  { animation-delay: 240ms; }
+    .delay-4  { animation-delay: 320ms; }
+    .delay-5  { animation-delay: 400ms; }
+    .delay-6  { animation-delay: 480ms; }
+    .delay-7  { animation-delay: 560ms; }
+    .delay-8  { animation-delay: 640ms; }
+
+    /* =========================================================
+       HERO SECTION
+    ========================================================= */
+    .hero {
+      text-align: center;
+      padding: 96px 0 72px;
+      position: relative;
+    }
+
+    /* Floating orb behind hero title */
+    .hero-orb {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 520px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(107, 47, 160, 0.18) 0%, transparent 70%);
+      filter: blur(40px);
+      pointer-events: none;
+      animation: float-orb 6s ease-in-out infinite;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--glass-bg2);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 6px 18px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 28px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+      animation: pulse-dot 2.4s ease-in-out infinite;
+    }
+
+    .hero h1 {
+      font-size: clamp(54px, 9vw, 112px);
+      font-weight: 800;
+      letter-spacing: -0.045em;
+      line-height: 1.0;
+      background: linear-gradient(135deg, var(--white) 20%, var(--violet-light) 55%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 18px;
+      position: relative;
+    }
+
+    .hero-tagline {
+      font-size: clamp(16px, 2.2vw, 22px);
+      font-weight: 500;
+      color: var(--white-soft);
+      letter-spacing: 0.01em;
+      margin-bottom: 20px;
+    }
+
+    .hero-tagline span {
+      background: linear-gradient(90deg, var(--violet-light), var(--cyan));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 600;
+    }
+
+    .hero-desc {
+      max-width: 640px;
+      margin: 0 auto 0;
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--slate);
+      line-height: 1.75;
+    }
+
+    /* =========================================================
+       SECTION LABEL
+    ========================================================= */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--slate);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* =========================================================
+       NAV CARDS GRID
+    ========================================================= */
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 780px) {
+      .nav-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .nav-card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      background: var(--glass-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      padding: 32px 28px 28px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      transition:
+        transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.28s ease,
+        border-color 0.22s ease;
+    }
+
+    .nav-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(107, 47, 160, 0.07) 0%, rgba(0, 229, 255, 0.03) 100%);
+      pointer-events: none;
+      transition: opacity 0.28s ease;
+    }
+
+    /* Top accent line */
+    .nav-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 24px;
+      right: 24px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(107, 47, 160, 0.5), rgba(0, 229, 255, 0.4), transparent);
+      opacity: 0;
+      transition: opacity 0.28s ease;
+    }
+
+    .nav-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-hover);
+      border-color: var(--border-hover);
+    }
+
+    .nav-card:hover::before {
+      opacity: 1.5;
+    }
+
+    .nav-card:hover::after {
+      opacity: 1;
+    }
+
+    .nav-card:hover .nav-arrow {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+
+    .nav-card:hover .nav-icon {
+      color: var(--cyan);
+    }
+
+    /* Icon */
+    .nav-icon {
+      width: 48px;
+      height: 48px;
+      color: var(--violet-light);
+      margin-bottom: 20px;
+      transition: color 0.22s ease;
+      flex-shrink: 0;
+    }
+
+    /* Title */
+    .nav-card-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+    }
+
+    /* Description */
+    .nav-card-desc {
+      font-size: 13.5px;
+      font-weight: 400;
+      color: var(--slate);
+      line-height: 1.65;
+    }
+
+    /* Arrow */
+    .nav-arrow {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      font-size: 18px;
+      color: var(--cyan);
+      opacity: 0;
+      transform: translate(-4px, 4px);
+      transition:
+        opacity 0.22s ease,
+        transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+      font-weight: 300;
+      line-height: 1;
+    }
+
+    /* Card color variants — subtle top border glow on hover */
+    .nav-card.card-design:hover { border-color: rgba(155, 89, 208, 0.35); }
+    .nav-card.card-roadmap:hover { border-color: rgba(0, 229, 255, 0.30); }
+    .nav-card.card-specs:hover { border-color: rgba(46, 204, 113, 0.30); }
+
+    .nav-card.card-roadmap .nav-icon { color: var(--cyan); }
+    .nav-card.card-specs .nav-icon { color: var(--green); }
+    .nav-card.card-specs:hover .nav-icon { color: var(--green); }
+    .nav-card.card-specs .nav-arrow { color: var(--green); }
+
+    /* =========================================================
+       STATS BAR
+    ========================================================= */
+    .stats-bar {
+      background: var(--glass-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      padding: 28px 36px;
+      margin-bottom: 52px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stats-bar::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(107, 47, 160, 0.06) 0%, rgba(0, 229, 255, 0.03) 100%);
+      pointer-events: none;
+    }
+
+    /* Top shimmer line */
+    .stats-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(107, 47, 160, 0.6) 30%, rgba(0, 229, 255, 0.5) 70%, transparent 100%);
+      background-size: 200% 100%;
+      animation: shimmer 4s linear infinite;
+    }
+
+    .stats-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 24px;
+      position: relative;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      background: linear-gradient(135deg, var(--violet-light), var(--cyan));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.1;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--slate);
+      letter-spacing: 0.04em;
+      text-align: center;
+    }
+
+    .stat-divider {
+      width: 1px;
+      height: 48px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 640px) {
+      .stat-divider { display: none; }
+      .stats-inner { gap: 28px; }
+    }
+
+    /* =========================================================
+       QUICK INFO GRID
+    ========================================================= */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 52px;
+    }
+
+    @media (max-width: 780px) {
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .info-card {
+      background: var(--glass-bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 22px 24px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+      transition:
+        border-color 0.22s ease,
+        transform 0.22s ease;
+    }
+
+    .info-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+
+    .info-card-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--violet-light);
+      margin-bottom: 10px;
+    }
+
+    .info-card.cyan .info-card-eyebrow  { color: var(--cyan); }
+    .info-card.green .info-card-eyebrow { color: var(--green); }
+
+    .info-card-text {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--white-soft);
+      line-height: 1.65;
+    }
+
+    .info-card-text strong {
+      color: var(--white);
+      font-weight: 600;
+    }
+
+    /* =========================================================
+       FOOTER
+    ========================================================= */
+    .footer {
+      text-align: center;
+      padding: 48px 0 0;
+      border-top: 1px solid var(--border);
+      position: relative;
+    }
+
+    .footer-title {
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--slate);
+      letter-spacing: 0.02em;
+    }
+
+    .footer-title strong {
+      background: linear-gradient(90deg, var(--violet-light), var(--cyan));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+    }
+
+    .footer-dot {
+      display: inline-block;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--slate);
+      margin: 0 8px;
+      vertical-align: middle;
+      opacity: 0.5;
+    }
+
+    /* =========================================================
+       SECTION SPACING
+    ========================================================= */
+    .section {
+      margin-bottom: 48px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- =====================================================
+       HERO
+  ====================================================== -->
+  <section class="hero">
+    <div class="hero-orb"></div>
+
+    <div class="hero-eyebrow anim-fade-up delay-0">
+      Minecraft 1.12.2 &nbsp;&middot;&nbsp; Forge Mod &nbsp;&middot;&nbsp; EriniumGroup
+    </div>
+
+    <h1 class="anim-fade-up delay-1">EriniumFaction</h1>
+
+    <p class="hero-tagline anim-fade-up delay-2">
+      L&rsquo;re de l&rsquo;Erinium &mdash; <span>PvP Faction Nouvelle G&eacute;n&eacute;ration</span>
+    </p>
+
+    <p class="hero-desc anim-fade-up delay-3">
+      Un univers coh&eacute;rent o&ugrave; chaque m&eacute;canique existe pour une raison.
+      Progression organique, combat skill-based, magie cristalline,
+      et un endgame qui tient 6 mois.
+    </p>
+  </section>
+
+  <!-- =====================================================
+       NAV CARDS
+  ====================================================== -->
+  <section class="section">
+    <div class="section-label anim-fade-up delay-4">Navigation</div>
+
+    <div class="nav-grid">
+
+      <!-- Card 1 : Game Design -->
+      <a href="design.html" class="nav-card card-design anim-fade-up delay-5">
+        <!-- Cristal / diamant -->
+        <svg class="nav-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="24,4 40,16 40,32 24,44 8,32 8,16" />
+          <polygon points="24,4 32,16 24,28 16,16" />
+          <line x1="8" y1="16" x2="16" y2="16" />
+          <line x1="32" y1="16" x2="40" y2="16" />
+          <line x1="16" y1="16" x2="24" y2="28" />
+          <line x1="32" y1="16" x2="24" y2="28" />
+          <line x1="24" y1="28" x2="24" y2="44" />
+          <line x1="8" y1="32" x2="16" y2="16" />
+          <line x1="40" y1="32" x2="32" y2="16" />
+        </svg>
+        <div class="nav-card-title">Direction Artistique &amp; Game Design</div>
+        <div class="nav-card-desc">
+          Vision du projet, syst&egrave;mes RPG, magie, combat, &eacute;conomie et endgame.
+        </div>
+        <div class="nav-arrow">&rarr;</div>
+      </a>
+
+      <!-- Card 2 : Roadmap -->
+      <a href="roadmap.html" class="nav-card card-roadmap anim-fade-up delay-6">
+        <!-- Checklist / feuille de route -->
+        <svg class="nav-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="8" y="6" width="32" height="36" rx="4" />
+          <line x1="16" y1="16" x2="32" y2="16" />
+          <line x1="16" y1="24" x2="32" y2="24" />
+          <line x1="16" y1="32" x2="26" y2="32" />
+          <polyline points="8,13 12,17 8,21" stroke-width="0" fill="none" />
+          <!-- Check marks on left margin -->
+          <line x1="13" y1="15" x2="11" y2="17" />
+          <line x1="11" y1="17" x2="9"  y2="14" />
+          <line x1="13" y1="23" x2="11" y2="25" />
+          <line x1="11" y1="25" x2="9"  y2="22" />
+          <!-- Pending dot -->
+          <circle cx="11" cy="32" r="1.5" fill="currentColor" stroke="none" />
+        </svg>
+        <div class="nav-card-title">Roadmap de d&eacute;veloppement</div>
+        <div class="nav-card-desc">
+          Suivi en temps r&eacute;el de l&rsquo;avancement du projet. T&acirc;ches, progression, statuts.
+        </div>
+        <div class="nav-arrow">&rarr;</div>
+      </a>
+
+      <!-- Card 3 : Specs -->
+      <a href="specs/index.html" class="nav-card card-specs anim-fade-up delay-7">
+        <!-- Document technique -->
+        <svg class="nav-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 6h20l8 8v28H10z" />
+          <path d="M30 6v8h8" />
+          <line x1="16" y1="22" x2="32" y2="22" />
+          <line x1="16" y1="29" x2="32" y2="29" />
+          <line x1="16" y1="36" x2="24" y2="36" />
+          <!-- Code brackets on icon -->
+          <polyline points="17,22 14,25 17,28" stroke-width="1.3" />
+          <polyline points="21,22 24,25 21,28" stroke-width="1.3" />
+        </svg>
+        <div class="nav-card-title">Sp&eacute;cifications techniques</div>
+        <div class="nav-card-desc">
+          Cahiers des charges d&eacute;taill&eacute;s pour chaque syst&egrave;me. Architecture, API, donn&eacute;es.
+        </div>
+        <div class="nav-arrow">&rarr;</div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- =====================================================
+       STATS BAR
+  ====================================================== -->
+  <section class="section anim-fade-up delay-8">
+    <div class="stats-bar">
+      <div class="stats-inner">
+
+        <div class="stat-item">
+          <div class="stat-value">8</div>
+          <div class="stat-label">syst&egrave;mes planifi&eacute;s</div>
+        </div>
+
+        <div class="stat-divider"></div>
+
+        <div class="stat-item">
+          <div class="stat-value">1</div>
+          <div class="stat-label">en d&eacute;veloppement</div>
+        </div>
+
+        <div class="stat-divider"></div>
+
+        <div class="stat-item">
+          <div class="stat-value">35+</div>
+          <div class="stat-label">commandes faction</div>
+        </div>
+
+        <div class="stat-divider"></div>
+
+        <div class="stat-item">
+          <div class="stat-value">20</div>
+          <div class="stat-label">sorts magiques</div>
+        </div>
+
+        <div class="stat-divider"></div>
+
+        <div class="stat-item">
+          <div class="stat-value">4</div>
+          <div class="stat-label">&eacute;coles de magie</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       QUICK INFO
+  ====================================================== -->
+  <section class="section">
+    <div class="section-label anim-fade-up delay-0">En bref</div>
+
+    <div class="info-grid">
+
+      <div class="info-card anim-fade-up delay-1">
+        <div class="info-card-eyebrow">Stack technique</div>
+        <div class="info-card-text">
+          <strong>Forge 1.12.2</strong> &middot; <strong>Java 8</strong><br>
+          EriAPI Framework &middot; SpongePowered Mixin<br>
+          Gradle 5.6.4 &middot; ForgeGradle 3
+        </div>
+      </div>
+
+      <div class="info-card cyan anim-fade-up delay-2">
+        <div class="info-card-eyebrow">Saison</div>
+        <div class="info-card-text">
+          <strong>6&ndash;8 mois</strong> par saison<br>
+          Chapitres narratifs progressifs<br>
+          Guerres de Conqu&ecirc;te &middot; Endgame structur&eacute;
+        </div>
+      </div>
+
+      <div class="info-card green anim-fade-up delay-3">
+        <div class="info-card-eyebrow">Philosophie</div>
+        <div class="info-card-text">
+          <strong>Jouer = Progresser</strong><br>
+          Skill &gt; Gear &middot; Z&eacute;ro Pay-to-Win<br>
+          M&eacute;caniques coh&eacute;rentes &amp; intentionnelles
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =====================================================
+       FOOTER
+  ====================================================== -->
+  <footer class="footer anim-fade-up delay-4">
+    <p class="footer-title">
+      <strong>EriniumFaction</strong>
+      <span class="footer-dot"></span>
+      EriniumGroup
+      <span class="footer-dot"></span>
+      Minecraft 1.12.2 Forge
+    </p>
+  </footer>
+
+</div><!-- /page -->
+
+</body>
+</html>

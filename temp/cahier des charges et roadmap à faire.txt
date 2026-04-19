@@ -1,0 +1,104 @@
+Faudrait faire un cahier des charges et roadmap individuelle pour ces idées la :
+
+Système de mail :
+- Dans l'inventaire affiche un bouton "mail" ou une touche aussi
+	- Ouvre GUI des mails
+	- Utile pour recevoir des butins, items etc... quand le joueur est hors ligne (achat enchère, gift, etc..)
+
+- HDV hotel des ventes
+	- Possible de payer / vendre en dollars mais aussi en Eris (voir specs pour Eris)
+	- /hdv ou touche
+	- Permet de vendre une grosse quantité d'item et mettre un prix à l'unité
+	- Système de lucky block
+		- Ouvre une popup de 3 lignes de 9 slots, on peux remplir ou non cette popup d'item, ensuite on met le prix d'un lucky block, quand on achète un lucky block, nous donne un block avec un item pris au hasard parmis les différents slots rempli pour le mettre dans le block (ça prend le stack pas un item), le joueur pose et casse le block pour connaitre son butin. Sur le HDV on peux voir la ce que le lucky block propose. Quand on achète, ça update pas la preview pour pas que les joueurs ne sachent ce qu'il reste dedans.
+	- Page Enchère
+		- Permettre de mettre un ou un gros stack (limite d'un stack = ce que le joueur à dans son inventaire) d'item en enchère avec un prix de départ et une durée d'enchère, la fin d'enchère, le prix le plus chère est automatiquement envoyer au vendeurs et le butin automatiquement envoyer au joueur qui à enchérit (si hors ligne envoyer dans sa boite mail (idée dites plus haut))
+	- Page stats
+		- Onglet item : Quand on pose un item, affiche un graphique de quantité vendu x prix unité d'un item sur 7 jours
+	- Page mes ventes (Met item mis en vente, lucky block) permet de les annuler si on veut et récuperer ce qu'il reste de l'offre (Impossible d'annuler une enchère c'est tant pis pour lui)
+
+Système d'admin shop:
+	- Un simple admin shop avec une configuration type Json dans le dossier Config du serveur. Le prix des items dans la config sont les prix initale, ensuite l'admin shop aura un système automatique de monter et descente des prix de vente / achat d'un item selon son influence (stocker dans le monde). Possibilité de configurer: 
+		- Catégorie / Sous catégorie
+		- Un item (logique)
+			- Prix unité achat
+			- Prix unité vente
+			(Si un prix = -1 = pas possible)
+
+Système de trade
+	- Commande /trade joueur
+		- Ouvre un GUI avec le plus de sécurité possible contre la duplication / arnaque
+		- Doit être valider par les deux parties
+		- Si une personne change un truc les validations remis à zero pour sécurité anti arnaque
+		- Permet d'échanger :
+			- Items
+			- Xp
+			- Dollars
+			- Eris
+
+Système de cosmetique : (Système de cosmetique purement graphique ce n'est pas un item physique donc on peux pas le perdre)
+	(Faire un système purement intélligent pour eviter que le cosmetique ne doit être coder et init dans le mod, ajouter un système d'auto parser et ajout) genre dans le dossier Config ajouter un dossier "Comestics":
+		- Dossier = (Collection)
+			- Fichier interieur nommé : collection.info avec dedans:
+				- Nom FR de la collection
+				- Nom EN de la collection
+				- Prix de la lootbox de la collection unité (Eris)
+			- Image : icon.png en 64x64 mini si + = scale pour pas de soucis UI. (Icone de la collection)
+			- Dossier = (Cosmetic)
+				- Fichier interieur nommé : cosmetic.info
+					- Nom FR du cosmetic
+					- Nom EN du cosmetic
+					- Slot : Helmet, Chestplate, Leggings, Boots, Backpack
+				- Fichier Json (Modèle 3d du modèle)
+					- (Les assets du modèles doivent être dans ce même dossier)
+	- Cosmetique armure (remplace le render de l'armure par le modèle 3d du cosmetique)
+	- Cosmetique BackPack (sac à dos)
+	- (L'obtention de cosmetic sera intégrer dans un autres système)
+	- Gui Cosmetic Shop (Touche clavier ou /cosmetic)
+		- Affiche solde Eris
+		- Affiche dans un scroll panel toutes les collections qui existent avec le prix en Eris
+		- Quand on clique sur une collection :
+			- Ouvre une popup avec plus d'info sur la collection, affiche tout les cosmetiques de la collection, (cosmetique déjà posséder = CROIX ROUGE dessus bien visible)
+			- Bouton "Obtenir un item de cette collection" (Peut appuyer que si il reste au moins un item pas encore obtenu)
+				- Affiche une espèce de roulette horizontale comme les case opening CSGO avec dans la pool que les cosmetiques pas obtenu, accélération puis ralenti progressif jusqu'au butin puis affiche une petit animations de ce que le joueur à obtenu
+
+/topbal (Affiche le top 10 monnaie dollars)
+
+Système de profile :
+	- GUI ouvrable via une touche ou /profile
+		- Page stats
+			- Kill
+			- Death
+			- Assist
+			- Radio KDA
+			- Block miner
+			- Block placer
+		- Page cosmetique
+			- Permet de voir tout les cosmetiques qu'on possède (avec possibilité de trier intelligement)
+			- Permet d'équiper / changer un cosmetique sur soit
+
+Lootbox
+	( Comme les cosmetiques, configurer par le serveur dans le Dossier config et parser et init par le mod au lancement du serveur)
+	( Un block qu'on pose puis fait clique droit, le block à une animation d'ouverture puis fais propule au dessus de lui les items générer )
+	( les lootbox n'ont pas de craft car que par give (item premium) )
+	( Durant l'ouverture, le block est incassable et irrécupérable )
+	Rareté :
+	- Commun 62% (vert)
+	- Non commun 25% (bleu)
+	- Rare 6% (violet)
+	- Epic 5.39% (jaune)
+	- Legendaire 1% (orange)
+	- Mythique 0.61% (rouge)
+		- Dossier = (une Lootbox)
+			- Fichier interieur nommé : lootbox.info avec dedans:
+				- Nom FR de la lootbox
+				- Nom EN de la lootbox
+				- id du block pour l'enregistrement du mod
+				- qty item released by opening (Pour chaque rareté, on choisi combien d'item est pris dans la pool sera sorti à la l'ouverture du block)
+			- Texture PNG du modèle 3d (modèle 3d unique déjà enregistrer dans le mod)
+			- Fichier lootpool.json
+				- Entrée de chaque items (on peux avoir le même items plusieurs fois, mais pas la même quantité et rareté genre)
+					- Min qty
+					- Max qty
+					- rarity (voir au dessus)
+			

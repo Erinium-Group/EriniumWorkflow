@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Mode PvP Combat Tag | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --pink:      #E91E8C;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.16) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(231,76,60,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 60% 10%, rgba(0,229,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet-l) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet-l); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--pink); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 4px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.10);
+    border-color: rgba(107,47,160,0.28);
+  }
+
+  .sidebar-sep { height: 1px; background: var(--card-bdr); margin: 10px 0 4px; }
+
+  /* MAIN */
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* PAGE HEADER */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--red) 50%, var(--orange) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 680px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet { color: var(--violet-l); border-color: rgba(107,47,160,0.4);  background: rgba(107,47,160,0.1); }
+  .badge-cyan   { color: var(--cyan);     border-color: rgba(0,229,255,0.3);    background: rgba(0,229,255,0.07); }
+  .badge-green  { color: var(--green);    border-color: rgba(46,204,113,0.3);   background: rgba(46,204,113,0.07); }
+  .badge-red    { color: var(--red);      border-color: rgba(231,76,60,0.35);   background: rgba(231,76,60,0.08); }
+  .badge-gold   { color: var(--gold);     border-color: rgba(241,196,15,0.3);   background: rgba(241,196,15,0.07); }
+  .badge-pink   { color: var(--pink);     border-color: rgba(233,30,140,0.35);  background: rgba(233,30,140,0.08); }
+  .badge-orange { color: var(--orange);   border-color: rgba(230,126,34,0.35);  background: rgba(230,126,34,0.08); }
+
+  /* SECTION CARDS */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #c0342a 0%, var(--red) 100%); }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a7a40 0%, var(--green) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #c0960a 0%, var(--gold) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a04010 0%, var(--orange) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.pink-num   { background: linear-gradient(135deg, #a01060 0%, var(--pink) 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* TABLES */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.16); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.07); }
+
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes    { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(46,204,113,0.12); color:var(--green); border:1px solid rgba(46,204,113,0.3); letter-spacing:.05em; }
+  .tag-no     { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(231,76,60,0.12); color:var(--red); border:1px solid rgba(231,76,60,0.3); letter-spacing:.05em; }
+  .tag-crit   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(231,76,60,0.15); color:#E74C3C; border:1px solid rgba(231,76,60,0.3); letter-spacing:.05em; }
+  .tag-violet { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(107,47,160,0.15); color:var(--violet-l); border:1px solid rgba(107,47,160,0.3); letter-spacing:.05em; }
+  .tag-cyan   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(0,229,255,0.10); color:var(--cyan); border:1px solid rgba(0,229,255,0.25); letter-spacing:.05em; }
+  .tag-gold   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(241,196,15,0.12); color:var(--gold); border:1px solid rgba(241,196,15,0.3); letter-spacing:.05em; }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+
+  /* INFO BOXES */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.07);  border: 1px solid rgba(231,76,60,0.22);  }
+
+  /* TWO-COLUMN GRID */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 18px 0;
+  }
+
+  .col-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+  }
+
+  .col-card.blocked { border-left: 3px solid var(--red); }
+  .col-card.allowed { border-left: 3px solid var(--green); }
+
+  .col-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .col-card ul { gap: 4px; }
+  .col-card ul li { font-size: 12.5px; color: var(--slate); }
+  .col-card ul li::before { color: var(--violet-l); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a href="../roadmap.html" class="sidebar-back">&#8592; Roadmap</a>
+
+    <div class="sidebar-title">Sections</div>
+    <a href="#contexte"       class="nav-link"><span class="num">01</span>Contexte &amp; Objectifs</a>
+    <a href="#activation"     class="nav-link"><span class="num">02</span>Activation du Mode PvP</a>
+    <a href="#restrictions"   class="nav-link"><span class="num">03</span>Restrictions en Combat</a>
+    <a href="#combatlog"      class="nav-link"><span class="num">04</span>Combat Log (Deconnexion)</a>
+    <a href="#overlay"        class="nav-link"><span class="num">05</span>Overlay — Indicateur</a>
+    <a href="#architecture"   class="nav-link"><span class="num">06</span>Architecture Technique</a>
+    <a href="#integrations"   class="nav-link"><span class="num">07</span>Integrations Systemes</a>
+    <a href="#config"         class="nav-link"><span class="num">08</span>Configuration</a>
+    <a href="#messages"       class="nav-link"><span class="num">09</span>Messages / Lang</a>
+    <a href="#tests"          class="nav-link"><span class="num">10</span>Plan de Tests</a>
+
+    <div class="sidebar-sep"></div>
+    <div class="sidebar-title">Autres specs</div>
+    <a href="anti-cheat.html"          class="nav-link" style="font-size:12px;">Anti Cheat</a>
+    <a href="anti-usebug.html"         class="nav-link" style="font-size:12px;">Anti Use Bug</a>
+    <a href="faction-system.html"      class="nav-link" style="font-size:12px;">Faction System</a>
+    <a href="combat-extensions.html"   class="nav-link" style="font-size:12px;">Combat Extensions</a>
+    <a href="server-performance.html"  class="nav-link" style="font-size:12px;">Server Performance</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="eyebrow">PvP — Mecanique Serveur</div>
+      <h1>Mode PvP — Combat Tag</h1>
+      <p>Systeme de "combat mode" qui verrouille le joueur dans le combat pendant 15 secondes apres avoir recu ou inflige des degats PvP. Bloque les teleportations de fuite et penalise la deconnexion en cours de combat (combat log).</p>
+      <div class="header-badges">
+        <span class="badge badge-violet">Forge 1.12.2</span>
+        <span class="badge badge-red">PvP 1.8 (no cooldown)</span>
+        <span class="badge badge-cyan">Server-side</span>
+        <span class="badge badge-orange">Anti-fuite</span>
+        <span class="badge badge-gold">500-1000 joueurs</span>
+        <span class="badge badge-green">EriAPI + OverlayMod</span>
+      </div>
+    </div>
+
+    <!-- 01. CONTEXTE -->
+    <section class="section-card" id="contexte">
+      <h2><span class="s-num red-num">01</span>Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Problemes identifies</h3>
+      <p>Sur un serveur faction PvP 1.8, deux comportements brisent l'equilibre du combat :</p>
+      <ul>
+        <li><strong>Fuite par teleportation</strong> — Un joueur sur le point de mourir utilise <code>/home</code>, <code>/spawn</code>, <code>/tpa</code>, <code>/back</code>, <code>/f home</code> ou <code>/minage</code> pour sortir instantanement du combat. Sa mort est evitee artificiellement.</li>
+        <li><strong>Combat log</strong> — Un joueur ferme brutalement le jeu (Alt+F4, coupure reseau, crash) pour conserver ses items et eviter la mort. Sur un serveur sans protection, le personnage disparait simplement.</li>
+      </ul>
+      <p>Ces comportements sont particulierement impactants en PvP 1.8 (jitter click, pas de cooldown) ou les combats sont courts et intenses — 15 secondes de lock est la norme du secteur.</p>
+
+      <h3>Solution</h3>
+      <p>Un "Combat Tag" : des que deux joueurs echangent des coups, les deux entrent en mode combat pour 15 secondes (reconfigurable). Ce delai se remet a zero a chaque nouveau coup. Pendant ce temps :</p>
+      <ul>
+        <li>Toute commande de teleportation est bloquee avec un message d'erreur indicatif</li>
+        <li>Si le joueur se deconnecte, il est tue cote serveur et ses items sont deposes comme une mort normale (sans perk de retention ECO_MONOPOLY)</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">i</span>
+        <div class="content"><strong>PvP 1.8 :</strong> L'attribut ATTACK_SPEED est inutile sur ce serveur. Aucune mecanique du combat tag ne se base sur l'attack speed. La duree de 15 secondes est calibree pour le rythme rapide du PvP 1.8 sans cooldown.</div>
+      </div>
+    </section>
+
+    <!-- 02. ACTIVATION -->
+    <section class="section-card" id="activation">
+      <h2><span class="s-num red-num">02</span>Activation du Mode PvP</h2>
+
+      <h3 class="first">Conditions d'activation</h3>
+      <p>Le mode combat s'active via l'evenement <code>LivingHurtEvent</code> (apres reduction des degats, donc apres armure). Les conditions exactes :</p>
+      <ul>
+        <li><strong>Source de degats</strong> — <code>DamageSource.getTrueSource() instanceof EntityPlayerMP</code> est vrai</li>
+        <li><strong>Anti self-damage</strong> — La source et la cible sont des entites differentes (pas de self-inflict)</li>
+        <li><strong>Les deux joueurs</strong> — L'attaquant ET la victime entrent tous les deux en mode combat</li>
+        <li><strong>Reset du timer</strong> — Chaque nouveau coup PvP (dans n'importe quel sens) remet le compteur a 15 secondes pour les deux</li>
+      </ul>
+
+      <h3>Conditions de non-activation</h3>
+      <ul>
+        <li><strong>Safe zones</strong> — Si le chunk de la victime ou de l'attaquant est une safe zone (faction claim safe, spawn, etc.), le mode combat ne s'active pas</li>
+        <li><strong>Degats de mobs, chute, environnement</strong> — Uniquement les degats d'un autre joueur declenchent le combat tag</li>
+        <li><strong>Sorts AOE sur allies</strong> — Les degats de type <code>erinium_spell</code> appliques a un allie de faction ne declenchent pas le mode combat. En revanche, un sort AOE qui touche un ennemi <em>le</em> declenche normalement</li>
+        <li><strong>Duree zero</strong> — Si <code>combatDurationSeconds</code> est a 0 ou <code>enabled</code> est false dans la config, le systeme est desactive</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">!</span>
+        <div class="content"><strong>Note implementation :</strong> Utiliser <code>LivingHurtEvent</code> (post-armor) plutot que <code>LivingAttackEvent</code> (pre-armor) pour eviter d'activer le combat tag sur des coups bloques completement par l'armure ou annules par d'autres mods.</div>
+      </div>
+    </section>
+
+    <!-- 03. RESTRICTIONS -->
+    <section class="section-card" id="restrictions">
+      <h2><span class="s-num red-num">03</span>Restrictions en Mode Combat</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <p>Quand un joueur est en mode combat, les commandes de teleportation et toute action qui declencherait un warmup de teleportation sont bloquees. Le message affiche est en rouge : <code>Vous etes en combat ! Attendez Xs.</code></p>
+
+      <div class="two-col">
+        <div class="col-card blocked">
+          <div class="col-card-title"><span class="tag-crit">BLOQUEES</span> en mode combat</div>
+          <ul>
+            <li><code>/spawn</code></li>
+            <li><code>/home</code>, <code>/sethome</code></li>
+            <li><code>/warp</code></li>
+            <li><code>/tpa</code>, <code>/tpahere</code>, <code>/tpaccept</code></li>
+            <li><code>/back</code></li>
+            <li><code>/rtp</code></li>
+            <li><code>/f home</code> (teleport vers la base de faction)</li>
+            <li><code>/minage</code> (teleport vers le monde minier)</li>
+            <li>Tout warmup WarmupManager</li>
+          </ul>
+        </div>
+        <div class="col-card allowed">
+          <div class="col-card-title"><span class="tag-yes">AUTORISEES</span> en mode combat</div>
+          <ul>
+            <li><code>/f info</code>, <code>/f list</code>, <code>/f chat</code> (lecture seule)</li>
+            <li><code>/msg</code>, <code>/r</code> (messages prives)</li>
+            <li><code>/money</code>, <code>/eris</code> (lecture seule economie)</li>
+            <li><code>/ac</code>, <code>/servperf</code> (commandes admin)</li>
+            <li><code>/tp</code> admin (bypasse le combat tag — les admins ont toujours le contr&ocirc;le)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Implementation recommandee :</strong> Centraliser le check dans le WarmupManager. Avant de demarrer n'importe quel warmup, verifier <code>CombatManager.isInCombat(player.getUniqueID())</code>. Les commandes qui n'utilisent pas de warmup (comme <code>/f home</code> instantane) doivent faire leur propre check en debut de handler.</div>
+      </div>
+    </section>
+
+    <!-- 04. COMBAT LOG -->
+    <section class="section-card" id="combatlog">
+      <h2><span class="s-num red-num">04</span>Combat Log — Deconnexion en Combat</h2>
+
+      <h3 class="first">Definition</h3>
+      <p>Un "combat log" se produit quand un joueur se deconnecte <em>pendant</em> qu'il est en mode combat, quelle qu'en soit la raison : bouton Quitter, Alt+F4, coupure reseau, crash client.</p>
+
+      <h3>Comportement serveur</h3>
+      <p>A la reception de <code>PlayerEvent.PlayerLoggedOutEvent</code>, si le joueur est en mode combat :</p>
+      <ul>
+        <li><strong>Tuer le joueur cote serveur</strong> — Appeler un handler de mort special qui bypasse les perks de retention (ECO_MONOPOLY)</li>
+        <li><strong>Drop 100% des items</strong> — Le perk ECO_MONOPOLY (qui permet de garder 50% des items a la mort) est ignore. C'est une penalite intentionnelle pour la fuite.</li>
+        <li><strong>Credit de kill</strong> — Le dernier attaquant (UUID stocke dans CombatData) recoit le credit de kill (compteur kills, XP, etc.)</li>
+        <li><strong>Broadcast</strong> — Message diffuse a tous les joueurs en ligne : <code>[Combat] NomDuJoueur a fui le combat et a ete tue.</code></li>
+        <li><strong>Log admin</strong> — L'evenement est logue pour review admin (timestamp, joueur, dernier attaquant, coordonnees)</li>
+      </ul>
+
+      <div class="info-box danger">
+        <span class="icon">!</span>
+        <div class="content"><strong>Securite :</strong> L'anti-cheat ne doit pas penaliser le joueur mort cote serveur pour des violations de mouvement apres sa mort. Exempter les combat-log kills des checks velocity/position de l'anti-cheat.</div>
+      </div>
+
+      <h3>Cas particulier : mort normale pendant le combat</h3>
+      <p>Si le joueur meurt normalement (PvP, chute, etc.) pendant le mode combat, le combat mode est efface et le flux de mort normal s'applique (ECO_MONOPOLY actif). Seule la <em>deconnexion</em> en combat bypass ECO_MONOPOLY.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>ECO_MONOPOLY</th>
+              <th>Kill credit</th>
+              <th>Broadcast</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Mort normale en combat (PvP)</td>
+              <td><span class="tag-yes">Actif</span></td>
+              <td><span class="tag-yes">Attaquant</span></td>
+              <td>Non</td>
+            </tr>
+            <tr>
+              <td>Mort normale hors combat</td>
+              <td><span class="tag-yes">Actif</span></td>
+              <td>N/A</td>
+              <td>Non</td>
+            </tr>
+            <tr>
+              <td>Deconnexion en combat (combat log)</td>
+              <td><span class="tag-no">Bypasse</span></td>
+              <td><span class="tag-yes">Dernier attaquant</span></td>
+              <td><span class="tag-yes">Oui</span></td>
+            </tr>
+            <tr>
+              <td>Deconnexion hors combat</td>
+              <td>N/A</td>
+              <td>N/A</td>
+              <td>Non</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 05. OVERLAY -->
+    <section class="section-card" id="overlay">
+      <h2><span class="s-num">05</span>Overlay — Indicateur Combat</h2>
+
+      <h3 class="first">Description visuelle</h3>
+      <p>Un petit overlay affiche l'etat du combat mode en temps reel. Il n'apparait que quand le joueur est en mode combat et disparait quand le timer expire.</p>
+      <ul>
+        <li><strong>Icone</strong> — Epees croisees (&#9876;) ou icone epee — symbole universellement reconnu pour le combat</li>
+        <li><strong>Texte countdown</strong> — "15s", "14s", ..., "1s" — mis a jour chaque seconde</li>
+        <li><strong>Couleur</strong> — Fond rouge semi-transparent (<code>0xCC CC2200</code>), texte blanc, bordure rouge vif</li>
+        <li><strong>Position par defaut</strong> — Top center (configurable via l'editeur d'overlay)</li>
+        <li><strong>Layer</strong> — <code>POST_ALL</code> (au-dessus de tout le reste du HUD)</li>
+      </ul>
+
+      <h3>Implementation</h3>
+      <p>L'overlay est un <code>OverlayMod</code> EriAPI (extends OverlayMod, register via OverlayModManager). Il ne fait jamais de <code>RenderGameOverlayEvent</code> direct ni d'OpenGL brut.</p>
+      <p>Les donnees de combat (inCombat, secondsLeft) sont recues depuis le serveur via les champs <code>@Sync</code> de <code>CombatPlayerData</code>. Le client ne calcule pas lui-meme le countdown — il affiche ce que le serveur lui envoie chaque seconde via sync.</p>
+
+      <div class="info-box warn">
+        <span class="icon">!</span>
+        <div class="content"><strong>Regle absolue :</strong> Ne jamais utiliser <code>RenderGameOverlayEvent</code> avec OpenGL direct pour cet overlay. Toujours <code>extends OverlayMod</code> et <code>OverlayModManager.register()</code> conformement au systeme EriAPI.</div>
+      </div>
+    </section>
+
+    <!-- 06. ARCHITECTURE -->
+    <section class="section-card" id="architecture">
+      <h2><span class="s-num cyan-num">06</span>Architecture Technique</h2>
+
+      <h3 class="first">Package</h3>
+      <p>Toutes les classes du systeme combat tag sont dans : <code>fr.eriniumgroup.eriniumfaction.combat</code></p>
+
+      <h3>CombatManager (singleton serveur)</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">CombatManager</span> {
+    <span class="kw">private static</span> <span class="ty">CombatManager</span> INSTANCE;
+    <span class="cm">// UUID → CombatData (lastHitTick, lastAttackerUUID, inCombat)</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">UUID</span>, <span class="ty">CombatData</span>&gt; combatMap = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+
+    <span class="kw">public void</span> <span class="fn">enterCombat</span>(<span class="ty">EntityPlayerMP</span> player, <span class="ty">EntityPlayerMP</span> attacker);
+    <span class="kw">public boolean</span> <span class="fn">isInCombat</span>(<span class="ty">UUID</span> playerId);
+    <span class="kw">public int</span> <span class="fn">getRemainingSeconds</span>(<span class="ty">UUID</span> playerId);
+    <span class="kw">public void</span> <span class="fn">clearCombat</span>(<span class="ty">UUID</span> playerId);  <span class="cm">// appele a la mort normale</span>
+    <span class="kw">public void</span> <span class="fn">onServerTick</span>();  <span class="cm">// toutes les 20 ticks : expire les timers + sync clients</span>
+}</div>
+      <p>Performance : le <code>onServerTick()</code> ne s'execute que toutes les 20 ticks (1 seconde). Il itere uniquement les entrees actives dans <code>combatMap</code>, pas tous les joueurs du serveur. Les entrees expirees sont supprimees de la map.</p>
+
+      <h3>CombatData (POJO interne)</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">CombatData</span> {
+    <span class="kw">public long</span> lastHitTick;       <span class="cm">// tick du dernier coup PvP</span>
+    <span class="kw">public</span> <span class="ty">UUID</span> lastAttackerUUID;  <span class="cm">// dernier attaquant (pour kill credit)</span>
+}</div>
+
+      <h3>CombatEventHandler</h3>
+      <div class="code-block"><span class="an">@Mod.EventBusSubscriber</span>(modid = <span class="ty">EriniumFaction</span>.MODID)
+<span class="kw">public class</span> <span class="ty">CombatEventHandler</span> {
+
+    <span class="an">@SubscribeEvent</span>
+    <span class="kw">public static void</span> <span class="fn">onLivingHurt</span>(<span class="ty">LivingHurtEvent</span> e) {
+        <span class="cm">// Si source = EntityPlayerMP ET cible = EntityPlayerMP ET source != cible</span>
+        <span class="cm">// ET pas en safe zone → CombatManager.enterCombat(victim, attacker)</span>
+    }
+
+    <span class="an">@SubscribeEvent</span>
+    <span class="kw">public static void</span> <span class="fn">onPlayerLogout</span>(<span class="ty">PlayerEvent.PlayerLoggedOutEvent</span> e) {
+        <span class="cm">// Si isInCombat(uuid) → executer le combat log kill</span>
+    }
+
+    <span class="an">@SubscribeEvent</span>
+    <span class="kw">public static void</span> <span class="fn">onPlayerDeath</span>(<span class="ty">LivingDeathEvent</span> e) {
+        <span class="cm">// Si joueur meurt normalement → clearCombat(uuid)</span>
+    }
+}</div>
+
+      <h3>CombatPlayerData (@EriData)</h3>
+      <div class="code-block"><span class="an">@EriData</span>(modId = <span class="st">"eriniumfaction"</span>, scope = <span class="ty">DataScope</span>.PLAYER, persistOnDeath = <span class="kw">false</span>)
+<span class="kw">public class</span> <span class="ty">CombatPlayerData</span> {
+    <span class="an">@Sync</span> <span class="kw">public boolean</span> inCombat = <span class="kw">false</span>;
+    <span class="an">@Sync</span> <span class="kw">public int</span> combatSecondsLeft = <span class="nu">0</span>;
+    <span class="cm">// Ces deux champs sont automatiquement synces au client via EriAPI</span>
+    <span class="cm">// Le CombatOverlay lit ces valeurs cote client</span>
+}</div>
+
+      <h3>CombatOverlay (client-side)</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">CombatOverlay</span> <span class="kw">extends</span> <span class="ty">OverlayMod</span> {
+    <span class="cm">// Lit CombatPlayerData.inCombat et combatSecondsLeft</span>
+    <span class="cm">// Si inCombat = false → ne rend rien</span>
+    <span class="cm">// Si inCombat = true → affiche icone + "Xs" en rouge</span>
+    <span class="cm">// Layer : POST_ALL</span>
+    <span class="cm">// Enregistrement : OverlayModManager.register(new CombatOverlay())</span>
+}</div>
+
+      <h3>CombatConfig (@EriConfig)</h3>
+      <div class="code-block"><span class="an">@EriConfig</span>(modid = <span class="ty">EriniumFaction</span>.MODID, filename = <span class="st">"eriniumfaction_combat"</span>)
+<span class="kw">public class</span> <span class="ty">CombatConfig</span> {
+    <span class="kw">public static boolean</span> enabled                    = <span class="kw">true</span>;
+    <span class="kw">public static int</span> combatDurationSeconds           = <span class="nu">15</span>;
+    <span class="kw">public static boolean</span> killOnCombatLog             = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> bypassMonopolyOnCombatLog   = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> broadcastCombatLog          = <span class="kw">true</span>;
+}</div>
+    </section>
+
+    <!-- 07. INTEGRATIONS -->
+    <section class="section-card" id="integrations">
+      <h2><span class="s-num gold-num">07</span>Integrations avec les Systemes Existants</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Systeme</th>
+              <th>Integration requise</th>
+              <th>Priorite</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>WarmupManager</td>
+              <td>Verifier <code>CombatManager.isInCombat()</code> avant de demarrer tout warmup. Si true → annuler + message</td>
+              <td><span class="tag-crit">Critique</span></td>
+            </tr>
+            <tr>
+              <td>CommandMinage (<code>/minage</code>)</td>
+              <td>Check combat au debut du handler, avant tout warmup ou teleportation instantanee</td>
+              <td><span class="tag-crit">Critique</span></td>
+            </tr>
+            <tr>
+              <td>FactionCommand (<code>/f home</code>)</td>
+              <td>Check combat avant de teleporter vers la base de faction</td>
+              <td><span class="tag-crit">Critique</span></td>
+            </tr>
+            <tr>
+              <td>DeathHandler</td>
+              <td>Appeler <code>CombatManager.clearCombat()</code> a chaque mort (normale ou combat log)</td>
+              <td><span class="tag-gold">Important</span></td>
+            </tr>
+            <tr>
+              <td>ECO_MONOPOLY perk</td>
+              <td>Transmettre un flag "isCombatLog" au handler de mort. Si true → skip le calcul de retention 50%</td>
+              <td><span class="tag-crit">Critique</span></td>
+            </tr>
+            <tr>
+              <td>DeathCorpseManager</td>
+              <td>Le combat log appelle le drop d'inventaire normal avec flag "dropAll". Corps cree comme une mort standard</td>
+              <td><span class="tag-gold">Important</span></td>
+            </tr>
+            <tr>
+              <td>Kill counter / stats</td>
+              <td>Crediter le dernier attaquant stocke dans CombatData (UUID lastAttackerUUID)</td>
+              <td><span class="tag-gold">Important</span></td>
+            </tr>
+            <tr>
+              <td>Anti-Cheat</td>
+              <td>Exempter le joueur tue par combat log des checks velocity et position pendant le processus de mort serveur</td>
+              <td><span class="tag-violet">Normal</span></td>
+            </tr>
+            <tr>
+              <td>Safe Zones</td>
+              <td>Verifier si le chunk est une safe zone avant d'activer le combat mode dans <code>LivingHurtEvent</code></td>
+              <td><span class="tag-crit">Critique</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 08. CONFIG -->
+    <section class="section-card" id="config">
+      <h2><span class="s-num">08</span>Configuration</h2>
+
+      <h3 class="first">Fichier</h3>
+      <p>Genere automatiquement par <code>@EriConfig</code> dans <code>run/config/eriniumfaction_combat.cfg</code>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cle</th>
+              <th>Valeur par defaut</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>enabled</td>
+              <td>true</td>
+              <td>Active ou desactive completement le systeme combat tag</td>
+            </tr>
+            <tr>
+              <td>combatDurationSeconds</td>
+              <td>15</td>
+              <td>Duree du mode combat en secondes. Reinitialisee a chaque coup PvP.</td>
+            </tr>
+            <tr>
+              <td>killOnCombatLog</td>
+              <td>true</td>
+              <td>Tuer le joueur qui se deconnecte en combat. Si false → uniquement un avertissement dans les logs.</td>
+            </tr>
+            <tr>
+              <td>bypassMonopolyOnCombatLog</td>
+              <td>true</td>
+              <td>Ignorer le perk ECO_MONOPOLY lors d'un combat log (100% des items droppes).</td>
+            </tr>
+            <tr>
+              <td>broadcastCombatLog</td>
+              <td>true</td>
+              <td>Diffuser un message public quand un joueur fait un combat log.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 09. MESSAGES -->
+    <section class="section-card" id="messages">
+      <h2><span class="s-num">09</span>Messages / Lang</h2>
+
+      <h3 class="first">Cles de traduction</h3>
+      <div class="code-block"><span class="cm"># Mode combat entree / sortie</span>
+eriniumfaction.combat.entered=Vous etes en mode combat ! (<span class="nu">15</span>s)
+eriniumfaction.combat.renewed=Mode combat renouvele ! (<span class="nu">15</span>s)
+eriniumfaction.combat.expired=Vous n'etes plus en combat.
+
+<span class="cm"># Commande bloquee</span>
+eriniumfaction.combat.blocked=Vous etes en combat ! Attendez <span class="nu">%d</span>s.
+
+<span class="cm"># Combat log</span>
+eriniumfaction.combat.log=&amp;c[Combat] %s a fui le combat et a ete tue.
+eriniumfaction.combat.log_broadcast=%s a quitte en plein combat et a ete tue !</div>
+
+      <h3>Notes de style</h3>
+      <ul>
+        <li>Les messages d'entree en combat sont envoyes en <strong>rouge</strong> via <code>EriChat</code></li>
+        <li>Le message "combat expired" est envoye en <strong>vert</strong> — le joueur est soulagé</li>
+        <li>Les messages de combat log utilisent le prefixe <code>[Combat]</code> en rouge pour etre immediatement identifies dans le chat</li>
+        <li>Le <code>%d</code> dans <code>blocked</code> est remplace par <code>getRemainingSeconds()</code></li>
+      </ul>
+    </section>
+
+    <!-- 10. TESTS -->
+    <section class="section-card" id="tests">
+      <h2><span class="s-num green-num">10</span>Plan de Tests</h2>
+
+      <h3 class="first">Tests fonctionnels</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>Resultat attendu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Joueur A frappe Joueur B</td>
+              <td>Les deux entrent en mode combat, overlay visible pour les deux</td>
+            </tr>
+            <tr>
+              <td>Joueur A en combat tente /home</td>
+              <td>Commande bloquee, message rouge "Vous etes en combat ! Attendez Xs"</td>
+            </tr>
+            <tr>
+              <td>Joueur A en combat tente /spawn</td>
+              <td>Commande bloquee idem</td>
+            </tr>
+            <tr>
+              <td>Joueur A en combat tente /f home</td>
+              <td>Teleportation bloquee, message rouge</td>
+            </tr>
+            <tr>
+              <td>Joueur A en combat tente /minage</td>
+              <td>Teleportation bloquee, message rouge</td>
+            </tr>
+            <tr>
+              <td>Timer expire (15s sans coup)</td>
+              <td>Mode combat efface, /home fonctionne, overlay disparait</td>
+            </tr>
+            <tr>
+              <td>Coup PvP a 14s restantes</td>
+              <td>Timer remis a 15s, overlay reset</td>
+            </tr>
+            <tr>
+              <td>Joueur A se deconnecte en combat</td>
+              <td>Tue cote serveur, items droppes (100%), broadcast, kill credit a B</td>
+            </tr>
+            <tr>
+              <td>ECO_MONOPOLY actif + combat log</td>
+              <td>100% des items droppes malgre le perk (bypass confirme)</td>
+            </tr>
+            <tr>
+              <td>Joueur en safe zone reçoit un coup</td>
+              <td>Mode combat NE s'active PAS</td>
+            </tr>
+            <tr>
+              <td>Sort AOE touche un allie</td>
+              <td>Mode combat NE s'active PAS pour l'allie</td>
+            </tr>
+            <tr>
+              <td>Sort direct touche un ennemi</td>
+              <td>Mode combat s'active normalement</td>
+            </tr>
+            <tr>
+              <td>Overlay visible uniquement en combat</td>
+              <td>Overlay absent hors combat, present pendant le mode combat</td>
+            </tr>
+            <tr>
+              <td>Config combatDurationSeconds = 30</td>
+              <td>Timer dure 30 secondes au lieu de 15</td>
+            </tr>
+            <tr>
+              <td>Config killOnCombatLog = false</td>
+              <td>Deconnexion en combat ne tue pas, uniquement log</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tests de performance (500-1000 joueurs)</h3>
+      <ul>
+        <li>1000 joueurs en mode combat simultane — verifier que <code>onServerTick</code> ne depasse pas 0.1 ms/tick</li>
+        <li>100 combats PvP simultanes — aucune fuite memoire dans <code>combatMap</code></li>
+        <li>Expiration massive de timers au meme tick — pas de spike TPS</li>
+        <li>Sync <code>CombatPlayerData</code> a 1000 joueurs — debit packets acceptable</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+</body>
+</html>

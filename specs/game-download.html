@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Telechargement &amp; Mise a jour | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.09) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(46,204,113,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, var(--green) 40%, var(--cyan) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '>'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Architecture du Manifeste</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Categories de Fichiers</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Installation CleanRoom</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Flow de Verification</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Telechargement Parallele</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Repertoire du Jeu</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Anti-Tamper Fichiers</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> CDN &amp; Hebergement</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Gestion d'Erreurs</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Telechargement &amp; Mise a jour du Jeu</h1>
+      <p>Systeme de gestion des fichiers du jeu : telechargement initial, mises a jour delta, verification d'integrite SHA-256, et protection anti-tamper. Gere par le launcher, transparent pour le joueur.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-cyan">SHA-256</span>
+        <span class="badge badge-green">Delta Updates</span>
+        <span class="badge badge-violet">Manifeste JSON</span>
+        <span class="badge badge-gold">Telechargement Parallele</span>
+        <span class="badge badge-orange">Anti-Tamper</span>
+      </div>
+    </div>
+
+    <!-- S1 — CONTEXTE -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Probleme</h3>
+      <p>Le serveur EriniumFaction utilise une vingtaine de mods custom (EriniumFaction, EriAPI, etc.) et des fichiers de configuration specifiques. Les joueurs doivent avoir <strong>exactement</strong> les bons fichiers, aux bonnes versions, pour se connecter. Distribuer et maintenir ces fichiers manuellement est impossible avec 500-1000 joueurs. Le launcher s'appuie sur la librairie <strong>minecraft-java-core</strong> pour gerer le telechargement de Minecraft vanilla (versions, librairies, assets, natives) et utilise <strong>CleanRoom</strong> (fork de Forge 1.12.2 compatible Java 21+) comme modloader.</p>
+
+      <h3>Objectifs</h3>
+      <ul>
+        <li><strong>Installation zero-effort</strong> — le joueur installe le launcher, clique "JOUER", et tout se telecharge automatiquement</li>
+        <li><strong>Mises a jour delta</strong> — quand un mod est mis a jour, seuls les fichiers changes sont re-telecharges (pas tout le pack)</li>
+        <li><strong>Verification d'integrite</strong> — avant chaque lancement, verifier que les fichiers critiques n'ont pas ete modifies (anti-triche)</li>
+        <li><strong>Resilience</strong> — reprendre les telechargements interrompus, gerer les erreurs reseau, permettre le jeu offline avec les fichiers caches</li>
+        <li><strong>Performance</strong> — telechargements paralleles, progression fluide, pas de freeze de l'UI</li>
+      </ul>
+
+      <h3>Contraintes</h3>
+      <ul>
+        <li><strong>Taille totale estimee</strong> — ~500 Mo pour l'ensemble des fichiers (CleanRoom + mods + configs + resource packs), plus ~300 Mo pour Minecraft vanilla (gere par minecraft-java-core)</li>
+        <li><strong>Bande passante</strong> — le CDN doit supporter 1000 telechargements simultanes en periode de pic (lancement/MAJ)</li>
+        <li><strong>Minecraft vanilla automatique</strong> — le launcher telecharge Minecraft 1.12.2 automatiquement via <strong>minecraft-java-core</strong> (versions, librairies, assets, natives depuis les serveurs Mojang). Le joueur n'a PAS besoin d'avoir Minecraft deja installe</li>
+      </ul>
+    </section>
+
+    <!-- S2 — MANIFESTE -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Architecture du Manifeste</h2>
+
+      <h3 class="first">Format du manifeste</h3>
+      <p>Le manifeste est un fichier JSON <strong>heberge sur Vercel</strong> (meme domaine que le site web). Il est genere automatiquement par un script Node.js qui scanne un dossier source et calcule les hash SHA-256 de chaque fichier. Les fichiers de jeu sont eux aussi servis en statique par Vercel.</p>
+
+      <h4>Hebergement sur Vercel</h4>
+      <ul>
+        <li><strong>Manifeste</strong> — <code>https://eriniumfaction.vercel.app/launcher/manifest.json</code></li>
+        <li><strong>Fichiers</strong> — <code>https://eriniumfaction.vercel.app/launcher/files/{path}</code></li>
+        <li><strong>Avantages</strong> — meme domaine que le site, CDN global Vercel, zero cout supplementaire, deploiement automatique</li>
+      </ul>
+
+      <h4>Structure dans le projet web</h4>
+      <div class="code-block">EriniumFactionWeb/
+├── launcher-files/                 <span class="cm"># Dossier source (PAS dans public/)</span>
+│   ├── mods/
+│   │   ├── eriniumfaction-1.0.0.jar
+│   │   ├── eriapi-1.2.0-1.12.2.jar
+│   │   └── ...
+│   ├── config/
+│   │   └── eriniumfaction_*.cfg
+│   └── resourcepacks/
+│       └── EriniumRP.zip
+├── public/launcher/                <span class="cm"># Genere par le script</span>
+│   ├── manifest.json               <span class="cm"># Manifeste auto-genere</span>
+│   └── files/                      <span class="cm"># Copie des fichiers avec hash</span>
+│       ├── mods/
+│       ├── config/
+│       └── resourcepacks/
+└── scripts/
+    └── generate-manifest.js        <span class="cm"># Script de generation</span></div>
+
+      <h4>Script de generation automatique</h4>
+      <p>Le script <code>scripts/generate-manifest.js</code> :</p>
+      <ul>
+        <li><strong>Scanne</strong> recursivement le dossier <code>launcher-files/</code></li>
+        <li><strong>Calcule</strong> le hash SHA-256 de chaque fichier</li>
+        <li><strong>Genere</strong> l'URL de telechargement : <code>https://{SITE_URL}/launcher/files/{path}</code></li>
+        <li><strong>Detecte</strong> la categorie automatiquement depuis le dossier parent (mods/ → "mod", config/ → "config", etc.)</li>
+        <li><strong>Copie</strong> les fichiers dans <code>public/launcher/files/</code></li>
+        <li><strong>Ecrit</strong> le manifeste dans <code>public/launcher/manifest.json</code></li>
+        <li><strong>Calcule</strong> totalSize et fileCount automatiquement</li>
+      </ul>
+      <p>Commande : <code>node scripts/generate-manifest.js</code> — a executer avant chaque deploiement quand les fichiers changent.</p>
+      <p>Peut etre integre dans le script <code>npm run build</code> pour automatiser.</p>
+
+      <h4>Format du manifeste genere</h4>
+
+      <div class="code-block">{
+  <span class="st">"version"</span>: <span class="st">"1.0.0"</span>,
+  <span class="st">"minecraft"</span>: <span class="st">"1.12.2"</span>,
+  <span class="st">"cleanroom"</span>: <span class="st">"0.5.7-alpha"</span>,
+  <span class="st">"cleanroomUrl"</span>: <span class="st">"https://eriniumfaction.vercel.app/launcher/files/cleanroom/cleanroom-0.5.7-alpha-universal.jar"</span>,
+  <span class="st">"cleanroomSha256"</span>: <span class="st">"a1b2c3d4..."</span>,
+  <span class="st">"totalSize"</span>: <span class="nu">524288000</span>,
+  <span class="st">"fileCount"</span>: <span class="nu">47</span>,
+  <span class="st">"updatedAt"</span>: <span class="st">"2026-04-02T12:00:00Z"</span>,
+  <span class="st">"files"</span>: [
+    {
+      <span class="st">"path"</span>: <span class="st">"mods/eriniumfaction-1.0.0.jar"</span>,
+      <span class="st">"sha256"</span>: <span class="st">"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"</span>,
+      <span class="st">"size"</span>: <span class="nu">10485760</span>,
+      <span class="st">"url"</span>: <span class="st">"https://eriniumfaction.vercel.app/launcher/files/mods/eriniumfaction-1.0.0.jar"</span>,
+      <span class="st">"category"</span>: <span class="st">"mod"</span>,
+      <span class="st">"critical"</span>: <span class="kw">true</span>,
+      <span class="st">"required"</span>: <span class="kw">true</span>
+    },
+    {
+      <span class="st">"path"</span>: <span class="st">"mods/eriapi-1.2.0-1.12.2.jar"</span>,
+      <span class="st">"sha256"</span>: <span class="st">"def456..."</span>,
+      <span class="st">"size"</span>: <span class="nu">3595280</span>,
+      <span class="st">"url"</span>: <span class="st">"https://eriniumfaction.vercel.app/launcher/files/mods/eriapi-1.2.0-1.12.2.jar"</span>,
+      <span class="st">"category"</span>: <span class="st">"mod"</span>,
+      <span class="st">"critical"</span>: <span class="kw">true</span>,
+      <span class="st">"required"</span>: <span class="kw">true</span>
+    },
+    {
+      <span class="st">"path"</span>: <span class="st">"config/eriniumfaction.cfg"</span>,
+      <span class="st">"sha256"</span>: <span class="st">"789abc..."</span>,
+      <span class="st">"size"</span>: <span class="nu">2048</span>,
+      <span class="st">"url"</span>: <span class="st">"https://eriniumfaction.vercel.app/launcher/files/config/eriniumfaction.cfg"</span>,
+      <span class="st">"category"</span>: <span class="st">"config"</span>,
+      <span class="st">"critical"</span>: <span class="kw">false</span>,
+      <span class="st">"required"</span>: <span class="kw">true</span>
+    },
+    {
+      <span class="st">"path"</span>: <span class="st">"resourcepacks/EriniumRP.zip"</span>,
+      <span class="st">"sha256"</span>: <span class="st">"abc123..."</span>,
+      <span class="st">"size"</span>: <span class="nu">52428800</span>,
+      <span class="st">"url"</span>: <span class="st">"https://eriniumfaction.vercel.app/launcher/files/resourcepacks/EriniumRP.zip"</span>,
+      <span class="st">"category"</span>: <span class="st">"resourcepack"</span>,
+      <span class="st">"critical"</span>: <span class="kw">false</span>,
+      <span class="st">"required"</span>: <span class="kw">true</span>
+    }
+  ]
+}</div>
+
+      <h3>Champs du manifeste</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Champ</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>version</td><td>string</td><td>Version du pack de fichiers (SemVer). Incrementee a chaque mise a jour</td></tr>
+            <tr><td>minecraft</td><td>string</td><td>Version Minecraft requise (geree par minecraft-java-core)</td></tr>
+            <tr><td>cleanroom</td><td>string</td><td>Version CleanRoom requise (fork de Forge 1.12.2, compatible Java 21+)</td></tr>
+            <tr><td>cleanroomUrl</td><td>string</td><td>URL du jar universel CleanRoom</td></tr>
+            <tr><td>cleanroomSha256</td><td>string</td><td>Hash SHA-256 du jar universel CleanRoom</td></tr>
+            <tr><td>totalSize</td><td>number</td><td>Taille totale de tous les fichiers en octets</td></tr>
+            <tr><td>fileCount</td><td>number</td><td>Nombre total de fichiers</td></tr>
+            <tr><td>updatedAt</td><td>string (ISO 8601)</td><td>Date de derniere mise a jour du manifeste</td></tr>
+            <tr><td>files[].path</td><td>string</td><td>Chemin relatif depuis le repertoire du jeu</td></tr>
+            <tr><td>files[].sha256</td><td>string</td><td>Hash SHA-256 du fichier (64 caracteres hex)</td></tr>
+            <tr><td>files[].size</td><td>number</td><td>Taille du fichier en octets</td></tr>
+            <tr><td>files[].url</td><td>string</td><td>URL de telechargement directe (HTTPS)</td></tr>
+            <tr><td>files[].category</td><td>string</td><td>Categorie : "mod", "config", "resourcepack", "cleanroom", "lib"</td></tr>
+            <tr><td>files[].critical</td><td>boolean</td><td>Si true, le fichier est verifie (hash check) avant CHAQUE lancement</td></tr>
+            <tr><td>files[].required</td><td>boolean</td><td>Si true, le fichier est obligatoire. Si false, optionnel (ex: resource pack cosmetic)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Manifeste local</h3>
+      <p>Une copie du manifeste est stockee localement dans <code>{gameDir}/manifest.json</code>. Elle represente l'etat actuel des fichiers telecharges. Comparer le manifeste local avec le distant permet d'identifier les fichiers a mettre a jour.</p>
+    </section>
+
+    <!-- S3 — CATEGORIES -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Categories de Fichiers</h2>
+
+      <h3 class="first">Detail des categories</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Categorie</th><th>Repertoire</th><th>Critical</th><th>Exemples</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>mod</td><td>mods/</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>eriniumfaction-1.0.0.jar, eriapi-1.2.0-1.12.2.jar, MixinBooter-10.7.jar</td>
+              <td>Verifies a chaque lancement. Hash mismatch = re-telechargement immediat</td>
+            </tr>
+            <tr>
+              <td>config</td><td>config/</td>
+              <td><span class="tag-no">NON</span></td>
+              <td>eriniumfaction.cfg, cleanroom.cfg</td>
+              <td>Telecharges au premier lancement. PAS re-verifies ensuite (le joueur peut modifier ses configs video, keybinds, etc.)</td>
+            </tr>
+            <tr>
+              <td>resourcepack</td><td>resourcepacks/</td>
+              <td><span class="tag-no">NON</span></td>
+              <td>EriniumRP.zip</td>
+              <td>Resource pack officiel. Telecharge au premier lancement, mis a jour si la version change</td>
+            </tr>
+            <tr>
+              <td>cleanroom</td><td>cleanroom/</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>cleanroom-0.5.7-alpha-universal.jar</td>
+              <td>Installe une seule fois. Verifie au lancement. Telecharge depuis le CDN ou GitHub releases CleanRoom</td>
+            </tr>
+            <tr>
+              <td>lib</td><td>cleanroom/libraries/</td>
+              <td><span class="tag-no">NON</span></td>
+              <td>Librairies CleanRoom additionnelles si necessaire</td>
+              <td>Rarement mis a jour</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">!</span>
+        <div class="content"><strong>Configs joueur</strong> — les fichiers de config NE SONT PAS ecrases lors des mises a jour si le joueur les a modifies. Seuls les fichiers de config <strong>serveur-obligatoires</strong> (marques required dans le manifeste) sont forces. Les configs video, sons, keybinds sont laisses tels quels.</div>
+      </div>
+    </section>
+
+    <!-- S4 — CLEANROOM + MINECRAFT-JAVA-CORE -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Installation CleanRoom &amp; Minecraft vanilla</h2>
+
+      <h3 class="first">minecraft-java-core : moteur de telechargement vanilla</h3>
+      <p>Le launcher utilise la librairie NPM <strong>minecraft-java-core</strong> (<code>npm install minecraft-java-core</code>) pour gerer entierement le telechargement de Minecraft 1.12.2 vanilla. Cette librairie prend en charge :</p>
+      <ul>
+        <li><strong>Versions Minecraft</strong> — telechargement depuis le manifest officiel Mojang (<code>launchermeta.mojang.com</code>)</li>
+        <li><strong>Librairies</strong> — resolution et telechargement de toutes les librairies requises par MC 1.12.2</li>
+        <li><strong>Assets</strong> — telechargement de l'index d'assets et de tous les fichiers d'assets (sons, textures, langues)</li>
+        <li><strong>Natives</strong> — telechargement et extraction des librairies natives (LWJGL, etc.) pour la plateforme courante</li>
+        <li><strong>Runtime Java</strong> — detection ou telechargement du runtime Java si necessaire</li>
+        <li><strong>Lancement</strong> — construction du classpath et lancement du jeu avec les bons arguments</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">i</span>
+        <div class="content"><strong>Avantage</strong> — le joueur n'a PAS besoin d'avoir Minecraft installe au prealable. minecraft-java-core gere tout le telechargement vanilla automatiquement. Le launcher se suffit a lui-meme.</div>
+      </div>
+
+      <h3>CleanRoom : remplacement de Forge</h3>
+      <p><strong>CleanRoom</strong> est un fork de Forge 1.12.2 developpe par CleanroomMC, compatible avec Java 21+ tout en conservant une compatibilite totale avec l'API Forge et les mods existants. C'est un <strong>drop-in replacement</strong> : meme API, memes mods, mais avec le support des versions modernes de Java.</p>
+      <ul>
+        <li><strong>GitHub</strong> — <a href="https://github.com/CleanroomMC/Cleanroom/releases" style="color: var(--cyan);">https://github.com/CleanroomMC/Cleanroom/releases</a></li>
+        <li><strong>Version actuelle</strong> — <code>cleanroom-0.5.7-alpha</code></li>
+        <li><strong>Installateur</strong> — <code>cleanroom-0.5.7-alpha-installer.jar</code></li>
+        <li><strong>Universel</strong> — <code>cleanroom-0.5.7-alpha-universal.jar</code></li>
+      </ul>
+
+      <h3>Flow d'installation (methode principale)</h3>
+      <p>L'installateur CleanRoom fonctionne exactement comme l'installateur Forge : il extract les librairies, le profil version et configure le classpath automatiquement. C'est la <strong>methode par defaut</strong>.</p>
+      <ul>
+        <li><strong>1. Minecraft vanilla</strong> — minecraft-java-core verifie si MC 1.12.2 est deja en cache. Si non, telechargement complet (versions, libraries, assets, natives) depuis les serveurs Mojang</li>
+        <li><strong>2. CleanRoom installer</strong> — telecharger <code>cleanroom-0.5.7-alpha-installer.jar</code> depuis notre CDN ou les GitHub Releases (<a href="https://github.com/CleanroomMC/Cleanroom/releases" style="color:var(--cyan);">releases</a>)</li>
+        <li><strong>3. Execution de l'installateur</strong> — <code>java -jar cleanroom-0.5.7-alpha-installer.jar --installClient {gameDir}</code>. L'installateur :
+          <ul>
+            <li>Extract le jar universel CleanRoom</li>
+            <li>Telecharge et installe toutes les librairies necessaires</li>
+            <li>Cree le profil version JSON (comme Forge le fait)</li>
+            <li>Configure le classpath et les tweakers</li>
+          </ul>
+        </li>
+        <li><strong>4. Verification</strong> — verifier exit code 0, presence des fichiers CleanRoom dans le dossier</li>
+        <li><strong>5. Fichiers custom</strong> — telecharger nos mods, configs, resource packs depuis notre manifeste/CDN</li>
+      </ul>
+
+      <h3>Detection version et mise a jour</h3>
+      <ul>
+        <li>Si CleanRoom est deja installe — verifier la version dans le profil JSON local vs la version du manifeste distant</li>
+        <li>Si version differente → re-telecharger l'installateur et re-executer</li>
+        <li>Si meme version → passer directement aux fichiers custom</li>
+      </ul>
+    </section>
+
+    <!-- S5 — FLOW VERIFICATION -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num">05</span> Flow de Verification</h2>
+
+      <h3 class="first">Sequence complete (clic JOUER)</h3>
+      <div class="ascii-diagram"><span class="av">1. Verifier cache minecraft-java-core (MC 1.12.2 vanilla)</span>
+   │
+   ├── MC absent → <span class="ar">Telecharger via minecraft-java-core (versions, libs, assets, natives)</span>
+   │
+   └── MC present → <span class="ag">OK</span>
+   │
+   ▼
+<span class="av">2. Verifier installation CleanRoom</span>
+   │
+   ├── CleanRoom absent ou version differente → <span class="ar">Telecharger depuis CDN/GitHub</span>
+   │
+   └── CleanRoom OK → <span class="ag">Continuer</span>
+   │
+   ▼
+<span class="av">3. Fetch manifeste distant (fichiers custom)</span>
+   │
+   ▼
+<span class="ac">4. Comparer avec manifeste local</span>
+   │
+   ├── Manifeste local absent → <span class="ar">Premier lancement (tout telecharger)</span>
+   │
+   ├── Versions identiques → <span class="ag">Verifier fichiers critiques uniquement</span>
+   │
+   └── Version differente → <span class="ay">Calculer le delta</span>
+                                │
+                                ▼
+                         <span class="ay">5. Pour chaque fichier du manifeste distant :</span>
+                            │
+                            ├── Fichier local absent → <span class="ar">Ajouter a la queue de telechargement</span>
+                            │
+                            ├── Fichier local present, hash identique → <span class="ag">OK, rien a faire</span>
+                            │
+                            └── Fichier local present, hash different → <span class="ar">Ajouter a la queue</span>
+                                                                          │
+                                                                          ▼
+                                                               <span class="ac">6. Telechargement parallele</span>
+                                                                  (voir section 06)
+                                                                          │
+                                                                          ▼
+                                                               <span class="ag">7. Verification post-telechargement</span>
+                                                                  Hash de chaque fichier telecharge
+                                                                  Si mismatch → re-telecharger (max 3 essais)
+                                                                          │
+                                                                          ▼
+                                                               <span class="ag">8. Mise a jour manifeste local</span>
+                                                                          │
+                                                                          ▼
+                                                               <span class="av">9. Verification fichiers critiques</span>
+                                                                  Hash check de tous les fichiers
+                                                                  marques "critical": true
+                                                                          │
+                                                                          ▼
+                                                               <span class="ac">10. Whitelist check</span>
+                                                                  Verifier qu'aucun fichier non-manifeste
+                                                                  n'existe dans mods/
+                                                                          │
+                                                                          ▼
+                                                               <span class="ag">11. PRET A JOUER → Construire classpath (MC vanilla + CleanRoom + mods) → Lancer Java</span></div>
+
+      <h3>Hash check : algorithme</h3>
+      <div class="code-block"><span class="kw">const</span> crypto = <span class="fn">require</span>(<span class="st">'crypto'</span>);
+<span class="kw">const</span> fs = <span class="fn">require</span>(<span class="st">'fs'</span>);
+
+<span class="kw">async function</span> <span class="fn">hashFile</span>(filePath) {
+  <span class="kw">return new</span> <span class="ty">Promise</span>((resolve, reject) =&gt; {
+    <span class="kw">const</span> hash = crypto.<span class="fn">createHash</span>(<span class="st">'sha256'</span>);
+    <span class="kw">const</span> stream = fs.<span class="fn">createReadStream</span>(filePath);
+    stream.<span class="fn">on</span>(<span class="st">'data'</span>, chunk =&gt; hash.<span class="fn">update</span>(chunk));
+    stream.<span class="fn">on</span>(<span class="st">'end'</span>, () =&gt; <span class="fn">resolve</span>(hash.<span class="fn">digest</span>(<span class="st">'hex'</span>)));
+    stream.<span class="fn">on</span>(<span class="st">'error'</span>, reject);
+  });
+}
+
+<span class="kw">async function</span> <span class="fn">verifyFile</span>(filePath, expectedHash) {
+  <span class="kw">const</span> actualHash = <span class="kw">await</span> <span class="fn">hashFile</span>(filePath);
+  <span class="kw">return</span> actualHash === expectedHash;
+}</div>
+
+      <h3>Optimisation : hash partiel</h3>
+      <ul>
+        <li><strong>Fichiers volumineux (> 50 Mo)</strong> — pour la verification rapide (pas le telechargement), hasher uniquement les 1 premiers Mo + 1 derniers Mo + la taille totale. Si ca match → considerer valide. Si ca mismatch → hash complet pour confirmer</li>
+        <li><strong>Cache de hash</strong> — stocker les hash calcules en memoire pendant la session. Ne pas re-hasher un fichier deja verifie dans la meme session</li>
+      </ul>
+    </section>
+
+    <!-- S6 — TELECHARGEMENT -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num cyan-num">06</span> Telechargement Parallele</h2>
+
+      <h3 class="first">Architecture du downloader</h3>
+      <p>Le telechargement utilise un pool de connexions HTTP paralleles pour maximiser la bande passante. Le nombre de telechargements simultanes est configurable.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Parametre</th><th>Valeur</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>Connexions paralleles</td><td>4</td><td>Nombre de fichiers telecharges simultanement (configurable 1-8)</td></tr>
+            <tr><td>Timeout par fichier</td><td>60 secondes</td><td>Timeout HTTP pour chaque fichier individuel</td></tr>
+            <tr><td>Retries par fichier</td><td>3</td><td>Nombre de tentatives avant de declarer un echec</td></tr>
+            <tr><td>Delai entre retries</td><td>2 secondes</td><td>Backoff exponentiel : 2s, 4s, 8s</td></tr>
+            <tr><td>Taille chunk</td><td>64 Ko</td><td>Taille des chunks pour le streaming (progression granulaire)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Progression</h3>
+      <p>Le renderer recoit des mises a jour de progression via IPC toutes les 200ms :</p>
+      <div class="code-block"><span class="cm">// Donnees envoyees via IPC 'download:progress'</span>
+{
+  <span class="st">"currentFile"</span>: <span class="st">"mods/eriniumfaction-1.0.0.jar"</span>,   <span class="cm">// Fichier en cours</span>
+  <span class="st">"currentFileProgress"</span>: <span class="nu">0.65</span>,                     <span class="cm">// 0.0 → 1.0</span>
+  <span class="st">"currentFileSize"</span>: <span class="nu">10485760</span>,                     <span class="cm">// Taille totale</span>
+  <span class="st">"currentFileDownloaded"</span>: <span class="nu">6815744</span>,                <span class="cm">// Octets telecharges</span>
+  <span class="st">"totalFiles"</span>: <span class="nu">17</span>,                                  <span class="cm">// Nombre total de fichiers</span>
+  <span class="st">"completedFiles"</span>: <span class="nu">8</span>,                               <span class="cm">// Fichiers termines</span>
+  <span class="st">"totalBytes"</span>: <span class="nu">524288000</span>,                           <span class="cm">// Octets totaux</span>
+  <span class="st">"downloadedBytes"</span>: <span class="nu">278921216</span>,                      <span class="cm">// Octets telecharges</span>
+  <span class="st">"speed"</span>: <span class="nu">5242880</span>,                                  <span class="cm">// Vitesse en octets/s</span>
+  <span class="st">"eta"</span>: <span class="nu">47</span>                                           <span class="cm">// Temps restant estime (secondes)</span>
+}</div>
+
+      <h3>Affichage dans l'UI</h3>
+      <ul>
+        <li><strong>Barre de progression globale</strong> — remplace le bouton JOUER. Affiche le pourcentage global et la vitesse</li>
+        <li><strong>Texte descriptif</strong> — "Telechargement... 8/17 fichiers (53%) — 5.0 Mo/s — ~47s restantes"</li>
+        <li><strong>Annulation</strong> — bouton "Annuler" pour arreter le telechargement. Les fichiers partiels sont supprimes</li>
+      </ul>
+
+      <h3>Resume de telechargement</h3>
+      <ul>
+        <li><strong>Fichiers complets</strong> — si un telechargement est interrompu, les fichiers deja entierement telecharges et verifies (hash OK) ne sont pas re-telecharges</li>
+        <li><strong>Fichiers partiels</strong> — les fichiers partiellement telecharges sont supprimes et re-telecharges depuis le debut. Pas de HTTP Range (complexite disproportionnee pour des fichiers de quelques Mo)</li>
+        <li><strong>Fichiers temporaires</strong> — pendant le telechargement, les fichiers sont ecrits avec l'extension <code>.tmp</code>. Renommes en nom final uniquement apres verification du hash. Evite les fichiers corrompus en cas de crash</li>
+      </ul>
+    </section>
+
+    <!-- S7 — REPERTOIRE -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num green-num">07</span> Repertoire du Jeu</h2>
+
+      <h3 class="first">Structure complete</h3>
+      <div class="code-block"><span class="cm">// Windows : %APPDATA%/.eriniumfaction/</span>
+<span class="cm">// Linux   : ~/.eriniumfaction/</span>
+<span class="cm">// macOS   : ~/Library/Application Support/.eriniumfaction/</span>
+
+.eriniumfaction/
+├── minecraft/                 <span class="cm">// Vanilla MC 1.12.2 (gere par minecraft-java-core)</span>
+│   ├── versions/              <span class="cm">// Fichiers version Minecraft</span>
+│   ├── libraries/             <span class="cm">// Librairies Minecraft vanilla</span>
+│   ├── assets/                <span class="cm">// Assets Minecraft (sons, textures, langues)</span>
+│   └── natives/               <span class="cm">// DLLs LWJGL, etc. (extraites par minecraft-java-core)</span>
+├── cleanroom/                 <span class="cm">// Fichiers CleanRoom modloader</span>
+│   ├── cleanroom-0.5.7-alpha-universal.jar
+│   └── libraries/             <span class="cm">// Librairies CleanRoom additionnelles</span>
+├── mods/                      <span class="cm">// Nos mods (depuis notre manifeste/CDN)</span>
+│   ├── eriniumfaction-1.0.0.jar
+│   ├── eriapi-1.2.0-1.12.2.jar
+│   ├── MixinBooter-10.7.jar
+│   └── ... <span class="cm">(autres mods)</span>
+├── config/                    <span class="cm">// Fichiers de config (depuis notre manifeste/CDN)</span>
+│   ├── eriniumfaction.cfg
+│   ├── cleanroom.cfg
+│   └── ...
+├── resourcepacks/             <span class="cm">// Resource packs (depuis notre manifeste/CDN)</span>
+│   └── EriniumRP.zip
+├── manifest.json              <span class="cm">// Manifeste local (copie du distant)</span>
+├── logs/
+│   └── latest.log
+├── saves/                     <span class="cm">// Non utilise en multijoueur, mais CleanRoom le cree</span>
+└── crash-reports/</div>
+
+      <h3>Gestion de l'espace disque</h3>
+      <ul>
+        <li><strong>Verification espace libre</strong> — avant le telechargement, verifier qu'il y a assez d'espace disque (taille totale + 20% de marge). Si insuffisant → message d'erreur clair avec la taille requise</li>
+        <li><strong>Nettoyage ancien</strong> — quand un fichier est supprime du manifeste (mod retire), le launcher le supprime automatiquement du disque lors de la prochaine mise a jour</li>
+        <li><strong>Bouton "Reparer"</strong> — dans les parametres, un bouton "Verifier et reparer les fichiers" qui force un re-hash de TOUS les fichiers et re-telecharge ceux qui ne correspondent pas</li>
+      </ul>
+    </section>
+
+    <!-- S8 — ANTI-TAMPER -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num red-num">08</span> Anti-Tamper Fichiers</h2>
+
+      <h3 class="first">Whitelist des mods</h3>
+      <p>Le dossier <code>mods/</code> est sous controle strict. Seuls les fichiers listes dans le manifeste sont autorises :</p>
+      <ul>
+        <li><strong>Avant chaque lancement</strong> — scanner le dossier <code>mods/</code>. Lister tous les fichiers .jar presents</li>
+        <li><strong>Comparer avec le manifeste</strong> — chaque fichier doit correspondre a une entree du manifeste (meme nom, meme hash)</li>
+        <li><strong>Fichier non autorise</strong> — si un .jar est present dans mods/ mais PAS dans le manifeste → le deplacer dans un dossier <code>mods_disabled/</code> et avertir le joueur</li>
+        <li><strong>Fichier modifie</strong> — si un .jar a un hash different du manifeste → re-telecharger la version correcte</li>
+      </ul>
+
+      <div class="info-box danger">
+        <span class="icon">!</span>
+        <div class="content"><strong>Anti-cheat client</strong> — cette verification empeche l'ajout de mods de triche (xray, reach hack, etc.) dans le dossier mods/. Un joueur qui ajoute un mod non autorise verra son mod deplace et ne pourra pas jouer avec. Combine avec la verification cote serveur (token + HWID), cela rend la triche par mods beaucoup plus difficile.</div>
+      </div>
+
+      <h3>Verification en arriere-plan</h3>
+      <ul>
+        <li><strong>Au lancement du launcher</strong> — hash check rapide des fichiers critiques (mods). Si un fichier est modifie, le bouton JOUER affiche "Reparation necessaire" au lieu de "JOUER"</li>
+        <li><strong>Pendant le jeu</strong> — pas de verification (eviter les freeze du jeu et les I/O pendant le gameplay)</li>
+        <li><strong>A la fermeture du jeu</strong> — optionnel : re-verifier les fichiers pour detecter si un mod a ete modifie pendant la session (attaque par swap de fichier pendant le runtime)</li>
+      </ul>
+
+      <h3>Fichiers config : politique mixte</h3>
+      <ul>
+        <li><strong>Configs serveur-obligatoires</strong> — certaines configs (ex: connexion serveur, parametres gameplay) sont marquees <code>"critical": true</code> dans le manifeste. Elles sont ecrasees a chaque mise a jour</li>
+        <li><strong>Configs joueur</strong> — les configs video, keybinds, options graphiques ne sont PAS dans le manifeste. Le joueur peut les modifier librement</li>
+        <li><strong>Premier lancement</strong> — toutes les configs du manifeste sont copiees comme base. Le joueur peut ensuite personnaliser les configs non-critiques</li>
+      </ul>
+    </section>
+
+    <!-- S9 — CDN -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num orange-num">09</span> CDN &amp; Hebergement</h2>
+
+      <h3 class="first">Hebergement : Vercel (meme que le site)</h3>
+      <p>Les fichiers de jeu et le manifeste sont heberges directement sur <strong>Vercel</strong>, dans le dossier <code>public/launcher/</code> du projet web. Vercel sert ces fichiers en statique via son CDN global — meme domaine, zero cout supplementaire, deploiement automatique a chaque push.</p>
+
+      <div class="info-box tip">
+        <span class="icon">i</span>
+        <div class="content"><strong>Pourquoi Vercel ?</strong> — Pas besoin d'un CDN separe. Vercel a un CDN global integre (edge network), sert les fichiers statiques sans limite de bande passante sur le free tier (100 Go/mois), et le deploiement est automatique. Pour ~500 Mo de fichiers de jeu, c'est largement suffisant. Si un jour le trafic explose, on migrera les fichiers vers Cloudflare R2.</div>
+      </div>
+
+      <h3>Script de generation <code>scripts/generate-manifest.js</code></h3>
+      <p>Un script Node.js qui automatise tout :</p>
+      <div class="code-block"><span class="cm">// Execution</span>
+node scripts/generate-manifest.js
+
+<span class="cm">// Ce que fait le script :</span>
+<span class="cm">// 1. Scanne recursivement launcher-files/ (dossier source)</span>
+<span class="cm">// 2. Pour chaque fichier :</span>
+<span class="cm">//    - Calcule le hash SHA-256</span>
+<span class="cm">//    - Detecte la categorie depuis le dossier parent (mods/ → "mod", config/ → "config")</span>
+<span class="cm">//    - Genere l'URL : https://{SITE_URL}/launcher/files/{path}</span>
+<span class="cm">//    - Determine si le fichier est critique (mods = oui, configs = non)</span>
+<span class="cm">// 3. Copie tous les fichiers dans public/launcher/files/</span>
+<span class="cm">// 4. Ecrit public/launcher/manifest.json avec toutes les metadonnees</span>
+<span class="cm">// 5. Affiche un resume : X fichiers, Y Mo total, Z nouveaux/modifies</span></div>
+
+      <p>Le script peut etre integre dans <code>package.json</code> :</p>
+      <div class="code-block">"scripts": {
+  "manifest": "node scripts/generate-manifest.js",
+  "prebuild": "node scripts/generate-manifest.js"
+}</div>
+
+      <h3>URLs de telechargement</h3>
+      <div class="code-block"><span class="cm">// Manifeste</span>
+https://eriniumfaction.vercel.app/launcher/manifest.json
+
+<span class="cm">// Fichiers</span>
+https://eriniumfaction.vercel.app/launcher/files/mods/eriniumfaction-1.0.0.jar
+https://eriniumfaction.vercel.app/launcher/files/config/eriniumfaction.cfg
+https://eriniumfaction.vercel.app/launcher/files/resourcepacks/EriniumRP.zip
+
+<span class="cm">// Configuration custom domain sur Cloudflare R2</span>
+<span class="cm">// Bucket R2 : erinium-launcher</span>
+<span class="cm">// Custom domain : cdn.erinium.fr</span></div>
+
+      <h3>Processus de mise a jour (cote developpeur)</h3>
+      <ul>
+        <li><strong>1. Build le mod</strong> — generer le jar avec <code>./gradlew build</code></li>
+        <li><strong>2. Calculer le hash</strong> — <code>sha256sum build/libs/eriniumfaction-1.0.0.jar</code></li>
+        <li><strong>3. Uploader sur R2</strong> — via CLI <code>wrangler r2 object put erinium-launcher/mods/eriniumfaction-1.0.0.jar --file=build/libs/eriniumfaction-1.0.0.jar</code></li>
+        <li><strong>4. Mettre a jour le manifeste</strong> — modifier le hash et la version dans manifest.json, uploader</li>
+        <li><strong>5. Verification</strong> — tester le telechargement depuis le launcher sur un poste de test</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">i</span>
+        <div class="content"><strong>Automatisation future</strong> — a terme, un script CI/CD (GitHub Actions) pourrait automatiser les etapes 2-4 : build → hash → upload R2 → update manifeste → commit. Pour l'instant, processus manuel.</div>
+      </div>
+    </section>
+
+    <!-- S10 — ERREURS -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num">10</span> Gestion d'Erreurs</h2>
+
+      <h3 class="first">Erreurs reseau</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Erreur</th><th>Comportement</th><th>Message joueur</th></tr></thead>
+          <tbody>
+            <tr><td>Manifeste distant inaccessible</td><td>Utiliser le manifeste local si present. Avertir le joueur</td><td>"Impossible de verifier les mises a jour. Vous jouez avec la derniere version connue."</td></tr>
+            <tr><td>Telechargement echoue (1 fichier)</td><td>Retry 3 fois avec backoff exponentiel. Si echec final → erreur</td><td>"Echec du telechargement de [fichier]. Verifiez votre connexion."</td></tr>
+            <tr><td>Telechargement echoue (CDN down)</td><td>Tous les telechargements echouent. Annuler la queue</td><td>"Le serveur de telechargement est indisponible. Reessayez plus tard."</td></tr>
+            <tr><td>Connexion perdue pendant DL</td><td>Mettre en pause. Reprendre automatiquement quand la connexion revient (poll toutes les 5s)</td><td>"Connexion perdue. Reprise automatique..."</td></tr>
+            <tr><td>Hash mismatch apres DL</td><td>Re-telecharger (max 3 fois). Si persiste → signaler une possible corruption CDN</td><td>"Fichier corrompu. Nouveau telechargement en cours..."</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Erreurs disque</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Erreur</th><th>Comportement</th><th>Message joueur</th></tr></thead>
+          <tbody>
+            <tr><td>Espace disque insuffisant</td><td>Calculer avant de commencer. Ne pas demarrer le DL</td><td>"Espace disque insuffisant. Il faut X Mo libres, vous avez Y Mo."</td></tr>
+            <tr><td>Permission refusee</td><td>Tenter de creer le repertoire. Si echec → demander au joueur</td><td>"Impossible d'ecrire dans [dossier]. Verifiez les permissions ou changez le repertoire dans les parametres."</td></tr>
+            <tr><td>Fichier verrouille</td><td>Attendre 2s, retenter. Si persiste → avertir</td><td>"Le fichier [nom] est utilise par un autre programme. Fermez Minecraft et reessayez."</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Mode degradation gracieuse</h3>
+      <ul>
+        <li><strong>Offline total</strong> — si aucune connexion internet et que les fichiers locaux sont presents et valides → permettre le lancement (le joueur pourra jouer en solo ou sur LAN, meme si le serveur est injoignable). Afficher un bandeau "Mode hors ligne"</li>
+        <li><strong>Manifeste corrompu</strong> — si le manifeste local est illisible → le supprimer et forcer un re-telechargement complet</li>
+        <li><strong>Fichier manquant non-critique</strong> — si un fichier non-requis (resource pack optionnel) echoue → continuer le lancement sans ce fichier, avertir le joueur</li>
+      </ul>
+    </section>
+
+    <!-- S11 — TESTS -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num red-num">11</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests fonctionnels</h3>
+      <ul class="checklist">
+        <li><strong>Premier lancement</strong> — telecharge MC vanilla via minecraft-java-core, installe CleanRoom, telecharge tous les fichiers du manifeste, cree le repertoire</li>
+        <li><strong>Lancement normal</strong> — manifeste identique, verification rapide des fichiers critiques, lancement</li>
+        <li><strong>Mise a jour 1 fichier</strong> — un mod change de version. Seul ce fichier est re-telecharge</li>
+        <li><strong>Mise a jour massive</strong> — 10+ fichiers changes. Telechargement parallele, progression correcte</li>
+        <li><strong>Fichier supprime du manifeste</strong> — un mod est retire. Le fichier local est supprime</li>
+        <li><strong>Fichier modifie par le joueur</strong> — un mod est modifie manuellement. Detecte et re-telecharge</li>
+        <li><strong>Mod non autorise ajoute</strong> — un .jar inconnu dans mods/. Deplace dans mods_disabled/</li>
+      </ul>
+
+      <h3>Tests de resilience</h3>
+      <ul class="checklist">
+        <li><strong>Coupure reseau pendant DL</strong> — pause automatique, reprise quand la connexion revient</li>
+        <li><strong>Crash du launcher pendant DL</strong> — les fichiers .tmp sont ignores au redemarrage, re-DL correct</li>
+        <li><strong>CDN lent</strong> — timeout fonctionne, retry fonctionne, l'UI ne freeze pas</li>
+        <li><strong>Espace disque plein</strong> — erreur detectee AVANT le telechargement</li>
+        <li><strong>Manifeste distant corrompu</strong> — JSON invalide → message d'erreur, utiliser le local si possible</li>
+      </ul>
+
+      <h3>Tests de performance</h3>
+      <ul class="checklist">
+        <li><strong>Hash check 50 fichiers</strong> — moins de 5 secondes sur un SSD, moins de 15 secondes sur un HDD</li>
+        <li><strong>Telechargement 500 Mo</strong> — utilisation correcte de la bande passante (pas de goulot cote launcher)</li>
+        <li><strong>Memoire</strong> — le downloader ne charge pas les fichiers en RAM (streaming direct vers disque)</li>
+        <li><strong>UI responsive</strong> — la progression se met a jour fluidement, pas de saccade, pas de freeze</li>
+      </ul>
+
+      <h3>Tests multi-plateforme</h3>
+      <ul class="checklist">
+        <li><strong>Windows</strong> — chemins %APPDATA%, detection .minecraft, permissions dossier</li>
+        <li><strong>Linux</strong> — chemins ~/.eriniumfaction, detection ~/.minecraft, permissions chmod</li>
+        <li><strong>macOS</strong> — chemins ~/Library, detection Minecraft.app, permissions</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<script>
+document.addEventListener('scroll', function() {
+  var sections = document.querySelectorAll('.section-card');
+  var links = document.querySelectorAll('.nav-link');
+  var current = '';
+  sections.forEach(function(s) {
+    if (window.scrollY >= s.offsetTop - 120) current = s.id;
+  });
+  links.forEach(function(l) {
+    l.classList.remove('active');
+    if (l.getAttribute('href') === '#' + current) l.classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>

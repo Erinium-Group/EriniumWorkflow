@@ -1,0 +1,1954 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Systeme de Chat | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+    /* Channel colors */
+    --ch-global:  #F0F2FF;
+    --ch-faction: #2ECC71;
+    --ch-ally:    #00E5FF;
+    --ch-staff:   #F1C40F;
+    --ch-private: #C39BD3;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 50% 90%, rgba(46,204,113,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 12px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+
+  /* =========================================================
+     SECTION CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+  .section-card:nth-child(14) { animation-delay: .70s; }
+  .section-card:nth-child(15) { animation-delay: .75s; }
+  .section-card:nth-child(16) { animation-delay: .80s; }
+  .section-card:nth-child(17) { animation-delay: .85s; }
+  .section-card:nth-child(18) { animation-delay: .90s; }
+  .section-card:nth-child(19) { animation-delay: .95s; }
+  .section-card:nth-child(20) { animation-delay: 1.00s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr { background: rgba(107,47,160,0.18); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .tag-opt { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(241,196,15,0.10); color: var(--gold); border: 1px solid rgba(241,196,15,0.25); letter-spacing: 0.05em; }
+
+  /* Channel color classes */
+  .ch-global  { color: var(--ch-global);  font-weight: 600; }
+  .ch-faction { color: var(--ch-faction); font-weight: 600; }
+  .ch-ally    { color: var(--ch-ally);    font-weight: 600; }
+  .ch-staff   { color: var(--ch-staff);   font-weight: 600; }
+  .ch-private { color: var(--ch-private); font-weight: 600; }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .cl  { color: #FFCB6B; }
+
+  /* =========================================================
+     ASCII DIAGRAMS
+  ========================================================= */
+  .ascii-diagram {
+    background: rgba(5,5,10,0.75);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 11.5px;
+    line-height: 1.65;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+  }
+
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+
+  /* =========================================================
+     INFO BOXES
+  ========================================================= */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2);   }
+
+  /* =========================================================
+     CHANNEL CARDS
+  ========================================================= */
+  .channel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .channel-card {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+    text-align: center;
+  }
+
+  .channel-card.global  { border-top: 3px solid var(--ch-global);  }
+  .channel-card.faction { border-top: 3px solid var(--ch-faction); }
+  .channel-card.ally    { border-top: 3px solid var(--ch-ally);    }
+  .channel-card.staff   { border-top: 3px solid var(--ch-staff);   }
+  .channel-card.private { border-top: 3px solid var(--ch-private); }
+
+  .channel-card-name {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .channel-card.global  .channel-card-name { color: var(--ch-global);  }
+  .channel-card.faction .channel-card-name { color: var(--ch-faction); }
+  .channel-card.ally    .channel-card-name { color: var(--ch-ally);    }
+  .channel-card.staff   .channel-card-name { color: var(--ch-staff);   }
+  .channel-card.private .channel-card-name { color: var(--ch-private); }
+
+  .channel-card-tag {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+
+  .channel-card-desc {
+    font-size: 11px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  /* =========================================================
+     EMOJI TABLE
+  ========================================================= */
+  .emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+    margin: 16px 0;
+  }
+
+  .emoji-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(5,5,10,0.4);
+    border: 1px solid var(--card-bdr);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .emoji-row .emoji-char {
+    font-size: 18px;
+    flex-shrink: 0;
+    width: 28px;
+    text-align: center;
+  }
+
+  .emoji-row .emoji-code {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 11px;
+    color: var(--cyan);
+  }
+
+  .emoji-row .emoji-unicode {
+    font-size: 10px;
+    color: var(--slate);
+    margin-left: auto;
+  }
+
+  /* =========================================================
+     ANIMATIONS + DIVIDER
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-bdr), transparent);
+    margin: 24px 0;
+  }
+
+  /* =========================================================
+     MOBILE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,47,160,0.4);
+    transition: transform .2s;
+  }
+
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 50;
+      width: 260px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .channel-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 600px) {
+    .section-card { padding: 24px 18px; }
+    .page-header h1 { font-size: 26px; }
+    .channel-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+
+    <span class="sidebar-title">Sommaire</span>
+
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Canaux de Chat</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Format des Messages</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Systeme d'Onglets</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Preview Couleur</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Mentions (@)</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Systeme d'Emojis</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Messages Prives</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Selecteur d'Emojis</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Historique &amp; Filtrage</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Systeme d'Ignore</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> GUI Chat Custom</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Traitement Serveur</a>
+    <a class="nav-link" href="#s14"><span class="num">14</span> Architecture Technique</a>
+    <a class="nav-link" href="#s15"><span class="num">15</span> Commandes</a>
+    <a class="nav-link" href="#s16"><span class="num">16</span> Configuration</a>
+    <a class="nav-link" href="#s17"><span class="num">17</span> Integration Existante</a>
+    <a class="nav-link" href="#s18"><span class="num">18</span> Permissions</a>
+    <a class="nav-link" href="#s19"><span class="num">19</span> Assets</a>
+    <a class="nav-link" href="#s20"><span class="num">20</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Systeme de Chat</h1>
+      <p>Refonte complete du chat Minecraft : canaux multiples, onglets filtrants, preview couleur en temps reel, mentions @, emojis, messages prives et GUI custom via Mixin + EriAPI.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-cyan">Mixin GuiChat + GuiNewChat</span>
+        <span class="badge badge-green">EriAPI Chat + Notification</span>
+        <span class="badge badge-violet">5 Canaux</span>
+        <span class="badge badge-gold">20+ Emojis</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <div class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <p>Le chat vanilla de Minecraft 1.12.2 est extremement basique : un seul flux de messages sans filtrage, aucune notion de canal, aucune mise en forme riche, et une interface figee. Sur un serveur faction/PvP actif, le chat global devient vite illisible quand le chat de faction, les messages prives et le chat de groupe s'y melangent.</p>
+
+      <p>L'objectif de cette refonte est de remplacer completement l'experience chat par un systeme structure, visuellement riche et ergonomique, tout en preservant la compatibilite avec les systemes existants (RankChatHandler, FactionChatHandler).</p>
+
+      <h3>Problemes du chat vanilla</h3>
+      <ul>
+        <li><strong>Absence de canaux</strong> — Le chat faction, ally et global se chevauchent dans un seul flux</li>
+        <li><strong>Pas de filtrage</strong> — Impossible de n'afficher que les messages de sa faction</li>
+        <li><strong>Pas de mise en forme</strong> — Seuls les operateurs peuvent utiliser les couleurs (&amp;)</li>
+        <li><strong>Pas de notifications de mentions</strong> — Aucun signal quand quelqu'un vous cite</li>
+        <li><strong>Interface rigide</strong> — GuiChat ne peut pas etre etendu sans Mixin</li>
+        <li><strong>Pas d'emojis</strong> — Le chat reste purement textuel</li>
+      </ul>
+
+      <h3>Objectifs de la refonte</h3>
+      <ul>
+        <li><strong>Canaux visibles et filtrants</strong> — 5 onglets, chacun filtre son canal</li>
+        <li><strong>Preview en temps reel</strong> — Le joueur voit le rendu de son message avant d'envoyer</li>
+        <li><strong>Mentions @</strong> — Son de ping + highlight + notification pour la cible</li>
+        <li><strong>Emojis</strong> — Shortcodes universels (:sword:, :heart:, etc.)</li>
+        <li><strong>Messages prives integres</strong> — Onglet dedie, /msg, /r</li>
+        <li><strong>Systeme d'ignore</strong> — Masquer les messages d'un joueur toxique</li>
+        <li><strong>Performance</strong> — Traitement serveur efficace, stockage client-side propre</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Integration non destructive</strong> — Le nouveau systeme enveloppe les handlers existants (RankChatHandler, FactionChatHandler) au lieu de les remplacer. La logique de routage faction/ally deja codee est conservee et etendue.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S2 — CANAUX DE CHAT ═══ -->
+    <div class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Canaux de Chat</h2>
+
+      <p>Le systeme comprend cinq canaux distincts, chacun avec sa portee, sa couleur et ses regles d'acces.</p>
+
+      <div class="channel-grid">
+        <div class="channel-card global">
+          <div class="channel-card-tag">[G]</div>
+          <div class="channel-card-name">Global</div>
+          <div class="channel-card-desc">Tous les joueurs. Aucune permission requise. Canal par defaut.</div>
+        </div>
+        <div class="channel-card faction">
+          <div class="channel-card-tag">[F]</div>
+          <div class="channel-card-name">Faction</div>
+          <div class="channel-card-desc">Membres de la faction uniquement. Necessite d'etre dans une faction.</div>
+        </div>
+        <div class="channel-card ally">
+          <div class="channel-card-tag">[A]</div>
+          <div class="channel-card-name">Ally</div>
+          <div class="channel-card-desc">Faction + factions alliees. Necessite une faction avec des allies.</div>
+        </div>
+        <div class="channel-card staff">
+          <div class="channel-card-tag">[S]</div>
+          <div class="channel-card-name">Staff</div>
+          <div class="channel-card-desc">Joueurs avec permission chat.staff. Communication interne equipe.</div>
+        </div>
+        <div class="channel-card private">
+          <div class="channel-card-tag">[PM]</div>
+          <div class="channel-card-name">Prives</div>
+          <div class="channel-card-desc">Agrege tous les messages prives (envoyes et recus). Sans restriction.</div>
+        </div>
+      </div>
+
+      <h3>Regles de routage</h3>
+      <p>L'envoi d'un message suit la hierarchie suivante :</p>
+      <ol style="list-style: decimal; padding-left: 24px; display: flex; flex-direction: column; gap: 6px;">
+        <li style="font-size: 14px; color: var(--slate);"><strong style="color: var(--text);">Prefixe explicite</strong> — Si le message commence par <code style="background: rgba(107,47,160,0.15); padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 12px;">!</code> (faction), <code style="background: rgba(0,229,255,0.10); padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 12px;">@@</code> (ally) ou <code style="background: rgba(241,196,15,0.10); padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 12px;">#</code> (staff), il est route vers ce canal independamment de l'onglet actif.</li>
+        <li style="font-size: 14px; color: var(--slate);"><strong style="color: var(--text);">Canal actif</strong> — Sinon, le message est envoye dans le canal de l'onglet actuellement selectionne.</li>
+        <li style="font-size: 14px; color: var(--slate);"><strong style="color: var(--text);">Commande</strong> — <code style="background: rgba(107,47,160,0.15); padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 12px;">/chat f</code>, <code style="background: rgba(107,47,160,0.15); padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 12px;">/msg &lt;joueur&gt;</code>, etc. forcent le canal.</li>
+      </ol>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Canal</th>
+              <th>Prefixe raccourci</th>
+              <th>Commande</th>
+              <th>Permission</th>
+              <th>Portee</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="ch-global">Global</td>
+              <td>(aucun)</td>
+              <td>/chat g</td>
+              <td><span class="tag-yes">Aucune</span></td>
+              <td>Tous les joueurs</td>
+            </tr>
+            <tr>
+              <td class="ch-faction">Faction</td>
+              <td>! au debut du message</td>
+              <td>/chat f</td>
+              <td>Etre dans une faction</td>
+              <td>Membres de la faction</td>
+            </tr>
+            <tr>
+              <td class="ch-ally">Ally</td>
+              <td>@@ au debut du message</td>
+              <td>/chat a</td>
+              <td>Faction avec allies</td>
+              <td>Faction + factions alliees</td>
+            </tr>
+            <tr>
+              <td class="ch-staff">Staff</td>
+              <td># au debut du message</td>
+              <td>/chat s</td>
+              <td>chat.staff</td>
+              <td>Joueurs avec chat.staff</td>
+            </tr>
+            <tr>
+              <td class="ch-private">Prive</td>
+              <td>/msg &lt;joueur&gt;</td>
+              <td>/msg, /pm, /r</td>
+              <td><span class="tag-yes">Aucune</span></td>
+              <td>Destinataire unique</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Priorite des prefixes</strong> — Le prefixe <code>!</code> etant aussi utilise par certaines commandes, le systeme verifie en premier si le texte apres <code>!</code> n'est pas une commande existante. Si c'est le cas, il laisse le comportement normal de Minecraft. Sinon, il route vers le canal faction.</div>
+      </div>
+
+      <h3>Persistance du canal actif</h3>
+      <p>Le canal actif d'un joueur est stocke dans son <code>FactionPlayerData</code> (champ <code>chatMode</code> deja existant). Ce champ est etendu pour prendre en charge les valeurs <code>GLOBAL</code>, <code>FACTION</code>, <code>ALLY</code>, <code>STAFF</code>. La persistance entre sessions est assur&#233;e par le DataManager EriAPI.</p>
+    </div>
+
+    <!-- ═══ S3 — FORMAT DES MESSAGES ═══ -->
+    <div class="section-card" id="s3">
+      <h2><span class="s-num">03</span> Format des Messages</h2>
+
+      <p>Chaque message affiche dans le chat suit un format standardise qui inclut le canal, le grade, le pseudo et l'etiquette de faction. La construction finale utilise le pipeline RankChatHandler -&gt; FactionChatHandler -&gt; ChatManager.</p>
+
+      <h3 class="first">Format general</h3>
+      <div class="ascii-diagram"><span class="ac">[Canal]</span> <span class="av">[Prefixe Grade]</span> <span class="ag">Pseudo</span><span class="as"> [Tag Faction]</span><span class="as"> » </span>Message</div>
+
+      <h3>Exemples par canal</h3>
+      <div class="ascii-diagram"><span class="as">// Global</span>
+<span class="as">[G]</span> <span class="av">[Admin]</span> <span class="ag">Steve</span> <span class="as">[Vikings]</span> <span class="as">»</span> Bonjour tout le monde !
+
+<span class="as">// Faction</span>
+<span class="ag">[F]</span> <span class="av">[Membre]</span> <span class="ag">Alex</span> <span class="as">[Vikings]</span> <span class="as">»</span> Raid ce soir a 20h
+
+<span class="as">// Ally</span>
+<span class="ac">[A]</span> <span class="av">[Chef]</span> <span class="ag">Steve</span> <span class="as">[Vikings -&gt; Knights]</span> <span class="as">»</span> Reunion d'alliance
+
+<span class="as">// Staff</span>
+<span class="ay">[S]</span> <span class="av">[Admin]</span> <span class="ag">Steve</span> <span class="as">»</span> Redemarrage dans 5 min
+
+<span class="as">// Prive (vu par l'expediteur)</span>
+<span class="av">[PM]</span> <span class="ag">Steve</span> <span class="as">-&gt;</span> <span class="ag">Alex</span> <span class="as">»</span> Salut, tu veux trader ?
+
+<span class="as">// Prive (vu par le destinataire)</span>
+<span class="av">[PM]</span> <span class="ag">Steve</span> <span class="as">-&gt;</span> <span class="as">Vous</span> <span class="as">»</span> Salut, tu veux trader ?</div>
+
+      <h3>Regles de construction</h3>
+      <ul>
+        <li><strong>Tag du canal</strong> — Toujours en premiere position, couleur codee par canal (voir variables CSS)</li>
+        <li><strong>Prefixe de grade</strong> — Fourni par RankManager via RankChatHandler (translateColors appele)</li>
+        <li><strong>Pseudo</strong> — Colore avec la couleur du grade (rank.getColor())</li>
+        <li><strong>Tag faction</strong> — Entre crochets, colore avec la couleur ARGB de la faction (argbToTextFormatting)</li>
+        <li><strong>Separateur</strong> — Un fleche blanche <code>§7»</code> entre l'identite et le message</li>
+        <li><strong>Message</strong> — Traite : codes &amp; traduits si permission chat.color, emojis remplaces, mentions soulignees</li>
+      </ul>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Canal</th>
+              <th>Couleur du tag</th>
+              <th>Tag affiche</th>
+              <th>Faction incluse</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="ch-global">Global</td>
+              <td>§f (blanc)</td>
+              <td>[G]</td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+            <tr>
+              <td class="ch-faction">Faction</td>
+              <td>§a (vert)</td>
+              <td>[F]</td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+            <tr>
+              <td class="ch-ally">Ally</td>
+              <td>§b (cyan)</td>
+              <td>[A]</td>
+              <td><span class="tag-yes">OUI (+ cible)</span></td>
+            </tr>
+            <tr>
+              <td class="ch-staff">Staff</td>
+              <td>§e (jaune)</td>
+              <td>[S]</td>
+              <td><span class="tag-no">NON</span></td>
+            </tr>
+            <tr>
+              <td class="ch-private">Prive</td>
+              <td>§d (mauve)</td>
+              <td>[PM]</td>
+              <td><span class="tag-no">NON</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S4 — SYSTEME D'ONGLETS ═══ -->
+    <div class="section-card" id="s4">
+      <h2><span class="s-num green-num">04</span> Systeme d'Onglets</h2>
+
+      <p>L'interface chat dispose d'une barre d'onglets horizontale positionnee au-dessus de la saisie (rendue via le Mixin GuiChat). Chaque onglet correspond a un canal et filtre les messages affiches dans la fenetre de chat.</p>
+
+      <h3 class="first">Comportement des onglets</h3>
+      <ul>
+        <li><strong>Cliquer sur un onglet</strong> filtre l'affichage des messages ET bascule le canal d'envoi sur ce canal</li>
+        <li>L'<strong>onglet "Tout"</strong> affiche tous les messages de tous les canaux, codes par couleur</li>
+        <li>Un <strong>indicateur d'activite</strong> (point colore anime) apparait sur l'onglet quand il contient des messages non lus</li>
+        <li>L'onglet actif est mis en surbrillance (fond semi-transparent colore avec la couleur du canal)</li>
+        <li>Les onglets inaccessibles (ex : Faction sans faction, Staff sans permission) sont affiches en gris et desactives</li>
+      </ul>
+
+      <div class="ascii-diagram"><span class="as">╔═══════════════════════════════════════════════════════╗</span>
+<span class="as">║</span> <span class="as">[Tout]</span> <span class="ag">[Global]</span> <span class="ag">[Faction •]</span> <span class="ac">[Ally]</span> <span class="ay">[Staff]</span> <span class="av">[Prives •]</span> <span class="as">║</span>  <span class="as">&lt;-- barre d'onglets</span>
+<span class="as">╠═══════════════════════════════════════════════════════╣</span>
+<span class="as">║</span>                                                       <span class="as">║</span>
+<span class="as">║</span>  <span class="as">[G] §7[Admin]§r Steve §8[Vikings]§7 » Bonjour !</span>       <span class="as">║</span>
+<span class="as">║</span>  <span class="ag">[F] §7[Membre]§r Alex §8[Vikings]§7 » Raid ce soir</span>    <span class="as">║</span>
+<span class="as">║</span>                                                       <span class="as">║</span>
+<span class="as">╠═══════════════════════════════════════════════════════╣</span>
+<span class="ac">║  Preview : §6Bonjour §cMonde                          ║</span>  <span class="as">&lt;-- ligne preview</span>
+<span class="as">║</span>  <span class="as">&gt; &amp;6Bonjour &amp;cMonde_</span>                                   <span class="as">║</span>  <span class="as">&lt;-- barre de saisie</span>
+<span class="as">╚═══════════════════════════════════════════════════════╝</span></div>
+
+      <h3>Onglet "Tout" (All)</h3>
+      <p>L'onglet special "Tout" n'est pas un canal d'envoi — il affiche uniquement. En mode "Tout", cliquer pour envoyer utilise le dernier canal actif avant de basculer sur "Tout". Un indicateur textuel discret indique le canal d'envoi courant : <code style="background: rgba(107,47,160,0.15); padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 12px;">Envoi : Global</code>.</p>
+
+      <h3>Indicateurs non-lus</h3>
+      <ul>
+        <li>Chaque onglet maintient un compteur de messages non lus dans le <code>ChatHistoryManager</code></li>
+        <li>Le compteur se remet a zero quand l'onglet est selectionne</li>
+        <li>Un petit point colore anime (pulse) apparait en haut a droite de l'onglet si compteur &gt; 0</li>
+        <li>Pour les messages prives, le point est colore en mauve (--ch-private)</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Rendu EriAPI</strong> — La barre d'onglets est implementee avec des composants <code>Button</code> EriAPI en style outlined avec cornerRadius. Les indicateurs de non-lu utilisent un <code>Circle</code> avec l'animation <code>component.breathe(40)</code> pour le pulse. L'ensemble est rendu dans le Mixin GuiChat.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S5 — PREVIEW COULEUR ═══ -->
+    <div class="section-card" id="s5">
+      <h2><span class="s-num">05</span> Preview Couleur en Temps Reel</h2>
+
+      <p>La barre de saisie affiche au-dessus d'elle une ligne de preview qui montre en temps reel le rendu formate du message en cours de frappe. Cette fonctionnalite est particulierement utile pour les joueurs qui utilisent les codes couleur <code>&amp;</code>.</p>
+
+      <h3 class="first">Fonctionnement</h3>
+      <ul>
+        <li>A chaque frappe de touche, le texte saisi est passe dans <code>ChatFormatter.previewFormat()</code></li>
+        <li>La methode applique la traduction des codes <code>&amp;0-9a-fk-or</code> vers les codes Minecraft <code>§</code></li>
+        <li>Elle remplace aussi les raccourcis emoji (:sword: → ⚔) pour la preview</li>
+        <li>Le resultat est affiche dans une <code>Label</code> EriAPI positionnee juste au-dessus de l'input, avec un fond semi-transparent</li>
+        <li>Si le message ne contient aucun code de formatage, la preview est masquee pour ne pas encombrer</li>
+      </ul>
+
+      <h3>Permission-gating</h3>
+      <ul>
+        <li>La preview couleur est visible par tous les joueurs, meme sans permission</li>
+        <li>Mais la traduction des codes <code>&amp;</code> lors de l'envoi serveur n'est effectuee que si le joueur possede <code>chat.color</code></li>
+        <li>Sans permission : les codes <code>&amp;x</code> sont strippes du message (la methode <code>stripColors</code> du RankChatHandler est reutilisee)</li>
+        <li>La preview client-side affiche toujours les couleurs. Une mention discrete <code>(couleurs non autorisees)</code> est ajoutee si le joueur n'a pas la permission</li>
+      </ul>
+
+      <h3>Codes supportes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Effet</th>
+              <th>Permission requise</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>&amp;0 a &amp;9</td><td>Couleurs (noir, rouge, vert, jaune, bleu, etc.)</td><td>chat.color</td></tr>
+            <tr><td>&amp;a a &amp;f</td><td>Couleurs supplementaires (vert clair, cyan, rouge, mauve, blanc)</td><td>chat.color</td></tr>
+            <tr><td>&amp;l</td><td>Gras</td><td>chat.color</td></tr>
+            <tr><td>&amp;o</td><td>Italique</td><td>chat.color</td></tr>
+            <tr><td>&amp;n</td><td>Souligne</td><td>chat.color</td></tr>
+            <tr><td>&amp;m</td><td>Barre</td><td>chat.color</td></tr>
+            <tr><td>&amp;k</td><td>Obfusque (caracteres aleatoires)</td><td>chat.color</td></tr>
+            <tr><td>&amp;r</td><td>Reset du formatage</td><td>chat.color</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>&amp;k obfusque</strong> — L'effet obfusque est autorise mais un cooldown de 30 secondes est applique apres l'envoi d'un message contenant &amp;k pour eviter le spam visuel abusif. Ce cooldown est gere par ChatManager cote serveur.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S6 — MENTIONS ═══ -->
+    <div class="section-card" id="s6">
+      <h2><span class="s-num cyan-num">06</span> Mentions (@)</h2>
+
+      <p>Les mentions permettent d'alerter un joueur specifique en tapant <code>@Pseudo</code> dans le message. La cible recoit un signal sonore, une mise en evidence visuelle et une notification.</p>
+
+      <h3 class="first">Detection des mentions</h3>
+      <ul>
+        <li>Le <code>MentionHandler</code> scanne le message apres traitement des couleurs/emojis</li>
+        <li>Toute sequence <code>@NomJoueur</code> est consideree comme une mention si <code>NomJoueur</code> correspond a un joueur en ligne (case-insensitive)</li>
+        <li>La detection s'arrete au premier espace ou caractere non-alphanumerique apres <code>@</code></li>
+        <li>Les fausses mentions (joueur hors ligne ou inexistant) sont laissees telles quelles, non surlignees</li>
+      </ul>
+
+      <h3>Effets sur la cible mentionnee</h3>
+      <ul>
+        <li><strong>Son de ping</strong> — <code>SoundManager</code> EriAPI joue un son "pling" (XP pickup vanilla, <code>minecraft:entity.experience_orb.pickup</code>)</li>
+        <li><strong>Highlight visuel</strong> — Le <code>@Pseudo</code> est rendu avec un fond cyan/jaune dans le message affiche</li>
+        <li><strong>Notification toast</strong> — <code>NotificationManager</code> EriAPI affiche un toast <code>INFO</code> de 3 secondes : "Steve vous a mentionne dans [canal]"</li>
+        <li><strong>Indicateur de non-lu</strong> — L'onglet "Tout" montre un point d'alerte rouge si le joueur n'est pas sur l'onglet du canal ou la mention a ete faite</li>
+      </ul>
+
+      <h3>Mentions speciales</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Mention</th>
+              <th>Effet</th>
+              <th>Permission</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>@everyone</td>
+              <td>Mentionne tous les joueurs en ligne (ping + notification pour chacun)</td>
+              <td>chat.mention.everyone</td>
+            </tr>
+            <tr>
+              <td>@faction</td>
+              <td>Mentionne tous les membres en ligne de votre faction</td>
+              <td>Etre dans une faction</td>
+            </tr>
+            <tr>
+              <td>@Pseudo</td>
+              <td>Mentionne un joueur specifique</td>
+              <td>Aucune</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Autocomplete des mentions</h3>
+      <ul>
+        <li>Taper <code>@</code> dans la barre de saisie puis appuyer sur TAB declenche l'autocomplete</li>
+        <li>L'autocomplete filtre les joueurs en ligne dont le pseudo commence par les lettres tapees apres <code>@</code></li>
+        <li>Implemente via le Mixin GuiChat en interceptant la touche TAB</li>
+        <li>Les suggestions s'affichent dans une liste deroulante au-dessus de la saisie (meme style que l'autocomplete vanilla)</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Rendu du highlight</strong> — Le <code>@Pseudo</code> mentionne est rendu avec un background colore en utilisant le rendu manuel OpenGL dans le Mixin GuiNewChat (injection dans la methode de rendu de ligne). Techniquement un rectangle semi-transparent est dessine derriere la portion de texte correspondante.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S7 — EMOJIS ═══ -->
+    <div class="section-card" id="s7">
+      <h2><span class="s-num">07</span> Systeme d'Emojis</h2>
+
+      <p>Les joueurs peuvent inserer des emojis dans leurs messages via des raccourcis textuels (shortcodes) de la forme <code>:nom:</code>. Le remplacement est effectue cote serveur avant la diffusion, garantissant que tous les clients voient le meme rendu.</p>
+
+      <h3 class="first">Registre des emojis</h3>
+      <div class="emoji-grid">
+        <div class="emoji-row"><span class="emoji-char">&#9876;</span><span class="emoji-code">:sword:</span><span class="emoji-unicode">U+2694</span></div>
+        <div class="emoji-row"><span class="emoji-char">&#10084;</span><span class="emoji-code">:heart:</span><span class="emoji-unicode">U+2764</span></div>
+        <div class="emoji-row"><span class="emoji-char">&#9760;</span><span class="emoji-code">:skull:</span><span class="emoji-unicode">U+2620</span></div>
+        <div class="emoji-row"><span class="emoji-char">&#128293;</span><span class="emoji-code">:fire:</span><span class="emoji-unicode">U+1F525</span></div>
+        <div class="emoji-row"><span class="emoji-char">&#9733;</span><span class="emoji-code">:star:</span><span class="emoji-unicode">U+2605</span></div>
+        <div class="emoji-row"><span class="emoji-char">&#128737;</span><span class="emoji-code">:shield:</span><span class="emoji-unicode">U+1F6E1</span></div>
+        <div class="emoji-row"><span class="emoji-char">&#9819;</span><span class="emoji-code">:crown:</span><span class="emoji-unicode">U+265B</span></div>
+        <div class="emoji-row"><span class="emoji-char">&#9670;</span><span class="emoji-code">:diamond:</span><span class="emoji-unicode">U+25C6</span></div>
+        <div class="emoji-row"><span class="emoji-char">&#10148;</span><span class="emoji-code">:arrow:</span><span class="emoji-unicode">U+27A4</span></div>
+        <div class="emoji-row"><span class="emoji-char">&#10004;</span><span class="emoji-code">:check:</span><span class="emoji-unicode">U+2714</span></div>
+        <div class="emoji-row"><span class="emoji-char">&#10008;</span><span class="emoji-code">:cross:</span><span class="emoji-unicode">U+2718</span></div>
+        <div class="emoji-row"><span class="emoji-char">&#9888;</span><span class="emoji-code">:warning:</span><span class="emoji-unicode">U+26A0</span></div>
+        <div class="emoji-row"><span class="emoji-char">&#9834;</span><span class="emoji-code">:music:</span><span class="emoji-unicode">U+266A</span></div>
+        <div class="emoji-row"><span class="emoji-char">&#9889;</span><span class="emoji-code">:bolt:</span><span class="emoji-unicode">U+26A1</span></div>
+        <div class="emoji-row"><span class="emoji-char">&#9774;</span><span class="emoji-code">:peace:</span><span class="emoji-unicode">U+262E</span></div>
+        <div class="emoji-row"><span class="emoji-char">&#9786;</span><span class="emoji-code">:smile:</span><span class="emoji-unicode">U+263A</span></div>
+        <div class="emoji-row"><span class="emoji-char">&#9785;</span><span class="emoji-code">:sad:</span><span class="emoji-unicode">U+2639</span></div>
+        <div class="emoji-row"><span class="emoji-char" style="color:#E74C3C;">&#9889;</span><span class="emoji-code">:rage:</span><span class="emoji-unicode">rouge</span></div>
+        <div class="emoji-row"><span class="emoji-char" style="color:#F1C40F;font-weight:700;">GG</span><span class="emoji-code">:gg:</span><span class="emoji-unicode">or+gras</span></div>
+        <div class="emoji-row"><span class="emoji-char" style="color:#8892A4;font-style:italic;">RIP</span><span class="emoji-code">:rip:</span><span class="emoji-unicode">gris+ita</span></div>
+      </div>
+
+      <h3>Pipeline de remplacement</h3>
+      <p>Le remplacement est effectue dans la methode <code>ChatFormatter.replaceEmojis(String message)</code> :</p>
+      <div class="code-block"><span class="cm">// Dans ChatFormatter.java</span>
+<span class="kw">public static</span> <span class="ty">String</span> <span class="fn">replaceEmojis</span>(<span class="ty">String</span> message) {
+    <span class="kw">for</span> (<span class="ty">Map.Entry</span>&lt;<span class="ty">String</span>, <span class="ty">String</span>&gt; entry : <span class="cl">EmojiRegistry</span>.<span class="fn">getAll</span>().<span class="fn">entrySet</span>()) {
+        message = message.<span class="fn">replace</span>(entry.<span class="fn">getKey</span>(), entry.<span class="fn">getValue</span>());
+    }
+    <span class="kw">return</span> message;
+}
+
+<span class="cm">// Cas speciaux (texte colore)</span>
+<span class="cm">// :rage: → §cU+26A1§r  (eclair rouge)</span>
+<span class="cm">// :gg:   → §6§lGG§r    (or + gras)</span>
+<span class="cm">// :rip:  → §7§oRIP§r   (gris + italique)</span></div>
+
+      <h3>Autocomplete des emojis</h3>
+      <ul>
+        <li>Taper <code>:</code> dans la barre de saisie active le mode d'autocomplete emoji</li>
+        <li>Chaque caractere suivant filtre la liste des emojis dont le shortcode contient la chaine saisie</li>
+        <li>Appuyer sur TAB complete avec le premier emoji de la liste filtree</li>
+        <li>Appuyer sur TAB a nouveau cycle sur les emojis suivants</li>
+        <li>Les suggestions affichent le caractere emoji, son shortcode et une courte description</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Ajout d'emojis</strong> — Le registre <code>EmojiRegistry</code> est un simple <code>LinkedHashMap&lt;String, String&gt;</code> statique. Ajouter un emoji ne requiert qu'une seule ligne. Les shortcodes speciaux (texte colore) utilisent une map separee <code>SPECIAL_EMOJIS</code> avec la chaine de couleur complete comme valeur.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S8 — MESSAGES PRIVES ═══ -->
+    <div class="section-card" id="s8">
+      <h2><span class="s-num gold-num">08</span> Messages Prives</h2>
+
+      <p>Le systeme de messages prives ameliore le /tell vanilla avec un historique dedie, une commande de reponse rapide et des notifications sonores.</p>
+
+      <h3 class="first">Commandes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Commande</th>
+              <th>Alias</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>/msg &lt;joueur&gt; &lt;message&gt;</td>
+              <td>/tell, /pm, /whisper</td>
+              <td>Envoie un message prive</td>
+            </tr>
+            <tr>
+              <td>/r &lt;message&gt;</td>
+              <td>/reply</td>
+              <td>Repond au dernier MP recu</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Format d'affichage</h3>
+      <div class="ascii-diagram"><span class="as">// Vu par l'expediteur :</span>
+<span class="av">[PM]</span> Vous <span class="as">-&gt;</span> <span class="av">Alex</span> <span class="as">»</span> Salut, tu veux trader ?
+
+<span class="as">// Vu par le destinataire :</span>
+<span class="av">[PM]</span> <span class="av">Steve</span> <span class="as">-&gt;</span> Vous <span class="as">»</span> Salut, tu veux trader ?</div>
+
+      <h3>Notifications</h3>
+      <ul>
+        <li><strong>Son</strong> — <code>SoundManager.playNotification()</code> est joue pour le destinataire</li>
+        <li><strong>Toast EriAPI</strong> — Un toast <code>INFO</code> de type "Message de Steve" apparait en jeu via <code>NotificationManager</code></li>
+        <li><strong>Onglet Prives</strong> — Le compteur de non-lus de l'onglet "Prives" est incremente</li>
+      </ul>
+
+      <h3>Persistance du destinataire courant</h3>
+      <ul>
+        <li>Le dernier joueur ayant envoye un MP est stocke en <code>ChatHistoryManager.lastPmSender</code> (UUID)</li>
+        <li>Le dernier joueur a qui j'ai envoye un MP est stocke en <code>lastPmRecipient</code></li>
+        <li><code>/r</code> repond vers <code>lastPmSender</code> (le dernier qui m'a ecrit)</li>
+        <li>Si aucun MP n'a ete echange, <code>/r</code> affiche : "Aucune conversation recente."</li>
+        <li>Si le joueur se deconnecte, le destinataire est efface. Tenter <code>/r</code> affiche : "&lt;Joueur&gt; n'est plus connecte."</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Joueur hors ligne</strong> — Si le destinataire d'un /msg est hors ligne, le message n'est pas delivre ni mis en attente. Un message d'erreur est renvoye a l'expediteur : "§c&lt;Joueur&gt; n'est pas connecte."</div>
+      </div>
+    </div>
+
+    <!-- ═══ S9 — SELECTEUR D'EMOJIS ═══ -->
+    <div class="section-card" id="s9">
+      <h2><span class="s-num">09</span> Selecteur d'Emojis (Popup GUI)</h2>
+
+      <p>Un petit bouton emoji est affiche a droite de la barre de saisie. Un clic ouvre une fenetre popup flottante presentant une grille de tous les emojis disponibles.</p>
+
+      <h3 class="first">UI du selecteur</h3>
+      <ul>
+        <li><strong>Bouton d'ouverture</strong> — Un petit bouton carre <code>☺</code> (16x16 design px) a droite de l'input, style <code>TexturedButton</code> EriAPI ou <code>Button</code> outlined violet</li>
+        <li><strong>Popup</strong> — Fenetre <code>ContainerComponent</code> EriAPI de 320x240 design px, style Liquid Glass (fond semi-transparent, backdrop blur, border subtile)</li>
+        <li><strong>Grille d'emojis</strong> — <code>GridLayout</code> EriAPI de 5 colonnes avec espacement de 4px. Chaque cellule affiche le caractere emoji et son shortcode au hover (Tooltip)</li>
+        <li><strong>Cliquer un emoji</strong> insere son shortcode dans la barre de saisie a la position du curseur</li>
+        <li><strong>Fermeture</strong> — Clic en dehors du popup, touche Echap, ou re-clic sur le bouton emoji</li>
+      </ul>
+
+      <h3>Animation</h3>
+      <ul>
+        <li>Ouverture : <code>popup.scaleIn(8)</code> depuis le bouton emoji (origine en bas a droite)</li>
+        <li>Fermeture : <code>popup.scaleOut(6)</code></li>
+        <li>Les cellules de la grille utilisent <code>cell.pulse(5)</code> au clic pour feedback visuel</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Classe <code>EmojiPickerPopup</code></strong> — Cette classe etend <code>ContainerComponent</code> EriAPI. Elle est instanciee une seule fois et sa visibilite est toggle. Le popup est positionne en haut a droite de la barre de saisie en coordonnees 1920x1080.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S10 — HISTORIQUE & FILTRAGE ═══ -->
+    <div class="section-card" id="s10">
+      <h2><span class="s-num green-num">10</span> Historique &amp; Filtrage Client-Side</h2>
+
+      <p>Chaque message est stocke client-side avec ses metadonnees de canal. Le filtrage par onglet est instantane et local — aucune requete serveur n'est necessaire.</p>
+
+      <h3 class="first">Structure d'un message stocke</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">ChatMessage</span> {
+    <span class="kw">public final</span> <span class="cl">ChatChannel</span> channel;       <span class="cm">// GLOBAL, FACTION, ALLY, STAFF, PRIVATE</span>
+    <span class="kw">public final</span> <span class="ty">ITextComponent</span> rendered;   <span class="cm">// Composant texte Minecraft rendu</span>
+    <span class="kw">public final</span> <span class="ty">long</span> timestamp;             <span class="cm">// System.currentTimeMillis()</span>
+    <span class="kw">public final</span> <span class="ty">UUID</span> senderUuid;           <span class="cm">// null pour messages systeme</span>
+    <span class="kw">public final</span> <span class="ty">boolean</span> isMention;          <span class="cm">// true si ce joueur y est mentionne</span>
+}</div>
+
+      <h3>ChatHistoryManager</h3>
+      <ul>
+        <li>Singleton client-side (<code>@SideOnly(Side.CLIENT)</code>)</li>
+        <li>Stocke jusqu'a <strong>500 messages par canal</strong> (FIFO, le plus ancien est supprime quand la limite est atteinte)</li>
+        <li>L'onglet "Tout" utilise une liste unifiee de 1000 messages maximum</li>
+        <li>Chaque canal a son propre <strong>offset de scroll</strong> independant</li>
+        <li>Les compteurs de non-lus sont stores par canal dans une <code>Map&lt;ChatChannel, Integer&gt;</code></li>
+      </ul>
+
+      <h3>Injection des messages</h3>
+      <p>Le Mixin <code>MixinGuiNewChat</code> intercepte la methode <code>printChatMessageWithOptionalDeletion</code> de Minecraft. A chaque nouveau message, avant le rendu vanilla :</p>
+      <ol style="list-style: decimal; padding-left: 24px; display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+        <li style="font-size: 14px; color: var(--slate);">Extraction du canal depuis le tag de prefixe du composant texte (ex : <code>[G]</code>, <code>[F]</code>, etc.)</li>
+        <li style="font-size: 14px; color: var(--slate);">Detection si le message contient une mention du joueur local</li>
+        <li style="font-size: 14px; color: var(--slate);">Creation d'un <code>ChatMessage</code> POJO et ajout dans le <code>ChatHistoryManager</code></li>
+        <li style="font-size: 14px; color: var(--slate);">Increment du compteur de non-lus si l'onglet actif n'est pas celui du message</li>
+        <li style="font-size: 14px; color: var(--slate);">Si l'onglet actif est "Tout" ou le canal du message : laisser le rendu vanilla s'executer normalement</li>
+        <li style="font-size: 14px; color: var(--slate);">Sinon : annuler le rendu vanilla via <code>ci.cancel()</code> (le message est stocke mais non affiche)</li>
+      </ol>
+
+      <h3>Scroll independant par onglet</h3>
+      <ul>
+        <li>La position de scroll de chaque onglet est sauvegardee en memoire</li>
+        <li>Changer d'onglet restaure la position de scroll de ce canal</li>
+        <li>Recevoir un nouveau message sur un onglet non actif ne modifie pas sa position de scroll</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S11 — SYSTEME D'IGNORE ═══ -->
+    <div class="section-card" id="s11">
+      <h2><span class="s-num">11</span> Systeme d'Ignore</h2>
+
+      <p>Un joueur peut masquer tous les messages d'un autre joueur via <code>/ignore</code>. Cette preference est persistee cote serveur et appliquee a la reception du message (le message n'est pas envoye au joueur ignorant).</p>
+
+      <h3 class="first">Persistance</h3>
+      <ul>
+        <li>La liste d'ignores est stockee dans un nouveau champ <code>List&lt;String&gt; ignoredPlayers</code> dans <code>FactionPlayerData</code> (UUIDs sous forme de String)</li>
+        <li>Le champ n'est PAS marque <code>@Sync</code> — il reste serveur-side uniquement</li>
+        <li>La persistence est assuree par le DataManager EriAPI (NBT, <code>persistOnDeath = false</code>)</li>
+      </ul>
+
+      <h3>Application du filtre</h3>
+      <ul>
+        <li>Dans <code>ChatEventHandler.onServerChat()</code>, avant d'envoyer le message a chaque destinataire, l'UUID de l'expediteur est verifie contre la liste d'ignores du destinataire</li>
+        <li>Si l'expediteur est ignore, le message n'est pas transmis a ce destinataire</li>
+        <li>L'ignore s'applique a tous les canaux (Global, Faction, Ally) mais <strong>pas</strong> aux messages systeme ni aux messages Staff</li>
+      </ul>
+
+      <h3>Limites</h3>
+      <ul>
+        <li>Maximum 50 joueurs ignores par joueur (protege contre l'abus de memoire)</li>
+        <li>Ignorer un membre de sa propre faction affiche un avertissement mais est autorise</li>
+        <li>Les admins avec <code>chat.staff</code> ne peuvent pas etre ignores (leurs messages Staff passent toujours)</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Pas de notification</strong> — Quand un joueur est ignore, l'expediteur ne recoit aucune notification et croit que son message a bien ete envoye. Cela evite les conflits en jeu.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S12 — GUI CHAT CUSTOM ═══ -->
+    <div class="section-card" id="s12">
+      <h2><span class="s-num cyan-num">12</span> GUI Chat Custom (Mixin + EriAPI)</h2>
+
+      <p>Le remplacement du chat vanilla requiert deux Mixins distincts : un sur l'ecran de saisie (<code>GuiChat</code>) et un sur le rendu de l'historique (<code>GuiNewChat</code>).</p>
+
+      <h3 class="first">MixinGuiChat — Ecran de saisie</h3>
+      <p>Ce Mixin injecte du code dans <code>GuiChat.initGui()</code>, <code>GuiChat.drawScreen()</code> et <code>GuiChat.keyTyped()</code> pour ajouter :</p>
+      <ul>
+        <li>La barre d'onglets (composants <code>Button</code> EriAPI) au-dessus de l'input</li>
+        <li>La ligne de preview (composant <code>Label</code> EriAPI) entre l'historique et l'input</li>
+        <li>Le bouton du selecteur d'emojis a droite de l'input</li>
+        <li>L'interception de TAB pour l'autocomplete (@mentions et :emojis)</li>
+        <li>La gestion du clic sur les onglets (mise a jour de l'onglet actif dans <code>ChatHistoryManager</code>)</li>
+      </ul>
+
+      <div class="code-block"><span class="an">@Mixin</span>(<span class="cl">GuiChat</span>.<span class="kw">class</span>)
+<span class="kw">public class</span> <span class="cl">MixinGuiChat</span> {
+
+    <span class="an">@Inject</span>(method = <span class="st">"initGui"</span>, at = <span class="an">@At</span>(<span class="st">"RETURN"</span>))
+    <span class="kw">private void</span> <span class="fn">onInitGui</span>(<span class="cl">CallbackInfo</span> ci) {
+        <span class="cm">// Initialiser les composants EriAPI (tabs, preview, emoji btn)</span>
+        <span class="cl">GuiChatCustom</span>.INSTANCE.<span class="fn">initComponents</span>(<span class="kw">this</span>);
+    }
+
+    <span class="an">@Inject</span>(method = <span class="st">"drawScreen"</span>, at = <span class="an">@At</span>(<span class="st">"RETURN"</span>))
+    <span class="kw">private void</span> <span class="fn">onDrawScreen</span>(<span class="ty">int</span> mouseX, <span class="ty">int</span> mouseY, <span class="ty">float</span> pt, <span class="cl">CallbackInfo</span> ci) {
+        <span class="cm">// Rendre les composants EriAPI par-dessus le chat vanilla</span>
+        <span class="cl">GuiChatCustom</span>.INSTANCE.<span class="fn">render</span>(mouseX, mouseY, pt);
+    }
+
+    <span class="an">@Inject</span>(method = <span class="st">"keyTyped"</span>, at = <span class="an">@At</span>(<span class="st">"HEAD"</span>), cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">onKeyTyped</span>(<span class="ty">char</span> typedChar, <span class="ty">int</span> keyCode, <span class="cl">CallbackInfo</span> ci) {
+        <span class="kw">if</span> (<span class="cl">GuiChatCustom</span>.INSTANCE.<span class="fn">handleKey</span>(typedChar, keyCode)) {
+            ci.<span class="fn">cancel</span>(); <span class="cm">// Intercepte TAB pour autocomplete</span>
+        }
+    }
+}</div>
+
+      <h3>MixinGuiNewChat — Historique et rendu</h3>
+      <p>Ce Mixin intercepte <code>GuiNewChat.printChatMessageWithOptionalDeletion()</code> pour :</p>
+      <ul>
+        <li>Extraire le canal et creer le <code>ChatMessage</code> dans le <code>ChatHistoryManager</code></li>
+        <li>Annuler le rendu si le message n'appartient pas a l'onglet actif</li>
+        <li>Rendre les highlights de mentions (@Pseudo souligne/colore) sur les messages visibles</li>
+      </ul>
+
+      <h3>Composants EriAPI utilises</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Composant</th>
+              <th>Utilisation</th>
+              <th>Position design (1920x1080)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Button (x5)</td>
+              <td>Onglets Global, Faction, Ally, Staff, Prives + Tout</td>
+              <td>Barre en bas, au-dessus de l'input</td>
+            </tr>
+            <tr>
+              <td>Label</td>
+              <td>Ligne de preview couleur</td>
+              <td>Au-dessus de l'input, sous les onglets</td>
+            </tr>
+            <tr>
+              <td>Button</td>
+              <td>Bouton selecteur d'emojis</td>
+              <td>A droite de la barre d'input vanilla</td>
+            </tr>
+            <tr>
+              <td>ContainerComponent</td>
+              <td>EmojiPickerPopup</td>
+              <td>Popup flottant au-dessus du bouton emoji</td>
+            </tr>
+            <tr>
+              <td>Circle</td>
+              <td>Indicateurs de non-lus</td>
+              <td>En haut a droite de chaque onglet</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Coordonnees Mixin vs EriAPI</strong> — Les composants EriAPI sont en coordonnees 1920x1080 (ScaleManager auto). Mais les positions calculees dans le contexte d'un Mixin GuiChat (drawScreen) doivent utiliser <code>ScaleManager.toScreen(x)</code> pour convertir vers les coordonnees ecran reelles lors du positionnement relatif aux elements vanilla.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S13 — TRAITEMENT SERVEUR ═══ -->
+    <div class="section-card" id="s13">
+      <h2><span class="s-num">13</span> Traitement Serveur (Pipeline)</h2>
+
+      <p>Toute la logique de traitement des messages est centralisee dans <code>ChatEventHandler</code>, qui intercepte le <code>ServerChatEvent</code> de Forge avec une priorite haute pour prendre la main avant les handlers existants.</p>
+
+      <h3 class="first">Ordre de traitement</h3>
+      <div class="ascii-diagram"><span class="as">ServerChatEvent (EventPriority.HIGH)</span>
+<span class="as">        |</span>
+<span class="ac">        v</span>
+<span class="ag">1. Detection du canal</span> <span class="as">(prefixe !, @@, # ou chatMode du joueur)</span>
+<span class="as">        |</span>
+<span class="ac">        v</span>
+<span class="ag">2. Traitement des codes couleur &amp;</span> <span class="as">(RankChatHandler.translateColors si chat.color)</span>
+<span class="as">        |</span>
+<span class="ac">        v</span>
+<span class="ag">3. Remplacement des emojis</span> <span class="as">(ChatFormatter.replaceEmojis)</span>
+<span class="as">        |</span>
+<span class="ac">        v</span>
+<span class="ag">4. Detection des mentions @</span> <span class="as">(MentionHandler.detectMentions)</span>
+<span class="as">        |</span>
+<span class="ac">        v</span>
+<span class="ag">5. Construction du message final</span> <span class="as">(ChatManager.buildMessage : tag canal + rank + faction)</span>
+<span class="as">        |</span>
+<span class="ac">        v</span>
+<span class="ag">6. Determination des destinataires</span> <span class="as">(selon canal : tous, membres faction, allies, staff)</span>
+<span class="as">        |</span>
+<span class="ac">        v</span>
+<span class="ag">7. Filtrage ignore</span> <span class="as">(retrait des joueurs qui ont ignore l'expediteur)</span>
+<span class="as">        |</span>
+<span class="ac">        v</span>
+<span class="ag">8. Envoi aux destinataires</span> <span class="as">(player.sendMessage pour chacun)</span>
+<span class="as">        |</span>
+<span class="ac">        v</span>
+<span class="ag">9. Notifications de mentions</span> <span class="as">(son + toast EriAPI via EriScheduler.delay(1, ...) pour eviter NPE)</span>
+<span class="as">        |</span>
+<span class="ac">        v</span>
+<span class="ag">10. Annulation du ServerChatEvent</span> <span class="as">(event.setCanceled(true) — on gere l'envoi nous-memes)</span></div>
+
+      <h3>Interaction avec les handlers existants</h3>
+      <p>Le nouveau <code>ChatEventHandler</code> utilise la priorite <code>EventPriority.HIGH</code>. Les handlers existants (<code>RankChatHandler</code> et <code>FactionChatHandler</code>) utilisent la priorite par defaut (<code>NORMAL</code>). Comme le nouvel handler annule l'event a la fin, les anciens handlers ne s'executent plus pour les messages normaux.</p>
+      <p>La logique des anciens handlers est <strong>appelee directement</strong> depuis le nouveau pipeline plutot que via les events Forge — ceci garantit l'ordre d'execution et evite les conflits.</p>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Ne pas supprimer les anciens handlers</strong> — RankChatHandler et FactionChatHandler restent dans le codebase et peuvent etre utiles pour des cas edge. Cependant, leurs methodes <code>translateColors()</code>, <code>stripColors()</code> et <code>argbToTextFormatting()</code> sont desormais utilisees comme utilitaires statiques appeles par ChatFormatter et ChatManager.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S14 — ARCHITECTURE TECHNIQUE ═══ -->
+    <div class="section-card" id="s14">
+      <h2><span class="s-num green-num">14</span> Architecture Technique</h2>
+
+      <h3 class="first">Structure des packages</h3>
+      <div class="code-block"><span class="av">fr.eriniumgroup.eriniumfaction.chat/</span>
+<span class="as">├──</span> <span class="ty">ChatChannel.java</span>          <span class="cm">// Enum : GLOBAL, FACTION, ALLY, STAFF, PRIVATE</span>
+<span class="as">├──</span> <span class="ty">ChatManager.java</span>          <span class="cm">// Singleton serveur : pipeline, routage, construction</span>
+<span class="as">├──</span> <span class="ty">ChatMessage.java</span>          <span class="cm">// POJO : channel, rendered, timestamp, senderUuid, isMention</span>
+<span class="as">├──</span> <span class="ty">ChatHistoryManager.java</span>   <span class="cm">// @SideOnly(CLIENT) : stockage, filtrage, scroll, non-lus</span>
+<span class="as">├──</span> <span class="ty">ChatFormatter.java</span>        <span class="cm">// translateColors, stripColors, replaceEmojis, previewFormat</span>
+<span class="as">├──</span> <span class="ty">EmojiRegistry.java</span>        <span class="cm">// Map statique shortcode → unicode/couleur</span>
+<span class="as">├──</span> <span class="ty">MentionHandler.java</span>       <span class="cm">// detectMentions, notifyMentioned, highlightInComponent</span>
+<span class="as">├──</span> <span class="ty">IgnoreManager.java</span>        <span class="cm">// isIgnored, addIgnore, removeIgnore (delègue au DataManager)</span>
+<span class="as">├──</span> <span class="av">gui/</span>
+<span class="as">│   ├──</span> <span class="ty">GuiChatCustom.java</span>    <span class="cm">// Composants EriAPI : tabs, preview, emoji btn (singleton)</span>
+<span class="as">│   └──</span> <span class="ty">EmojiPickerPopup.java</span> <span class="cm">// ContainerComponent EriAPI : grille emoji cliquable</span>
+<span class="as">├──</span> <span class="av">command/</span>
+<span class="as">│   ├──</span> <span class="ty">ChatCommand.java</span>      <span class="cm">// /chat [g|f|a|s] — changer de canal actif</span>
+<span class="as">│   ├──</span> <span class="ty">MsgCommand.java</span>       <span class="cm">// /msg, /pm, /r — messages prives</span>
+<span class="as">│   ├──</span> <span class="ty">IgnoreCommand.java</span>    <span class="cm">// /ignore, /unignore</span>
+<span class="as">│   └──</span> <span class="ty">EmojiCommand.java</span>     <span class="cm">// /emoji list</span>
+<span class="as">├──</span> <span class="av">event/</span>
+<span class="as">│   └──</span> <span class="ty">ChatEventHandler.java</span> <span class="cm">// @SubscribeEvent ServerChatEvent (HIGH), pipeline complet</span>
+<span class="as">├──</span> <span class="av">mixin/</span>
+<span class="as">│   ├──</span> <span class="ty">MixinGuiChat.java</span>     <span class="cm">// Injection initGui, drawScreen, keyTyped</span>
+<span class="as">│   └──</span> <span class="ty">MixinGuiNewChat.java</span>  <span class="cm">// Injection printChatMessage, rendu historique</span>
+<span class="as">└──</span> <span class="av">config/</span>
+    <span class="as">└──</span> <span class="ty">ChatConfig.java</span>       <span class="cm">// Tous les toggles et valeurs numeriques</span></div>
+
+      <h3>Responsabilites des classes cles</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Classe</th>
+              <th>Side</th>
+              <th>Responsabilite</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ChatManager</td>
+              <td>Serveur</td>
+              <td>Orchestrateur principal : recoit un message brut, renvoie le composant formate a envoyer a chaque destinataire</td>
+            </tr>
+            <tr>
+              <td>ChatFormatter</td>
+              <td>Les deux</td>
+              <td>Transformations pures : couleurs, emojis, preview. Pas d'etat, methodes statiques</td>
+            </tr>
+            <tr>
+              <td>ChatHistoryManager</td>
+              <td>Client</td>
+              <td>Memoire client : stocke, filtre, compte les non-lus, gere le scroll par canal</td>
+            </tr>
+            <tr>
+              <td>MentionHandler</td>
+              <td>Serveur</td>
+              <td>Scanne le texte, trouve les UUIDs des joueurs mentionnes, schedule les notifications</td>
+            </tr>
+            <tr>
+              <td>IgnoreManager</td>
+              <td>Serveur</td>
+              <td>Facade CRUD simple sur le champ ignoredPlayers du FactionPlayerData</td>
+            </tr>
+            <tr>
+              <td>EmojiRegistry</td>
+              <td>Les deux</td>
+              <td>Source de verite des emojis. Initialise au demarrage. Map immuable apres init</td>
+            </tr>
+            <tr>
+              <td>GuiChatCustom</td>
+              <td>Client</td>
+              <td>Singleton qui detient les composants EriAPI injectes dans GuiChat via Mixin</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Enregistrement Mixin</h3>
+      <p>Les deux nouvelles classes Mixin sont ajoutees dans <code>mixins.eriniumfaction.json</code> section <code>"client"</code> :</p>
+      <div class="code-block"><span class="st">"client"</span><span class="op">:</span> [
+    <span class="st">"chat.MixinGuiChat"</span><span class="op">,</span>
+    <span class="st">"chat.MixinGuiNewChat"</span>
+]</div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Convention de nommage</strong> — Les mixins du sous-package <code>chat</code> sont references avec leur sous-package dans le JSON. Le refmap est genere automatiquement par l'annotation processor Mixin pour la production obfusquee.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S15 — COMMANDES ═══ -->
+    <div class="section-card" id="s15">
+      <h2><span class="s-num">15</span> Commandes</h2>
+
+      <h3 class="first">/chat</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Sous-commande</th>
+              <th>Alias</th>
+              <th>Action</th>
+              <th>Permission</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>/chat global</td>
+              <td>/chat g</td>
+              <td>Bascule le canal actif sur Global</td>
+              <td>Aucune</td>
+            </tr>
+            <tr>
+              <td>/chat faction</td>
+              <td>/chat f</td>
+              <td>Bascule sur Faction (erreur si sans faction)</td>
+              <td>Etre dans une faction</td>
+            </tr>
+            <tr>
+              <td>/chat ally</td>
+              <td>/chat a</td>
+              <td>Bascule sur Ally (erreur si sans allies)</td>
+              <td>Faction avec allies</td>
+            </tr>
+            <tr>
+              <td>/chat staff</td>
+              <td>/chat s</td>
+              <td>Bascule sur Staff (erreur si sans permission)</td>
+              <td>chat.staff</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Auto-completion</strong> : La sous-commande suggere <code>global</code>, <code>g</code>, <code>faction</code>, <code>f</code>, <code>ally</code>, <code>a</code>, <code>staff</code>, <code>s</code> selon les canaux accessibles au joueur (filtre dynamique).</p>
+
+      <h3>/msg, /pm, /r</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Commande</th>
+              <th>Syntax</th>
+              <th>Auto-completion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>/msg</td>
+              <td>/msg &lt;joueur&gt; &lt;message...&gt;</td>
+              <td>Noms des joueurs en ligne pour &lt;joueur&gt;</td>
+            </tr>
+            <tr>
+              <td>/pm</td>
+              <td>Alias de /msg</td>
+              <td>Idem</td>
+            </tr>
+            <tr>
+              <td>/tell</td>
+              <td>Alias de /msg</td>
+              <td>Idem</td>
+            </tr>
+            <tr>
+              <td>/r</td>
+              <td>/r &lt;message...&gt;</td>
+              <td>Aucune (message libre)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>/ignore, /unignore</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Commande</th>
+              <th>Description</th>
+              <th>Auto-completion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>/ignore &lt;joueur&gt;</td>
+              <td>Ajoute le joueur a la liste d'ignores</td>
+              <td>Joueurs en ligne</td>
+            </tr>
+            <tr>
+              <td>/unignore &lt;joueur&gt;</td>
+              <td>Retire le joueur de la liste d'ignores</td>
+              <td>Joueurs actuellement ignores</td>
+            </tr>
+            <tr>
+              <td>/ignore list</td>
+              <td>Affiche la liste de ses ignores</td>
+              <td>Aucune</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>/emoji</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Commande</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>/emoji list</td>
+              <td>Affiche la liste paginee de tous les emojis disponibles (avec pagination EriAPI ChatPaginator, 10 par page)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S16 — CONFIGURATION ═══ -->
+    <div class="section-card" id="s16">
+      <h2><span class="s-num green-num">16</span> Configuration</h2>
+
+      <p>Toutes les valeurs configurables sont dans <code>ChatConfig.java</code>. Le fichier de config Forge est genere automatiquement dans <code>config/EriniumFaction/chat.cfg</code>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cle</th>
+              <th>Type</th>
+              <th>Valeur par defaut</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>chatColorEnabled</td>
+              <td>boolean</td>
+              <td>true</td>
+              <td>Active globalement les codes couleur & (la permission chat.color est aussi requise par joueur)</td>
+            </tr>
+            <tr>
+              <td>chatMentionSoundEnabled</td>
+              <td>boolean</td>
+              <td>true</td>
+              <td>Active le son de ping lors d'une mention</td>
+            </tr>
+            <tr>
+              <td>chatEmojiEnabled</td>
+              <td>boolean</td>
+              <td>true</td>
+              <td>Active le remplacement des shortcodes emoji</td>
+            </tr>
+            <tr>
+              <td>chatMaxMessageLength</td>
+              <td>int</td>
+              <td>256</td>
+              <td>Longueur maximale d'un message (apres stripping des codes)</td>
+            </tr>
+            <tr>
+              <td>chatGlobalFormat</td>
+              <td>String</td>
+              <td>{channel} {prefix}{color}{name}{suffix} » {message}</td>
+              <td>Format du message global (tokens remplaces par ChatManager)</td>
+            </tr>
+            <tr>
+              <td>chatFactionFormat</td>
+              <td>String</td>
+              <td>{channel} {prefix}{color}{name}[{faction}]{suffix} » {message}</td>
+              <td>Format du message faction/ally</td>
+            </tr>
+            <tr>
+              <td>chatMaxIgnored</td>
+              <td>int</td>
+              <td>50</td>
+              <td>Nombre maximum de joueurs ignorables par joueur</td>
+            </tr>
+            <tr>
+              <td>chatHistoryPerChannel</td>
+              <td>int</td>
+              <td>500</td>
+              <td>Nombre de messages stockes par canal dans ChatHistoryManager</td>
+            </tr>
+            <tr>
+              <td>chatObfuscateCooldown</td>
+              <td>int</td>
+              <td>600</td>
+              <td>Cooldown en ticks apres l'envoi d'un message contenant &amp;k</td>
+            </tr>
+            <tr>
+              <td>chatPrivateNotificationToast</td>
+              <td>boolean</td>
+              <td>true</td>
+              <td>Active le toast EriAPI pour les messages prives</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S17 — INTEGRATION EXISTANTE ═══ -->
+    <div class="section-card" id="s17">
+      <h2><span class="s-num">17</span> Integration avec les Systemes Existants</h2>
+
+      <h3 class="first">RankChatHandler</h3>
+      <p>Ce handler conserve son annotation <code>@Mod.EventBusSubscriber</code> mais son <code>@SubscribeEvent onChat</code> n'est plus execute dans les flux normaux car le nouveau <code>ChatEventHandler</code> annule l'event en priorite HAUTE. Ses methodes statiques sont directement appelees :</p>
+      <ul>
+        <li><code>RankChatHandler.translateColors(input)</code> — appele dans <code>ChatFormatter</code></li>
+        <li><code>RankChatHandler.stripColors(input)</code> (rendu accessible ou recopie dans ChatFormatter)</li>
+        <li>La logique de formatage du grade (prefix, color, suffix) est appelee dans <code>ChatManager.buildMessage()</code></li>
+      </ul>
+
+      <h3>FactionChatHandler</h3>
+      <p>De meme, ce handler ne s'execute plus via events. Sa logique est integree :</p>
+      <ul>
+        <li>La detection des membres en ligne (<code>getOnlineMembers</code>) est reutilisee dans <code>ChatManager.getRecipients(FACTION)</code></li>
+        <li>La logique de routing ally (parcours des factions alliees) est reutilisee dans <code>ChatManager.getRecipients(ALLY)</code></li>
+        <li><code>argbToTextFormatting</code> est deplacee dans <code>ChatFormatter</code> comme methode statique publique</li>
+      </ul>
+
+      <h3>ChatMode enum</h3>
+      <p>L'enum <code>ChatMode</code> existant (DEFAULT, FACTION, ALLY) est etendu avec <code>GLOBAL</code> et <code>STAFF</code> pour correspondre aux nouvelles valeurs :</p>
+      <div class="code-block"><span class="kw">public enum</span> <span class="cl">ChatMode</span> {
+    GLOBAL(<span class="st">"eriniumfaction.chatmode.global"</span>),    <span class="cm">// Remplace DEFAULT</span>
+    FACTION(<span class="st">"eriniumfaction.chatmode.faction"</span>),
+    ALLY(<span class="st">"eriniumfaction.chatmode.ally"</span>),
+    STAFF(<span class="st">"eriniumfaction.chatmode.staff"</span>);     <span class="cm">// Nouveau</span>
+    <span class="cm">// DEFAULT est conserve comme alias de GLOBAL pour retrocompat</span>
+}</div>
+
+      <h3>FactionPlayerData</h3>
+      <p>Le champ <code>chatMode</code> existant (String) est utilise pour stocker le canal actif. Le nouveau champ <code>ignoredPlayers</code> (List&lt;String&gt;) est ajoute dans la meme classe :</p>
+      <div class="code-block"><span class="an">@EriData</span>(modId = <span class="st">"eriniumfaction"</span>, scope = <span class="cl">DataScope</span>.PLAYER, persistOnDeath = <span class="kw">false</span>)
+<span class="kw">public class</span> <span class="cl">FactionPlayerData</span> {
+    <span class="cm">// ... champs existants ...</span>
+    <span class="kw">public</span> <span class="ty">String</span> chatMode = <span class="st">"GLOBAL"</span>;           <span class="cm">// Etendu : + STAFF</span>
+    <span class="kw">public</span> <span class="cl">List</span>&lt;<span class="ty">String</span>&gt; ignoredPlayers = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;&gt;(); <span class="cm">// Nouveau</span>
+    <span class="kw">public</span> <span class="ty">UUID</span> lastPmSender = <span class="kw">null</span>;             <span class="cm">// Nouveau (non-persistent)</span>
+}</div>
+
+      <h3>EriAPI</h3>
+      <ul>
+        <li><code>EriChat</code> — utilise pour construire les messages riches (mentions hover, boutons de clic)</li>
+        <li><code>NotificationManager</code> / <code>OverlayToast</code> — pour les toasts de mention et MP</li>
+        <li><code>EriScheduler</code> — pour les notifications asynchrones (delay 1 tick pour eviter le contexte d'event)</li>
+        <li>Composants GUI <code>Button</code>, <code>Label</code>, <code>ContainerComponent</code>, <code>GridLayout</code>, <code>Circle</code> — pour la barre d'onglets et le popup emoji</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S18 — PERMISSIONS ═══ -->
+    <div class="section-card" id="s18">
+      <h2><span class="s-num cyan-num">18</span> Permissions</h2>
+
+      <p>Toutes les permissions suivantes doivent etre ajoutees dans <code>docs/permissions.md</code> apres implementation.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Permission</th>
+              <th>Description</th>
+              <th>Grade par defaut</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>chat.color</td>
+              <td>Autorise l'utilisation des codes couleur &amp; dans les messages</td>
+              <td>VIP et superieur</td>
+            </tr>
+            <tr>
+              <td>chat.staff</td>
+              <td>Acces au canal Staff (/chat s, prefixe #)</td>
+              <td>Modérateur et superieur</td>
+            </tr>
+            <tr>
+              <td>chat.mention.everyone</td>
+              <td>Autorise @everyone (mention de tous les joueurs)</td>
+              <td>Admin uniquement</td>
+            </tr>
+            <tr>
+              <td>chat.mention.faction</td>
+              <td>Autorise @faction (mention de tous les membres de faction)</td>
+              <td>Chef de faction et superieur</td>
+            </tr>
+            <tr>
+              <td>chat.bypass.ignore</td>
+              <td>Les messages de ce joueur ne peuvent pas etre ignores</td>
+              <td>Admin uniquement</td>
+            </tr>
+            <tr>
+              <td>chat.obfuscate</td>
+              <td>Autorise l'utilisation du code &amp;k (obfusque)</td>
+              <td>VIP et superieur (avec chat.color)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Verification</strong> — Toutes les permissions sont verifiees via <code>RankManager.getInstance().hasPermission(player, "chat.xxx")</code>, cohrent avec le systeme de grades existant.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S19 — ASSETS ═══ -->
+    <div class="section-card" id="s19">
+      <h2><span class="s-num">19</span> Assets</h2>
+
+      <h3 class="first">Icones d'onglets (optionnelles)</h3>
+      <p>Les onglets peuvent afficher soit du texte seul (Global, Faction, etc.) soit une icone 16x16 si les assets sont disponibles. Dans la version initiale, le texte seul est utilise pour eviter le blocage sur les assets.</p>
+
+      <ul>
+        <li><strong>tab_global.png</strong> — Icone bulle de dialogue (16x16)</li>
+        <li><strong>tab_faction.png</strong> — Icone bouclier (16x16)</li>
+        <li><strong>tab_ally.png</strong> — Icone lien / chaine (16x16)</li>
+        <li><strong>tab_staff.png</strong> — Icone etoile / badge (16x16)</li>
+        <li><strong>tab_private.png</strong> — Icone enveloppe (16x16)</li>
+      </ul>
+
+      <p>Ces assets sont declares dans <code>src/main/resources/assets/eriniumfaction/textures/gui/chat/</code> selon le workflow defini dans <code>docs/ASSETS_WORKFLOW.md</code>.</p>
+
+      <h3>Bouton emoji</h3>
+      <p>Si un asset texturé est desire : <strong>emoji_btn.png</strong> de 16x16 montrant un smiley stylise en accord avec la palette violet/cyan du mod. En l'absence d'asset, le composant <code>Button</code> affiche le caractere &#9786; en UTF-8.</p>
+
+      <h3>Sons</h3>
+      <p>Le systeme n'introduit pas de nouveaux sons custom — il reutilise les sons vanilla :</p>
+      <ul>
+        <li>Mention ping : <code>minecraft:entity.experience_orb.pickup</code> (volume 0.5, pitch 1.5)</li>
+        <li>MP recu : <code>minecraft:entity.experience_orb.pickup</code> (volume 0.7, pitch 1.0)</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S20 — PLAN DE TESTS ═══ -->
+    <div class="section-card" id="s20">
+      <h2><span class="s-num green-num">20</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests fonctionnels — Canaux</h3>
+      <ul>
+        <li>Envoyer un message global → verifier reception par tous les joueurs</li>
+        <li>Envoyer un message faction → verifier reception uniquement par les membres, non-reception par les autres</li>
+        <li>Envoyer un message ally → verifier reception par faction + factions alliees, non-reception par ennemis/neutres</li>
+        <li>Envoyer un message staff sans permission → verifier echec avec message d'erreur</li>
+        <li>Utiliser les prefixes raccourcis (!, @@, #) → verifier routage correct</li>
+        <li>Basculer de canal avec /chat f alors que sans faction → verifier message d'erreur</li>
+      </ul>
+
+      <h3>Tests — Formatage</h3>
+      <ul>
+        <li>Message avec &amp;6Hello sans permission chat.color → verifier stripping des codes</li>
+        <li>Message avec &amp;6Hello avec permission chat.color → verifier couleur or dans le chat</li>
+        <li>Preview en temps reel : taper &amp;6Bonjour → verifier ligne preview coloree</li>
+        <li>Message avec :sword: → verifier remplacement par ⚔ dans le chat</li>
+        <li>Message avec :gg: → verifier texte GG en or+gras</li>
+        <li>Message avec :shortcode_inexistant: → verifier qu'il reste tel quel</li>
+      </ul>
+
+      <h3>Tests — Mentions</h3>
+      <ul>
+        <li>Taper @Steve (joueur en ligne) → verifier son de ping pour Steve, toast de notification, highlight dans le message</li>
+        <li>Taper @JoueurInexistant → verifier absence de notification, texte non-souligne</li>
+        <li>Taper @everyone sans permission → verifier erreur de permission</li>
+        <li>Taper @everyone avec permission → verifier ping pour tous les joueurs en ligne</li>
+        <li>Autocomplete @ + TAB → verifier liste de joueurs en ligne</li>
+      </ul>
+
+      <h3>Tests — Messages Prives</h3>
+      <ul>
+        <li>/msg Steve Bonjour → verifier reception par Steve avec format [PM]</li>
+        <li>/r Reponse (apres avoir recu un MP) → verifier envoi au bon destinataire</li>
+        <li>/r sans MP precedent → verifier message "Aucune conversation recente"</li>
+        <li>/msg SteveHorsLigne message → verifier erreur "Joueur non connecte"</li>
+        <li>Reception MP → verifier son + toast + indicateur onglet Prives</li>
+      </ul>
+
+      <h3>Tests — Ignore</h3>
+      <ul>
+        <li>/ignore Steve → verifier que les messages de Steve n'arrivent plus</li>
+        <li>/ignore Steve dans faction partagee → verifier que messages faction de Steve ne arrivent plus</li>
+        <li>/unignore Steve → verifier retablissement de reception</li>
+        <li>/ignore list → verifier affichage correct de la liste</li>
+        <li>Steve ignore, Steve envoie un message → verifier que Steve ne sait pas qu'il est ignore</li>
+        <li>Admin avec chat.bypass.ignore → verifier que ses messages passent quand meme</li>
+      </ul>
+
+      <h3>Tests — GUI Onglets</h3>
+      <ul>
+        <li>Ouvrir le chat (T) → verifier presence de la barre d'onglets</li>
+        <li>Cliquer sur l'onglet Faction → verifier filtrage des messages (seuls les messages [F] visibles)</li>
+        <li>Recevoir un message sur un autre onglet → verifier apparition du point non-lu</li>
+        <li>Cliquer sur l'onglet ayant le point non-lu → verifier disparition du point</li>
+        <li>Cliquer sur le bouton emoji → verifier ouverture du popup</li>
+        <li>Cliquer sur un emoji dans le popup → verifier insertion du shortcode dans l'input</li>
+        <li>Appuyer sur Echap → verifier fermeture du popup sans fermer le chat</li>
+      </ul>
+
+      <h3>Tests — Performance</h3>
+      <ul>
+        <li>Spam de 100 messages/seconde → verifier absence de lag (pipeline asynchrone si necessaire)</li>
+        <li>500 messages dans l'historique d'un canal → verifier que le 501e supprime le plus ancien</li>
+        <li>10 joueurs avec @everyone simultanes → verifier pas de NPE, ordre de traitement correct</li>
+        <li>Scrollback de 500 messages avec onglet switch → verifier restauration de position fluide</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Environnement de test</strong> — Tous les tests sont effectues en mode dev (<code>./gradlew runClient</code>) avec au moins 2 clients connectes au serveur integre ou a un serveur local separe. Les tests de performance necessitent un profiler (VisualVM ou JProfiler avec JDK 8).</div>
+      </div>
+    </div>
+
+  </main><!-- /main -->
+</div><!-- /layout -->
+
+<button class="mobile-nav-toggle" id="navToggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+</body>
+</html>

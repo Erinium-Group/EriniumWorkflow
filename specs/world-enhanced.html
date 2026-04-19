@@ -1,0 +1,1950 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — WorldEnhanced Continuity | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+    /* Biome palette */
+    --forest:    #2ECC71;
+    --plains:    #F1C40F;
+    --mountain:  #8892A4;
+    --cold:      #A8D8FF;
+    --tropical:  #00E5FF;
+    --wetland:   #3D9970;
+    --dry:       #E67E22;
+    --special:   #9B4FCF;
+    --mushroom:  #E91E8C;
+    --wasteland: #795548;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(46,204,113,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 50% 90%, rgba(107,47,160,0.08) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 12px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--forest);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--forest) 50%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-forest   { color: var(--forest);   border-color: rgba(46,204,113,0.4);  background: rgba(46,204,113,0.10); }
+  .badge-plains   { color: var(--plains);   border-color: rgba(241,196,15,0.4);  background: rgba(241,196,15,0.10); }
+  .badge-mountain { color: var(--mountain); border-color: rgba(136,146,164,0.4); background: rgba(136,146,164,0.10); }
+  .badge-cold     { color: var(--cold);     border-color: rgba(168,216,255,0.4); background: rgba(168,216,255,0.10); }
+  .badge-tropical { color: var(--tropical); border-color: rgba(0,229,255,0.4);   background: rgba(0,229,255,0.08); }
+  .badge-wetland  { color: var(--wetland);  border-color: rgba(61,153,112,0.4);  background: rgba(61,153,112,0.10); }
+  .badge-dry      { color: var(--dry);      border-color: rgba(230,126,34,0.4);  background: rgba(230,126,34,0.10); }
+  .badge-special  { color: var(--special);  border-color: rgba(155,79,207,0.4);  background: rgba(155,79,207,0.10); }
+
+  /* =========================================================
+     SECTION CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num    { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num   { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num    { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num  { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.cold-num    { background: linear-gradient(135deg, #4a7fa0 0%, #A8D8FF 100%); }
+  .section-card h2 .s-num.forest-num  { background: linear-gradient(135deg, #1a7a45 0%, #2ECC71 100%); }
+  .section-card h2 .s-num.wetland-num { background: linear-gradient(135deg, #1e5e44 0%, #3D9970 100%); }
+  .section-card h2 .s-num.dry-num     { background: linear-gradient(135deg, #7a4010 0%, #E67E22 100%); }
+  .section-card h2 .s-num.special-num { background: linear-gradient(135deg, #5a1e8a 0%, #9B4FCF 100%); }
+  .section-card h2 .s-num.mushroom-num{ background: linear-gradient(135deg, #880e4f 0%, #E91E8C 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     BIOME DETAIL CARDS
+  ========================================================= */
+  .biome-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .biome-card {
+    background: rgba(5,5,10,0.50);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .biome-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .biome-card.forest::before   { background: linear-gradient(90deg, var(--forest), transparent); }
+  .biome-card.plains::before   { background: linear-gradient(90deg, var(--plains), transparent); }
+  .biome-card.mountain::before { background: linear-gradient(90deg, var(--mountain), transparent); }
+  .biome-card.cold::before     { background: linear-gradient(90deg, var(--cold), transparent); }
+  .biome-card.tropical::before { background: linear-gradient(90deg, var(--tropical), transparent); }
+  .biome-card.wetland::before  { background: linear-gradient(90deg, var(--wetland), transparent); }
+  .biome-card.dry::before      { background: linear-gradient(90deg, var(--dry), transparent); }
+  .biome-card.special::before  { background: linear-gradient(90deg, var(--special), transparent); }
+  .biome-card.mushroom::before { background: linear-gradient(90deg, var(--mushroom), transparent); }
+  .biome-card.wasteland::before{ background: linear-gradient(90deg, var(--wasteland), transparent); }
+
+  .biome-card-name {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .biome-card.forest   .biome-card-name { color: var(--forest); }
+  .biome-card.plains   .biome-card-name { color: var(--plains); }
+  .biome-card.mountain .biome-card-name { color: var(--mountain); }
+  .biome-card.cold     .biome-card-name { color: var(--cold); }
+  .biome-card.tropical .biome-card-name { color: var(--tropical); }
+  .biome-card.wetland  .biome-card-name { color: var(--wetland); }
+  .biome-card.dry      .biome-card-name { color: var(--dry); }
+  .biome-card.special  .biome-card-name { color: var(--special); }
+  .biome-card.mushroom .biome-card-name { color: var(--mushroom); }
+  .biome-card.wasteland .biome-card-name { color: var(--wasteland); }
+
+  .biome-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .meta-chip {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--card-bdr);
+    color: var(--slate);
+    letter-spacing: 0.04em;
+  }
+
+  .biome-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .biome-features li {
+    font-size: 12px;
+    color: var(--slate);
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .biome-features li::before {
+    content: '·';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr { background: rgba(107,47,160,0.18); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no   { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .tag-rare { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(155,79,207,0.12); color: var(--violet-l); border: 1px solid rgba(155,79,207,0.3); letter-spacing: 0.05em; }
+
+  .cat-forest   { color: var(--forest);   font-weight: 600; }
+  .cat-plains   { color: var(--plains);   font-weight: 600; }
+  .cat-mountain { color: var(--mountain); font-weight: 600; }
+  .cat-cold     { color: var(--cold);     font-weight: 600; }
+  .cat-tropical { color: var(--tropical); font-weight: 600; }
+  .cat-wetland  { color: var(--wetland);  font-weight: 600; }
+  .cat-dry      { color: var(--dry);      font-weight: 600; }
+  .cat-special  { color: var(--special);  font-weight: 600; }
+  .cat-mushroom { color: var(--mushroom); font-weight: 600; }
+  .cat-wasteland{ color: var(--wasteland);font-weight: 600; }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+
+  /* =========================================================
+     INFO BOXES
+  ========================================================= */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2);   }
+
+  /* =========================================================
+     ANIMATIONS + DIVIDER
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-bdr), transparent);
+    margin: 24px 0;
+  }
+
+  /* =========================================================
+     MOBILE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,47,160,0.4);
+    transition: transform .2s;
+  }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 50;
+      width: 260px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .biome-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    .section-card { padding: 24px 18px; }
+    .page-header h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+
+    <span class="sidebar-title">Sommaire</span>
+
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Vue d'ensemble — 17 biomes</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Forets Enrichies (4)</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Plaines &amp; Champs (3)</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Biomes Froids Etendus (2)</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Zones Seches Etendues (2)</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Biomes Humides &amp; Cotiers (2)</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Biomes Speciaux (4)</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Nouveaux Blocs Custom</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Nouveaux Arbres (7)</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Nouvelles Features (12)</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Integration WorldGen</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Assets &amp; Textures</a>
+    <a class="nav-link" href="#s14"><span class="num">14</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <!-- HEADER -->
+    <header class="page-header">
+      <div class="eyebrow">Cahier des charges — Generation du monde — Expansion</div>
+      <h1>WorldEnhanced — Continuity</h1>
+      <p>Expansion majeure du WorldGen Erinium : 17 nouveaux biomes, 7 arbres, 12 features de terrain et 6 blocs custom pour porter le monde a un niveau de diversite comparable a Biomes O' Plenty, avec une identite visuelle unique.</p>
+      <div class="header-badges">
+        <span class="badge badge-violet">Forge 1.12.2</span>
+        <span class="badge badge-green">+17 biomes</span>
+        <span class="badge badge-forest">+7 arbres</span>
+        <span class="badge badge-cyan">+12 features</span>
+        <span class="badge badge-orange">+6 blocs custom</span>
+        <span class="badge badge-gold">Planifie</span>
+      </div>
+    </header>
+
+    <!-- ===== S01 : CONTEXTE & OBJECTIFS ===== -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Situation actuelle</h3>
+      <p>L'Overworld Erinium compte deja 36 biomes custom (30 originaux + 6 variants vanilla ameliores). Ces 36 biomes couvrent les grandes familles climatiques : forets temperees, plaines, montagnes, froid polaire, tropiques, zones humides, zones seches et biomes speciaux. Le systeme technique (EriniumBiomeProvider, EriniumGenLayerBiome, pools HOT/WARM/COOL/ICY) est pleinement operationnel.</p>
+      <p>Malgre cette richesse, plusieurs <strong>niches ecologiques</strong> restent inexplorees. Les joueurs qui explorent pendant de longues heures finissent par identifier des "familles" manquantes : pas de champignons geants, pas de champs de lavande, pas de wasteland aride, pas de foret de trembles, pas d'ile volcanique isolee, pas de biome de champignons bioluminescents.</p>
+
+      <h3>Objectifs de l'expansion</h3>
+      <ul>
+        <li><strong>Combler les niches manquantes</strong> — 17 biomes qui n'empiete pas sur les 36 existants mais les completent</li>
+        <li><strong>Augmenter la surface de decouverte</strong> — chaque biome doit etre immediatement reconnaissable a la silhouette et a la couleur</li>
+        <li><strong>Enrichir le terrain a petite echelle</strong> — 12 nouvelles features de terrain generees independamment du biome ou de facon ciblee</li>
+        <li><strong>Conserver la performance</strong> — memes contraintes que le systeme existant : generation chunk-by-chunk, pas de calcul O(n^2), treesPerChunk jamais null</li>
+        <li><strong>Integration transparente</strong> — aucun biome vanilla ne doit reapparaitre ; les nouveaux biomes s'inserent dans les pools GenLayer existants</li>
+      </ul>
+
+      <h3>Philosophie de conception</h3>
+      <ul>
+        <li><strong>Immersion sensorielle</strong> — chaque biome evoque une atmosphere par sa forme, sa palette de blocs et ses features, pas par des effets speciaux complexes</li>
+        <li><strong>Continuite climatique</strong> — les nouveaux biomes respectent les zones climatiques (HOT/WARM/COOL/ICY) pour eviter les transitions de temperature aberrantes</li>
+        <li><strong>Rare = precieux</strong> — les biomes rares (champignons, sel, marais sombre) ont des poids faibles dans les pools pour conserver la sensation de decouverte</li>
+        <li><strong>Features transversales</strong> — les nouvelles features de terrain peuvent apparaitre dans plusieurs biomes, ajoutant de la variete sans multiplier le code</li>
+        <li><strong>Regle absolue getRandomTreeFeature</strong> — ne JAMAIS retourner null ; si un biome n'a pas d'arbre, utiliser new WorldGenTrees(false) comme fallback et mettre treesPerChunk = 0</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content">
+          <strong>Known Issue critique :</strong> <code>getRandomTreeFeature()</code> (alias <code>getRandomWorldGenForTrees()</code>) ne doit JAMAIS retourner null. Utiliser <code>new WorldGenTrees(false)</code> comme fallback systematique. Cf. <code>docs/knowissue.md</code> — entree "getRandomTreeFeature() retournant null".
+        </div>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content">
+          <strong>Rappel CleanRoom :</strong> Pas d'imports <code>sun.*</code>, pas de reflection sur champs <code>final</code>, pas d'ASM brut, rester en Java 8. Utiliser des Access Transformers pour les champs protected si necessaire (voir <code>docs/Make the mod work with cleanroom.html</code>).
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== S02 : VUE D'ENSEMBLE ===== -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Vue d'ensemble — 17 nouveaux biomes</h2>
+
+      <p>Les 17 nouveaux biomes s'organisent en 6 familles thematiques. Ils portent le total de l'Overworld Erinium de <strong>36 a 53 biomes</strong>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nom</th>
+              <th>Categorie</th>
+              <th>Zone</th>
+              <th>Tier</th>
+              <th>Base Height</th>
+              <th>Variation</th>
+              <th>Rarete</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>37</td>
+              <td>Aspen Grove</td>
+              <td class="cat-forest">Foret</td>
+              <td>COOL</td>
+              <td>FLAT / HILLS</td>
+              <td>0.10</td>
+              <td>0.20</td>
+              <td>Commun</td>
+            </tr>
+            <tr>
+              <td>38</td>
+              <td>Twisted Oak Forest</td>
+              <td class="cat-forest">Foret</td>
+              <td>WARM</td>
+              <td>FLAT / HILLS</td>
+              <td>0.10</td>
+              <td>0.30</td>
+              <td>Peu commun</td>
+            </tr>
+            <tr>
+              <td>39</td>
+              <td>Redwood Valley</td>
+              <td class="cat-forest">Foret</td>
+              <td>WARM</td>
+              <td>FLAT</td>
+              <td>0.05</td>
+              <td>0.15</td>
+              <td>Rare</td>
+            </tr>
+            <tr>
+              <td>40</td>
+              <td>Bioluminescent Forest</td>
+              <td class="cat-forest">Foret</td>
+              <td>WARM</td>
+              <td>FLAT</td>
+              <td>0.10</td>
+              <td>0.20</td>
+              <td><span class="tag-rare">Rare</span></td>
+            </tr>
+            <tr>
+              <td>41</td>
+              <td>Lavender Fields</td>
+              <td class="cat-plains">Plaines</td>
+              <td>WARM</td>
+              <td>FLAT</td>
+              <td>0.10</td>
+              <td>0.10</td>
+              <td>Peu commun</td>
+            </tr>
+            <tr>
+              <td>42</td>
+              <td>Alpine Meadow</td>
+              <td class="cat-plains">Plaines</td>
+              <td>COOL</td>
+              <td>HILLS / MOUNT</td>
+              <td>0.30</td>
+              <td>0.25</td>
+              <td>Peu commun</td>
+            </tr>
+            <tr>
+              <td>43</td>
+              <td>Salt Flats</td>
+              <td class="cat-plains">Plaines</td>
+              <td>HOT</td>
+              <td>FLAT</td>
+              <td>0.02</td>
+              <td>0.02</td>
+              <td><span class="tag-rare">Rare</span></td>
+            </tr>
+            <tr>
+              <td>44</td>
+              <td>Frozen River Delta</td>
+              <td class="cat-cold">Froid</td>
+              <td>ICY</td>
+              <td>FLAT</td>
+              <td>0.05</td>
+              <td>0.10</td>
+              <td>Peu commun</td>
+            </tr>
+            <tr>
+              <td>45</td>
+              <td>Dark Moor</td>
+              <td class="cat-cold">Froid</td>
+              <td>COOL</td>
+              <td>FLAT</td>
+              <td>0.08</td>
+              <td>0.12</td>
+              <td>Peu commun</td>
+            </tr>
+            <tr>
+              <td>46</td>
+              <td>Wasteland</td>
+              <td class="cat-wasteland">Aride</td>
+              <td>HOT</td>
+              <td>FLAT</td>
+              <td>0.05</td>
+              <td>0.08</td>
+              <td>Commun</td>
+            </tr>
+            <tr>
+              <td>47</td>
+              <td>Volcanic Island Chain</td>
+              <td class="cat-tropical">Tropical</td>
+              <td>HOT</td>
+              <td>HILLS / MOUNT</td>
+              <td>0.15</td>
+              <td>0.50</td>
+              <td><span class="tag-rare">Rare</span></td>
+            </tr>
+            <tr>
+              <td>48</td>
+              <td>Swamp Mangrove</td>
+              <td class="cat-wetland">Humide</td>
+              <td>WARM</td>
+              <td>FLAT</td>
+              <td>-0.05</td>
+              <td>0.05</td>
+              <td>Peu commun</td>
+            </tr>
+            <tr>
+              <td>49</td>
+              <td>Mushroom Glade</td>
+              <td class="cat-mushroom">Champignon</td>
+              <td>WARM</td>
+              <td>FLAT</td>
+              <td>0.10</td>
+              <td>0.20</td>
+              <td><span class="tag-rare">Tres rare</span></td>
+            </tr>
+            <tr>
+              <td>50</td>
+              <td>Crystal Plains</td>
+              <td class="cat-special">Special</td>
+              <td>COOL</td>
+              <td>FLAT</td>
+              <td>0.10</td>
+              <td>0.15</td>
+              <td><span class="tag-rare">Tres rare</span></td>
+            </tr>
+            <tr>
+              <td>51</td>
+              <td>Ancient Ruins Biome</td>
+              <td class="cat-special">Special</td>
+              <td>WARM</td>
+              <td>FLAT / HILLS</td>
+              <td>0.10</td>
+              <td>0.25</td>
+              <td>Rare</td>
+            </tr>
+            <tr>
+              <td>52</td>
+              <td>Savanna Baobab</td>
+              <td class="cat-plains">Plaines</td>
+              <td>HOT</td>
+              <td>FLAT</td>
+              <td>0.12</td>
+              <td>0.08</td>
+              <td>Peu commun</td>
+            </tr>
+            <tr>
+              <td>53</td>
+              <td>Thermal Springs</td>
+              <td class="cat-special">Special</td>
+              <td>WARM</td>
+              <td>HILLS</td>
+              <td>0.15</td>
+              <td>0.30</td>
+              <td><span class="tag-rare">Rare</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content">
+          <strong>Total apres expansion :</strong> 53 biomes custom dans l'Overworld (36 existants + 17 nouveaux). Le Monde Minage utilise les memes biomes via <code>MiningWorldProvider</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== S03 : FORETS ENRICHIES ===== -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num forest-num">03</span> Forets Enrichies (4 biomes)</h2>
+
+      <div class="biome-grid">
+
+        <div class="biome-card forest">
+          <div class="biome-card-name">Aspen Grove</div>
+          <div class="biome-meta">
+            <span class="meta-chip">COOL / FLAT-HILLS</span>
+            <span class="meta-chip">temp 0.6</span>
+            <span class="meta-chip">rain 0.5</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : herbe gris-vert pale (grassColor 0xA8C070)</li>
+            <li>Topblock : grass, filler : dirt</li>
+            <li>Arbres : WorldGenAspen (tronc blanc, feuilles dorées/orangees custom)</li>
+            <li>treesPerChunk = 8, arbres fins et tres hauts (12-18 blocs)</li>
+            <li>Features : tapis de feuilles mortes (fallen leaves patches), quelques rochers</li>
+            <li>Ambiance : foret de bouleaux blancs d'altitude, lumiere filtree, automne permanent</li>
+            <li>BiomeDictionary : FOREST, LUSH, COLD</li>
+            <li>Poids pool COOL FLAT : 6, COOL HILLS : 5</li>
+          </ul>
+        </div>
+
+        <div class="biome-card forest">
+          <div class="biome-card-name">Twisted Oak Forest</div>
+          <div class="biome-meta">
+            <span class="meta-chip">WARM / FLAT-HILLS</span>
+            <span class="meta-chip">temp 0.8</span>
+            <span class="meta-chip">rain 0.6</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : mousse dense, herbe sombre (grassColor 0x4E6B28)</li>
+            <li>Topblock : grass, filler : dirt</li>
+            <li>Arbres : WorldGenTwistedOak — troncs tordus avec branches laterales en chene, feuilles regulieres</li>
+            <li>treesPerChunk = 5 ; quelques lianes (vines) sur les troncs</li>
+            <li>Features : rochers couverts de mousse, quelques champignons (mushroomsPerChunk = 2), patches de fougeres (tall grass)</li>
+            <li>Ambiance : foret ancienne et dense, troncs noeuds, lumiere tamisee, mystere</li>
+            <li>BiomeDictionary : FOREST, DENSE, LUSH</li>
+            <li>Poids pool WARM FLAT : 4, WARM HILLS : 4</li>
+          </ul>
+        </div>
+
+        <div class="biome-card forest">
+          <div class="biome-card-name">Redwood Valley</div>
+          <div class="biome-meta">
+            <span class="meta-chip">WARM / FLAT</span>
+            <span class="meta-chip">temp 0.7</span>
+            <span class="meta-chip">rain 0.8</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : humus riche, herbe vert fonce (grassColor 0x2D5A1B)</li>
+            <li>Topblock : grass, filler : dirt (couche de podzol optionnelle sous les geants)</li>
+            <li>Arbres : WorldGenSequoia existant MAIS variant "vallee" — tronc 3x3 moins haut (25-35 blocs), densite plus forte</li>
+            <li>treesPerChunk = 3 (grands), + 4 petits chenes en sous-etage (WorldGenTrees)</li>
+            <li>Features : ruisseaux (WorldGenStream existant), rochers, fougeres geantes (tall grass), fallen logs</li>
+            <li>Ambiance : vallee encaissee bordee de sequoias, ruisseau qui court, sous-bois luxuriant</li>
+            <li>BiomeDictionary : FOREST, DENSE, CONIFEROUS, WET</li>
+            <li>Poids pool WARM FLAT : 3 (rare intentionnel)</li>
+          </ul>
+        </div>
+
+        <div class="biome-card forest">
+          <div class="biome-card-name">Bioluminescent Forest</div>
+          <div class="biome-meta">
+            <span class="meta-chip">WARM / FLAT</span>
+            <span class="meta-chip">temp 0.75</span>
+            <span class="meta-chip">rain 0.9</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : mycelium custom (BlockMyceliumGlow — mycelium avec particules lumineuses)</li>
+            <li>Topblock : BlockMyceliumGlow, filler : dirt</li>
+            <li>Arbres : WorldGenGiantMushroom (champignons geants rouges et bruns) + quelques chenes normaux</li>
+            <li>treesPerChunk = 2 (geants) + 3 (normaux)</li>
+            <li>Features : patches de bioluminescent pools (sea lantern sous 1 bloc d'eau), fairy circles (anneaux de champignons), glowstone scattered au sol</li>
+            <li>Ambiance : foret enchantee neon vert/bleu la nuit, champignons geants, sol lumineux — biome "wow factor"</li>
+            <li>BiomeDictionary : FOREST, MAGICAL, DENSE, WET</li>
+            <li>Poids pool WARM FLAT : 2 (tres rare)</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <h3>Details techniques — Forets enrichies</h3>
+      <ul>
+        <li><strong>Aspen Grove</strong> : <code>grassColorOverride = 0xA8C070</code> dans les proprietes biome. L'arbre Aspen utilise des logs de bouleaux (<code>Blocks.LOG</code> meta 2) et des feuilles custom (couleur doree).</li>
+        <li><strong>Twisted Oak Forest</strong> : le generateur <code>WorldGenTwistedOak</code> place un tronc principal vertical de 6-10 blocs, puis 2-4 branches laterales de 2-4 blocs en chene classique avec leur propre couche de feuilles. Chaque branche a un angle aleatoire (N/S/E/O).</li>
+        <li><strong>Redwood Valley</strong> : reutilise <code>WorldGenSequoia</code> existant avec un parametre de hauteur reduit (<code>minHeight = 25, maxHeight = 35</code>) et sans la variante "geant" (tronc 2x2 seulement, pas 3x3).</li>
+        <li><strong>Bioluminescent Forest</strong> : <code>BlockMyceliumGlow</code> etend <code>BlockMycelium</code> vanilla. Il override <code>randomDisplayTick()</code> pour spawner des particules <code>EnumParticleTypes.SPELL_MOB</code> en cyan. Luminosite du bloc : 7. La nuit, le biome brille doucement.</li>
+      </ul>
+    </section>
+
+    <!-- ===== S04 : PLAINES & CHAMPS ===== -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num" style="background: linear-gradient(135deg, #b8860b, #F1C40F);">04</span> Plaines &amp; Champs (3 biomes)</h2>
+
+      <div class="biome-grid">
+
+        <div class="biome-card plains">
+          <div class="biome-card-name">Lavender Fields</div>
+          <div class="biome-meta">
+            <span class="meta-chip">WARM / FLAT</span>
+            <span class="meta-chip">temp 0.8</span>
+            <span class="meta-chip">rain 0.4</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : herbe violacee douce (grassColor 0xC8A0D8)</li>
+            <li>Topblock : grass, filler : dirt</li>
+            <li>Vegetation : AUCUN arbre (treesPerChunk = 0, fallback WorldGenTrees(false))</li>
+            <li>Features : patches de lavande (tall grass violet — allium ou lilas en masse), wildflower meadows denses, quelques papillons decoratifs (particules), bouquets de coquelicots</li>
+            <li>flowersPerChunk = 80 (valeur tres haute) — le sol doit etre quasiment entierement couvert</li>
+            <li>Ambiance : vagues de violet a perte de vue, vent simulé par les particules, parfum imaginaire</li>
+            <li>BiomeDictionary : PLAINS, LUSH</li>
+            <li>Poids pool WARM FLAT : 5</li>
+          </ul>
+        </div>
+
+        <div class="biome-card plains">
+          <div class="biome-card-name">Alpine Meadow</div>
+          <div class="biome-meta">
+            <span class="meta-chip">COOL / HILLS-MOUNT</span>
+            <span class="meta-chip">temp 0.4</span>
+            <span class="meta-chip">rain 0.5</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : herbe courte vert vif d'altitude (grassColor 0x8DB36B)</li>
+            <li>Topblock : grass, filler : dirt, roche sous-jacente : stone</li>
+            <li>Arbres : AUCUN (zone au-dessus de la limite des arbres — treesPerChunk = 0)</li>
+            <li>Features : wildflower meadow dense (edelweiss = dandelion, renoncules = poppy, gentiane = blue orchid), rock formations en granite, quelques patches de neige epars (temperature 0.4 — possible mais rare)</li>
+            <li>Terrain : collines douces a relief modere, quelques affleurements rocheux</li>
+            <li>Ambiance : prairie alpestre ensoleillee, fleurs partout, panorama degageee — biome ideal pour les bases en hauteur</li>
+            <li>BiomeDictionary : PLAINS, HILLS, COLD</li>
+            <li>Poids pool COOL HILLS : 5, COOL MOUNT : 4</li>
+          </ul>
+        </div>
+
+        <div class="biome-card plains">
+          <div class="biome-card-name">Savanna Baobab</div>
+          <div class="biome-meta">
+            <span class="meta-chip">HOT / FLAT</span>
+            <span class="meta-chip">temp 1.8</span>
+            <span class="meta-chip">rain 0.0</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : savane seche, herbe jaunatre (grassColor 0xBFB755)</li>
+            <li>Topblock : grass, filler : dirt, patches de sable et de terracotta</li>
+            <li>Arbres : WorldGenBaobab — tronc large court (3x3, 4-7 blocs), canopee plate et large (8-12 blocs de rayon)</li>
+            <li>treesPerChunk = 1 (baobabs sont rares et isoles)</li>
+            <li>Features : tall grass sec, cactus occasionnels, dead tree stands (troncs morts sans feuilles), termite mounds (WorldGenTermiteMound existant)</li>
+            <li>Ambiance : plaine africaine aride, baobab imposant, chaleur palpable, animaux sauvages (futures updates)</li>
+            <li>BiomeDictionary : SAVANNA, PLAINS, HOT, DRY</li>
+            <li>Poids pool HOT FLAT : 5</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <h3>Details techniques — Plaines et champs</h3>
+      <ul>
+        <li><strong>Lavender Fields</strong> : surcharger <code>getFlowerToPlace()</code> pour retourner <code>allium</code> (violet) avec probabilite 70%, <code>lilac</code> 20%, autres 10%. Ajuster <code>flowersPerChunk</code> a 80 dans le constructeur.</li>
+        <li><strong>Alpine Meadow</strong> : <code>baseHeight = 0.30f, heightVariation = 0.25f</code>. Temperature 0.4 permet de la neige sur les pics les plus hauts sans figer l'eau dans les valees. Pas d'arbres = pas de probleme de null.</li>
+        <li><strong>Savanna Baobab</strong> : <code>WorldGenBaobab</code> place un tronc 3x3 en acacia log (meta 0), puis une calotte de feuilles plates style acacia mais etalee. Rayon de 5-7 blocs, epaisseur 2 blocs. Pas de branche (tronc direct calotte).</li>
+      </ul>
+    </section>
+
+    <!-- ===== S05 : BIOMES FROIDS ETENDUS ===== -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num cold-num">05</span> Biomes Froids Etendus (2 biomes)</h2>
+
+      <div class="biome-grid">
+
+        <div class="biome-card cold">
+          <div class="biome-card-name">Frozen River Delta</div>
+          <div class="biome-meta">
+            <span class="meta-chip">ICY / FLAT</span>
+            <span class="meta-chip">temp -0.6</span>
+            <span class="meta-chip">rain 0.5</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : packed ice et neige en couche, quelques blocs d'ice normale</li>
+            <li>Topblock : snow, filler : packed ice, couches profondes : stone</li>
+            <li>Arbres : AUCUN (treesPerChunk = 0, fallback WorldGenTrees(false))</li>
+            <li>Features : ice spikes (WorldGenIceSpikes nouveau), formations de glace empilee, quelques blocs de blue ice, riviere gelee en surface, dead tree stands nus</li>
+            <li>Terrain : tres plat, delta de riviere gelee, formations glaciaires</li>
+            <li>Ambiance : toundra arctique gelée, reflets de glace bleutee, vent polaire, beaute desolée</li>
+            <li>BiomeDictionary : SNOWY, COLD, WASTELAND, WET</li>
+            <li>Poids pool ICY FLAT : 4</li>
+          </ul>
+        </div>
+
+        <div class="biome-card cold">
+          <div class="biome-card-name">Dark Moor</div>
+          <div class="biome-meta">
+            <span class="meta-chip">COOL / FLAT</span>
+            <span class="meta-chip">temp 0.3</span>
+            <span class="meta-chip">rain 0.7</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : herbe sombre et humide (grassColor 0x3A4A2E), patches de boue (gravel en surface)</li>
+            <li>Topblock : grass (grassColor tres sombre), filler : dirt, patches de gravel</li>
+            <li>Arbres : WorldGenDeadSnag — troncs morts grands (8-14 blocs), sans feuilles, ecorce noire</li>
+            <li>treesPerChunk = 3 (arbres morts seulement) + mushroomsPerChunk = 3</li>
+            <li>Features : patches de dead grass (dry grass — air ou dead bushes), petits etangs noirs, fairy circles (anneaux de champignons), quelques blocs de gravel en surface</li>
+            <li>Ambiance : lande bretonne, bruyere sombre, brouillard (pas d'effet technique), eerie et desolant</li>
+            <li>BiomeDictionary : WASTELAND, COLD, WET, SPOOKY</li>
+            <li>Poids pool COOL FLAT : 4</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <h3>Details techniques — Biomes froids</h3>
+      <ul>
+        <li><strong>Frozen River Delta</strong> : temperature -0.6 suffit a geler toute l'eau et placer de la neige. Topblock <code>Blocks.SNOW</code>, filler <code>Blocks.PACKED_ICE</code>. Les features d'ice spikes utilisent <code>WorldGenIceSpikes</code> (nouveau — voir section 11).</li>
+        <li><strong>Dark Moor</strong> : <code>grassColorOverride = 0x3A4A2E</code> pour la teinte tres sombre. <code>WorldGenDeadSnag</code> est un nouveau generateur qui place uniquement des troncs de chene brules (log meta 0 recolore ou log spruce) sans aucune feuille. La methode <code>getRandomTreeFeature()</code> retourne toujours <code>new WorldGenDeadSnag()</code>, jamais null.</li>
+      </ul>
+    </section>
+
+    <!-- ===== S06 : ZONES SECHES ETENDUES ===== -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num dry-num">06</span> Zones Seches Etendues (2 biomes)</h2>
+
+      <div class="biome-grid">
+
+        <div class="biome-card dry">
+          <div class="biome-card-name">Wasteland</div>
+          <div class="biome-meta">
+            <span class="meta-chip">HOT / FLAT</span>
+            <span class="meta-chip">temp 2.0</span>
+            <span class="meta-chip">rain 0.0</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : terre craquelee (BlockCrackedEarth custom), patches de gravel et de sable rouge</li>
+            <li>Topblock : BlockCrackedEarth, filler : dirt (rouge) / terracotta, couche profonde : stone</li>
+            <li>Arbres : AUCUN (treesPerChunk = 0, fallback WorldGenTrees(false))</li>
+            <li>Features : fossilized bones (WorldGenFossilBones nouveau), dead bushes denses, quelques cactus tordus, rock formations en pierre fissurée, patches de gravel</li>
+            <li>Terrain : tres plat, monotone, sec — pas d'eau de surface</li>
+            <li>Ambiance : zone devastee post-apocalyptique, terre sterile, chaleur ecrasante, horizon infini</li>
+            <li>BiomeDictionary : WASTELAND, HOT, DRY, SANDY</li>
+            <li>Poids pool HOT FLAT : 6</li>
+          </ul>
+        </div>
+
+        <div class="biome-card dry">
+          <div class="biome-card-name">Salt Flats</div>
+          <div class="biome-meta">
+            <span class="meta-chip">HOT / FLAT</span>
+            <span class="meta-chip">temp 2.0</span>
+            <span class="meta-chip">rain 0.0</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : bloc de sel custom (BlockSalt) pur blanc, totalement plat (baseHeight = 0.02, variation = 0.02)</li>
+            <li>Topblock : BlockSalt, filler : BlockSalt, couche profonde : stone</li>
+            <li>Arbres : AUCUN (treesPerChunk = 0, fallback WorldGenTrees(false))</li>
+            <li>Features : quelques cactus isoles tres rares (1 tous les 50 chunks), cristaux de sel emergents (WorldGenCrystalCluster avec texture sel), aucune eau</li>
+            <li>Terrain : PARFAITEMENT plat — biome le plus plat du jeu, surface miroir</li>
+            <li>Ambiance : salar bolivien, blanc aveuglant, distorsion de chaleur (pas d'effet technique), horizon parfait, beauty shot photographie</li>
+            <li>BiomeDictionary : WASTELAND, HOT, DRY, SANDY</li>
+            <li>Poids pool HOT FLAT : 2 (rare)</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <h3>Details techniques — Zones seches</h3>
+      <ul>
+        <li><strong>Wasteland</strong> : <code>BlockCrackedEarth</code> etend <code>BlockGrass</code> avec une texture de terre craquelee (pattern geometrique brun-ocre). Il n'a pas de comportement special — juste visuel. Reutilise <code>Material.GROUND</code>.</li>
+        <li><strong>Salt Flats</strong> : <code>BlockSalt</code> etend <code>Block</code> avec <code>Material.ROCK</code>, solidite 1.5, couleur de map blanche (#FFFFFF). La texture est un blanc quasi-pur avec de subtiles lignes hexagonales grises. <code>baseHeight = 0.02f, heightVariation = 0.02f</code> garantit la planéite absolue.</li>
+      </ul>
+    </section>
+
+    <!-- ===== S07 : HUMIDES & COTIERS ===== -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num wetland-num">07</span> Humides &amp; Cotiers (2 biomes)</h2>
+
+      <div class="biome-grid">
+
+        <div class="biome-card wetland">
+          <div class="biome-card-name">Swamp Mangrove</div>
+          <div class="biome-meta">
+            <span class="meta-chip">WARM / FLAT</span>
+            <span class="meta-chip">temp 0.8</span>
+            <span class="meta-chip">rain 0.9</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : boue sombre, eau stagnante peu profonde (baseHeight = -0.05)</li>
+            <li>Topblock : grass (couleur 0x2D4A1E tres sombre), filler : dirt, eau partout a niveau 63</li>
+            <li>Arbres : WorldGenMangrove existant + vines en quantite double (vineChance = 60%)</li>
+            <li>treesPerChunk = 6, mushroomsPerChunk = 4</li>
+            <li>Features : patches d'eau noire, dead logs flottants, fairy circles (champignons en anneaux), lianes tombantes sur tous les arbres</li>
+            <li>Ambiance : marais de sorciere, eau noire, brumes basses, champignons partout, endroit inquietant</li>
+            <li>BiomeDictionary : SWAMP, WET, SPOOKY, LUSH</li>
+            <li>Poids pool WARM FLAT : 3</li>
+          </ul>
+        </div>
+
+        <div class="biome-card tropical">
+          <div class="biome-card-name">Volcanic Island Chain</div>
+          <div class="biome-meta">
+            <span class="meta-chip">HOT / HILLS-MOUNT</span>
+            <span class="meta-chip">temp 1.8</span>
+            <span class="meta-chip">rain 0.9</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : basalte noir (Blocks.STONE meta ou bloc custom), sable noir en bordure</li>
+            <li>Topblock : stone (sombre), filler : stone, couches de lava visible sur les flancs</li>
+            <li>Arbres : WorldGenPalmTree existant (adapte aux ilots tropicaux), quelques chenes bas</li>
+            <li>treesPerChunk = 2</li>
+            <li>Features : basalt columns (WorldGenBasaltColumn existant), lava cracks (WorldGenLavaCrack existant), geysers d'eau (WorldGenGeyser nouveau), patches de sable volcanique</li>
+            <li>Terrain : grande variation de hauteur (variation = 0.50), creant des pics volcaniques et des vallees</li>
+            <li>Ambiance : archipel volcanique type Hawaii, tres accidenté, lave visible, vegetation tropicale clairsemee</li>
+            <li>BiomeDictionary : MOUNTAIN, HOT, WET, WASTELAND</li>
+            <li>Poids pool HOT HILLS : 2, HOT MOUNT : 2 (rare)</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== S08 : BIOMES SPECIAUX ===== -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num special-num">08</span> Biomes Speciaux (4 biomes)</h2>
+
+      <div class="biome-grid">
+
+        <div class="biome-card mushroom">
+          <div class="biome-card-name">Mushroom Glade</div>
+          <div class="biome-meta">
+            <span class="meta-chip">WARM / FLAT</span>
+            <span class="meta-chip">temp 0.9</span>
+            <span class="meta-chip">rain 1.0</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : mycelium vanilla (Blocks.MYCELIUM), tres rare</li>
+            <li>Topblock : mycelium, filler : dirt</li>
+            <li>Arbres : WorldGenGiantMushroom (rouge et brun, geants), mushroomsPerChunk = 8</li>
+            <li>treesPerChunk = 3 (champignons geants = "arbres")</li>
+            <li>Features : fairy circles denses, bioluminescent pools (sea lanterns sous eau), patches de champignons normaux (rouge et brun)</li>
+            <li>Aucun mob hostile ne spawn (biome mycelium = comportement vanilla)</li>
+            <li>Ambiance : clair de champignon, silence etrange, champignons de toutes tailles, sol violace</li>
+            <li>BiomeDictionary : MAGICAL, LUSH, DENSE</li>
+            <li>Poids pool WARM FLAT : 1 (extremement rare)</li>
+          </ul>
+        </div>
+
+        <div class="biome-card special">
+          <div class="biome-card-name">Crystal Plains</div>
+          <div class="biome-meta">
+            <span class="meta-chip">COOL / FLAT</span>
+            <span class="meta-chip">temp 0.5</span>
+            <span class="meta-chip">rain 0.3</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : pierre calcaire blanche, quelques blocs de quartz</li>
+            <li>Topblock : stone (white — quartz block), filler : quartz_ore ou stone, patches de glace</li>
+            <li>Arbres : AUCUN (treesPerChunk = 0)</li>
+            <li>Features : crystal clusters (WorldGenCrystalCluster nouveau — formations de quartz verticales), quelques buissons bas, ice formations, rochers de quartz empiles</li>
+            <li>Lumiere : les cristaux emettent une legere luminosite (luminance = 3 sur BlockCrystalQuartz custom)</li>
+            <li>Ambiance : plaine blanche et scintillante, cristaux emergents du sol, beaute froide et minerale</li>
+            <li>BiomeDictionary : COLD, MAGICAL, SPARSE</li>
+            <li>Poids pool COOL FLAT : 1 (extremement rare)</li>
+          </ul>
+        </div>
+
+        <div class="biome-card special">
+          <div class="biome-card-name">Ancient Ruins Biome</div>
+          <div class="biome-meta">
+            <span class="meta-chip">WARM / FLAT-HILLS</span>
+            <span class="meta-chip">temp 0.8</span>
+            <span class="meta-chip">rain 0.4</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : herbe seche (grassColor 0x8A9A5B), sable, gravier, terre</li>
+            <li>Topblock : grass, filler : dirt, patches de gravel et de stone</li>
+            <li>Arbres : WorldGenTwistedOak (arbres noeuds) clairsemes, quelques chenes normaux</li>
+            <li>treesPerChunk = 2</li>
+            <li>Features : ancient pillars (WorldGenAncientPillar nouveau — colonnes de stone bricks brisees), crystal clusters bas, dead bushes, rock formations</li>
+            <li>Structures : pas de structures vanilla, mais les pilliers crees par WorldGenAncientPillar simulent des ruines</li>
+            <li>Ambiance : terre oubliee, vestiges d'une civilisation ancienne, colonnes brisees, herbe qui reprend ses droits</li>
+            <li>BiomeDictionary : PLAINS, SPARSE, DRY</li>
+            <li>Poids pool WARM FLAT : 2, WARM HILLS : 2 (rare)</li>
+          </ul>
+        </div>
+
+        <div class="biome-card special">
+          <div class="biome-card-name">Thermal Springs</div>
+          <div class="biome-meta">
+            <span class="meta-chip">WARM / HILLS</span>
+            <span class="meta-chip">temp 0.9</span>
+            <span class="meta-chip">rain 0.6</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol : pierre grise, patches de sable beige, quelques touffes d'herbe</li>
+            <li>Topblock : stone / grass alterné, filler : stone, patches de gravel chaud</li>
+            <li>Arbres : quelques bouleaux et chenes clairsemés (treesPerChunk = 2)</li>
+            <li>Features : hot springs (WorldGenHotSpring nouveau — petites mares d'eau avec blocs de gravier en dessous et particules de fumée), rock formations, crystal clusters bas, steam vents</li>
+            <li>Terrain : collines rocheuses avec depressions où se forment les sources</li>
+            <li>Ambiance : paysage volcanique tempere, sources chaudes turquoise, vapeur, rochers mineraux, quietude</li>
+            <li>BiomeDictionary : HILLS, WET, SPARSE</li>
+            <li>Poids pool WARM HILLS : 2 (rare)</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <h3>Details techniques — Biomes speciaux</h3>
+      <ul>
+        <li><strong>Mushroom Glade</strong> : mycelium vanilla comme topblock supprime le spawn de mobs hostiles naturellement. Reutilise <code>WorldGenGiantMushroom</code> (nouveau) avec une distribution 60% brun / 40% rouge.</li>
+        <li><strong>Crystal Plains</strong> : <code>BlockCrystalQuartz</code> etend <code>Block</code> avec <code>Material.ROCK</code>, luminance 3, texture quartz legèrement bleue. Les clusters du <code>WorldGenCrystalCluster</code> placent 3-8 colonnes d'1-4 blocs de hauteur en formation etoilee.</li>
+        <li><strong>Ancient Ruins Biome</strong> : <code>WorldGenAncientPillar</code> place un pilier de stone bricks (2x2 ou 1x1) de 5-15 blocs de haut, avec des sections manquantes (trous aleatoires), du cobblestone en base et des mossy cobblestone en bas. Fissures en cracked stone bricks.</li>
+        <li><strong>Thermal Springs</strong> : <code>WorldGenHotSpring</code> creuse une depression de 3-7 blocs de rayon, la remplit d'eau a Y=62, place du gravier sous l'eau, et autour du bord des blocs de stone. Les particules de vapeur (<code>EnumParticleTypes.CLOUD</code>) sont spawned par <code>randomDisplayTick</code> sur un bloc de "steam vent" adjacent.</li>
+      </ul>
+    </section>
+
+    <!-- ===== S09 : BLOCS CUSTOM ===== -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num">09</span> Nouveaux Blocs Custom (6 blocs)</h2>
+
+      <p>Six nouveaux blocs sont necessaires pour les biomes de WorldEnhanced. Ils suivent les conventions du systeme de contenu existant (<code>EriBlock.create()</code> ou extension directe de <code>Block</code>).</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Bloc</th>
+              <th>Classe</th>
+              <th>Materiau</th>
+              <th>Durete</th>
+              <th>Luminance</th>
+              <th>Utilise dans</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Mycelium Glow</td>
+              <td><code>BlockMyceliumGlow</code></td>
+              <td>GROUND</td>
+              <td>0.6</td>
+              <td>7</td>
+              <td>Bioluminescent Forest, Mushroom Glade</td>
+            </tr>
+            <tr>
+              <td>Cracked Earth</td>
+              <td><code>BlockCrackedEarth</code></td>
+              <td>GROUND</td>
+              <td>0.5</td>
+              <td>0</td>
+              <td>Wasteland</td>
+            </tr>
+            <tr>
+              <td>Salt</td>
+              <td><code>BlockSalt</code></td>
+              <td>ROCK</td>
+              <td>1.5</td>
+              <td>1</td>
+              <td>Salt Flats, cristaux de sel</td>
+            </tr>
+            <tr>
+              <td>Crystal Quartz</td>
+              <td><code>BlockCrystalQuartz</code></td>
+              <td>ROCK</td>
+              <td>2.0</td>
+              <td>3</td>
+              <td>Crystal Plains, Thermal Springs</td>
+            </tr>
+            <tr>
+              <td>Aspen Leaves</td>
+              <td><code>BlockAspenLeaves</code></td>
+              <td>LEAVES</td>
+              <td>0.2</td>
+              <td>0</td>
+              <td>Aspen Grove (feuilles dorées/orangees)</td>
+            </tr>
+            <tr>
+              <td>Steam Vent</td>
+              <td><code>BlockSteamVent</code></td>
+              <td>ROCK</td>
+              <td>1.5</td>
+              <td>0</td>
+              <td>Thermal Springs (particules vapeur)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Specifications par bloc</h3>
+
+      <p><strong>BlockMyceliumGlow</strong> : Etend <code>BlockMycelium</code>. Override <code>randomDisplayTick()</code> pour spawner des particules <code>SPELL_MOB</code> couleur cyan au-dessus du bloc avec une chance de 25% par tick. <code>getLightValue() = 7</code>. Texture : mycelium vanilla avec une superposition de points lumineux bleus. Ne se transforme pas en dirt a l'ombre (contrairement au mycelium vanilla).</p>
+
+      <p><strong>BlockCrackedEarth</strong> : Etend <code>Block</code> avec <code>Material.GROUND</code>. Texture : terre argileusse rouge-brun avec un reseau de fissures geometriques. Pas de comportement special. Se mine a la pelle. Drops : 1x dirt.</p>
+
+      <p><strong>BlockSalt</strong> : Etend <code>Block</code> avec <code>Material.ROCK</code>. Texture : blanc presque pur avec un subtil motif hexagonal gris clair. <code>getLightValue() = 1</code> (tres legere luminosite). Drops : 1-2x salt (item), qui peut etre utilise en cuisine (future feature). Se mine a la pioche.</p>
+
+      <p><strong>BlockCrystalQuartz</strong> : Etend <code>Block</code> avec <code>Material.ROCK</code>. Texture : quartz translucide avec teinte bleu-lavande. <code>getLightValue() = 3</code>. Drops : 1x quartz item. Peut etre place en decoration (beau visuellement). Se mine a la pioche.</p>
+
+      <p><strong>BlockAspenLeaves</strong> : Etend <code>BlockLeaves</code>. Couleur fixe doree/orangee (pas de biome color overlay). Texture : feuilles classiques teintees en #D4A843 (or doux) avec variation vers #C4611A (orange). Decayent normalement. Drops : sapling aspen (1/20).</p>
+
+      <p><strong>BlockSteamVent</strong> : Etend <code>Block</code> avec <code>Material.ROCK</code>. Override <code>randomDisplayTick()</code> pour spawner des particules <code>CLOUD</code> et <code>SMOKE_LARGE</code> au-dessus. Pas de luminance. Texture : pierre avec une fente centrale sombre. Se mine a la pioche.</p>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content">
+          <strong>Enregistrement :</strong> Tous les nouveaux blocs doivent etre enregistres dans <code>CommonProxy.preInit()</code> via <code>EriBlock.create()</code> ou directement dans un registre events. Les items de bloc (ItemBlock) sont auto-generes par Forge. Ne pas oublier de creer les fichiers JSON de modele dans <code>assets/eriniumfaction/models/block/</code> et <code>blockstates/</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== S10 : NOUVEAUX ARBRES ===== -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num forest-num">10</span> Nouveaux Generateurs d'Arbres (7)</h2>
+
+      <p>Sept nouveaux <code>WorldGenAbstractTree</code> pour couvrir les besoins des biomes WorldEnhanced. Tous respectent la regle absolue : <strong>ne jamais retourner null depuis getRandomTreeFeature()</strong>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Classe</th>
+              <th>Description</th>
+              <th>Hauteur</th>
+              <th>Tronc</th>
+              <th>Feuilles</th>
+              <th>Biomes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>WorldGenAspen</code></td>
+              <td>Tremble blanc, fin et haut</td>
+              <td>12-18</td>
+              <td>Birch log 1x1</td>
+              <td>BlockAspenLeaves doree</td>
+              <td>Aspen Grove</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenTwistedOak</code></td>
+              <td>Chene torsade avec branches laterales</td>
+              <td>6-10</td>
+              <td>Oak log 1x1 avec branches</td>
+              <td>Oak leaves normales</td>
+              <td>Twisted Oak Forest, Ancient Ruins</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenBaobab</code></td>
+              <td>Tronc court epais, canopee plate</td>
+              <td>4-7</td>
+              <td>Acacia log 3x3</td>
+              <td>Acacia leaves calotte plate</td>
+              <td>Savanna Baobab</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenGiantMushroom</code></td>
+              <td>Champignon geant (rouge ou brun)</td>
+              <td>8-14</td>
+              <td>Huge mushroom stem</td>
+              <td>Huge mushroom blocks (red/brown)</td>
+              <td>Bioluminescent Forest, Mushroom Glade</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenDeadSnag</code></td>
+              <td>Tronc mort sans feuilles</td>
+              <td>8-14</td>
+              <td>Oak log (stripped visual) 1x1</td>
+              <td>Aucune</td>
+              <td>Dark Moor, Wasteland</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenCanopyTree</code></td>
+              <td>Arbre tropical tres haut, canopee etalee</td>
+              <td>18-28</td>
+              <td>Jungle log 1x1 (ou 2x2 geant)</td>
+              <td>Jungle leaves en large couronne plate</td>
+              <td>Redwood Valley (sous-etage), Swamp Mangrove</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenWillowEnhanced</code></td>
+              <td>Saule pleureur etendu, lianes longues</td>
+              <td>8-12</td>
+              <td>Oak log 1x1</td>
+              <td>Oak leaves + vines 4-8 blocs tombants</td>
+              <td>Swamp Mangrove (complement WorldGenWeepingWillow)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Details d'implementation</h3>
+
+      <p><strong>WorldGenAspen</strong> : Tronc de 12 a 18 blocs en <code>LOG:2</code> (birch). Couronne ovale etroite de 2-3 blocs de rayon, 3-4 couches. Feuilles <code>BlockAspenLeaves</code>. Verifie que le sol est de l'herbe ou de la terre avant de placer. La couronne commence a <code>height - 4</code>.</p>
+
+      <p><strong>WorldGenTwistedOak</strong> : Tronc principal de 6-10 blocs. A chaque niveau 3-7, chance de 30% de pousser une branche laterale de 2-4 blocs (direction N/S/E/O choisie aleatoirement). Chaque branche se termine par un mini-feuillage de rayon 1-2. Tronc = <code>LOG:0</code> (oak), feuilles = <code>LEAVES:0</code>.</p>
+
+      <p><strong>WorldGenBaobab</strong> : Tronc 3x3 en <code>LOG:1</code> (acacia) de 4-7 blocs. A partir du niveau 3, expansion de la canopee. La canopee est une calotte de rayon 5-7 blocs, epaisseur 2 blocs de feuilles acacia. Utilise <code>LEAVES:0 meta 4</code> (acacia, no-decay).</p>
+
+      <p><strong>WorldGenGiantMushroom</strong> : Utilise les blocs vanilla <code>Blocks.RED_MUSHROOM_BLOCK</code> et <code>Blocks.BROWN_MUSHROOM_BLOCK</code>. Tige de 8-14 blocs (<code>meta = 0</code>, coeur). Chapeau en ellipsoide de rayon 4-6 (<code>meta = 14</code>, couvercle exterieur). Generation identique a la logique vanilla des champignons geants mais avec dimensions augmentees.</p>
+
+      <p><strong>WorldGenDeadSnag</strong> : Tronc simple 1x1 de 8-14 blocs en <code>LOG:0</code> (oak). Aucune feuille. Quelques branches courtes (1-2 blocs) a l'extremite superieure sans feuilles. Le tronc peut avoir 2-3 trous (blocks d'air) aleatoires simulant la decomposition. Toujours retourner ce generateur meme si treesPerChunk = 0.</p>
+
+      <p><strong>WorldGenCanopyTree</strong> : Tronc jungle de 18-28 blocs (1x1 ou 2x2 pour les geants). La canopee est une couronne tres etalee (rayon 6-10 blocs) mais tres plate (1-2 couches de feuilles). Quelques racines (blocs de logs a la base) pour les grands exemplaires. Feuilles <code>LEAVES:2</code> (jungle, no-decay).</p>
+
+      <p><strong>WorldGenWillowEnhanced</strong> : Similaire a <code>WorldGenWeepingWillow</code> existant mais avec des lianes de 4-8 blocs (au lieu de 2-4). La couronne est plus large (rayon 4-5). Les lianes poussent depuis le dessous des feuilles vers le bas, simulant le saule pleureur. Utilise des lianes vanilla <code>Blocks.VINE</code> meta 1/2/4/8 selon la face.</p>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content">
+          <strong>Regle absolue :</strong> Chaque biome qui definit <code>getRandomTreeFeature()</code> doit retourner une instance non-null. Pour <strong>WorldGenDeadSnag</strong> dans Dark Moor : <code>return new WorldGenDeadSnag();</code> toujours. Pour les biomes sans arbres, mettre <code>this.treesPerChunk = 0</code> et <code>return new WorldGenTrees(false);</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== S11 : NOUVELLES FEATURES ===== -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num cyan-num">11</span> Nouvelles Features de Terrain (12)</h2>
+
+      <p>Douze nouveaux <code>WorldGenerator</code> qui enrichissent le terrain a petite echelle. Certaines sont specifiques a un biome, d'autres sont transversales.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Classe</th>
+              <th>Description</th>
+              <th>Biomes cibles</th>
+              <th>Frequence / chunk</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>WorldGenWildflowerMeadow</code></td>
+              <td>Patch mixte de 5-8 types de fleurs differents en forme irreguliere</td>
+              <td>Lavender Fields, Alpine Meadow, Flower Prairie, Rolling Hills</td>
+              <td>3-6 par chunk</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenRockFormation</code></td>
+              <td>Empilement de blocs de pierre (3-7 blocs) en colonne desaxée simulant une roche equilibree</td>
+              <td>Alpine Meadow, Windy Plateau, Steep Mountains</td>
+              <td>1-2 par chunk</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenHotSpring</code></td>
+              <td>Depression circulaire remplie d'eau (3-7 blocs de rayon), gravier en fond, steam vent en bord</td>
+              <td>Thermal Springs, Volcanic Plains</td>
+              <td>1 tous les 3-5 chunks</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenFairyCircle</code></td>
+              <td>Anneau de champignons (rayon 3-5, epaisseur 1) sur le sol</td>
+              <td>Bioluminescent Forest, Mushroom Glade, Dark Moor, Deep Swamp</td>
+              <td>1-2 par chunk</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenIceSpikes</code></td>
+              <td>Groupe de 3-8 pics de packed ice (3-12 blocs de haut, 1x1 a 2x2)</td>
+              <td>Frozen River Delta, Glacier</td>
+              <td>2-4 par chunk</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenDeadTreeStand</code></td>
+              <td>Cluster de 3-5 troncs morts (2-6 blocs) sans feuilles, groupes</td>
+              <td>Dark Moor, Wasteland, Petrified Forest</td>
+              <td>1-2 par chunk</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenGeyser</code></td>
+              <td>Bloc de stone centrale avec column d'eau source (1x1, 3-5 blocs) au-dessus — visuel statique (pas de mecanisme redstone)</td>
+              <td>Volcanic Island Chain, Thermal Springs</td>
+              <td>1 tous les 5-8 chunks</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenFossilBones</code></td>
+              <td>Formation de 5-12 blocs de bone block disposees en arc ou en amas au ras du sol</td>
+              <td>Wasteland, Red Desert, Salt Flats</td>
+              <td>1 tous les 4-6 chunks</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenCrystalCluster</code></td>
+              <td>Groupe de 3-8 colonnes de 1-4 blocs de BlockCrystalQuartz ou quartz ore, en etoile</td>
+              <td>Crystal Plains, Thermal Springs, Open Cave</td>
+              <td>1-3 par chunk</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenBioluminescentPool</code></td>
+              <td>Mare de 2-4 blocs de rayon avec sea lantern sous 1-2 blocs d'eau (effet lueur sous-marine)</td>
+              <td>Bioluminescent Forest, Mushroom Glade</td>
+              <td>1-2 par chunk</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenAncientPillar</code></td>
+              <td>Pilier de stone bricks (1x1 ou 2x2) de 5-15 blocs avec sections manquantes, mossy en base, vines lateraux</td>
+              <td>Ancient Ruins Biome, Petrified Forest</td>
+              <td>2-5 par chunk</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenBeehiveTree</code></td>
+              <td>Arbre avec une structure decorative en wood et plank simulant une ruche geometrique, accrochee sous une branche</td>
+              <td>Dense Forest, Twisted Oak Forest, Erinium Forest</td>
+              <td>1 tous les 10-15 chunks</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Details d'implementation prioritaires</h3>
+
+      <p><strong>WorldGenWildflowerMeadow</strong> : Choisit aleatoirement un centre dans le chunk. Dessine une forme organique (bruit de Perlin simplifie avec quelques offsets aleatoires) de rayon 4-8 blocs. Dans la zone, place des fleurs aleatoires parmi : dandelion, poppy, allium, blue orchid, azure bluet, red/white/pink tulip, oxeye daisy, cornflower, lily of the valley. Verifie que le sol est de l'herbe avant de placer.</p>
+
+      <p><strong>WorldGenRockFormation</strong> : Choisit un point de base. Empile 3-7 blocs de stone / cobblestone / mossy cobblestone avec un leger decalage lateral (0 ou +/-1) a chaque couche, simulant un rocher en equilibre. La base fait 2x2 ou 3x3, le sommet 1x1.</p>
+
+      <p><strong>WorldGenHotSpring</strong> : Creuse une depression spherique de rayon 3-7 (demi-sphere). Pose de l'eau a <code>y = heightMap - 1</code>. Place du gravier sous l'eau (1-2 couches). Bord : blocs de stone. Sur le bord, place 2-4 blocs de <code>BlockSteamVent</code> pour les particules. Ne pas creer de source dans les biomes froids (check temperature).</p>
+
+      <p><strong>WorldGenIceSpikes</strong> : Choisit 3-8 positions aleatoires dans le chunk. Pour chaque position, genere une colonne de <code>Blocks.PACKED_ICE</code> de 3-12 blocs. La colonne a une largeur de 1x1 pour les petits et 2x2 pour les grands (>8 blocs). La base peut s'etendre de 1 bloc sur les cotes (effilement). Ne placer que sur une surface de <code>SNOW</code> ou <code>PACKED_ICE</code>.</p>
+
+      <p><strong>WorldGenFairyCircle</strong> : Calcule un anneau de positions (formule cercle) de rayon 3-5 blocs. Pour chaque position sur l'anneau, place un champignon (rouge ou brun aleatoire) sur la surface du sol. Espace les champignons d'au moins 1 bloc. Le centre de l'anneau reste vide (ou avec une fleur).</p>
+
+      <p><strong>WorldGenGeyser</strong> : Place un bloc de stone en surface. Au-dessus, une colonne de <code>Blocks.WATER</code> en source (1x1) de 3-5 blocs de haut. La colonne est "decorative" — elle ne coule pas car entouree d'air. Pour realisme, les blocs d'eau adjacents sont retires (le geyser est isole). Un bloc de steam vent est place en bord.</p>
+
+      <p><strong>WorldGenFossilBones</strong> : Choisit 5-12 positions autour d'un centre dans un rayon de 4 blocs. Pour chaque position, place 1-3 blocs de <code>Blocks.BONE_BLOCK</code> (meta 0 = axe Y, meta 4 = axe X, meta 8 = axe Z) au niveau du sol ou juste sous la surface. L'effet est un amas de bones emergeant partiellement.</p>
+
+      <p><strong>WorldGenAncientPillar</strong> : Choisit une largeur (1x1 ou 2x2). Genere une colonne de stone bricks de 5-15 blocs. A chaque couche (hauteur > 3), 15% de chance que la couche soit vide (bloc manquant = air). La base utilise mossy cobblestone et stone bricks, les 2-3 derniers blocs du haut sont cracked stone bricks. Sur les faces du pilier, vines avec 40% de chance par face par couche.</p>
+
+      <p><strong>WorldGenBeehiveTree</strong> : Genere d'abord un arbre normal (chene ou bouleau). Puis, sur une branche aleatoire a mi-hauteur, accroche une structure 2x3x2 (bois + planches) simulant une ruche geometrique. La structure est ornementale uniquement.</p>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content">
+          <strong>Package :</strong> Toutes les features vont dans <code>world/feature/</code>. Elles sont appelees depuis la methode <code>decorate()</code> des classes biome concernees, apres avoir appelee <code>super.decorate()</code>. Utiliser <code>rand.nextInt(N) == 0</code> pour les features rares-par-chunk.
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== S12 : INTEGRATION WORLDGEN ===== -->
+    <section class="section-card" id="s12">
+      <h2><span class="s-num">12</span> Integration dans le WorldGen existant</h2>
+
+      <h3 class="first">Architecture existante</h3>
+      <p>Le WorldGen Erinium utilise <code>EriniumBiomeProvider</code> qui remplace le <code>BiomeProvider</code> vanilla, et <code>EriniumGenLayerBiome</code> qui distribue les biomes dans des pools climatiques. Les 36 biomes existants sont repartis en pools <strong>HOT</strong>, <strong>WARM</strong>, <strong>COOL</strong>, <strong>ICY</strong> avec trois tiers de terrain : <strong>FLAT</strong>, <strong>HILLS</strong>, <strong>MOUNT</strong>.</p>
+
+      <h3>Modification de EriniumGenLayerBiome</h3>
+      <p>Ajouter les 17 nouveaux biomes dans les pools correspondants. La logique de selection existante (tableau de poids) est conservee. Voici la distribution proposee :</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Pool</th>
+              <th>Nouveaux biomes</th>
+              <th>Poids</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>HOT FLAT</td>
+              <td>Wasteland, Salt Flats, Savanna Baobab</td>
+              <td>6, 2, 5</td>
+            </tr>
+            <tr>
+              <td>HOT HILLS</td>
+              <td>Volcanic Island Chain</td>
+              <td>2</td>
+            </tr>
+            <tr>
+              <td>HOT MOUNT</td>
+              <td>Volcanic Island Chain</td>
+              <td>2</td>
+            </tr>
+            <tr>
+              <td>WARM FLAT</td>
+              <td>Lavender Fields, Twisted Oak Forest, Redwood Valley, Bioluminescent Forest, Swamp Mangrove, Mushroom Glade, Ancient Ruins Biome</td>
+              <td>5, 4, 3, 2, 3, 1, 2</td>
+            </tr>
+            <tr>
+              <td>WARM HILLS</td>
+              <td>Twisted Oak Forest, Ancient Ruins Biome, Thermal Springs</td>
+              <td>4, 2, 2</td>
+            </tr>
+            <tr>
+              <td>COOL FLAT</td>
+              <td>Aspen Grove, Dark Moor, Crystal Plains</td>
+              <td>6, 4, 1</td>
+            </tr>
+            <tr>
+              <td>COOL HILLS</td>
+              <td>Aspen Grove, Alpine Meadow</td>
+              <td>5, 5</td>
+            </tr>
+            <tr>
+              <td>COOL MOUNT</td>
+              <td>Alpine Meadow</td>
+              <td>4</td>
+            </tr>
+            <tr>
+              <td>ICY FLAT</td>
+              <td>Frozen River Delta</td>
+              <td>4</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Enregistrement dans EriniumBiomes.java</h3>
+      <p>Ajouter les 17 nouvelles instances <code>public static final Biome</code>, groupees par categorie, et les enregistrer dans <code>registerBiomes()</code>. Appliquer les tags <code>BiomeDictionary</code> dans <code>applyBiomeDictionary()</code>. Mettre a jour le compteur dans le log : <code>"EriniumBiomes - 53 biomes registered."</code></p>
+
+      <div class="code-block"><span class="cm">// EriniumBiomes.java — section WorldEnhanced</span>
+<span class="cm">// ==================== WorldEnhanced - Forest (4) ====================</span>
+<span class="kw">public static final</span> <span class="ty">Biome</span> ASPEN_GROVE         = <span class="kw">new</span> <span class="ty">BiomeAspenGrove</span>();
+<span class="kw">public static final</span> <span class="ty">Biome</span> TWISTED_OAK_FOREST   = <span class="kw">new</span> <span class="ty">BiomeTwistedOakForest</span>();
+<span class="kw">public static final</span> <span class="ty">Biome</span> REDWOOD_VALLEY        = <span class="kw">new</span> <span class="ty">BiomeRedwoodValley</span>();
+<span class="kw">public static final</span> <span class="ty">Biome</span> BIOLUMINESCENT_FOREST = <span class="kw">new</span> <span class="ty">BiomeBioluminescentForest</span>();
+
+<span class="cm">// ==================== WorldEnhanced - Plains (3) ====================</span>
+<span class="kw">public static final</span> <span class="ty">Biome</span> LAVENDER_FIELDS  = <span class="kw">new</span> <span class="ty">BiomeLavenderFields</span>();
+<span class="kw">public static final</span> <span class="ty">Biome</span> ALPINE_MEADOW    = <span class="kw">new</span> <span class="ty">BiomeAlpineMeadow</span>();
+<span class="kw">public static final</span> <span class="ty">Biome</span> SAVANNA_BAOBAB   = <span class="kw">new</span> <span class="ty">BiomeSavannaBaobab</span>();
+
+<span class="cm">// ==================== WorldEnhanced - Cold (2) ====================</span>
+<span class="kw">public static final</span> <span class="ty">Biome</span> FROZEN_RIVER_DELTA = <span class="kw">new</span> <span class="ty">BiomeFrozenRiverDelta</span>();
+<span class="kw">public static final</span> <span class="ty">Biome</span> DARK_MOOR          = <span class="kw">new</span> <span class="ty">BiomeDarkMoor</span>();
+
+<span class="cm">// ==================== WorldEnhanced - Dry (2) ====================</span>
+<span class="kw">public static final</span> <span class="ty">Biome</span> WASTELAND  = <span class="kw">new</span> <span class="ty">BiomeWasteland</span>();
+<span class="kw">public static final</span> <span class="ty">Biome</span> SALT_FLATS = <span class="kw">new</span> <span class="ty">BiomeSaltFlats</span>();
+
+<span class="cm">// ==================== WorldEnhanced - Wet/Tropical (2) ====================</span>
+<span class="kw">public static final</span> <span class="ty">Biome</span> SWAMP_MANGROVE        = <span class="kw">new</span> <span class="ty">BiomeSwampMangrove</span>();
+<span class="kw">public static final</span> <span class="ty">Biome</span> VOLCANIC_ISLAND_CHAIN = <span class="kw">new</span> <span class="ty">BiomeVolcanicIslandChain</span>();
+
+<span class="cm">// ==================== WorldEnhanced - Special (4) ====================</span>
+<span class="kw">public static final</span> <span class="ty">Biome</span> MUSHROOM_GLADE   = <span class="kw">new</span> <span class="ty">BiomeMushroomGlade</span>();
+<span class="kw">public static final</span> <span class="ty">Biome</span> CRYSTAL_PLAINS   = <span class="kw">new</span> <span class="ty">BiomeCrystalPlains</span>();
+<span class="kw">public static final</span> <span class="ty">Biome</span> ANCIENT_RUINS    = <span class="kw">new</span> <span class="ty">BiomeAncientRuins</span>();
+<span class="kw">public static final</span> <span class="ty">Biome</span> THERMAL_SPRINGS  = <span class="kw">new</span> <span class="ty">BiomeThermalSprings</span>();</div>
+
+      <h3>Packages de classes biome</h3>
+      <ul>
+        <li><code>world/biome/forest/</code> — BiomeAspenGrove, BiomeTwistedOakForest, BiomeRedwoodValley, BiomeBioluminescentForest</li>
+        <li><code>world/biome/plains/</code> — BiomeLavenderFields, BiomeAlpineMeadow, BiomeSavannaBaobab</li>
+        <li><code>world/biome/cold/</code> — BiomeFrozenRiverDelta, BiomeDarkMoor</li>
+        <li><code>world/biome/dry/</code> — BiomeWasteland, BiomeSaltFlats</li>
+        <li><code>world/biome/wetland/</code> — BiomeSwampMangrove</li>
+        <li><code>world/biome/tropical/</code> — BiomeVolcanicIslandChain</li>
+        <li><code>world/biome/special/</code> — BiomeMushroomGlade, BiomeCrystalPlains, BiomeAncientRuins, BiomeThermalSprings</li>
+      </ul>
+
+      <h3>Commande /locatebiome</h3>
+      <p>Mettre a jour le supplier de suggestions dans la commande <code>/locatebiome</code> pour inclure les 17 nouveaux identifiants de registry :</p>
+      <ul>
+        <li><code>eriniumfaction:aspen_grove</code></li>
+        <li><code>eriniumfaction:twisted_oak_forest</code></li>
+        <li><code>eriniumfaction:redwood_valley</code></li>
+        <li><code>eriniumfaction:bioluminescent_forest</code></li>
+        <li><code>eriniumfaction:lavender_fields</code></li>
+        <li><code>eriniumfaction:alpine_meadow</code></li>
+        <li><code>eriniumfaction:savanna_baobab</code></li>
+        <li><code>eriniumfaction:frozen_river_delta</code></li>
+        <li><code>eriniumfaction:dark_moor</code></li>
+        <li><code>eriniumfaction:wasteland</code></li>
+        <li><code>eriniumfaction:salt_flats</code></li>
+        <li><code>eriniumfaction:swamp_mangrove</code></li>
+        <li><code>eriniumfaction:volcanic_island_chain</code></li>
+        <li><code>eriniumfaction:mushroom_glade</code></li>
+        <li><code>eriniumfaction:crystal_plains</code></li>
+        <li><code>eriniumfaction:ancient_ruins</code></li>
+        <li><code>eriniumfaction:thermal_springs</code></li>
+      </ul>
+
+      <h3>Transitions et continuite climatique</h3>
+      <p>Les hauteurs de base des nouveaux biomes sont calibrees pour minimiser les "falaises" aux bordures :</p>
+      <ul>
+        <li><strong>Biomes FLAT</strong> (baseHeight 0.0 a 0.15) : Lavender Fields, Aspen Grove, Wasteland, Salt Flats, Mushroom Glade, Dark Moor, Swamp Mangrove, Crystal Plains, Ancient Ruins, Savanna Baobab, Bioluminescent Forest, Frozen River Delta, Redwood Valley</li>
+        <li><strong>Biomes HILLS</strong> (baseHeight 0.15 a 0.40) : Alpine Meadow, Twisted Oak Forest, Thermal Springs</li>
+        <li><strong>Biomes MOUNT</strong> (baseHeight 0.40+) : Volcanic Island Chain (variation 0.50)</li>
+      </ul>
+      <p>Le GenLayer de transition existant (<code>GenLayerSmooth</code> / <code>GenLayerZoom</code>) lisse deja les bordures. Aucune modification du systeme de transition n'est necessaire — il suffit de respecter les contraintes de hauteur ci-dessus.</p>
+
+      <h3>Monde Minage</h3>
+      <p>Le <code>MiningWorldProvider</code> reutilise <code>EriniumBiomeProvider</code>. Les 17 nouveaux biomes seront automatiquement presents dans le Monde Minage sans modification supplementaire. Si certains biomes ont des features souterraines particulieres (ex. crystal clusters dans Crystal Plains = plus de quartz en sous-sol), cela doit etre gere dans le decorateur du biome avec un check de dimension.</p>
+    </section>
+
+    <!-- ===== S13 : ASSETS ===== -->
+    <section class="section-card" id="s13">
+      <h2><span class="s-num gold-num">13</span> Assets &amp; Textures</h2>
+
+      <p>Suivre le workflow defini dans <code>docs/ASSETS_WORKFLOW.md</code> pour tous les nouveaux assets. Les dimensions standard s'appliquent : 16x16 pour les blocs, 16x16 pour les items, 64x64 pour les icones si necessaire.</p>
+
+      <h3 class="first">Textures blocs a creer</h3>
+      <ul>
+        <li><strong>block/mycelium_glow.png</strong> — mycelium avec pattern lumineux cyan (base mycelium vanilla + overlay points bleus)</li>
+        <li><strong>block/cracked_earth.png</strong> — terre rouge-brun avec reseau de fissures geometriques (style argile seche)</li>
+        <li><strong>block/salt.png</strong> — blanc quasi-pur avec subtil motif hexagonal gris clair</li>
+        <li><strong>block/crystal_quartz.png</strong> — quartz avec teinte bleu-lavande (style stalactite cristalline)</li>
+        <li><strong>block/aspen_leaves.png</strong> — feuilles ovales en teinte doree #D4A843 avec quelques nuances orangees</li>
+        <li><strong>block/steam_vent.png</strong> — pierre grise avec fente centrale sombre et halo de chaleur subtil</li>
+      </ul>
+
+      <h3>Textures items a creer</h3>
+      <ul>
+        <li><strong>item/salt.png</strong> — grains de sel blancs (pour drop du BlockSalt)</li>
+        <li><strong>item/aspen_sapling.png</strong> — jeune pousse avec tiges blanches et feuillage dore</li>
+        <li><strong>item/crystal_quartz_shard.png</strong> — eclat de cristal bleu (si drop du BlockCrystalQuartz)</li>
+      </ul>
+
+      <h3>Modeles de blocs a creer</h3>
+      <p>Chaque nouveau bloc necessite :</p>
+      <ul>
+        <li>Un fichier <code>assets/eriniumfaction/blockstates/&lt;nom&gt;.json</code></li>
+        <li>Un fichier <code>assets/eriniumfaction/models/block/&lt;nom&gt;.json</code> (generalement herite de <code>cube_all</code> ou <code>cube_column</code>)</li>
+        <li>Un fichier <code>assets/eriniumfaction/models/item/&lt;nom&gt;.json</code> pour l'item de bloc</li>
+      </ul>
+
+      <h3>Couleurs de carte (MapColor)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Biome</th>
+              <th>MapColor</th>
+              <th>Hex aproximatif</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Lavender Fields</td><td>MapColor.PURPLE</td><td>#7B4EA8</td></tr>
+            <tr><td>Salt Flats</td><td>MapColor.SNOW</td><td>#FFFFFF</td></tr>
+            <tr><td>Wasteland</td><td>MapColor.BROWN</td><td>#8D6653</td></tr>
+            <tr><td>Mushroom Glade</td><td>MapColor.PURPLE</td><td>#7B4EA8</td></tr>
+            <tr><td>Crystal Plains</td><td>MapColor.QUARTZ</td><td>#E0DDD5</td></tr>
+            <tr><td>Bioluminescent Forest</td><td>MapColor.CYAN</td><td>#007C7C</td></tr>
+            <tr><td>Dark Moor</td><td>MapColor.GRAY</td><td>#4C4C4C</td></tr>
+            <tr><td>Frozen River Delta</td><td>MapColor.ICE</td><td>#7FB8F6</td></tr>
+            <tr><td>Thermal Springs</td><td>MapColor.STONE</td><td>#7D7D7D</td></tr>
+            <tr><td>Ancient Ruins</td><td>MapColor.STONE</td><td>#7D7D7D</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Traductions (lang files)</h3>
+      <p>Ajouter dans <code>assets/eriniumfaction/lang/fr_FR.lang</code> et <code>en_US.lang</code> les entrees pour :</p>
+      <ul>
+        <li>Les 17 nouveaux biomes : <code>biome.eriniumfaction.aspen_grove=Bois de Trembles</code> (et EN)</li>
+        <li>Les 6 nouveaux blocs : <code>tile.eriniumfaction.salt.name=Sel</code></li>
+        <li>Les nouveaux items : <code>item.eriniumfaction.salt.name=Sel</code></li>
+      </ul>
+    </section>
+
+    <!-- ===== S14 : PLAN DE TESTS ===== -->
+    <section class="section-card" id="s14">
+      <h2><span class="s-num green-num">14</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests de generation</h3>
+      <ul>
+        <li>Generer 100 chunks dans chaque nouveau biome via teleportation rapide — verifier absence de NullPointerException (particulierement pour getRandomTreeFeature)</li>
+        <li>Verifier que chaque biome a une apparence distincte et reconnaissable en un coup d'oeil</li>
+        <li>Verifier les transitions biome-a-biome (pas de falaises aberrantes entre biomes voisins)</li>
+        <li>Verifier que le Salt Flats est bien le biome le plus plat (aucun bloc au-dessus de y=65)</li>
+        <li>Verifier que le Mushroom Glade ne spawne pas de mobs hostiles</li>
+        <li>Verifier que le Bioluminescent Forest emette des particules la nuit</li>
+      </ul>
+
+      <h3>Tests des nouvelles features</h3>
+      <ul>
+        <li>WorldGenIceSpikes : verifier que les pics se genèrent uniquement sur packed_ice ou snow</li>
+        <li>WorldGenHotSpring : verifier l'absence de springs dans les biomes froids (check temperature)</li>
+        <li>WorldGenFairyCircle : verifier que l'anneau est ferme et que le centre est libre</li>
+        <li>WorldGenAncientPillar : verifier que les piliers ont des trous et des lianes aleatoires</li>
+        <li>WorldGenFossilBones : verifier que les bone blocks apparaissent partiellement enfouis</li>
+        <li>WorldGenGeyser : verifier que la colonne d'eau ne se repand pas (pas de flux, eau source seulement)</li>
+        <li>WorldGenWildflowerMeadow : verifier la diversite des types de fleurs (5+ types differents dans un meme patch)</li>
+      </ul>
+
+      <h3>Tests des nouveaux arbres</h3>
+      <ul>
+        <li>WorldGenAspen : hauteur moyenne verifiee (12-18 blocs), feuilles dorées presentes</li>
+        <li>WorldGenBaobab : tronc 3x3 confirme, canopee plate et large</li>
+        <li>WorldGenGiantMushroom : chapeau complet et tige visible</li>
+        <li>WorldGenDeadSnag : aucune feuille, tronc avec trous occasionnels</li>
+        <li>WorldGenTwistedOak : branches laterales presentes sur au moins 30% des exemplaires</li>
+        <li>TOUS les arbres : appeler getRandomTreeFeature() 1000 fois — jamais de NullPointerException</li>
+      </ul>
+
+      <h3>Tests des nouveaux blocs</h3>
+      <ul>
+        <li>BlockMyceliumGlow : luminance = 7 verifiee en jeu (nuit autour du bloc)</li>
+        <li>BlockSalt : texture visible, mine a la pioche, drop correct</li>
+        <li>BlockCrystalQuartz : luminance = 3 visible</li>
+        <li>BlockSteamVent : particules de vapeur actives sur randomDisplayTick</li>
+        <li>BlockAspenLeaves : decaye normalement sans tronc adjacent, drop de sapling</li>
+      </ul>
+
+      <h3>Tests de performance</h3>
+      <ul>
+        <li>Generer 500 chunks consecutifs sans baisse de TPS en dessous de 18 (serveur vanilla 20 TPS)</li>
+        <li>Profiler les biomes les plus denses en features (Bioluminescent Forest, Mushroom Glade) sur 10 chunks en charge</li>
+        <li>Verifier que WorldGenWildflowerMeadow ne genere pas plus de 200 appels setBlockState par chunk</li>
+        <li>Verifier l'absence de fuite memoire apres 30 minutes d'exploration intensive (biomes nouveaux)</li>
+      </ul>
+
+      <h3>Tests de distribution</h3>
+      <ul>
+        <li>Sur une map de test 10000x10000, verifier que les biomes "tres rares" (Mushroom Glade, Crystal Plains, Salt Flats) representent moins de 2% de la surface</li>
+        <li>Verifier que les biomes "communs" (Aspen Grove, Wasteland, Lavender Fields) sont bien visibles dans une exploration normale de 2000 blocs</li>
+        <li>Verifier la coherence climatique : Frozen River Delta uniquement en zone ICY, Savanna Baobab uniquement en zone HOT</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content">
+          <strong>Workflow de test recommande :</strong> Utiliser <code>/locatebiome eriniumfaction:&lt;nom&gt;</code> pour trouver chaque biome rapidement. Si un biome ne se trouve pas en 10 minutes de recherche, verifier son poids dans les pools GenLayer.
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<script>
+// Active nav link on scroll
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector('.nav-link[href="#' + e.target.id + '"]');
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-30% 0px -60% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

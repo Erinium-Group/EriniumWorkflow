@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Erigineering : Editeur d'Animation | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #4AE0E0; --aetherite: #9B59B6; --erinium: #FFD700;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+    --common: #2ECC71; --uncommon: #3498DB; --mythic: #E74C3C;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(74,224,224,0.09) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(255,215,0,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, #4AE0E0 40%, #FFD700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+  .section-card:nth-child(14) { animation-delay: .70s; }
+  .section-card:nth-child(15) { animation-delay: .75s; }
+  .section-card:nth-child(16) { animation-delay: .80s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '>'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .ascii-diagram .ab { color: var(--rare); }
+  .ascii-diagram .am { color: var(--aetherite); }
+  .ascii-diagram .ao { color: var(--orange); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  .tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+  .tier-grid.six-col { grid-template-columns: repeat(6, 1fr); }
+  .tier-grid.four-col { grid-template-columns: repeat(4, 1fr); }
+  .tier-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 22px 14px; text-align: center; }
+  .tier-card-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .tier-card-sub  { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); margin-bottom: 10px; }
+  .tier-reduction { font-size: 22px; font-weight: 800; margin: 6px 0; }
+  .tier-card-stat { font-size: 12px; color: var(--slate); margin: 4px 0; }
+  .tier-card-stat strong { color: var(--text); }
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .tier-grid.four-col { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } .tier-grid.four-col { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Vision</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Architecture Application</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Modelisation (Blockbench)</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Systeme d'Animation</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Textures (outils externes)</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Viewport 3D</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Import / Export</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Format de Projet</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Mises a jour EriAPI</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> UI / UX Design</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Outils (Blockbench)</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Performance</a>
+    <a class="nav-link" href="#s14"><span class="num">14</span> Raccourcis Clavier</a>
+    <a class="nav-link" href="#s15"><span class="num">15</span> Plan de Developpement</a>
+    <a class="nav-link" href="#s16"><span class="num">16</span> Limitations &amp; Futur</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Erigineering &mdash; Editeur d'Animation</h1>
+      <p>Application desktop d'animation pour Minecraft Java 1.12.2 modde. La modelisation des entites se fait sur Blockbench, les textures sur Photoshop/Paint.net. Erigineering se concentre exclusivement sur l'animation avec 3 categories : block, item et entity.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">En cours</span>
+        <span class="badge badge-violet">Electron + Three.js</span>
+        <span class="badge badge-cyan">Migration EriAnim</span>
+        <span class="badge badge-gold">3 categories animation</span>
+      </div>
+    </div>
+
+    <!-- S1 — CONTEXTE & VISION -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Vision</h2>
+
+      <h3 class="first">Pourquoi Erigineering</h3>
+      <p>Le projet EriniumFaction utilise actuellement <strong>Blockbench</strong> pour la modelisation 3D et <strong>EriAnim</strong> (outil interne Electron + Three.js) pour l'animation de blocs. Le probleme principal :</p>
+      <ul>
+        <li><strong>EriAnim limite aux blocs :</strong> EriAnim ne supporte que les animations de blocs. Les items et entites n'ont pas d'outil d'animation.</li>
+        <li><strong>Pas de centralisation :</strong> Les modeles sont faits sur Blockbench, les textures sur Photoshop/Paint.net, et les animations sur EriAnim. L'animation merite un outil dedie et complet.</li>
+      </ul>
+
+      <h3>Vision</h3>
+      <p>Erigineering est un <strong>editeur d'animation</strong> pour Minecraft modde. La modelisation se fait sur Blockbench, les textures sur Photoshop/Paint.net/GIMP. Erigineering se concentre exclusivement sur l'animation. Il reprend la stack technique d'EriAnim (Electron 41+ / Three.js 0.152+ / Node.js) et l'etend :</p>
+      <ul>
+        <li><strong>Modelisation (Blockbench) :</strong> La modelisation des entites, blocs et items se fait sur <strong>Blockbench</strong>. Le format JSON Blockbench supporte nativement les cubes float, le per-face UV et le multi-texture. Erigineering charge ces fichiers JSON.</li>
+        <li><strong>Animation :</strong> Migration complete d'EriAnim (timeline, 7 types de keyframes, 13 easings, events) etendue a 3 categories : block, item, entity.</li>
+        <li><strong>Textures (externes) :</strong> Les textures sont creees dans des outils externes (Photoshop, Paint.net, GIMP). Erigineering les charge pour l'affichage dans le viewport mais ne les edite pas.</li>
+      </ul>
+
+      <h3>Ce que Erigineering remplace</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Outil actuel</th>
+              <th>Usage</th>
+              <th>Remplace par</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>EriAnim</td>
+              <td>Animation de blocs (.erianim.json)</td>
+              <td>Erigineering (migration + 3 categories : block, item, entity)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Ce que Erigineering ne fait pas</h3>
+      <ul>
+        <li><strong>Pas de modelisation :</strong> La modelisation 3D (cubes, groupes, pivots) se fait dans Blockbench.</li>
+        <li><strong>Pas d'edition de texture :</strong> Les textures sont creees dans des outils externes (Photoshop, Paint.net, GIMP). Erigineering charge les textures pour le viewport mais ne les edite pas.</li>
+        <li><strong>Pas de rendu final identique :</strong> Le rendu Three.js est une approximation du rendu OpenGL 1.1 de Minecraft. De legeres differences visuelles sont attendues.</li>
+        <li><strong>Pas de plugin Minecraft :</strong> Erigineering n'est pas un mod. C'est une application desktop independante qui exporte des fichiers exploitables par le mod.</li>
+      </ul>
+    </section>
+
+    <!-- S2 — ARCHITECTURE APPLICATION -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Architecture Application</h2>
+
+      <h3 class="first">Stack technique</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Technologie</th>
+              <th>Version</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Electron</td>
+              <td>41+</td>
+              <td>Runtime desktop, IPC, gestion fichiers, menus natifs, multi-fenetres</td>
+            </tr>
+            <tr>
+              <td>Three.js</td>
+              <td>0.152+</td>
+              <td>Rendu 3D viewport, gizmos, camera, raycasting</td>
+            </tr>
+            <tr>
+              <td>Node.js</td>
+              <td>20+</td>
+              <td>Process principal Electron, I/O fichiers, ZIP</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Arborescence du projet</h3>
+      <div class="ascii-diagram"><span class="ac">erigineering/</span>
+<span class="av">├── main.js</span>                    <span class="as">Process principal Electron (IPC, fichiers)</span>
+<span class="av">├── package.json</span>
+<span class="av">├── src/</span>
+<span class="av">│   ├── home.html</span>              <span class="as">Page d'accueil (choix du type de projet)</span>
+<span class="av">│   ├── home.js</span>                <span class="as">Controleur page d'accueil</span>
+<span class="av">│   ├── index.html</span>             <span class="as">Editeur d'animation (EriAnim migre)</span>
+<span class="av">│   ├── css/</span>                   <span class="as">Styles</span>
+<span class="av">│   ├── viewport/</span>              <span class="as">Viewport 3D Three.js</span>
+<span class="av">│   │   ├── <span class="ag">ViewportManager.js</span></span> <span class="as">Camera, grille, gizmos, rendu</span>
+<span class="av">│   │   ├── <span class="ag">ModelRenderer.js</span></span>  <span class="as">Rendu des modeles (cubes, faces, UV)</span>
+<span class="av">│   │   ├── <span class="ag">GizmoController.js</span></span><span class="as"> Translate/Rotate/Scale tools</span>
+<span class="av">│   │   └── <span class="ag">UVOverlay.js</span></span>      <span class="as">Affichage UV sur le viewport</span>
+<span class="av">│   ├── editor/</span>                <span class="as">Editeurs</span>
+<span class="av">│   │   ├── <span class="ag">AnimationEditor.js</span></span><span class="as"> Timeline + keyframes (migre d'EriAnim)</span>
+<span class="av">│   │   └── <span class="ag">DisplayEditor.js</span></span>  <span class="as">Editeur d'affichage item (GUI, main, etc.)</span>
+<span class="av">│   ├── data/</span>                  <span class="as">Modeles de donnees</span>
+<span class="av">│   │   ├── <span class="ag">Project.js</span></span>        <span class="as">Projet (modele + animations)</span>
+<span class="av">│   │   ├── <span class="ag">ModelData.js</span></span>      <span class="as">Groupes, cubes (float), faces, UV</span>
+<span class="av">│   │   ├── <span class="ag">AnimationData.js</span></span>  <span class="as">Keyframes, tracks, events</span>
+<span class="av">│   │   └── <span class="ag">UndoManager.js</span></span>    <span class="as">Undo/Redo global</span>
+<span class="av">│   └── io/</span>                    <span class="as">Import/Export</span>
+<span class="av">│       └── <span class="ag">AnimExporter.js</span></span>   <span class="as">Export .erianim.json</span></div>
+
+      <h3>Communication IPC</h3>
+      <p>L'application suit le pattern Electron standard : le <strong>main process</strong> (Node.js) gere les operations I/O (lecture/ecriture de fichiers, ZIP, dialogues systeme) et le <strong>renderer process</strong> (Chromium) gere le viewport 3D, les editeurs, et l'interface. La communication passe par les channels IPC d'Electron :</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Channel IPC</th>
+              <th>Direction</th>
+              <th>Usage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>project:save</td>
+              <td>Renderer &rarr; Main</td>
+              <td>Sauvegarder le projet .erigineering (ZIP)</td>
+            </tr>
+            <tr>
+              <td>project:load</td>
+              <td>Renderer &rarr; Main</td>
+              <td>Charger un projet depuis le disque</td>
+            </tr>
+            <tr>
+              <td>file:export</td>
+              <td>Renderer &rarr; Main</td>
+              <td>Exporter JSON, .erianim.json</td>
+            </tr>
+            <tr>
+              <td>file:import</td>
+              <td>Renderer &rarr; Main</td>
+              <td>Importer Blockbench JSON, .erianimproject</td>
+            </tr>
+            <tr>
+              <td>dialog:open</td>
+              <td>Renderer &rarr; Main</td>
+              <td>Ouvrir un dialogue fichier natif</td>
+            </tr>
+            <tr>
+              <td>dialog:save</td>
+              <td>Renderer &rarr; Main</td>
+              <td>Ouvrir un dialogue sauvegarde natif</td>
+            </tr>
+            <tr>
+              <td>window:detach</td>
+              <td>Renderer &rarr; Main</td>
+              <td>Detacher un panel dans une fenetre separee</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Securite Electron :</strong> Le preload script expose uniquement les channels IPC listes ci-dessus via <code>contextBridge</code>. Le renderer n'a PAS acces a <code>require('fs')</code> ou <code>require('child_process')</code>. Toutes les operations fichier passent par le main process.</div>
+      </div>
+    </section>
+
+    <!-- S3 — MODELISATION (BLOCKBENCH) -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Modelisation (Blockbench)</h2>
+
+      <h3 class="first">Delegation a Blockbench</h3>
+      <p>La modelisation des entites se fait sur <strong>Blockbench</strong> en mode Java Block/Item. Le format JSON Blockbench supporte nativement les cubes float, le per-face UV, et le multi-texture. Erigineering charge ces fichiers JSON pour l'animation. EriAPI cote Minecraft lit le meme format JSON Blockbench pour le rendu des entites en jeu.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Blockbench</th>
+              <th>Erigineering</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cubes float</td>
+              <td><span class="tag-yes">OUI</span> (JSON block)</td>
+              <td><span class="tag-no">NON</span> (modelisation retiree)</td>
+            </tr>
+            <tr>
+              <td>Per-face UV</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-no">NON</span></td>
+            </tr>
+            <tr>
+              <td>Multi-texture</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-no">NON</span></td>
+            </tr>
+            <tr>
+              <td>Animation</td>
+              <td><span class="tag-no">NON</span> (pas EriAnim)</td>
+              <td><span class="tag-yes">OUI</span> (3 categories)</td>
+            </tr>
+            <tr>
+              <td>Seats</td>
+              <td><span class="tag-no">NON</span></td>
+              <td>Metadata dans animation</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Workflow :</strong> Modeliser l'entite sur Blockbench (mode Java Block/Item) &rarr; exporter le JSON &rarr; ouvrir dans Erigineering &rarr; animer &rarr; exporter le <code>.erianim.json</code>.</div>
+      </div>
+    </section>
+
+    <!-- S4 supprimee — la modelisation block/item reste sur Blockbench -->
+
+    <!-- S5 — SYSTEME D'ANIMATION -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num orange-num">05</span> Systeme d'Animation &mdash; Feature Principale</h2>
+
+      <h3 class="first">Feature principale d'Erigineering</h3>
+      <p>L'animation est la <strong>raison d'etre</strong> d'Erigineering. Le code source d'EriAnim (<code>tools/erianim-editor/</code>) est migre integralement et etendu a 3 categories : block, item et entity. L'editeur charge des modeles <strong>Blockbench JSON</strong> (format block/item) et permet de les animer avec le systeme EriAnim existant. Le format de sortie reste <code>.erianim.json</code>, identique a l'existant.</p>
+
+      <p><strong>Workflow :</strong> Modeliser sur Blockbench &rarr; ouvrir le JSON dans Erigineering &rarr; animer &rarr; exporter le <code>.erianim.json</code>.</p>
+
+      <h3>Types de keyframes</h3>
+      <p>Les 7 types de keyframes existants sont conserves. L'animation fonctionne pour les blocs ET les entites (meme format).</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Propriete</th>
+              <th>Valeur</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>rotation</td>
+              <td>Rotation absolue</td>
+              <td>[x, y, z] degres</td>
+              <td>Definit la rotation absolue du groupe a un instant t.</td>
+            </tr>
+            <tr>
+              <td>translate</td>
+              <td>Translation absolue</td>
+              <td>[x, y, z] unites</td>
+              <td>Definit le deplacement du groupe par rapport a sa position d'origine.</td>
+            </tr>
+            <tr>
+              <td>scale</td>
+              <td>Echelle</td>
+              <td>[x, y, z] facteur</td>
+              <td>Definit l'echelle du groupe (1.0 = taille normale).</td>
+            </tr>
+            <tr>
+              <td>spin</td>
+              <td>Rotation continue</td>
+              <td>[x, y, z] deg/tick</td>
+              <td>Rotation continue a vitesse constante. Ignore l'easing.</td>
+            </tr>
+            <tr>
+              <td>rotate</td>
+              <td>Rotation relative</td>
+              <td>[x, y, z] degres</td>
+              <td>Ajoute une rotation relative a la rotation actuelle.</td>
+            </tr>
+            <tr>
+              <td>visible</td>
+              <td>Visibilite</td>
+              <td>true / false</td>
+              <td>Montre ou cache le groupe a un instant t.</td>
+            </tr>
+            <tr>
+              <td>texture</td>
+              <td>Texture swap</td>
+              <td>texture_key</td>
+              <td>Change la texture du groupe a un instant t (pour les animations de texture).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Courbes d'easing</h3>
+      <p>13 courbes d'interpolation disponibles pour toutes les keyframes (sauf spin qui les ignore) :</p>
+      <div class="tier-grid four-col">
+        <div class="tier-card">
+          <div class="tier-card-name" style="color: var(--cyan); font-size: 12px;">LINEAR</div>
+          <div class="tier-card-stat">Interpolation lineaire</div>
+        </div>
+        <div class="tier-card">
+          <div class="tier-card-name" style="color: var(--cyan); font-size: 12px;">EASE_IN</div>
+          <div class="tier-card-stat">Acceleration douce</div>
+        </div>
+        <div class="tier-card">
+          <div class="tier-card-name" style="color: var(--cyan); font-size: 12px;">EASE_OUT</div>
+          <div class="tier-card-stat">Deceleration douce</div>
+        </div>
+        <div class="tier-card">
+          <div class="tier-card-name" style="color: var(--cyan); font-size: 12px;">EASE_IN_OUT</div>
+          <div class="tier-card-stat">Acceleration + deceleration</div>
+        </div>
+        <div class="tier-card">
+          <div class="tier-card-name" style="color: var(--gold); font-size: 12px;">EASE_IN_CUBIC</div>
+          <div class="tier-card-stat">Acceleration cubique</div>
+        </div>
+        <div class="tier-card">
+          <div class="tier-card-name" style="color: var(--gold); font-size: 12px;">EASE_OUT_CUBIC</div>
+          <div class="tier-card-stat">Deceleration cubique</div>
+        </div>
+        <div class="tier-card">
+          <div class="tier-card-name" style="color: var(--gold); font-size: 12px;">EASE_IN_BACK</div>
+          <div class="tier-card-stat">Recul avant avance</div>
+        </div>
+        <div class="tier-card">
+          <div class="tier-card-name" style="color: var(--gold); font-size: 12px;">EASE_OUT_BACK</div>
+          <div class="tier-card-stat">Depassement avant repos</div>
+        </div>
+        <div class="tier-card">
+          <div class="tier-card-name" style="color: var(--violet-l); font-size: 12px;">EASE_IN_EXPO</div>
+          <div class="tier-card-stat">Acceleration exponentielle</div>
+        </div>
+        <div class="tier-card">
+          <div class="tier-card-name" style="color: var(--violet-l); font-size: 12px;">EASE_OUT_EXPO</div>
+          <div class="tier-card-stat">Deceleration exponentielle</div>
+        </div>
+        <div class="tier-card">
+          <div class="tier-card-name" style="color: var(--orange); font-size: 12px;">BOUNCE</div>
+          <div class="tier-card-stat">Rebond en fin</div>
+        </div>
+        <div class="tier-card">
+          <div class="tier-card-name" style="color: var(--orange); font-size: 12px;">ELASTIC</div>
+          <div class="tier-card-stat">Oscillation elastique</div>
+        </div>
+        <div class="tier-card">
+          <div class="tier-card-name" style="color: var(--green); font-size: 12px;">SPRING</div>
+          <div class="tier-card-stat">Ressort amorti</div>
+        </div>
+      </div>
+
+      <h3>Events d'animation</h3>
+      <p>Les events sont des actions declenchees a un instant precis de la timeline, sans interpolation :</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Parametres</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>callback</td>
+              <td>Nom du callback (string)</td>
+              <td>Declenche un callback Java enregistre cote mod. Utilise pour la logique metier (degats, spawn, etc.).</td>
+            </tr>
+            <tr>
+              <td>sound</td>
+              <td>ResourceLocation du son</td>
+              <td>Joue un son a la position du bloc/entite.</td>
+            </tr>
+            <tr>
+              <td>particle</td>
+              <td>Type, count, spread</td>
+              <td>Spawn des particules a la position du bloc/entite.</td>
+            </tr>
+            <tr>
+              <td>hide_group</td>
+              <td>Nom du groupe</td>
+              <td>Cache un groupe (equivalent a visible=false).</td>
+            </tr>
+            <tr>
+              <td>show_group</td>
+              <td>Nom du groupe</td>
+              <td>Affiche un groupe (equivalent a visible=true).</td>
+            </tr>
+            <tr>
+              <td>cut</td>
+              <td>Aucun</td>
+              <td>Coupe l'animation (saut instantane, pas d'interpolation vers la keyframe suivante).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Nouveau : 3 categories d'animation</h3>
+      <p>EriAnim supporte actuellement les animations de <strong>blocs</strong>. Erigineering etend le systeme a 3 categories :</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Categorie</th>
+              <th>Description</th>
+              <th>Modele source</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Block</strong></td>
+              <td>Animation de blocs 3D (lootbox, machines, etc.)</td>
+              <td>JSON Blockbench</td>
+              <td><span class="tag-yes">EXISTANT</span></td>
+            </tr>
+            <tr>
+              <td><strong>Item</strong></td>
+              <td>Animation d'items 3D (pioche, epee, baguette, lance). Meme workflow que les blocs : modeliser l'item en 3D, l'animer avec des keyframes sur les groupes.</td>
+              <td>JSON Blockbench</td>
+              <td><span class="tag-cyan">NOUVEAU</span></td>
+            </tr>
+            <tr>
+              <td><strong>Entity</strong></td>
+              <td>Animation d'entites custom (monstres, PNJ, turrets). Charge un JSON Blockbench (mode block/item) avec per-face UV et multi-texture.</td>
+              <td>JSON Blockbench</td>
+              <td><span class="tag-cyan">NOUVEAU</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Les 3 categories utilisent le <strong>meme format d'animation</strong> (<code>.erianim.json</code>), les <strong>memes types de keyframes</strong> (rotation, translate, scale, spin, rotate, visible, texture), et la <strong>meme timeline</strong>. La seule difference est le type de modele charge et le renderer cote EriAPI.</p>
+
+      <ul>
+        <li><strong>Cas d'usage Item :</strong> Epee qui tourne en idle, pioche qui vibre en minant, baguette qui pulse, arc qui se plie en chargeant.</li>
+        <li><strong>Cas d'usage Entity :</strong> Monstre qui marche (cycle jambes), PNJ qui parle (animation bouche), turret qui tourne et tire.</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Compatibilite :</strong> Les fichiers <code>.erianim.json</code> existants (blocs) restent 100% compatibles. Les categories item et entity ajoutent un champ <code>"category"</code> dans le JSON mais le format de base est identique.</div>
+      </div>
+    </section>
+
+    <!-- S6 — TEXTURES (OUTILS EXTERNES) -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num red-num">06</span> Textures (outils externes)</h2>
+
+      <h3 class="first">Pas d'editeur de texture</h3>
+      <p>Les textures sont creees dans des outils externes (<strong>Photoshop</strong>, <strong>Paint.net</strong>, <strong>GIMP</strong>). Erigineering ne contient pas d'editeur de texture.</p>
+      <p>Les textures PNG sont chargees par Erigineering uniquement pour l'affichage dans le viewport 3D lors de l'animation. Elles ne sont pas modifiees par l'application.</p>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Workflow textures :</strong> Creer/modifier les textures dans Photoshop, Paint.net ou GIMP &rarr; les sauvegarder en PNG &rarr; Erigineering les charge automatiquement pour l'affichage viewport quand un JSON Blockbench les reference.</div>
+      </div>
+    </section>
+
+    <!-- S7 — VIEWPORT 3D -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num">07</span> Viewport 3D</h2>
+
+      <h3 class="first">Rendu Three.js</h3>
+      <p>Le viewport 3D est le coeur de l'application. Il utilise Three.js pour le rendu WebGL et offre une experience interactive fluide :</p>
+
+      <h3>Camera et navigation</h3>
+      <ul>
+        <li><strong>Orbit camera :</strong> Middle click pour orbiter autour du modele. Rotation libre sur les axes X et Y.</li>
+        <li><strong>Pan :</strong> Shift + Middle click pour deplacer la camera lateralement.</li>
+        <li><strong>Zoom :</strong> Molette de la souris. Zoom progressif avec acceleration.</li>
+        <li><strong>Focus :</strong> Double-clic sur un cube pour centrer la camera dessus. Touche <code>.</code> (point) pour centrer sur la selection.</li>
+        <li><strong>Vues predefines :</strong> Numpad 1 (face), 3 (cote), 7 (dessus), 5 (toggle ortho/perspective).</li>
+      </ul>
+
+      <h3>Elements visuels</h3>
+      <ul>
+        <li><strong>Grille au sol :</strong> Grille 16x16 (taille d'un bloc Minecraft) avec lignes secondaires. Couleur configurable.</li>
+        <li><strong>Axes XYZ :</strong> Axes colores (X=rouge, Y=vert, Z=bleu) affiches dans le coin du viewport et au centre du modele.</li>
+        <li><strong>Gizmos :</strong> Outils de manipulation interactifs — translate (fleches), rotate (anneaux), scale (cubes). Switch avec les raccourcis G, R, S.</li>
+        <li><strong>Selection highlight :</strong> Le cube/groupe selectionne est entoure d'un outline colore. Multi-selection avec Ctrl+click.</li>
+      </ul>
+
+      <h3>Modes de rendu</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Mode</th>
+              <th>Raccourci</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Texture</td>
+              <td>T</td>
+              <td>Rendu avec les textures appliquees sur les faces. Mode par defaut.</td>
+            </tr>
+            <tr>
+              <td>Solid</td>
+              <td>Z</td>
+              <td>Couleur unie par cube (gris). Utile pour voir la forme sans distraction des textures.</td>
+            </tr>
+            <tr>
+              <td>Wireframe</td>
+              <td>F</td>
+              <td>Affiche uniquement les aretes des cubes. Utile pour voir la structure interne.</td>
+            </tr>
+            <tr>
+              <td>X-ray</td>
+              <td>Alt+Z</td>
+              <td>Semi-transparent. Permet de voir les cubes caches derriere d'autres cubes.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Eclairage</h3>
+      <ul>
+        <li><strong>Ambient :</strong> Lumiere d'ambiance douce, pas d'ombre portee. Simule l'eclairage Minecraft.</li>
+        <li><strong>Directionnelle :</strong> Lumiere directionnelle optionnelle pour mieux voir les reliefs.</li>
+        <li><strong>Flat :</strong> Mode flat — pas d'ombrage du tout. Chaque face a sa couleur exacte. Ideal pour le pixel art.</li>
+      </ul>
+
+      <h3>Options du viewport</h3>
+      <ul>
+        <li><strong>Background :</strong> Couleur unie (defaut: gris fonce), gradient deux couleurs, ou image custom.</li>
+        <li><strong>Preview animation :</strong> Bouton Play dans le viewport pour previsualiser l'animation en temps reel.</li>
+        <li><strong>Snap to grid :</strong> Options de snap configurable : 1 (bloc), 0.5 (demi-bloc), 0.25 (quart), 0.1 (precision), off (libre).</li>
+        <li><strong>Duplication :</strong> Ctrl+D pour dupliquer les cubes/groupes selectionnes. Ctrl+Shift+D pour dupliquer et placer avec le gizmo.</li>
+        <li><strong>Undo/Redo :</strong> Toutes les operations viewport sont enregistrees dans l'historique global.</li>
+      </ul>
+    </section>
+
+    <!-- S8 — IMPORT / EXPORT -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num cyan-num">08</span> Import / Export</h2>
+
+      <h3 class="first">Import</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Format</th>
+              <th>Extension</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Blockbench JSON</td>
+              <td>.json</td>
+              <td>Import de modeles Blockbench (block, item, entity). Les cubes, groupes, pivots, UV et textures sont charges tels quels pour l'animation.</td>
+            </tr>
+            <tr>
+              <td>Animation EriAnim</td>
+              <td>.erianim.json</td>
+              <td>Import d'animations existantes creees avec EriAnim. Aucune conversion necessaire — format identique.</td>
+            </tr>
+            <tr>
+              <td>Projet EriAnim</td>
+              <td>.erianimproject</td>
+              <td>Import de projets EriAnim complets (modele + animations + textures). Migration automatique vers le format .erigineering.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Export</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Format</th>
+              <th>Extension</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>JSON Blockbench (non modifie)</td>
+              <td>.json</td>
+              <td>Le modele JSON Blockbench n'est pas modifie par Erigineering. Il est utilise tel quel par EriAPI cote mod pour le rendu.</td>
+            </tr>
+            <tr>
+              <td>Animation</td>
+              <td>.erianim.json</td>
+              <td>Format d'animation EriAnim standard. Compatible avec AnimatedBlockTESR et le futur renderer d'entite.</td>
+            </tr>
+            <tr>
+              <td>Projet complet</td>
+              <td>.erigineering</td>
+              <td>Sauvegarde complete du projet (modele + textures + animations + settings). Voir section 9.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Chargement JSON Blockbench</h3>
+      <p>Erigineering charge les fichiers JSON Blockbench sans conversion :</p>
+      <ul>
+        <li><strong>Cubes :</strong> Les coordonnees from/to sont chargees telles quelles.</li>
+        <li><strong>Groupes :</strong> La hierarchie de groupes/outliner est chargee avec les pivots pour l'animation.</li>
+        <li><strong>UV per-face :</strong> Les UV per-face du format Blockbench sont utilises directement.</li>
+        <li><strong>Textures :</strong> Les textures embeddees (base64) ou referencees (chemin) sont chargees pour l'affichage dans le viewport.</li>
+        <li><strong>Animations :</strong> Les animations Blockbench (format molang/bedrock) ne sont PAS importees — elles utilisent un systeme incompatible. Seules les animations EriAnim sont supportees.</li>
+      </ul>
+    </section>
+
+    <!-- S9 — FORMAT DE PROJET -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num green-num">09</span> Format de Projet <code>.erigineering</code></h2>
+
+      <h3 class="first">Structure interne</h3>
+      <p>Le fichier <code>.erigineering</code> est un <strong>ZIP renomme</strong>. Il contient l'integralite du projet dans un seul fichier partageable :</p>
+
+      <div class="ascii-diagram"><span class="ac">monmodele.erigineering</span>  <span class="as">(ZIP renomme)</span>
+<span class="av">├── project.json</span>          <span class="as">Metadonnees, settings, version du format</span>
+<span class="av">├── model.json</span>            <span class="as">Reference au JSON Blockbench (groupes, cubes, UV, faces)</span>
+<span class="av">└── animations/</span>           <span class="as">Tous les fichiers .erianim.json</span>
+<span class="av">    ├── idle.erianim.json</span>
+<span class="av">    └── attack.erianim.json</span></div>
+
+      <h3>project.json</h3>
+      <div class="code-block">{
+  <span class="st">"format_version"</span>: <span class="nu">1</span>,
+  <span class="st">"name"</span>: <span class="st">"Monstre des Abysses"</span>,
+  <span class="st">"author"</span>: <span class="st">"EriniumGroup"</span>,
+  <span class="st">"created"</span>: <span class="st">"2026-04-14T12:00:00Z"</span>,
+  <span class="st">"modified"</span>: <span class="st">"2026-04-14T15:30:00Z"</span>,
+  <span class="st">"type"</span>: <span class="st">"entity"</span>,          <span class="cm">// "block", "item", ou "entity"</span>
+  <span class="st">"mod_id"</span>: <span class="st">"eriniumfaction"</span>,
+  <span class="st">"settings"</span>: {
+    <span class="st">"grid_snap"</span>: <span class="nu">0.25</span>,
+    <span class="st">"grid_visible"</span>: <span class="kw">true</span>,
+    <span class="st">"background_color"</span>: <span class="st">"#1A1A2E"</span>,
+    <span class="st">"render_mode"</span>: <span class="st">"textured"</span>
+  }
+}</div>
+
+      <h3>model.json</h3>
+      <p>Le format interne du modele est une version etendue qui conserve toutes les informations d'edition (selection, visibilite editeur, metadata des calques). A l'export, seules les donnees necessaires au runtime Minecraft sont incluses.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Champ</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>textures</td>
+              <td>object</td>
+              <td>Map texture_key &rarr; chemin vers le fichier PNG externe (reference, pas embarque).</td>
+            </tr>
+            <tr>
+              <td>groups</td>
+              <td>array</td>
+              <td>Hierarchie de groupes (meme structure que le format export entite, avec metadata additionnelle).</td>
+            </tr>
+            <tr>
+              <td>display</td>
+              <td>object</td>
+              <td>Transforms d'affichage (optionnel, pour les animations d'items en main via EriAnim).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Partage simplifie :</strong> Un fichier <code>.erigineering</code> contient le modele, les animations et les settings. Les textures restent des fichiers PNG externes references par le JSON Blockbench.</div>
+      </div>
+    </section>
+
+    <!-- S10 — MISES A JOUR ERIAPI -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num gold-num">10</span> Mises a jour EriAPI necessaires</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <p>EriAPI doit pouvoir charger un JSON Blockbench (format block/item) comme modele d'entite. Le systeme <code>AnimatedBlockModel</code> / <code>AnimatedBlockTESR</code> existant peut etre reutilise car le format est le meme. Les entites, items et blocs partagent le meme format JSON Blockbench.</p>
+
+      <h3>AnimatedEntityRenderer</h3>
+      <p>Un nouveau renderer qui charge un JSON Blockbench standard et joue les animations <code>.erianim.json</code> pour les entites :</p>
+      <ul>
+        <li><strong>Classe :</strong> <code>AnimatedEntityRenderer extends RenderLiving</code></li>
+        <li><strong>Chargement :</strong> Au preInit, le renderer charge les fichiers JSON Blockbench depuis <code>assets/modid/models/entity/</code> en reutilisant le parser existant (<code>AnimatedBlockModel</code>).</li>
+        <li><strong>Rendu :</strong> Meme pipeline que les blocs animes — le format JSON est identique (elements, groups, faces, UV per-face).</li>
+        <li><strong>Animation :</strong> Les fichiers <code>.erianim.json</code> sont charges et appliques aux groupes du modele, exactement comme pour les blocs.</li>
+      </ul>
+
+      <h3>AnimatedItemRenderer</h3>
+      <p>Extension du systeme d'animation pour supporter les items tenus en main :</p>
+      <ul>
+        <li><strong>AnimatedItemRenderer :</strong> Un nouveau TESR/renderer d'item qui charge un modele 3D Blockbench et joue les animations .erianim.json — meme pipeline que les blocs animes.</li>
+        <li><strong>Champ <code>"category"</code> :</strong> Le .erianim.json contient un champ category ("block", "item", ou "entity") pour que EriAPI sache quel renderer utiliser.</li>
+      </ul>
+
+      <h3>EriEntity builder</h3>
+      <p>Nouveau builder fluent dans le Content system d'EriAPI pour enregistrer des entites custom. La methode <code>.model()</code> accepte un JSON Blockbench standard :</p>
+      <div class="code-block"><span class="cl">EriEntity</span>.<span class="fn">create</span>(<span class="st">"eriniumfaction"</span>, <span class="st">"monstre"</span>)
+    .<span class="fn">model</span>(<span class="st">"eriniumfaction:entity/monstre"</span>)
+    .<span class="fn">texture</span>(<span class="st">"body"</span>, <span class="st">"eriniumfaction:textures/entity/monstre/body"</span>)
+    .<span class="fn">texture</span>(<span class="st">"armor"</span>, <span class="st">"eriniumfaction:textures/entity/monstre/armor"</span>)
+    .<span class="fn">animation</span>(<span class="st">"idle"</span>, <span class="st">"eriniumfaction:animations/entity/monstre/idle"</span>)
+    .<span class="fn">animation</span>(<span class="st">"attack"</span>, <span class="st">"eriniumfaction:animations/entity/monstre/attack"</span>)
+    .<span class="fn">hitbox</span>(<span class="nu">0.8f</span>, <span class="nu">1.8f</span>)
+    .<span class="fn">register</span>();</div>
+
+      <p>Le builder gere automatiquement :</p>
+      <ul>
+        <li><strong>Registration :</strong> Enregistrement de l'entite dans le registre Forge (<code>EntityEntry</code>).</li>
+        <li><strong>Renderer :</strong> Association automatique du <code>EriEntityRenderer</code> avec les textures et le modele JSON.</li>
+        <li><strong>Animations :</strong> Chargement et association des fichiers <code>.erianim.json</code> references.</li>
+        <li><strong>Hitbox :</strong> Configuration de la bounding box (largeur, hauteur).</li>
+        <li><strong>Spawn egg :</strong> Generation optionnelle d'un spawn egg (couleurs configurables).</li>
+        <li><strong>Seats :</strong> Positions d'assise configurables (voir ci-dessous).</li>
+      </ul>
+
+      <h3>Seats — Points d'assise</h3>
+      <p>Un systeme de seats permet de definir un ou plusieurs points d'assise sur une entite. Indispensable pour les montures, vehicules, et meubles interactifs. Les seats sont definis dans le <strong>builder Java</strong>, pas dans un JSON custom.</p>
+      <ul>
+        <li><strong>Multi-seats :</strong> Une entite peut avoir autant de seats que necessaire (ex: un vehicule 4 places, un dragon avec un pilote + un passager).</li>
+        <li><strong>Position float :</strong> Chaque seat a une position [x, y, z] en coordonnees locales de l'entite (float).</li>
+        <li><strong>Rotation :</strong> Rotation du joueur assis (yaw offset) — pour orienter le passager dans la bonne direction.</li>
+        <li><strong>Attachement a un groupe :</strong> Un seat peut etre attache a un groupe du modele. Quand le groupe bouge (animation), le seat suit. Ex: le seat du pilote attache au groupe "cockpit" qui tourne.</li>
+        <li><strong>Lock camera :</strong> Option pour verrouiller la camera du joueur assis (utile pour les vehicules — le joueur regarde devant).</li>
+      </ul>
+      <p>Dans le builder EriAPI :</p>
+      <div class="code-block"><span class="cl">EriEntity</span>.<span class="fn">create</span>(<span class="st">"eriniumfaction"</span>, <span class="st">"vehicule"</span>)
+    .<span class="fn">model</span>(<span class="st">"eriniumfaction:entity/vehicule"</span>)
+    .<span class="fn">seat</span>(<span class="nu">0.0f</span>, <span class="nu">1.2f</span>, <span class="nu">-0.3f</span>)                       <span class="cm">// seat 0 : pilote</span>
+    .<span class="fn">seat</span>(<span class="nu">0.0f</span>, <span class="nu">1.2f</span>, <span class="nu">0.8f</span>)                        <span class="cm">// seat 1 : passager</span>
+    .<span class="fn">seat</span>(<span class="nu">0.6f</span>, <span class="nu">0.8f</span>, <span class="nu">0.0f</span>, <span class="st">"turret"</span>)              <span class="cm">// seat 2 : attache au groupe "turret"</span>
+    .<span class="fn">register</span>();</div>
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Seats dans le builder Java :</strong> Les seats sont definis dans le code Java via le builder <code>EriEntity</code>, pas dans un fichier JSON. Cela simplifie le format et evite un JSON custom pour les entites.</div>
+      </div>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Impact EriAPI :</strong> Ces modifications sont consequentes. Elles doivent etre planifiees dans une version majeure d'EriAPI (ex: 2.0.0). La retrocompatibilite avec les systemes existants (AnimatedBlockTESR, EriItem, etc.) doit etre preservee.</div>
+      </div>
+    </section>
+
+    <!-- S11 — UI / UX DESIGN -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num orange-num">11</span> UI / UX Design</h2>
+
+      <h3 class="first">Layout general</h3>
+      <p>L'interface est inspiree de Blockbench mais modernisee avec la palette EriniumFaction. Le layout par defaut :</p>
+
+      <div class="ascii-diagram"><span class="ac">+-----------------------------------------------------------+</span>
+<span class="ac">|</span> <span class="av">Menu Bar</span>  <span class="as">Fichier | Edition | Vue | Animation</span>                 <span class="ac">|</span>
+<span class="ac">+-----------------------------------------------------------+</span>
+<span class="ac">|</span> <span class="av">Toolbar</span>  <span class="as">[Select][Translate][Rotate][Scale]</span>                  <span class="ac">|</span>
+<span class="ac">+--------+----------------------------------+---------------+</span>
+<span class="ac">|</span>        <span class="ac">|</span>                                  <span class="ac">|</span>               <span class="ac">|</span>
+<span class="ac">|</span> <span class="ag">Arbre</span>  <span class="ac">|</span>                                  <span class="ac">|</span> <span class="ay">Proprietes</span>  <span class="ac">|</span>
+<span class="ac">|</span> <span class="ag">des</span>    <span class="ac">|</span>         <span class="ab">Viewport 3D</span>             <span class="ac">|</span>               <span class="ac">|</span>
+<span class="ac">|</span> <span class="ag">groupes</span><span class="ac">|</span>                                  <span class="ac">|</span> <span class="ay">Position</span>    <span class="ac">|</span>
+<span class="ac">|</span>        <span class="ac">|</span>                                  <span class="ac">|</span> <span class="ay">Taille</span>      <span class="ac">|</span>
+<span class="ac">|</span>        <span class="ac">|</span>                                  <span class="ac">|</span> <span class="ay">Pivot</span>       <span class="ac">|</span>
+<span class="ac">|</span>        <span class="ac">|</span>                                  <span class="ac">|</span> <span class="ay">Keyframe</span>    <span class="ac">|</span>
+<span class="ac">+--------+----------------------------------+---------------+</span>
+<span class="ac">|</span> <span class="am">Timeline</span>  <span class="as">(animation keyframes)</span>                            <span class="ac">|</span>
+<span class="ac">+-----------------------------------------------------------+</span>
+<span class="ac">|</span> <span class="av">Status Bar</span>  <span class="as">Pos: [4, 8, 2]  |  Size: 8x12x5  |  60 FPS</span>   <span class="ac">|</span>
+<span class="ac">+-----------------------------------------------------------+</span></div>
+
+      <h3>Theme et palette</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Element</th>
+              <th>Couleur</th>
+              <th>Hex</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Fond principal</td>
+              <td style="color: #0A0A0F;">&#9632;</td>
+              <td>#0A0A0F</td>
+            </tr>
+            <tr>
+              <td>Panneaux lateraux</td>
+              <td style="color: #12121A;">&#9632;</td>
+              <td>#12121A</td>
+            </tr>
+            <tr>
+              <td>Bordures</td>
+              <td style="color: #2A2A3A;">&#9632;</td>
+              <td>#2A2A3A</td>
+            </tr>
+            <tr>
+              <td>Accent primaire</td>
+              <td style="color: #6B2FA0;">&#9632;</td>
+              <td>#6B2FA0 (violet)</td>
+            </tr>
+            <tr>
+              <td>Accent secondaire</td>
+              <td style="color: #00E5FF;">&#9632;</td>
+              <td>#00E5FF (cyan)</td>
+            </tr>
+            <tr>
+              <td>Texte principal</td>
+              <td style="color: #F0F2FF;">&#9632;</td>
+              <td>#F0F2FF</td>
+            </tr>
+            <tr>
+              <td>Texte secondaire</td>
+              <td style="color: #8892A4;">&#9632;</td>
+              <td>#8892A4 (slate)</td>
+            </tr>
+            <tr>
+              <td>Selection active</td>
+              <td style="color: #00E5FF;">&#9632;</td>
+              <td>#00E5FF (cyan) avec opacite</td>
+            </tr>
+            <tr>
+              <td>Erreur / Danger</td>
+              <td style="color: #E74C3C;">&#9632;</td>
+              <td>#E74C3C</td>
+            </tr>
+            <tr>
+              <td>Succes</td>
+              <td style="color: #2ECC71;">&#9632;</td>
+              <td>#2ECC71</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Panels redimensionnables</h3>
+      <ul>
+        <li><strong>Drag pour redimensionner :</strong> Les bordures entre les panneaux sont draggables pour ajuster la taille.</li>
+        <li><strong>Detachement :</strong> Chaque panel peut etre detache dans une fenetre Electron separee (multi-moniteur).</li>
+        <li><strong>Presets de layout :</strong> Layouts predefinis pour differents workflows d'animation — reorganisent automatiquement les panneaux.</li>
+        <li><strong>Sauvegarde du layout :</strong> Le layout custom est sauvegarde dans les preferences et restaure au demarrage.</li>
+      </ul>
+
+      <h3>Menus contextuels</h3>
+      <p>Clic droit sur chaque element ouvre un menu contextuel adapte :</p>
+      <ul>
+        <li><strong>Sur un cube :</strong> Dupliquer, Supprimer, Grouper, Copier transforms, Centrer pivot, Miroir X/Y/Z.</li>
+        <li><strong>Sur un groupe :</strong> Renommer, Ajouter cube, Ajouter sous-groupe, Dupliquer branche, Supprimer, Toggle visibilite.</li>
+        <li><strong>Sur une face (viewport) :</strong> Selectionner la face, Copier transforms, Reset transforms.</li>
+      </ul>
+
+      <h3>Status bar</h3>
+      <p>La barre de statut en bas de la fenetre affiche en permanence :</p>
+      <ul>
+        <li><strong>Position du curseur :</strong> Coordonnees 3D du curseur dans le viewport.</li>
+        <li><strong>Selection :</strong> Taille du cube selectionne, ou nom du groupe selectionne.</li>
+        <li><strong>FPS viewport :</strong> Framerate du rendu Three.js.</li>
+        <li><strong>Frame actuelle :</strong> Frame actuelle de l'animation et frame totale.</li>
+      </ul>
+    </section>
+
+    <!-- S12 — OUTILS AVANCES (BLOCKBENCH) -->
+    <section class="section-card" id="s12">
+      <h2><span class="s-num red-num">12</span> Outils Avances (Blockbench)</h2>
+
+      <h3 class="first">Delegation a Blockbench</h3>
+      <p>Les outils de modelisation avances (pivot, miroir, boolean operations, align tools, grid array, ruler) sont fournis par <strong>Blockbench</strong>. Erigineering ne reimplemente pas ces outils — la modelisation se fait entierement dans Blockbench.</p>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Workflow rappel :</strong> Toute la modelisation (creation de cubes, placement de pivots, miroir, duplication) se fait dans Blockbench. Erigineering charge le JSON resultant pour l'animation.</div>
+      </div>
+    </section>
+
+    <!-- S13 — PERFORMANCE -->
+    <section class="section-card" id="s13">
+      <h2><span class="s-num">13</span> Performance</h2>
+
+      <h3 class="first">Objectifs</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Metrique</th>
+              <th>Objectif</th>
+              <th>Mesure</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>FPS viewport</td>
+              <td>60 FPS constant</td>
+              <td>Avec un modele de 1000+ cubes, textures 128x128</td>
+            </tr>
+            <tr>
+              <td>Undo/Redo</td>
+              <td>&lt; 16ms (1 frame)</td>
+              <td>Retour instantane, meme avec 500 operations en historique</td>
+            </tr>
+            <tr>
+              <td>Chargement projet</td>
+              <td>&lt; 2 secondes</td>
+              <td>Projet .erigineering de 50 MB (textures haute-res)</td>
+            </tr>
+            <tr>
+              <td>Export JSON</td>
+              <td>&lt; 500ms</td>
+              <td>Serialisation du modele et ecriture sur disque</td>
+            </tr>
+            <tr>
+              <td>Import Blockbench</td>
+              <td>&lt; 3 secondes</td>
+              <td>Modele Blockbench complexe avec textures embeddees</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Strategies d'optimisation</h3>
+      <ul>
+        <li><strong>Diff-based Undo :</strong> L'historique ne stocke pas des copies completes du modele a chaque etape. Il stocke des <strong>diffs</strong> (deltas) — seuls les champs modifies sont enregistres. Chaque undo/redo applique le diff inverse.</li>
+        <li><strong>Lazy texture loading :</strong> Les textures ne sont chargees en VRAM que lorsqu'elles sont visibles dans le viewport.</li>
+        <li><strong>Instanced rendering :</strong> Pour les modeles avec beaucoup de cubes identiques (grid array), Three.js InstancedMesh est utilise pour rendre tous les cubes en un seul draw call.</li>
+        <li><strong>Frustum culling :</strong> Les cubes hors du champ de vision de la camera ne sont pas rendus. Three.js le gere nativement mais les groupes entiers sont aussi culles.</li>
+        <li><strong>Texture atlas :</strong> Pour le rendu viewport, les multiples textures d'une entite sont compilees en un atlas temporaire pour minimiser les texture binds. L'atlas est regenere uniquement quand une texture change.</li>
+        <li><strong>Web Worker pour l'export :</strong> La serialisation JSON et la compression ZIP du format .erigineering sont effectuees dans un Web Worker pour ne pas bloquer l'UI.</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Benchmark cible :</strong> Un modele d'entite avec 200 cubes, 3 textures 64x64, et une animation de 60 keyframes doit pouvoir etre manipule (rotation, translation, preview animation) a 60 FPS sur un GPU integre (Intel UHD 630).</div>
+      </div>
+    </section>
+
+    <!-- S14 — RACCOURCIS CLAVIER -->
+    <section class="section-card" id="s14">
+      <h2><span class="s-num cyan-num">14</span> Raccourcis Clavier</h2>
+
+      <h3 class="first">Raccourcis globaux</h3>
+      <p>Tous les raccourcis sont configurables dans les preferences. Table des raccourcis par defaut :</p>
+
+      <h3>Navigation viewport</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Raccourci</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Middle click</td><td>Orbiter autour du modele</td></tr>
+            <tr><td>Shift + Middle click</td><td>Pan (deplacer la camera lateralement)</td></tr>
+            <tr><td>Scroll</td><td>Zoom avant/arriere</td></tr>
+            <tr><td>Numpad 1</td><td>Vue de face</td></tr>
+            <tr><td>Numpad 3</td><td>Vue de cote (droite)</td></tr>
+            <tr><td>Numpad 7</td><td>Vue du dessus</td></tr>
+            <tr><td>Numpad 5</td><td>Toggle orthographique / perspective</td></tr>
+            <tr><td>. (point)</td><td>Centrer la camera sur la selection</td></tr>
+            <tr><td>F11</td><td>Fullscreen viewport</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Outils viewport (navigation du modele charge)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Raccourci</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>G</td><td>Outil Translate (grab/move)</td></tr>
+            <tr><td>R</td><td>Outil Rotate</td></tr>
+            <tr><td>S</td><td>Outil Scale</td></tr>
+            <tr><td>X / Y / Z</td><td>Contraindre a un axe (pendant G, R, S)</td></tr>
+            <tr><td>Ctrl+D</td><td>Dupliquer la selection</td></tr>
+            <tr><td>Ctrl+Shift+M</td><td>Miroir de la selection</td></tr>
+            <tr><td>Delete / X</td><td>Supprimer la selection</td></tr>
+            <tr><td>Ctrl+G</td><td>Grouper la selection</td></tr>
+            <tr><td>Ctrl+click</td><td>Multi-selection</td></tr>
+            <tr><td>A</td><td>Selectionner tout / Deselectionner tout</td></tr>
+            <tr><td>H</td><td>Cacher la selection</td></tr>
+            <tr><td>Alt+H</td><td>Afficher tout (unhide)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Timeline / Animation</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Raccourci</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Space</td><td>Play / Pause l'animation</td></tr>
+            <tr><td>Fleche gauche</td><td>Frame precedente</td></tr>
+            <tr><td>Fleche droite</td><td>Frame suivante</td></tr>
+            <tr><td>Home</td><td>Aller au debut de l'animation</td></tr>
+            <tr><td>End</td><td>Aller a la fin de l'animation</td></tr>
+            <tr><td>K</td><td>Ajouter une keyframe a la frame actuelle</td></tr>
+            <tr><td>Shift+K</td><td>Supprimer la keyframe a la frame actuelle</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>General</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Raccourci</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Ctrl+Z</td><td>Undo</td></tr>
+            <tr><td>Ctrl+Shift+Z / Ctrl+Y</td><td>Redo</td></tr>
+            <tr><td>Ctrl+S</td><td>Sauvegarder le projet</td></tr>
+            <tr><td>Ctrl+Shift+S</td><td>Sauvegarder sous...</td></tr>
+            <tr><td>Ctrl+O</td><td>Ouvrir un projet</td></tr>
+            <tr><td>Ctrl+N</td><td>Nouveau projet</td></tr>
+            <tr><td>Ctrl+E</td><td>Exporter</td></tr>
+            <tr><td>Ctrl+I</td><td>Importer</td></tr>
+            <tr><td>T</td><td>Mode texture</td></tr>
+            <tr><td>Z</td><td>Mode solid</td></tr>
+            <tr><td>F</td><td>Mode wireframe</td></tr>
+            <tr><td>Alt+Z</td><td>Mode x-ray</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- S15 — PLAN DE DEVELOPPEMENT -->
+    <section class="section-card" id="s15">
+      <h2><span class="s-num green-num">15</span> Plan de Developpement (Phases)</h2>
+
+      <h3 class="first">5 phases progressives</h3>
+      <p>Le developpement suit un plan en 5 phases. Chaque phase produit un livrable testable. Les phases sont sequentielles — chaque phase depend de la precedente.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Phase</th>
+              <th>Nom</th>
+              <th>Contenu</th>
+              <th>Livrable</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color: var(--green); font-weight: 700;">1</td>
+              <td>Scaffold + Migration EriAnim</td>
+              <td>Creer le projet Electron, migrer tout le code d'EriAnim, verifier que l'editeur d'animation fonctionne dans la nouvelle structure.</td>
+              <td>App Electron fonctionnelle avec l'editeur d'animation EriAnim integre.</td>
+              <td><span class="tag-yes">FAIT</span></td>
+            </tr>
+            <tr>
+              <td style="color: var(--green); font-weight: 700;">2</td>
+              <td>Architecture + page d'accueil</td>
+              <td>Architecture du projet, page d'accueil avec choix du type de projet (block, item, entity), navigation entre les pages.</td>
+              <td>Application structuree avec page d'accueil fonctionnelle.</td>
+              <td><span class="tag-yes">FAIT</span></td>
+            </tr>
+            <tr>
+              <td style="color: var(--cyan); font-weight: 700;">3</td>
+              <td>Support 3 categories animation</td>
+              <td>Charger des JSON Blockbench (block, item, entity) dans l'editeur d'animation. Ajouter le champ "category" au projet. Preview dans le viewport.</td>
+              <td>Animer des blocs, items et entites depuis des JSON Blockbench.</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td style="color: var(--orange); font-weight: 700;">4</td>
+              <td>EriAPI : AnimatedEntityRenderer + EriEntity builder</td>
+              <td>AnimatedEntityRenderer qui charge un JSON Blockbench comme entite, EriEntity builder, AnimatedItemRenderer.</td>
+              <td>EriAPI capable de rendre les entites et items animes depuis les JSON Blockbench.</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td style="color: var(--violet-l); font-weight: 700;">5</td>
+              <td>Polish, raccourcis, UX, performance</td>
+              <td>Raccourcis configurables, optimisation performance, multi-fenetre, UX polish.</td>
+              <td>Application complete, polie, prete pour la production.</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Phase 4 critique :</strong> La phase 4 (EriAPI : AnimatedEntityRenderer) est la plus risquee car elle impacte le code Java du mod. Elle necessite une version majeure d'EriAPI et doit etre testee exhaustivement en jeu pour verifier que les entites et items animes s'affichent correctement dans Minecraft.</div>
+      </div>
+    </section>
+
+    <!-- S16 — LIMITATIONS & FUTUR -->
+    <section class="section-card" id="s16">
+      <h2><span class="s-num red-num">16</span> Limitations &amp; Futur</h2>
+
+      <h3 class="first">Limitations actuelles</h3>
+      <ul>
+        <li><strong>Pas de modelisation :</strong> Erigineering ne permet pas de creer ou modifier des modeles 3D. La modelisation se fait dans Blockbench.</li>
+        <li><strong>Pas d'edition de texture :</strong> Erigineering ne contient pas d'editeur de texture. Les textures sont creees dans des outils externes (Photoshop, Paint.net, GIMP).</li>
+        <li><strong>Rendu approximatif :</strong> Le rendu Three.js (WebGL 2.0) est une approximation du rendu OpenGL 1.1 de Minecraft. Les differences possibles : eclairage, blending, mipmap, rendu des faces transparentes.</li>
+        <li><strong>Pas d'import d'animations Blockbench :</strong> Le format d'animation Blockbench (Bedrock/molang) est incompatible avec .erianim.json. Les animations doivent etre recreees manuellement.</li>
+      </ul>
+
+      <h3>Futur (post-v1.0)</h3>
+      <ul>
+        <li><strong>Integration launcher :</strong> Preview in-game directe depuis Erigineering via le launcher EriniumFaction. Le modele est envoye au client de dev et affiche en temps reel dans Minecraft.</li>
+        <li><strong>Plugin system :</strong> API JavaScript pour creer des plugins (outils custom, formats d'export additionnels, generateurs proceduraux).</li>
+        <li><strong>Collaboration :</strong> Edition collaborative en temps reel (comme Figma). Plusieurs artistes travaillent sur le meme modele simultanement.</li>
+        <li><strong>Marketplace de modeles :</strong> Partage de modeles .erigineering entre les createurs de la communaute EriniumFaction.</li>
+        <li><strong>Support 1.16+ :</strong> Si EriniumFaction migre un jour vers une version plus recente, adapter les exports pour les nouveaux formats JSON Minecraft.</li>
+      </ul>
+
+      <h3>Metriques de succes</h3>
+      <ul>
+        <li><strong>Workflow :</strong> Un artiste peut animer un modele complet sans quitter Erigineering apres la modelisation dans Blockbench.</li>
+        <li><strong>Productivite :</strong> Le temps de creation d'un modele anime est reduit par rapport au workflow EriAnim.</li>
+        <li><strong>Qualite :</strong> Les animations exportees fonctionnent sans modification dans le mod EriniumFaction.</li>
+        <li><strong>Adoption :</strong> Toutes les nouvelles animations du projet sont creees dans Erigineering.</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('navToggle');
+  if (toggle) toggle.addEventListener('click', function() { sidebar.classList.toggle('open'); });
+
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        navLinks.forEach(function(link) { link.classList.remove('active'); });
+        const active = document.querySelector('.nav-link[href="#' + entry.target.id + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(function(s) { observer.observe(s); });
+</script>
+</body>
+</html>

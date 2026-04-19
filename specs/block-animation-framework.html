@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Framework d'Animation de Blocks 3D | EriAPI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #4AE0E0; --aetherite: #9B59B6; --erinium: #FFD700;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(74,224,224,0.07) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(255,215,0,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, var(--cyan) 40%, var(--erinium) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.35); background: rgba(230,126,34,0.08); }
+  .badge-valterite{ color: var(--valterite);border-color: rgba(74,224,224,0.35); background: rgba(74,224,224,0.08); }
+  .badge-aetherite{ color: var(--aetherite);border-color: rgba(155,89,182,0.35); background: rgba(155,89,182,0.08); }
+  .badge-erinium  { color: var(--erinium);  border-color: rgba(255,215,0,0.35);  background: rgba(255,215,0,0.08); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); color: #1a1200; }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h2 .s-num.valterite-num { background: linear-gradient(135deg, #1a8080 0%, var(--valterite) 100%); }
+  .section-card h2 .s-num.aetherite-num { background: linear-gradient(135deg, #5c2d6e 0%, var(--aetherite) 100%); }
+  .section-card h2 .s-num.erinium-num   { background: linear-gradient(135deg, #a07800 0%, var(--erinium) 100%); color: #1a1200; }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '›'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .tag-val { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(74,224,224,0.10); color: var(--valterite); border: 1px solid rgba(74,224,224,0.25); letter-spacing: 0.05em; }
+  .tag-aeth { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(155,89,182,0.10); color: var(--aetherite); border: 1px solid rgba(155,89,182,0.25); letter-spacing: 0.05em; }
+  .tag-erin { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(255,215,0,0.10); color: var(--erinium); border: 1px solid rgba(255,215,0,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .ascii-diagram .ab { color: var(--rare); }
+  .ascii-diagram .am { color: var(--aetherite); }
+  .ascii-diagram .avt { color: var(--valterite); }
+  .ascii-diagram .aer { color: var(--erinium); }
+  .ascii-diagram .aor { color: var(--orange); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  .tier-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 20px 0; }
+  .tier-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 22px 20px; }
+  .tier-card.valterite { border-top: 3px solid var(--valterite); }
+  .tier-card.aetherite { border-top: 3px solid var(--aetherite); }
+  .tier-card.erinium   { border-top: 3px solid var(--erinium); }
+  .tier-card-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .tier-card.valterite .tier-card-name { color: var(--valterite); }
+  .tier-card.aetherite .tier-card-name { color: var(--aetherite); }
+  .tier-card.erinium   .tier-card-name { color: var(--erinium); }
+  .tier-card-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); margin-bottom: 14px; }
+  .tier-card-stat { font-size: 12px; color: var(--slate); margin: 5px 0; }
+  .tier-card-stat strong { color: var(--text); }
+  .tier-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; display: inline-block; margin-bottom: 12px; }
+  .tier-badge.val { color: var(--valterite); background: rgba(74,224,224,0.08); border: 1px solid rgba(74,224,224,0.25); }
+  .tier-badge.aeth { color: var(--aetherite); background: rgba(155,89,182,0.08); border: 1px solid rgba(155,89,182,0.25); }
+  .tier-badge.erin { color: var(--erinium); background: rgba(255,215,0,0.08); border: 1px solid rgba(255,215,0,0.25); }
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  .idea-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 20px 24px; margin: 12px 0; border-left: 3px solid var(--violet-l); }
+  .idea-card-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .idea-card p { font-size: 13px; color: var(--slate); margin-bottom: 0; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .tier-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Eri<span>API</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Architecture globale</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Format Blockbench</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Runtime TESR</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Format .erianim</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> API Java Builder</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Editeur Python</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Blend &amp; Transitions</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> endBehavior</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Performance</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Integrations EriAPI</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriAPI</div>
+      <h1>Framework d'Animation de Blocks 3D</h1>
+      <p>Pipeline complet pour animer des blocks 3D dans Minecraft Forge 1.12.2 : import de modeles Blockbench, edition d'animations dans un editeur Python dedie, et rendu temps reel via TESR. Concu comme module EriAPI reutilisable par tout mod.</p>
+      <div class="header-badges">
+        <span class="badge badge-violet">EriAPI</span>
+        <span class="badge badge-cyan">TESR</span>
+        <span class="badge badge-gold">Blockbench</span>
+        <span class="badge badge-green">Python Editor</span>
+        <span class="badge badge-slate">Forge 1.12.2</span>
+      </div>
+    </div>
+
+    <!-- S1 — CONTEXTE & OBJECTIFS -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Probleme actuel</h3>
+      <p>Les blocks Minecraft definis par JSON sont <strong>completement statiques</strong>. Il n'existe aucun mecanisme natif pour animer la geometrie d'un block : pas de rotation de groupes, pas de translation de pieces, pas de keyframes. Les seuls "mouvements" possibles passent par des hacks (swap de blockstate, animation de texture UV) qui sont limites, saccades et couteux en performance.</p>
+      <p>Pour des blocks comme une <strong>lootbox qui s'ouvre</strong>, une <strong>tourelle qui pivote</strong>, un <strong>coffre-fort avec un mecanisme</strong>, une <strong>machine avec des engrenages</strong>, ou un <strong>portail avec des anneaux rotatifs</strong>, il faut un vrai systeme d'animation 3D avec des keyframes, des easings, et un rendu fluide via <code>TileEntitySpecialRenderer</code>.</p>
+
+      <h3>Solution proposee</h3>
+      <p>Un <strong>framework complet en 3 composants</strong> integre a EriAPI :</p>
+      <ul>
+        <li><strong>Runtime Java (EriAPI) :</strong> parseur de modeles Blockbench, moteur d'animation par keyframes, rendu TESR optimise avec interpolation partialTicks.</li>
+        <li><strong>Format .erianim :</strong> format JSON declaratif pour definir des animations (keyframes, easings, events, endBehavior) sans toucher au code Java.</li>
+        <li><strong>Editeur Python :</strong> application desktop PyQt6 + OpenGL pour creer visuellement les animations, avec timeline, viewport 3D, preview en temps reel, et export .erianim.</li>
+      </ul>
+
+      <h3>Cible</h3>
+      <p>Le framework est un <strong>module EriAPI</strong>, pas une feature EriniumFaction. Il doit etre generique et reutilisable par tout mod qui depend d'EriAPI. EriniumFaction sera le premier consommateur (lootbox, machines de faction, etc.).</p>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Contrainte serveur 500-1000 joueurs :</strong> des dizaines voire centaines de blocks animes peuvent etre charges simultanement dans les chunks visibles. Le runtime TESR doit etre optimise pour le rendu batche en IDLE, l'absence de tick quand aucune animation ne joue, et le cache agressif des modeles parses. Cote serveur, une animation = un etat + un timestamp, jamais de sync par tick.</div>
+      </div>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Zero code pour animer :</strong> un moddeur exporte un .json depuis Blockbench, cree un .erianim dans l'editeur Python, et enregistre le block avec 3 lignes de builder Java. Pas de classe custom a ecrire.</li>
+        <li><strong>Fidelite Blockbench :</strong> le rendu in-game doit etre visuellement identique au preview Blockbench — memes pivots, memes rotations, memes UV.</li>
+        <li><strong>Animations declaratives :</strong> tout est defini dans le .erianim (keyframes, easings, events, comportement de fin). Le code Java ne fait que declencher <code>playAnimation("open")</code>.</li>
+        <li><strong>Editeur visuel :</strong> les artistes/designers creent les animations dans un outil graphique, pas en ecrivant du JSON a la main.</li>
+        <li><strong>Performance :</strong> rendu batchable en IDLE, pas de tick inutile, cache des modeles, distance de rendu configurable.</li>
+        <li><strong>Extensibilite :</strong> events d'animation (son, particule, callback Java) pour synchroniser la logique de jeu avec les keyframes.</li>
+      </ul>
+
+      <h3>Ce que le framework ne fait pas</h3>
+      <ul>
+        <li><strong>Pas d'animation d'entites :</strong> ce framework est pour les blocks (TileEntity + TESR). Les entites utilisent le systeme d'animation vanilla de Minecraft.</li>
+        <li><strong>Pas de physique :</strong> les animations sont pre-calculees (keyframes). Pas de simulation physique en temps reel.</li>
+        <li><strong>Pas d'animation procedurale :</strong> chaque mouvement est defini par des keyframes explicites, pas par des algorithmes proceduraux.</li>
+        <li><strong>Pas de skinning/bones :</strong> les modeles sont des boxes rigides groupees. Pas de deformation de mesh ni de squelette.</li>
+      </ul>
+    </section>
+
+    <!-- S2 — ARCHITECTURE GLOBALE -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Architecture globale</h2>
+
+      <h3 class="first">Pipeline complet</h3>
+      <p>Le framework suit un pipeline lineaire de la creation du modele au rendu en jeu :</p>
+
+      <div class="ascii-diagram"><span class="ay">Blockbench</span>                     <span class="av">Editeur Python</span>                <span class="ac">EriAPI Runtime</span>
+    <span class="as">|</span>                              <span class="as">|</span>                              <span class="as">|</span>
+    <span class="as">v</span>                              <span class="as">v</span>                              <span class="as">v</span>
+<span class="ay">modele.json</span> ──────────────> <span class="av">Import dans l'editeur</span>        <span class="ac">AnimatedBlockModel</span>
+<span class="as">(geometrie,</span>                  <span class="as">|</span>                              <span class="as">|</span>
+<span class="as"> UV, textures)</span>               <span class="as">v</span>                              <span class="as">v</span>
+                          <span class="av">Timeline + Keyframes</span>         <span class="ac">AnimationController</span>
+                              <span class="as">|</span>                              <span class="as">|</span>
+                              <span class="as">v</span>                              <span class="as">v</span>
+                          <span class="av">Preview 3D temps reel</span>        <span class="ac">AnimatedBlockTESR</span>
+                              <span class="as">|</span>                              <span class="as">|</span>
+                              <span class="as">v</span>                              <span class="as">v</span>
+                          <span class="ag">anim.erianim</span> ──────────────> <span class="ac">Rendu OpenGL in-game</span>
+                          <span class="as">(keyframes,</span>
+                          <span class="as"> easings, events)</span></div>
+
+      <h3>Les 3 composants</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Composant</th><th>Technologie</th><th>Role</th><th>Livrable</th></tr></thead>
+          <tbody>
+            <tr><td>Runtime Java</td><td>Java 8, Forge 1.12.2, OpenGL</td><td>Parse les modeles .json et les animations .erianim, rendu TESR avec interpolation, gestion des etats d'animation</td><td>Module dans <code>fr.eri.eriapi.anim</code></td></tr>
+            <tr><td>Format .erianim</td><td>JSON</td><td>Format declaratif definissant les animations : keyframes par groupe, easings, events (son, particule, callback), endBehavior</td><td>Specification + schema JSON</td></tr>
+            <tr><td>Editeur Python</td><td>PyQt6, pyopengl</td><td>Application desktop pour creer les animations visuellement : viewport 3D, timeline, keyframes, preview, export .erianim</td><td>Application standalone <code>tools/erianim-editor/</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Arborescence des fichiers</h3>
+      <div class="code-block"><span class="cm">// Cote EriAPI (runtime Java)</span>
+fr.eri.eriapi.anim/
+  <span class="ty">AnimatedBlockModel</span>        <span class="cm">// Modele parse depuis Blockbench JSON</span>
+  <span class="ty">ModelGroup</span>                 <span class="cm">// Groupe de boxes avec pivot point</span>
+  <span class="ty">ModelElement</span>               <span class="cm">// Box individuelle (position, rotation, UV)</span>
+  <span class="ty">AnimationData</span>              <span class="cm">// Donnees .erianim parsees</span>
+  <span class="ty">AnimationTrack</span>             <span class="cm">// Piste de keyframes pour un groupe</span>
+  <span class="ty">Keyframe</span>                   <span class="cm">// Point cle : tick, valeur, easing</span>
+  <span class="ty">AnimationController</span>        <span class="cm">// Moteur : interpolation, etat, partialTicks</span>
+  <span class="ty">AnimatedBlockTESR</span>          <span class="cm">// TileEntitySpecialRenderer anime</span>
+  <span class="ty">AnimatedBlockTileEntity</span>    <span class="cm">// TileEntity avec etat d'animation</span>
+  <span class="ty">EriAnimBlock</span>               <span class="cm">// Builder pattern pour enregistrer</span>
+  <span class="ty">AnimationEvent</span>             <span class="cm">// Event declenche par une keyframe</span>
+  <span class="ty">AnimModelCache</span>             <span class="cm">// Cache des modeles parses (singleton)</span>
+  <span class="ty">EasingFunction</span>             <span class="cm">// Enum des fonctions d'easing</span>
+  <span class="ty">EndBehavior</span>                <span class="cm">// Enum des comportements de fin</span>
+
+<span class="cm">// Cote resources du mod consommateur</span>
+assets/eriniumfaction/
+  models/block/lootbox.json        <span class="cm">// Modele Blockbench export</span>
+  animations/lootbox.erianim       <span class="cm">// Fichier d'animation</span>
+  textures/blocks/lootbox.png      <span class="cm">// Texture(s) du modele</span>
+
+<span class="cm">// Cote editeur Python</span>
+tools/erianim-editor/
+  main.py                          <span class="cm">// Point d'entree</span>
+  editor/viewport.py               <span class="cm">// Viewport OpenGL 3D</span>
+  editor/timeline.py               <span class="cm">// Widget timeline</span>
+  editor/properties.py             <span class="cm">// Panneau proprietes</span>
+  editor/group_tree.py             <span class="cm">// Arbre des groupes</span>
+  editor/model_loader.py           <span class="cm">// Parseur Blockbench JSON</span>
+  editor/exporter.py               <span class="cm">// Export .erianim</span></div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Separation des responsabilites :</strong> le runtime Java ne sait rien de l'editeur Python. L'editeur ne sait rien du runtime. Le format .erianim est le contrat entre les deux. Un artiste peut creer des animations sans connaitre Java, et un developpeur peut les utiliser sans connaitre l'editeur.</div>
+      </div>
+    </section>
+
+    <!-- S3 — FORMAT BLOCKBENCH -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Format de modele &mdash; Lecteur JSON Blockbench</h2>
+
+      <h3 class="first">Objectif</h3>
+      <p>Parser les fichiers <code>.json</code> exportes depuis Blockbench (format "Java Block/Item") et construire une hierarchie Java exploitable par le TESR. Le parseur doit supporter les groupes imbriques, les pivots, les rotations initiales, les UV par face, et les multi-textures.</p>
+
+      <div class="info-box info">
+        <span class="icon">&#x2139;</span>
+        <div class="content"><strong>Modele de reference :</strong> un exemple complet de modele 3D avec multi-textures (11 textures, 75 elements, groupes imbriques) est disponible dans <code>C:\Users\killi\Pictures\Mcreator-Resources\3d models\lootbox\</code>. Contient le <code>lootbox.json</code> (export Blockbench), le <code>.bbmodel</code> source, et toutes les textures PNG. Utiliser ce modele comme reference pour comprendre les mappings textures, la hierarchie des groupes, et le format des UV.</div>
+      </div>
+
+      <h3>Structure Blockbench JSON parsee</h3>
+      <p>Le fichier Blockbench contient 3 sections principales :</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Champ JSON</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>textures</td><td>Object</td><td>Map des textures. Deux formats : par index <code>"0": "modid:blocks/name"</code> ou par nom <code>"side_cable.png": "side_cable"</code>. Le parseur doit supporter les deux.</td></tr>
+            <tr><td>elements</td><td>Array</td><td>Liste des boxes (cubes). Chaque element a <code>from</code>, <code>to</code>, <code>rotation</code>, <code>faces</code></td></tr>
+            <tr><td>groups</td><td>Array</td><td>Hierarchie de groupes. Chaque groupe a un <code>name</code>, <code>origin</code> (pivot), <code>children</code> (indices d'elements ou sous-groupes)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Champs d'un element</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Champ</th><th>Type</th><th>Exemple</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>from</td><td>float[3]</td><td>[2, 0, 2]</td><td>Coin minimum de la box (x, y, z) en pixels Blockbench (1 block = 16 pixels)</td></tr>
+            <tr><td>to</td><td>float[3]</td><td>[14, 12, 14]</td><td>Coin maximum de la box</td></tr>
+            <tr><td>rotation</td><td>Object</td><td>{"angle": 45, "axis": "y", "origin": [8,8,8]}</td><td>Rotation initiale statique (optionnelle). Un seul axe a la fois dans le format vanilla.</td></tr>
+            <tr><td>faces</td><td>Object</td><td>{"north": {...}, "south": {...}, ...}</td><td>6 faces : north, south, east, west, up, down. Chaque face a <code>uv</code>, <code>texture</code>, <code>rotation</code></td></tr>
+            <tr><td>faces.*.uv</td><td>float[4]</td><td>[0, 0, 16, 16]</td><td>Coordonnees UV [u1, v1, u2, v2] en pixels (0-16 standard)</td></tr>
+            <tr><td>faces.*.texture</td><td>String</td><td>"#0" ou "#side_cable.png"</td><td>Reference a la texture (prefixe #). Deux formats : par index numerique (<code>#0</code>) ou par nom de fichier (<code>#side_cable.png</code>). Le parseur doit supporter les deux.</td></tr>
+            <tr><td>faces.*.rotation</td><td>int</td><td>90</td><td>Rotation UV de la face (0, 90, 180, 270)</td></tr>
+            <tr><td>faces.*.tintindex</td><td>int</td><td>0</td><td>Index de teinte (optionnel, pour les blocs colores)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Champs d'un groupe</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Champ</th><th>Type</th><th>Exemple</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>name</td><td>String</td><td>"lid"</td><td>Nom du groupe — utilise comme cle dans les tracks d'animation</td></tr>
+            <tr><td>origin</td><td>float[3]</td><td>[8, 10, 2]</td><td>Point de pivot du groupe en pixels Blockbench. Les rotations animees s'appliquent autour de ce point.</td></tr>
+            <tr><td>children</td><td>Array</td><td>[0, 3, {"name": "sub", ...}]</td><td>Contenus du groupe : indices d'elements (int) ou sous-groupes imbriques (Object)</td></tr>
+            <tr><td>color</td><td>int</td><td>0</td><td>Couleur d'affichage dans Blockbench (ignore par le runtime)</td></tr>
+            <tr><td>visibility</td><td>boolean</td><td>true</td><td>Visibilite par defaut du groupe au chargement</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Structure Java resultante</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">AnimatedBlockModel</span> {
+    <span class="kw">private final</span> <span class="ty">String</span> modelId;                    <span class="cm">// "modid:block/name"</span>
+    <span class="kw">private final</span> <span class="ty">List</span>&lt;<span class="ty">ModelGroup</span>&gt; rootGroups;       <span class="cm">// Groupes racine</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">ModelGroup</span>&gt; groupsByName; <span class="cm">// Acces rapide par nom</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">Integer</span>, <span class="ty">ResourceLocation</span>&gt; textures; <span class="cm">// Index -> texture</span>
+    <span class="kw">private final</span> <span class="ty">List</span>&lt;<span class="ty">ModelElement</span>&gt; allElements;   <span class="cm">// Tous les elements a plat</span>
+}
+
+<span class="kw">public class</span> <span class="ty">ModelGroup</span> {
+    <span class="kw">private final</span> <span class="ty">String</span> name;                     <span class="cm">// "lid", "hinge", "base"</span>
+    <span class="kw">private final</span> <span class="kw">float</span>[] origin;                  <span class="cm">// Pivot point [x, y, z]</span>
+    <span class="kw">private final</span> <span class="ty">List</span>&lt;<span class="ty">ModelElement</span>&gt; elements;     <span class="cm">// Boxes de ce groupe</span>
+    <span class="kw">private final</span> <span class="ty">List</span>&lt;<span class="ty">ModelGroup</span>&gt; children;       <span class="cm">// Sous-groupes</span>
+    <span class="kw">private</span> <span class="kw">boolean</span> visible;                       <span class="cm">// Visibilite courante</span>
+}
+
+<span class="kw">public class</span> <span class="ty">ModelElement</span> {
+    <span class="kw">private final</span> <span class="kw">float</span>[] from;                   <span class="cm">// [x, y, z] min</span>
+    <span class="kw">private final</span> <span class="kw">float</span>[] to;                     <span class="cm">// [x, y, z] max</span>
+    <span class="kw">private final</span> <span class="kw">float</span> rotationAngle;             <span class="cm">// Rotation statique</span>
+    <span class="kw">private final</span> <span class="ty">String</span> rotationAxis;             <span class="cm">// "x", "y", ou "z"</span>
+    <span class="kw">private final</span> <span class="kw">float</span>[] rotationOrigin;          <span class="cm">// Pivot de rotation statique</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">EnumFacing</span>, <span class="ty">FaceData</span>&gt; faces; <span class="cm">// UV par face</span>
+}
+
+<span class="kw">public class</span> <span class="ty">FaceData</span> {
+    <span class="kw">private final</span> <span class="kw">float</span>[] uv;                     <span class="cm">// [u1, v1, u2, v2]</span>
+    <span class="kw">private final</span> <span class="kw">int</span> textureIndex;                <span class="cm">// Index dans la map de textures</span>
+    <span class="kw">private final</span> <span class="kw">int</span> uvRotation;                  <span class="cm">// 0, 90, 180, 270</span>
+    <span class="kw">private final</span> <span class="kw">int</span> tintIndex;                   <span class="cm">// -1 si pas de tint</span>
+}</div>
+
+      <h3>Conversion des coordonnees</h3>
+      <p>Blockbench utilise un systeme ou 1 block = 16 pixels, avec l'origine (0,0,0) en bas-coin-nord-ouest du block. Le parseur convertit les coordonnees en unites OpenGL :</p>
+      <ul>
+        <li><strong>Position :</strong> <code>pixel / 16.0f</code> — une box de [0,0,0] a [16,16,16] devient [0,0,0] a [1,1,1] en OpenGL.</li>
+        <li><strong>Pivot :</strong> meme conversion <code>origin / 16.0f</code>. Le pivot [8,8,8] dans Blockbench = [0.5, 0.5, 0.5] en OpenGL (centre du block).</li>
+        <li><strong>UV :</strong> les UV Blockbench sont en pixels de texture. Convertis en <code>uv / textureSize</code> (generalement 16, mais peut etre 32, 64, etc. selon la texture).</li>
+        <li><strong>Rotation :</strong> les angles Blockbench sont en degres, identiques en OpenGL. Les axes X/Y/Z suivent la convention Minecraft (Y = haut).</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Multi-textures :</strong> un modele Blockbench peut utiliser plusieurs textures (une par face ou par groupe). Le runtime charge toutes les textures referencees et bind la bonne avant chaque face. Pour optimiser, les faces utilisant la meme texture sont regroupees dans le meme draw call.</div>
+      </div>
+    </section>
+
+    <!-- S4 — RUNTIME TESR -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Runtime TESR &mdash; Rendu anime</h2>
+
+      <h3 class="first">AnimatedBlockTESR</h3>
+      <p>Le renderer est un <code>TileEntitySpecialRenderer&lt;AnimatedBlockTileEntity&gt;</code> qui gere le rendu de TOUS les blocks animes enregistres via EriAPI. Un seul TESR est enregistre pour le type <code>AnimatedBlockTileEntity</code> — il dispatch le rendu selon le modele associe au block.</p>
+
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">AnimatedBlockTESR</span> <span class="kw">extends</span> <span class="ty">TileEntitySpecialRenderer</span>&lt;<span class="ty">AnimatedBlockTileEntity</span>&gt; {
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">render</span>(<span class="ty">AnimatedBlockTileEntity</span> te, <span class="kw">double</span> x, <span class="kw">double</span> y, <span class="kw">double</span> z,
+                       <span class="kw">float</span> partialTicks, <span class="kw">int</span> destroyStage, <span class="kw">float</span> alpha) {
+        <span class="cm">// 1. Recuperer le modele depuis le cache</span>
+        <span class="ty">AnimatedBlockModel</span> model = <span class="ty">AnimModelCache</span>.<span class="fn">get</span>(te.<span class="fn">getModelId</span>());
+
+        <span class="cm">// 2. Recuperer l'etat d'animation interpole</span>
+        <span class="ty">AnimationController</span> ctrl = te.<span class="fn">getAnimationController</span>();
+        <span class="ty">AnimationState</span> state = ctrl.<span class="fn">getInterpolatedState</span>(partialTicks);
+
+        <span class="cm">// 3. Push matrix globale</span>
+        GlStateManager.<span class="fn">pushMatrix</span>();
+        GlStateManager.<span class="fn">translate</span>(x + <span class="nu">0.5</span>, y, z + <span class="nu">0.5</span>);
+
+        <span class="cm">// 4. Rendre chaque groupe racine recursivement</span>
+        <span class="kw">for</span> (<span class="ty">ModelGroup</span> group : model.<span class="fn">getRootGroups</span>()) {
+            <span class="fn">renderGroup</span>(group, state);
+        }
+
+        GlStateManager.<span class="fn">popMatrix</span>();
+    }
+
+    <span class="kw">private void</span> <span class="fn">renderGroup</span>(<span class="ty">ModelGroup</span> group, <span class="ty">AnimationState</span> state) {
+        <span class="kw">if</span> (!state.<span class="fn">isGroupVisible</span>(group.<span class="fn">getName</span>())) <span class="kw">return</span>;
+
+        GlStateManager.<span class="fn">pushMatrix</span>();
+
+        <span class="cm">// Translate au pivot</span>
+        <span class="kw">float</span>[] pivot = group.<span class="fn">getOrigin</span>();
+        GlStateManager.<span class="fn">translate</span>(pivot[<span class="nu">0</span>], pivot[<span class="nu">1</span>], pivot[<span class="nu">2</span>]);
+
+        <span class="cm">// Appliquer rotation/translation/scale animees</span>
+        <span class="kw">float</span>[] rot = state.<span class="fn">getRotation</span>(group.<span class="fn">getName</span>());
+        <span class="kw">float</span>[] trans = state.<span class="fn">getTranslation</span>(group.<span class="fn">getName</span>());
+        <span class="kw">float</span>[] scale = state.<span class="fn">getScale</span>(group.<span class="fn">getName</span>());
+
+        GlStateManager.<span class="fn">translate</span>(trans[<span class="nu">0</span>], trans[<span class="nu">1</span>], trans[<span class="nu">2</span>]);
+        GlStateManager.<span class="fn">rotate</span>(rot[<span class="nu">0</span>], <span class="nu">1</span>, <span class="nu">0</span>, <span class="nu">0</span>);
+        GlStateManager.<span class="fn">rotate</span>(rot[<span class="nu">1</span>], <span class="nu">0</span>, <span class="nu">1</span>, <span class="nu">0</span>);
+        GlStateManager.<span class="fn">rotate</span>(rot[<span class="nu">2</span>], <span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">1</span>);
+        GlStateManager.<span class="fn">scale</span>(scale[<span class="nu">0</span>], scale[<span class="nu">1</span>], scale[<span class="nu">2</span>]);
+
+        <span class="cm">// Revenir du pivot</span>
+        GlStateManager.<span class="fn">translate</span>(-pivot[<span class="nu">0</span>], -pivot[<span class="nu">1</span>], -pivot[<span class="nu">2</span>]);
+
+        <span class="cm">// Rendre les elements du groupe</span>
+        <span class="kw">for</span> (<span class="ty">ModelElement</span> elem : group.<span class="fn">getElements</span>()) {
+            <span class="fn">renderElement</span>(elem);
+        }
+
+        <span class="cm">// Rendre les sous-groupes recursivement</span>
+        <span class="kw">for</span> (<span class="ty">ModelGroup</span> child : group.<span class="fn">getChildren</span>()) {
+            <span class="fn">renderGroup</span>(child, state);
+        }
+
+        GlStateManager.<span class="fn">popMatrix</span>();
+    }
+}</div>
+
+      <h3>AnimatedBlockTileEntity</h3>
+      <p>Le TileEntity stocke l'etat d'animation minimal et gere la synchronisation client/serveur.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Champ</th><th>Type</th><th>Sync</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>modelId</td><td>ResourceLocation</td><td><span class="tag-yes">OUI</span></td><td>Identifiant du modele Blockbench (ex: <code>eriniumfaction:block/lootbox</code>)</td></tr>
+            <tr><td>animFileId</td><td>ResourceLocation</td><td><span class="tag-yes">OUI</span></td><td>Identifiant du fichier .erianim (ex: <code>eriniumfaction:animations/lootbox</code>)</td></tr>
+            <tr><td>currentAnimation</td><td>String</td><td><span class="tag-yes">OUI</span></td><td>Nom de l'animation en cours (ex: <code>"open"</code>), vide si IDLE</td></tr>
+            <tr><td>animStartTick</td><td>long</td><td><span class="tag-yes">OUI</span></td><td>World tick auquel l'animation a commence (pour calcul de progression)</td></tr>
+            <tr><td>animationState</td><td>AnimState enum</td><td><span class="tag-yes">OUI</span></td><td>IDLE, PLAYING, PAUSED, FROZEN, ROLLING_BACK, WAITING_SERVER</td></tr>
+            <tr><td>endBehaviorOverride</td><td>EndBehavior</td><td><span class="tag-yes">OUI</span></td><td>Override du endBehavior defini dans le .erianim (optionnel, null = utiliser celui du .erianim)</td></tr>
+            <tr><td>animationController</td><td>AnimationController</td><td><span class="tag-no">NON</span></td><td>Client-only. Moteur d'interpolation, recree a partir des donnees syncees.</td></tr>
+            <tr><td>callbacks</td><td>Map&lt;String, Consumer&gt;</td><td><span class="tag-no">NON</span></td><td>Serveur-only. Callbacks Java declenches par les events d'animation de type <code>callback</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Etats d'animation (AnimState)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Etat</th><th>Description</th><th>Tick ?</th><th>Rendu</th></tr></thead>
+          <tbody>
+            <tr><td>IDLE</td><td>Aucune animation en cours. Pose par defaut.</td><td><span class="tag-no">NON</span></td><td>FastTESR batche ou TESR statique</td></tr>
+            <tr><td>PLAYING</td><td>Animation en cours de lecture.</td><td><span class="tag-yes">OUI</span></td><td>TESR anime avec partialTicks</td></tr>
+            <tr><td>PAUSED</td><td>Animation en pause a un tick specifique.</td><td><span class="tag-no">NON</span></td><td>TESR statique a la frame de pause</td></tr>
+            <tr><td>FROZEN</td><td>Animation terminee, reste a la derniere frame (endBehavior: freeze).</td><td><span class="tag-no">NON</span></td><td>TESR statique a la derniere frame</td></tr>
+            <tr><td>ROLLING_BACK</td><td>Animation de retour vers la frame 0 (endBehavior: rollback).</td><td><span class="tag-yes">OUI</span></td><td>TESR anime inverse</td></tr>
+            <tr><td>WAITING_SERVER</td><td>Freeze en attendant un signal serveur (endBehavior: wait_server).</td><td><span class="tag-no">NON</span></td><td>TESR statique a la derniere frame</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Synchronisation client/serveur</h3>
+      <p>Le serveur ne calcule JAMAIS les frames d'animation. Il envoie uniquement :</p>
+      <ul>
+        <li><strong>Un packet de declenchement :</strong> <code>{animation: "open", startTick: 12345, endBehavior: "freeze"}</code></li>
+        <li><strong>Un packet de reset :</strong> <code>{action: "reset", instant: false}</code></li>
+        <li><strong>Un packet de pause/resume :</strong> <code>{action: "pause"}</code> ou <code>{action: "resume", resumeTick: 12350}</code></li>
+      </ul>
+      <p>Le client recoit le packet et son <code>AnimationController</code> calcule la frame courante a chaque rendu via : <code>float progress = (currentWorldTick - animStartTick + partialTicks) / duration</code>. Aucune donnee d'animation ne transite chaque tick.</p>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>ITickable conditionnel :</strong> le TileEntity implemente <code>ITickable</code> mais le <code>update()</code> ne fait rien si <code>animationState</code> est IDLE, FROZEN, PAUSED ou WAITING_SERVER. Le tick n'est actif que pendant PLAYING et ROLLING_BACK, pour declencher les events d'animation (sons, particules, callbacks) au bon moment. Le rendu graphique est gere par le TESR via partialTicks, pas par le tick.</div>
+      </div>
+
+      <h3>Render distance</h3>
+      <p>Chaque type de block anime a une distance de rendu max configurable via le builder (<code>renderDistance(64)</code>). Le TESR surcharge <code>getMaxRenderDistanceSquared()</code> sur le TileEntity pour retourner <code>distance * distance</code>. Au-dela de cette distance, le TESR ne dessine rien — le block apparait comme un cube invisible ou un placeholder.</p>
+    </section>
+
+    <!-- S5 — FORMAT .erianim -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num orange-num">05</span> Format .erianim &mdash; Specification complete</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <p>Le format <code>.erianim</code> est un fichier JSON qui definit une ou plusieurs animations pour un modele Blockbench donne. Chaque animation contient des pistes (tracks) de keyframes par groupe du modele, des parametres de comportement de fin, de blend, et des events synchronises.</p>
+
+      <h3>Structure JSON complete</h3>
+      <div class="code-block">{
+  <span class="st">"format_version"</span>: <span class="nu">1</span>,
+  <span class="st">"model"</span>: <span class="st">"eriniumfaction:block/lootbox"</span>,
+  <span class="st">"animations"</span>: {
+    <span class="st">"open"</span>: {
+      <span class="st">"duration"</span>: <span class="nu">20</span>,
+      <span class="st">"endBehavior"</span>: <span class="st">"freeze"</span>,
+      <span class="st">"rollbackDuration"</span>: <span class="nu">10</span>,
+      <span class="st">"blendIn"</span>: <span class="nu">3</span>,
+      <span class="st">"blendOut"</span>: <span class="nu">3</span>,
+      <span class="st">"loopCount"</span>: <span class="nu">0</span>,
+      <span class="st">"loopPause"</span>: <span class="nu">0</span>,
+      <span class="st">"tracks"</span>: {
+        <span class="st">"lid"</span>: {
+          <span class="st">"rotation"</span>: [
+            { <span class="st">"tick"</span>: <span class="nu">0</span>,  <span class="st">"value"</span>: [<span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">0</span>],   <span class="st">"easing"</span>: <span class="st">"linear"</span> },
+            { <span class="st">"tick"</span>: <span class="nu">10</span>, <span class="st">"value"</span>: [<span class="nu">-90</span>, <span class="nu">0</span>, <span class="nu">0</span>], <span class="st">"easing"</span>: <span class="st">"ease_out"</span> },
+            { <span class="st">"tick"</span>: <span class="nu">15</span>, <span class="st">"value"</span>: [<span class="nu">-85</span>, <span class="nu">0</span>, <span class="nu">0</span>], <span class="st">"easing"</span>: <span class="st">"ease_in_out"</span> },
+            { <span class="st">"tick"</span>: <span class="nu">20</span>, <span class="st">"value"</span>: [<span class="nu">-90</span>, <span class="nu">0</span>, <span class="nu">0</span>], <span class="st">"easing"</span>: <span class="st">"ease_out"</span> }
+          ],
+          <span class="st">"translation"</span>: [
+            { <span class="st">"tick"</span>: <span class="nu">0</span>,  <span class="st">"value"</span>: [<span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">0</span>], <span class="st">"easing"</span>: <span class="st">"linear"</span> }
+          ],
+          <span class="st">"scale"</span>: [
+            { <span class="st">"tick"</span>: <span class="nu">0</span>,  <span class="st">"value"</span>: [<span class="nu">1</span>, <span class="nu">1</span>, <span class="nu">1</span>], <span class="st">"easing"</span>: <span class="st">"linear"</span> }
+          ],
+          <span class="st">"visible"</span>: [
+            { <span class="st">"tick"</span>: <span class="nu">0</span>, <span class="st">"value"</span>: <span class="kw">true</span> }
+          ]
+        },
+        <span class="st">"sparkle_group"</span>: {
+          <span class="st">"visible"</span>: [
+            { <span class="st">"tick"</span>: <span class="nu">0</span>,  <span class="st">"value"</span>: <span class="kw">false</span> },
+            { <span class="st">"tick"</span>: <span class="nu">12</span>, <span class="st">"value"</span>: <span class="kw">true</span> }
+          ],
+          <span class="st">"scale"</span>: [
+            { <span class="st">"tick"</span>: <span class="nu">12</span>, <span class="st">"value"</span>: [<span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">0</span>],   <span class="st">"easing"</span>: <span class="st">"elastic"</span> },
+            { <span class="st">"tick"</span>: <span class="nu">20</span>, <span class="st">"value"</span>: [<span class="nu">1</span>, <span class="nu">1</span>, <span class="nu">1</span>],   <span class="st">"easing"</span>: <span class="st">"elastic"</span> }
+          ]
+        }
+      },
+      <span class="st">"events"</span>: [
+        { <span class="st">"tick"</span>: <span class="nu">5</span>,  <span class="st">"type"</span>: <span class="st">"sound"</span>,    <span class="st">"value"</span>: <span class="st">"eriniumfaction:lootbox_creak"</span> },
+        { <span class="st">"tick"</span>: <span class="nu">12</span>, <span class="st">"type"</span>: <span class="st">"particle"</span>, <span class="st">"value"</span>: <span class="st">"sparkle"</span>, <span class="st">"count"</span>: <span class="nu">8</span>, <span class="st">"spread"</span>: <span class="nu">0.5</span> },
+        { <span class="st">"tick"</span>: <span class="nu">15</span>, <span class="st">"type"</span>: <span class="st">"sound"</span>,    <span class="st">"value"</span>: <span class="st">"eriniumfaction:lootbox_open"</span> },
+        { <span class="st">"tick"</span>: <span class="nu">18</span>, <span class="st">"type"</span>: <span class="st">"cut"</span> },
+        { <span class="st">"tick"</span>: <span class="nu">20</span>, <span class="st">"type"</span>: <span class="st">"callback"</span>, <span class="st">"value"</span>: <span class="st">"onOpenComplete"</span> }
+      ]
+    },
+    <span class="st">"close"</span>: {
+      <span class="st">"duration"</span>: <span class="nu">15</span>,
+      <span class="st">"endBehavior"</span>: <span class="st">"rollback_instant"</span>,
+      <span class="st">"tracks"</span>: { <span class="cm">/* ... */</span> },
+      <span class="st">"events"</span>: [ <span class="cm">/* ... */</span> ]
+    },
+    <span class="st">"idle_breathe"</span>: {
+      <span class="st">"duration"</span>: <span class="nu">40</span>,
+      <span class="st">"endBehavior"</span>: <span class="st">"loop"</span>,
+      <span class="st">"tracks"</span>: { <span class="cm">/* ... */</span> },
+      <span class="st">"events"</span>: []
+    }
+  }
+}</div>
+
+      <h3>Champs racine</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Champ</th><th>Type</th><th>Requis</th><th>Defaut</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>format_version</td><td>int</td><td><span class="tag-yes">OUI</span></td><td>—</td><td>Version du format .erianim. Actuellement <code>1</code>. Permet la retrocompatibilite future.</td></tr>
+            <tr><td>model</td><td>String</td><td><span class="tag-yes">OUI</span></td><td>—</td><td>ResourceLocation du modele Blockbench associe (ex: <code>"eriniumfaction:block/lootbox"</code>).</td></tr>
+            <tr><td>animations</td><td>Object</td><td><span class="tag-yes">OUI</span></td><td>—</td><td>Map nom_animation -> definition. Chaque cle est un identifiant unique (ex: <code>"open"</code>, <code>"close"</code>).</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Champs d'une animation</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Champ</th><th>Type</th><th>Requis</th><th>Defaut</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>duration</td><td>int</td><td><span class="tag-yes">OUI</span></td><td>—</td><td>Duree totale de l'animation en ticks (20 ticks = 1 seconde).</td></tr>
+            <tr><td>endBehavior</td><td>String</td><td><span class="tag-no">NON</span></td><td>"freeze"</td><td>Comportement quand l'animation atteint la derniere frame. Voir table des endBehaviors.</td></tr>
+            <tr><td>rollbackDuration</td><td>int</td><td><span class="tag-no">NON</span></td><td>duration / 2</td><td>Duree du rollback en ticks. Utilise uniquement si endBehavior = <code>"rollback"</code>.</td></tr>
+            <tr><td>blendIn</td><td>int</td><td><span class="tag-no">NON</span></td><td>0</td><td>Nombre de ticks pour blender depuis la pose precedente vers le debut de cette animation.</td></tr>
+            <tr><td>blendOut</td><td>int</td><td><span class="tag-no">NON</span></td><td>0</td><td>Nombre de ticks pour blender en sortie vers la pose suivante ou la pose par defaut.</td></tr>
+            <tr><td>loopCount</td><td>int</td><td><span class="tag-no">NON</span></td><td>0</td><td>Nombre de boucles. Utilise uniquement si endBehavior = <code>"loop_count"</code>. 0 = infini.</td></tr>
+            <tr><td>loopPause</td><td>int</td><td><span class="tag-no">NON</span></td><td>0</td><td>Pause en ticks entre chaque boucle. Utilise uniquement si endBehavior = <code>"loop_pause"</code>.</td></tr>
+            <tr><td>tracks</td><td>Object</td><td><span class="tag-yes">OUI</span></td><td>—</td><td>Map nom_groupe -> pistes d'animation. Les noms doivent correspondre aux noms de groupes du modele Blockbench.</td></tr>
+            <tr><td>events</td><td>Array</td><td><span class="tag-no">NON</span></td><td>[]</td><td>Liste d'events declenches a des ticks specifiques (sons, particules, callbacks).</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Pistes de track (par groupe)</h3>
+      <p>Chaque groupe du modele peut avoir jusqu'a 6 types de pistes :</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Piste</th><th>Type valeur</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>rotation</td><td>float[3] (degres)</td><td>Rotation autour du pivot du groupe [X, Y, Z]. Ajoutee a la rotation statique du modele.</td></tr>
+            <tr><td>translation</td><td>float[3] (pixels Blockbench)</td><td>Translation relative [X, Y, Z]. Convertie en unites OpenGL (/ 16.0f).</td></tr>
+            <tr><td>scale</td><td>float[3]</td><td>Echelle [X, Y, Z]. Valeur par defaut [1, 1, 1]. Scale 0 = invisible.</td></tr>
+            <tr><td>visible</td><td>boolean</td><td>Visibilite du groupe. Pas d'interpolation — changement instantane.</td></tr>
+            <tr><td>spin</td><td>Object (speed + axis)</td><td>Rotation continue autour d'un axe. Les keyframes definissent la <strong>vitesse</strong> (degres/seconde) et l'<strong>axe</strong>. L'easing s'applique sur la transition de vitesse entre keyframes — permet acceleration/deceleration naturelle. La rotation s'accumule dans le temps (pas de valeur cible).</td></tr>
+            <tr><td>texture</td><td>Object (target + value)</td><td>Changement de texture dynamique a un tick donne. <code>target</code> = nom de la texture dans le modele (ex: <code>"side_core"</code>), <code>value</code> = nom de la texture de remplacement. Pas d'interpolation — changement instantane. Peut aussi etre change depuis un callback Java via <code>te.setTexture()</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Piste spin — rotation continue</h3>
+      <p>La piste <code>spin</code> est un type special qui fait tourner un groupe en continu a une vitesse donnee, au lieu d'interpoler entre des angles cibles. Ideal pour des engrenages, hologrammes, effets de charge, etc.</p>
+      <div class="code-block"><span class="st">"hexadecagon"</span>: {
+  <span class="st">"spin"</span>: [
+    { <span class="st">"tick"</span>: <span class="nu">0</span>,  <span class="st">"axis"</span>: <span class="st">"y"</span>, <span class="st">"speed"</span>: <span class="nu">0</span>,   <span class="st">"easing"</span>: <span class="st">"ease_in"</span> },
+    { <span class="st">"tick"</span>: <span class="nu">20</span>, <span class="st">"axis"</span>: <span class="st">"y"</span>, <span class="st">"speed"</span>: <span class="nu">360</span>, <span class="st">"easing"</span>: <span class="st">"linear"</span> },
+    { <span class="st">"tick"</span>: <span class="nu">60</span>, <span class="st">"axis"</span>: <span class="st">"y"</span>, <span class="st">"speed"</span>: <span class="nu">360</span>, <span class="st">"easing"</span>: <span class="st">"ease_out"</span> },
+    { <span class="st">"tick"</span>: <span class="nu">80</span>, <span class="st">"axis"</span>: <span class="st">"y"</span>, <span class="st">"speed"</span>: <span class="nu">0</span> }
+  ]
+}</div>
+      <p>Resultat : le groupe accelere de 0 a 360°/s sur 1 seconde, tourne a vitesse constante pendant 2 secondes, puis decelere et s'arrete en 1 seconde.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Champ</th><th>Type</th><th>Requis</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>tick</td><td>int</td><td><span class="tag-yes">OUI</span></td><td>Tick de la keyframe de vitesse.</td></tr>
+            <tr><td>axis</td><td>String</td><td><span class="tag-yes">OUI</span></td><td>Axe de rotation : <code>"x"</code>, <code>"y"</code>, ou <code>"z"</code>.</td></tr>
+            <tr><td>speed</td><td>float</td><td><span class="tag-yes">OUI</span></td><td>Vitesse de rotation en degres par seconde. 360 = un tour complet par seconde. Negatif = sens inverse.</td></tr>
+            <tr><td>easing</td><td>String</td><td><span class="tag-no">NON</span></td><td>Easing de la transition de vitesse depuis la keyframe precedente. Defaut : <code>"linear"</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="info-box info">
+        <span class="icon">&#x2139;</span>
+        <div class="content"><strong>spin vs rotation :</strong> les deux sont mutuellement exclusifs sur un meme groupe. <code>rotation</code> interpole entre des angles cibles, <code>spin</code> accumule la rotation dans le temps a une vitesse variable. Si un groupe a les deux, <code>spin</code> est prioritaire.</div>
+      </div>
+
+      <h3>Piste texture — changement de texture dynamique</h3>
+      <p>La piste <code>texture</code> permet de changer la texture d'un groupe a un tick precis dans l'animation. Le changement est instantane (pas d'interpolation). C'est ideal pour des effets visuels lies a l'etat du block (rarete, activation, degats, etc.).</p>
+      <div class="code-block"><span class="st">"front"</span>: {
+  <span class="st">"texture"</span>: [
+    { <span class="st">"tick"</span>: <span class="nu">0</span>,  <span class="st">"target"</span>: <span class="st">"side_core"</span>, <span class="st">"value"</span>: <span class="st">"side_core"</span> },
+    { <span class="st">"tick"</span>: <span class="nu">15</span>, <span class="st">"target"</span>: <span class="st">"side_core"</span>, <span class="st">"value"</span>: <span class="st">"side_core_red"</span> },
+    { <span class="st">"tick"</span>: <span class="nu">30</span>, <span class="st">"target"</span>: <span class="st">"side_core"</span>, <span class="st">"value"</span>: <span class="st">"side_core"</span> }
+  ]
+}</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Champ</th><th>Type</th><th>Requis</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>tick</td><td>int</td><td><span class="tag-yes">OUI</span></td><td>Tick du changement de texture.</td></tr>
+            <tr><td>target</td><td>String</td><td><span class="tag-yes">OUI</span></td><td>Nom de la texture dans le modele a remplacer (ex: <code>"side_core"</code>).</td></tr>
+            <tr><td>value</td><td>String</td><td><span class="tag-yes">OUI</span></td><td>Nom de la texture de remplacement. Doit exister dans les resources du mod.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Textures dynamiques via callback Java</h3>
+      <p>Les textures peuvent aussi etre changees depuis un callback Java, ce qui permet une logique serveur dynamique :</p>
+      <div class="code-block"><span class="cm">// Enregistrer un callback qui change les textures selon la rarete</span>
+te.<span class="fn">setAnimationCallback</span>(<span class="st">"onRarityReveal"</span>, (tile) -&gt; {
+    <span class="kw">int</span> rarity = <span class="fn">calculateLootRarity</span>(tile.<span class="fn">getPos</span>());
+    <span class="kw">if</span> (rarity &gt;= <span class="nu">3</span>) {
+        tile.<span class="fn">setTexture</span>(<span class="st">"rarity_top"</span>, <span class="st">"eriniumfaction:blocks/rarity_legendary"</span>);
+        tile.<span class="fn">setTexture</span>(<span class="st">"side_core"</span>, <span class="st">"eriniumfaction:blocks/side_core_gold"</span>);
+    } <span class="kw">else if</span> (rarity &gt;= <span class="nu">2</span>) {
+        tile.<span class="fn">setTexture</span>(<span class="st">"rarity_top"</span>, <span class="st">"eriniumfaction:blocks/rarity_epic"</span>);
+        tile.<span class="fn">setTexture</span>(<span class="st">"side_core"</span>, <span class="st">"eriniumfaction:blocks/side_core_purple"</span>);
+    } <span class="kw">else</span> {
+        tile.<span class="fn">setTexture</span>(<span class="st">"rarity_top"</span>, <span class="st">"eriniumfaction:blocks/rarity_common"</span>);
+    }
+});
+
+<span class="cm">// Dans le .erianim :</span>
+<span class="cm">// { "tick": 10, "type": "callback", "value": "onRarityReveal" }</span>
+<span class="cm">// → tick 10 : le serveur calcule la rarete et change les textures</span>
+<span class="cm">// → le changement sync au client via le TileEntity</span></div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>API TileEntity :</strong> <code>te.setTexture(target, resourceLocation)</code> set un override. <code>te.clearTexture(target)</code> revient a la texture par defaut du modele. <code>te.clearAllTextures()</code> reset tout. Les overrides sont stockes dans le NBT du TileEntity et synchronises au client automatiquement.</div>
+      </div>
+
+      <h3>Champs d'une keyframe</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Champ</th><th>Type</th><th>Requis</th><th>Defaut</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>tick</td><td>int</td><td><span class="tag-yes">OUI</span></td><td>—</td><td>Tick auquel cette keyframe se situe. 0 = debut de l'animation.</td></tr>
+            <tr><td>value</td><td>float[3] ou boolean</td><td><span class="tag-yes">OUI</span></td><td>—</td><td>Valeur de la propriete a ce tick. float[3] pour rotation/translation/scale, boolean pour visible.</td></tr>
+            <tr><td>easing</td><td>String</td><td><span class="tag-no">NON</span></td><td>"linear"</td><td>Fonction d'easing pour l'interpolation VERS cette keyframe depuis la precedente. Voir table des easings.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Fonctions d'easing supportees</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nom</th><th>Constante Java</th><th>Description</th><th>Usage typique</th></tr></thead>
+          <tbody>
+            <tr><td>linear</td><td>EasingFunction.LINEAR</td><td>Interpolation lineaire constante. Pas d'acceleration ni deceleration.</td><td>Mouvements mecaniques, engrenages</td></tr>
+            <tr><td>ease_in</td><td>EasingFunction.EASE_IN</td><td>Acceleration quadratique. Demarre lentement, accelere.</td><td>Debut de mouvement</td></tr>
+            <tr><td>ease_out</td><td>EasingFunction.EASE_OUT</td><td>Deceleration quadratique. Rapide au debut, ralentit a l'arrivee.</td><td>Fin de mouvement naturelle</td></tr>
+            <tr><td>ease_in_out</td><td>EasingFunction.EASE_IN_OUT</td><td>Acceleration puis deceleration. Mouvement doux complet.</td><td>Mouvement naturel general</td></tr>
+            <tr><td>ease_in_cubic</td><td>EasingFunction.EASE_IN_CUBIC</td><td>Acceleration cubique (plus prononcee que quadratique).</td><td>Mouvements lourds</td></tr>
+            <tr><td>ease_out_cubic</td><td>EasingFunction.EASE_OUT_CUBIC</td><td>Deceleration cubique (arret plus marque).</td><td>Claquement de porte</td></tr>
+            <tr><td>bounce</td><td>EasingFunction.BOUNCE</td><td>Rebondit a l'arrivee comme une balle.</td><td>Chute d'objet, lootbox</td></tr>
+            <tr><td>elastic</td><td>EasingFunction.ELASTIC</td><td>Oscillation elastique a l'arrivee.</td><td>Ressort, apparition pop</td></tr>
+            <tr><td>ease_in_back</td><td>EasingFunction.EASE_IN_BACK</td><td>Recule legerement avant d'avancer.</td><td>Elan avant un mouvement</td></tr>
+            <tr><td>ease_out_back</td><td>EasingFunction.EASE_OUT_BACK</td><td>Depasse la cible puis revient.</td><td>Overshoot naturel</td></tr>
+            <tr><td>spring</td><td>EasingFunction.SPRING</td><td>Oscillation amortie de type ressort.</td><td>Mecanismes, verrous</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Types d'events</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Champ value</th><th>Champs supplementaires</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>sound</td><td>ResourceLocation du son</td><td>volume (float, def: 1.0), pitch (float, def: 1.0)</td><td>Joue un son a la position du block. Utilise <code>world.playSound()</code>.</td></tr>
+            <tr><td>particle</td><td>Nom du type de particule</td><td>count (int, def: 1), spread (float, def: 0.5)</td><td>Spawn des particules a la position du block. Les particules supportees sont celles de Minecraft + les particules custom EriAPI.</td></tr>
+            <tr><td>callback</td><td>Nom du callback (String)</td><td>—</td><td>Appelle le callback Java enregistre via <code>te.setAnimationCallback(name, consumer)</code>. Execute cote serveur.</td></tr>
+            <tr><td>hide_group</td><td>Nom du groupe</td><td>—</td><td>Cache un groupe du modele (equivalent a <code>visible = false</code> mais declenche depuis un event).</td></tr>
+            <tr><td>show_group</td><td>Nom du groupe</td><td>—</td><td>Affiche un groupe du modele (equivalent a <code>visible = true</code>).</td></tr>
+            <tr><td>cut</td><td>—</td><td>—</td><td>Coupe l'animation immediatement a ce tick. Les frames suivantes ne sont pas jouees. L'endBehavior s'applique a partir de la pose courante (pas de la derniere keyframe). Utile pour definir une animation longue et la couper dynamiquement selon le contexte.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Table des endBehavior</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Valeur</th><th>Constante Java</th><th>Description</th><th>Apres la derniere frame</th></tr></thead>
+          <tbody>
+            <tr><td>freeze</td><td>EndBehavior.FREEZE</td><td>Reste fige a la derniere keyframe indefiniment. Le TileEntity passe en etat FROZEN (pas de tick).</td><td>Le block reste dans la pose finale. Un appel a <code>resetAnimation()</code> ou <code>playAnimation()</code> repart.</td></tr>
+            <tr><td>rollback</td><td>EndBehavior.ROLLBACK</td><td>Revient a la frame 0 avec une animation de retour. Duree = <code>rollbackDuration</code> ticks.</td><td>L'animation se joue en inverse sur la duree du rollback, avec les easings inverses. Puis passe en IDLE.</td></tr>
+            <tr><td>rollback_instant</td><td>EndBehavior.ROLLBACK_INSTANT</td><td>Retour instantane a la frame 0. Pas de transition.</td><td>Snap immediat a la pose par defaut. Passe directement en IDLE.</td></tr>
+            <tr><td>wait_server</td><td>EndBehavior.WAIT_SERVER</td><td>Reste fige a la derniere frame et attend un signal du serveur. Etat WAITING_SERVER.</td><td>Le block reste fige. Le serveur appelle <code>te.resetAnimation()</code> (avec rollback) ou <code>te.resetAnimation(true)</code> (instant) pour debloquer.</td></tr>
+            <tr><td>loop</td><td>EndBehavior.LOOP</td><td>Boucle infinie. L'animation recommence immediatement apres la derniere frame.</td><td>Le block boucle jusqu'a un appel <code>te.stopAnimation()</code> ou <code>te.playAnimation("autre")</code>.</td></tr>
+            <tr><td>loop_count</td><td>EndBehavior.LOOP_COUNT</td><td>Boucle N fois puis freeze. Utilise le champ <code>loopCount</code>.</td><td>Apres N repetitions, passe en FROZEN a la derniere frame.</td></tr>
+            <tr><td>loop_pause</td><td>EndBehavior.LOOP_PAUSE</td><td>Boucle infinie avec pause de X ticks entre chaque cycle. Utilise le champ <code>loopPause</code>.</td><td>Attend <code>loopPause</code> ticks a la frame 0 avant de recommencer. Ideal pour des animations idle intermittentes.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Combinaison endBehavior + events :</strong> les events ne se declenchent que pendant la lecture forward (PLAYING). Pendant le rollback, aucun event n'est declenche. En loop, les events se redeclenchent a chaque cycle. L'event callback <code>"onOpenComplete"</code> au tick de duration se declenche AVANT le endBehavior.</div>
+      </div>
+    </section>
+
+    <!-- S6 — API JAVA BUILDER -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num cyan-num">06</span> API Java &mdash; Builder pattern</h2>
+
+      <h3 class="first">Enregistrement d'un block anime</h3>
+      <div class="code-block"><span class="cm">// Dans la phase d'init du mod (preInit ou init)</span>
+
+<span class="cm">// Enregistrement minimal</span>
+<span class="ty">EriAnimBlock</span>.<span class="fn">create</span>(<span class="st">"eriniumfaction"</span>, <span class="st">"lootbox"</span>)
+    .<span class="fn">model</span>(<span class="st">"block/lootbox.json"</span>)           <span class="cm">// ResourceLocation du modele Blockbench</span>
+    .<span class="fn">animation</span>(<span class="st">"animations/lootbox.erianim"</span>) <span class="cm">// ResourceLocation du fichier .erianim</span>
+    .<span class="fn">register</span>();
+
+<span class="cm">// Enregistrement complet avec toutes les options</span>
+<span class="ty">EriAnimBlock</span>.<span class="fn">create</span>(<span class="st">"eriniumfaction"</span>, <span class="st">"faction_core"</span>)
+    .<span class="fn">model</span>(<span class="st">"block/faction_core.json"</span>)
+    .<span class="fn">animation</span>(<span class="st">"animations/faction_core.erianim"</span>)
+    .<span class="fn">renderDistance</span>(<span class="nu">64</span>)                    <span class="cm">// Distance de rendu max en blocks (def: 48)</span>
+    .<span class="fn">material</span>(<span class="ty">Material</span>.IRON)               <span class="cm">// Material Forge du block</span>
+    .<span class="fn">hardness</span>(<span class="nu">5.0f</span>)                        <span class="cm">// Durete de minage</span>
+    .<span class="fn">resistance</span>(<span class="nu">10.0f</span>)                     <span class="cm">// Resistance aux explosions</span>
+    .<span class="fn">harvestTool</span>(<span class="st">"pickaxe"</span>, <span class="nu">2</span>)              <span class="cm">// Outil + niveau requis</span>
+    .<span class="fn">defaultAnimation</span>(<span class="st">"idle_breathe"</span>)      <span class="cm">// Animation jouee automatiquement au spawn</span>
+    .<span class="fn">opaque</span>(<span class="kw">false</span>)                         <span class="cm">// Block non-opaque (rendu transparent)</span>
+    .<span class="fn">lightLevel</span>(<span class="nu">0.5f</span>)                      <span class="cm">// Emission de lumiere (0.0 - 1.0)</span>
+    .<span class="fn">onActivated</span>(ctx -> <span class="fn">onPlayerClick</span>(ctx)) <span class="cm">// Action au right-click</span>
+    .<span class="fn">register</span>();</div>
+
+      <h3>Controle des animations (cote serveur)</h3>
+      <div class="code-block"><span class="cm">// Recuperer le TileEntity</span>
+<span class="ty">AnimatedBlockTileEntity</span> te = (<span class="ty">AnimatedBlockTileEntity</span>) world.<span class="fn">getTileEntity</span>(pos);
+
+<span class="cm">// Jouer une animation (utilise le endBehavior defini dans le .erianim)</span>
+te.<span class="fn">playAnimation</span>(<span class="st">"open"</span>);
+
+<span class="cm">// Jouer une animation avec override du endBehavior</span>
+te.<span class="fn">playAnimation</span>(<span class="st">"open"</span>, <span class="ty">EndBehavior</span>.WAIT_SERVER);
+
+<span class="cm">// Reset (retour a IDLE, pose par defaut)</span>
+te.<span class="fn">resetAnimation</span>();           <span class="cm">// Avec rollback (duree = rollbackDuration)</span>
+te.<span class="fn">resetAnimation</span>(<span class="kw">true</span>);       <span class="cm">// Instantane (snap)</span>
+
+<span class="cm">// Pause / Resume</span>
+te.<span class="fn">pauseAnimation</span>();
+te.<span class="fn">resumeAnimation</span>();
+
+<span class="cm">// Stop (retour IDLE immediat, sans rollback)</span>
+te.<span class="fn">stopAnimation</span>();
+
+<span class="cm">// Requetes d'etat</span>
+te.<span class="fn">isAnimating</span>();               <span class="cm">// true si PLAYING ou ROLLING_BACK</span>
+te.<span class="fn">getAnimationState</span>();          <span class="cm">// AnimState enum</span>
+te.<span class="fn">getCurrentAnimation</span>();        <span class="cm">// Nom de l'animation en cours (ou "")</span>
+te.<span class="fn">getAnimationProgress</span>();       <span class="cm">// 0.0 -> 1.0 (progression lineaire)</span>
+
+<span class="cm">// Enregistrer un callback (declenche par un event "callback" dans le .erianim)</span>
+te.<span class="fn">setAnimationCallback</span>(<span class="st">"onOpenComplete"</span>, (tile) -> {
+    <span class="fn">dropLoot</span>(tile.<span class="fn">getPos</span>(), tile.<span class="fn">getWorld</span>());
+    tile.<span class="fn">playAnimation</span>(<span class="st">"idle_breathe"</span>);
+});
+
+<span class="cm">// Supprimer un callback</span>
+te.<span class="fn">removeAnimationCallback</span>(<span class="st">"onOpenComplete"</span>);
+
+<span class="cm">// Changer l'animation par defaut a runtime</span>
+te.<span class="fn">setDefaultAnimation</span>(<span class="st">"idle_breathe"</span>);</div>
+
+      <h3>Methodes de EriAnimBlock builder</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametres</th><th>Requis</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>create(modId, name)</td><td>String, String</td><td><span class="tag-yes">OUI</span></td><td>Cree un builder. Le name est utilise comme registry name du block.</td></tr>
+            <tr><td>model(path)</td><td>String</td><td><span class="tag-yes">OUI</span></td><td>Chemin relatif du modele Blockbench dans <code>assets/modid/models/</code>.</td></tr>
+            <tr><td>animation(path)</td><td>String</td><td><span class="tag-yes">OUI</span></td><td>Chemin relatif du fichier .erianim dans <code>assets/modid/</code>.</td></tr>
+            <tr><td>renderDistance(blocks)</td><td>int</td><td><span class="tag-no">NON</span></td><td>Distance de rendu max en blocks. Defaut: 48.</td></tr>
+            <tr><td>material(mat)</td><td>Material</td><td><span class="tag-no">NON</span></td><td>Material Forge. Defaut: Material.ROCK.</td></tr>
+            <tr><td>hardness(val)</td><td>float</td><td><span class="tag-no">NON</span></td><td>Durete de minage. Defaut: 2.0f.</td></tr>
+            <tr><td>resistance(val)</td><td>float</td><td><span class="tag-no">NON</span></td><td>Resistance aux explosions. Defaut: 5.0f.</td></tr>
+            <tr><td>harvestTool(tool, level)</td><td>String, int</td><td><span class="tag-no">NON</span></td><td>Outil et niveau requis pour miner.</td></tr>
+            <tr><td>defaultAnimation(name)</td><td>String</td><td><span class="tag-no">NON</span></td><td>Animation jouee automatiquement quand le TileEntity est charge. Null = IDLE statique.</td></tr>
+            <tr><td>opaque(val)</td><td>boolean</td><td><span class="tag-no">NON</span></td><td>Si le block est opaque (bloque la lumiere). Defaut: true.</td></tr>
+            <tr><td>lightLevel(val)</td><td>float</td><td><span class="tag-no">NON</span></td><td>Emission de lumiere (0.0 a 1.0). Defaut: 0.0f.</td></tr>
+            <tr><td>onActivated(handler)</td><td>Consumer&lt;ActivationContext&gt;</td><td><span class="tag-no">NON</span></td><td>Callback au right-click sur le block.</td></tr>
+            <tr><td>register()</td><td>—</td><td><span class="tag-yes">OUI</span></td><td>Enregistre le block, le TileEntity, et le TESR.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Methodes de AnimatedBlockTileEntity</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Signature</th><th>Cote</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>playAnimation</td><td>void playAnimation(String name)</td><td>Serveur</td><td>Demarre une animation. Si une autre tourne deja, blend selon blendIn de la nouvelle.</td></tr>
+            <tr><td>playAnimation</td><td>void playAnimation(String name, EndBehavior override)</td><td>Serveur</td><td>Demarre avec override du endBehavior.</td></tr>
+            <tr><td>resetAnimation</td><td>void resetAnimation()</td><td>Serveur</td><td>Rollback vers la pose par defaut (duree = rollbackDuration du .erianim).</td></tr>
+            <tr><td>resetAnimation</td><td>void resetAnimation(boolean instant)</td><td>Serveur</td><td>Si true, retour instantane a la pose par defaut.</td></tr>
+            <tr><td>pauseAnimation</td><td>void pauseAnimation()</td><td>Serveur</td><td>Met en pause. La frame courante est preservee.</td></tr>
+            <tr><td>resumeAnimation</td><td>void resumeAnimation()</td><td>Serveur</td><td>Reprend la lecture la ou elle etait.</td></tr>
+            <tr><td>stopAnimation</td><td>void stopAnimation()</td><td>Serveur</td><td>Arret immediat. Retour a IDLE sans rollback.</td></tr>
+            <tr><td>isAnimating</td><td>boolean isAnimating()</td><td>Les deux</td><td>True si PLAYING ou ROLLING_BACK.</td></tr>
+            <tr><td>getAnimationState</td><td>AnimState getAnimationState()</td><td>Les deux</td><td>Etat courant de l'animation.</td></tr>
+            <tr><td>getCurrentAnimation</td><td>String getCurrentAnimation()</td><td>Les deux</td><td>Nom de l'animation en cours, vide si IDLE.</td></tr>
+            <tr><td>getAnimationProgress</td><td>float getAnimationProgress()</td><td>Client</td><td>Progression de 0.0 a 1.0.</td></tr>
+            <tr><td>setAnimationCallback</td><td>void setAnimationCallback(String name, Consumer&lt;AnimatedBlockTileEntity&gt; cb)</td><td>Serveur</td><td>Enregistre un callback appele par un event de type "callback" portant ce nom.</td></tr>
+            <tr><td>removeAnimationCallback</td><td>void removeAnimationCallback(String name)</td><td>Serveur</td><td>Supprime un callback.</td></tr>
+            <tr><td>setDefaultAnimation</td><td>void setDefaultAnimation(String name)</td><td>Serveur</td><td>Change l'animation par defaut. Null = IDLE statique.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Thread safety :</strong> toutes les methodes de controle (<code>playAnimation</code>, <code>resetAnimation</code>, etc.) DOIVENT etre appelees depuis le server thread. Le client recoit les changements via packets automatiques. Ne JAMAIS appeler ces methodes depuis un thread async ou un EriScheduler.async.</div>
+      </div>
+    </section>
+
+    <!-- S7 — EDITEUR PYTHON -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num green-num">07</span> Editeur d'animation Python</h2>
+
+      <h3 class="first">Stack technique</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Composant</th><th>Technologie</th><th>Version min</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td>Framework GUI</td><td>PyQt6</td><td>6.5+</td><td>Fenetres, widgets, docking, layout</td></tr>
+            <tr><td>Rendu 3D</td><td>pyopengl</td><td>3.1+</td><td>Viewport OpenGL pour le preview du modele</td></tr>
+            <tr><td>Maths</td><td>numpy</td><td>1.24+</td><td>Operations matricielles, interpolation</td></tr>
+            <tr><td>JSON</td><td>json (stdlib)</td><td>—</td><td>Parsing Blockbench .json et export .erianim</td></tr>
+            <tr><td>Image</td><td>Pillow</td><td>10.0+</td><td>Chargement des textures PNG pour le viewport</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Layout de l'application</h3>
+      <div class="ascii-diagram"><span class="as">+-------------------------------------------------------------------+</span>
+<span class="as">|</span> <span class="av">Menu Bar</span>  <span class="as">File | Edit | View | Animation | Help</span>                       <span class="as">|</span>
+<span class="as">+-------------------------------------------------------------------+</span>
+<span class="as">|</span> <span class="av">Toolbar</span>   <span class="as">[ Open ] [ Save ] [ Export ] |</span> <span class="ag">[ Play ] [ Pause ] [ Stop ]</span> <span class="as">|</span>
+<span class="as">+-------------+-------------------------------+-----------------------+</span>
+<span class="as">|</span>             <span class="as">|</span>                               <span class="as">|</span>                       <span class="as">|</span>
+<span class="as">|</span>  <span class="ac">Group</span>      <span class="as">|</span>                               <span class="as">|</span>  <span class="aor">Properties</span>           <span class="as">|</span>
+<span class="as">|</span>  <span class="ac">Tree</span>       <span class="as">|</span>     <span class="ay">Viewport 3D (OpenGL)</span>       <span class="as">|</span>                       <span class="as">|</span>
+<span class="as">|</span>             <span class="as">|</span>                               <span class="as">|</span>  <span class="aor">Keyframe: tick,</span>      <span class="as">|</span>
+<span class="as">|</span>  <span class="ac">- root</span>     <span class="as">|</span>     <span class="as">Modele Blockbench</span>          <span class="as">|</span>  <span class="aor">value, easing</span>        <span class="as">|</span>
+<span class="as">|</span>  <span class="ac">  - lid</span>    <span class="as">|</span>     <span class="as">avec preview animation</span>     <span class="as">|</span>                       <span class="as">|</span>
+<span class="as">|</span>  <span class="ac">  - base</span>   <span class="as">|</span>     <span class="as">Orbit camera</span>               <span class="as">|</span>  <span class="aor">Animation:</span>           <span class="as">|</span>
+<span class="as">|</span>  <span class="ac">  - hinge</span>  <span class="as">|</span>     <span class="as">Grille + axes</span>              <span class="as">|</span>  <span class="aor">duration, endBehavior</span><span class="as">|</span>
+<span class="as">|</span>             <span class="as">|</span>                               <span class="as">|</span>  <span class="aor">blendIn, blendOut</span>    <span class="as">|</span>
+<span class="as">|</span>             <span class="as">|</span>                               <span class="as">|</span>                       <span class="as">|</span>
+<span class="as">|</span>             <span class="as">|</span>                               <span class="as">|</span>  <span class="aor">Events:</span>              <span class="as">|</span>
+<span class="as">|</span>             <span class="as">|</span>                               <span class="as">|</span>  <span class="aor">+ Add event</span>          <span class="as">|</span>
+<span class="as">|</span>             <span class="as">|</span>                               <span class="as">|</span>  <span class="aor">tick, type, value</span>    <span class="as">|</span>
+<span class="as">+-------------+-------------------------------+-----------------------+</span>
+<span class="as">|</span>                                                                   <span class="as">|</span>
+<span class="as">|</span>  <span class="ag">Timeline</span>                                                        <span class="as">|</span>
+<span class="as">|</span>  <span class="as">|  0    5    10   15   20   25   30   35   40  |</span>                <span class="as">|</span>
+<span class="as">|</span>  <span class="ac">lid.rot.X</span>   <span class="as">o---------o----o---------o</span>                        <span class="as">|</span>
+<span class="as">|</span>  <span class="ac">lid.rot.Y</span>   <span class="as">o-----------------------------o</span>                    <span class="as">|</span>
+<span class="as">|</span>  <span class="av">lid.trans.Y</span> <span class="as">o---------o</span>                                        <span class="as">|</span>
+<span class="as">|</span>  <span class="ay">base.scale</span>  <span class="as">o-----------------------------o</span>                    <span class="as">|</span>
+<span class="as">|</span>  <span class="ar">Events</span>      <span class="as">.....o.........o.....o.......o</span>                    <span class="as">|</span>
+<span class="as">|</span>  <span class="as">[ &lt;&lt; ] [ Play ] [ &gt;&gt; ] [ Loop ] | Frame: 12/40</span>                <span class="as">|</span>
+<span class="as">+-------------------------------------------------------------------+</span></div>
+
+      <h3>Panneau gauche — Arbre des groupes</h3>
+      <ul>
+        <li><strong>Arbre hierarchique</strong> affichant tous les groupes du modele Blockbench, avec indentation pour les sous-groupes.</li>
+        <li><strong>Icone oeil</strong> a cote de chaque groupe pour toggle la visibilite (dans le viewport seulement, pas dans l'animation).</li>
+        <li><strong>Selection</strong> d'un groupe highlight ce groupe dans le viewport (couleur de surbrillance) et filtre les pistes de la timeline pour ne montrer que celles de ce groupe.</li>
+        <li><strong>Double-click</strong> pour renommer un groupe (optionnel, modifie le .erianim mais pas le .json source).</li>
+        <li><strong>Drag &amp; drop</strong> non supporte (la hierarchie vient du modele, pas de l'editeur).</li>
+      </ul>
+
+      <h3>Centre — Viewport 3D</h3>
+      <ul>
+        <li><strong>Rendu OpenGL</strong> du modele Blockbench avec textures appliquees.</li>
+        <li><strong>Camera orbit :</strong> clic droit + drag pour orbiter, molette pour zoom, clic milieu + drag pour pan.</li>
+        <li><strong>Grille</strong> au sol (plan XZ) avec lignes tous les 1 block (16 pixels Blockbench).</li>
+        <li><strong>Axes colores</strong> X (rouge), Y (vert), Z (bleu) affiches au centre.</li>
+        <li><strong>Preview animation</strong> en temps reel : quand Play est actif, le viewport affiche le modele en mouvement a la cadence d'animation (20 ticks/sec convertis en frames ecran).</li>
+        <li><strong>Groupe selectionne</strong> surligne en couleur semi-transparente pour reperage.</li>
+        <li><strong>Pivot points</strong> affiches comme petites spheres colorees quand un groupe est selectionne.</li>
+        <li><strong>Preview endBehavior :</strong> quand l'animation atteint la fin, le viewport simule le endBehavior (freeze, rollback, loop) pour que l'artiste voie le resultat exact.</li>
+      </ul>
+
+      <h3>Droite — Panneau proprietes</h3>
+      <ul>
+        <li><strong>Si une keyframe est selectionnee :</strong> champs editables pour tick, valeur (X/Y/Z ou boolean), dropdown easing avec preview de courbe.</li>
+        <li><strong>Si un groupe est selectionne mais pas de keyframe :</strong> boutons pour ajouter une keyframe au tick courant pour rotation, translation, scale, ou visible.</li>
+        <li><strong>Section Animation :</strong> nom, duree (ticks + secondes affichees), dropdown endBehavior, champs rollbackDuration, blendIn, blendOut, loopCount, loopPause.</li>
+        <li><strong>Section Events :</strong> liste des events de l'animation courante avec bouton + pour ajouter. Chaque event : tick, dropdown type, champ value, champs supplementaires selon le type.</li>
+      </ul>
+
+      <h3>Bas — Timeline</h3>
+      <ul>
+        <li><strong>Echelle horizontale :</strong> ticks (0 a duration). La taille est zoomable (Ctrl+molette).</li>
+        <li><strong>Pistes multiples :</strong> une ligne par propriete animee par groupe. Format <code>groupe.propriete</code> (ex: <code>lid.rotation.X</code>).</li>
+        <li><strong>Keyframes</strong> affichees comme des losanges cliquables sur chaque piste. La couleur indique l'easing (bleu = linear, vert = ease_out, etc.).</li>
+        <li><strong>Courbe d'easing</strong> visible entre deux keyframes comme une mini-courbe dans la piste.</li>
+        <li><strong>Playhead :</strong> curseur vertical rouge deplacable (drag ou clic) pour scrubber dans l'animation.</li>
+        <li><strong>Selection multiple :</strong> Ctrl+clic pour selectionner plusieurs keyframes, Shift+clic pour range.</li>
+        <li><strong>Drag keyframes :</strong> deplacer horizontalement (changer le tick) ou verticalement (changer la valeur avec apercu en temps reel dans le viewport).</li>
+        <li><strong>Piste Events :</strong> piste speciale en bas de la timeline affichant les events comme des marqueurs colores (icone par type).</li>
+        <li><strong>Controles :</strong> Play, Pause, Stop, Loop preview, frame precedente, frame suivante, aller au debut, aller a la fin.</li>
+        <li><strong>Affichage :</strong> frame courante / total, temps en secondes.</li>
+      </ul>
+
+      <h3>Raccourcis clavier</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Raccourci</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>K</td><td>Ajouter une keyframe au tick courant pour le groupe/propriete selectionne</td></tr>
+            <tr><td>Suppr / Delete</td><td>Supprimer la keyframe selectionnee</td></tr>
+            <tr><td>Espace</td><td>Play / Pause</td></tr>
+            <tr><td>Fleche gauche</td><td>Frame precedente (tick - 1)</td></tr>
+            <tr><td>Fleche droite</td><td>Frame suivante (tick + 1)</td></tr>
+            <tr><td>Home</td><td>Aller au tick 0</td></tr>
+            <tr><td>End</td><td>Aller au dernier tick</td></tr>
+            <tr><td>Ctrl+Z</td><td>Undo</td></tr>
+            <tr><td>Ctrl+Y / Ctrl+Shift+Z</td><td>Redo</td></tr>
+            <tr><td>Ctrl+S</td><td>Sauvegarder le projet</td></tr>
+            <tr><td>Ctrl+E</td><td>Exporter .erianim</td></tr>
+            <tr><td>Ctrl+O</td><td>Ouvrir un modele Blockbench</td></tr>
+            <tr><td>Ctrl+N</td><td>Nouvelle animation</td></tr>
+            <tr><td>Ctrl+D</td><td>Dupliquer la keyframe selectionnee</td></tr>
+            <tr><td>Ctrl+A</td><td>Selectionner toutes les keyframes de la piste active</td></tr>
+            <tr><td>F</td><td>Focus camera sur le groupe selectionne</td></tr>
+            <tr><td>Numpad 1/3/7</td><td>Vues front / right / top</td></tr>
+            <tr><td>Numpad 5</td><td>Toggle perspective / orthographique</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Undo / Redo</h3>
+      <p>L'editeur maintient un historique complet de toutes les actions. Chaque action (ajout/suppression/deplacement de keyframe, changement de propriete, ajout/suppression d'event) est reversible. La pile d'undo est illimitee pour la session courante.</p>
+
+      <h3>Export .erianim</h3>
+      <p>L'export genere un fichier <code>.erianim</code> conforme a la specification de la section 05. Le fichier est ecrit avec indentation 2 espaces pour la lisibilite humaine. Les champs a valeur par defaut sont omis pour reduire la taille. L'editeur valide la coherence avant export :</p>
+      <ul>
+        <li><strong>Noms de groupes</strong> references dans les tracks existent dans le modele.</li>
+        <li><strong>Ticks des keyframes</strong> sont dans la plage [0, duration].</li>
+        <li><strong>Ticks des events</strong> sont dans la plage [0, duration].</li>
+        <li><strong>Au moins une keyframe</strong> a tick 0 par piste (sinon warning, pas erreur).</li>
+        <li><strong>rollbackDuration</strong> defini si endBehavior = "rollback".</li>
+        <li><strong>loopCount</strong> defini si endBehavior = "loop_count".</li>
+      </ul>
+    </section>
+
+    <!-- S8 — BLEND & TRANSITIONS -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num valterite-num">08</span> Animations blend &amp; transitions</h2>
+
+      <h3 class="first">Principe</h3>
+      <p>Quand un block passe d'une animation a une autre (ex: de <code>"idle_breathe"</code> a <code>"open"</code>), il ne doit pas y avoir de saut visuel brutal. Le systeme de blend interpole entre la <strong>pose actuelle du block</strong> et la <strong>premiere keyframe de la nouvelle animation</strong> sur une duree configurable.</p>
+
+      <h3>blendIn</h3>
+      <p>Defini sur chaque animation dans le .erianim. Quand <code>playAnimation("open")</code> est appele :</p>
+      <ul>
+        <li><strong>Tick 0 du blend :</strong> la pose du block est celle de la frame courante de l'animation precedente (ou la pose par defaut si IDLE).</li>
+        <li><strong>Tick blendIn du blend :</strong> la pose est celle de la premiere keyframe (tick 0) de la nouvelle animation.</li>
+        <li><strong>Interpolation :</strong> lineaire entre les deux poses, composant par composant (rotation, translation, scale) pour chaque groupe.</li>
+        <li><strong>Pendant le blend :</strong> l'animation precedente est arretee. Le playhead de la nouvelle animation est a 0 et ne demarre qu'apres le blend.</li>
+      </ul>
+
+      <h3>blendOut</h3>
+      <p>Defini sur chaque animation. Active quand l'animation se termine et qu'une autre prend le relais :</p>
+      <ul>
+        <li><strong>Si une nouvelle animation demarre pendant le blendOut :</strong> le blendOut de l'ancienne et le blendIn de la nouvelle se combinent. Le temps de transition = max(blendOut, blendIn) de la nouvelle.</li>
+        <li><strong>Si aucune animation ne suit (passage a IDLE) :</strong> le blendOut interpole vers la pose par defaut (tick 0 du modele, pas d'animation).</li>
+        <li><strong>blendOut = 0 :</strong> pas de transition en sortie, saut direct.</li>
+      </ul>
+
+      <h3>Cas particuliers</h3>
+      <ul>
+        <li><strong>blendIn = 0 :</strong> pas de transition en entree. L'animation demarre immediatement, potentiel saut visuel.</li>
+        <li><strong>Interruption pendant un blend :</strong> si une troisieme animation est declenchee pendant un blend A->B, le blend repart de la pose courante interpolee vers la premiere keyframe de C.</li>
+        <li><strong>Loop avec blend :</strong> en mode loop, le blendOut de la fin du cycle se combine avec le blendIn du debut du cycle suivant. Si les deux sont 0, pas de transition (boucle seche).</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Calcul de la pose de blend :</strong> pour chaque groupe, chaque composant (rotX, rotY, rotZ, transX, transY, transZ, scaleX, scaleY, scaleZ), la valeur intermediaire est : <code>lerp(poseA[component], poseB[component], blendProgress)</code> ou <code>blendProgress = elapsedBlendTicks / blendDuration</code>. La visibilite n'est PAS blendee — elle snap au premier tick de la nouvelle animation.</div>
+      </div>
+    </section>
+
+    <!-- S9 — endBehavior -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num red-num">09</span> Gestion des endBehavior</h2>
+
+      <h3 class="first">Cycle de vie complet</h3>
+      <p>Quand une animation atteint son dernier tick, le <code>AnimationController</code> evalue le endBehavior et transition vers l'etat approprie :</p>
+
+      <div class="ascii-diagram"><span class="av">playAnimation("open")</span>
+        <span class="as">|</span>
+        <span class="as">v</span>
+   <span class="ag">[blendIn ?]</span> ──yes──> <span class="ac">BLENDING_IN</span> (blendIn ticks) ──> <span class="ac">PLAYING</span>
+        <span class="as">|</span> no                                                  <span class="as">|</span>
+        <span class="as">v</span>                                                      <span class="as">v</span>
+   <span class="ac">PLAYING</span> ────────────────────────────────> <span class="ay">Dernier tick atteint</span>
+                                                           <span class="as">|</span>
+                              <span class="as">+──────────────+────────────+────────────+──────────+</span>
+                              <span class="as">|</span>              <span class="as">|</span>            <span class="as">|</span>            <span class="as">|</span>          <span class="as">|</span>
+                              <span class="as">v</span>              <span class="as">v</span>            <span class="as">v</span>            <span class="as">v</span>          <span class="as">v</span>
+                          <span class="ag">FROZEN</span>      <span class="av">ROLLING_BACK</span>   <span class="ar">IDLE</span>     <span class="aor">WAITING</span>   <span class="ac">PLAYING</span>
+                        <span class="as">(freeze)</span>     <span class="as">(rollback)</span>  <span class="as">(rollback</span>  <span class="as">_SERVER</span>   <span class="as">(loop)</span>
+                                        <span class="as">|</span>       <span class="as"> _instant)</span>    <span class="as">|</span>         <span class="as">|</span>
+                                        <span class="as">v</span>                    <span class="as">v</span>         <span class="as">v</span>
+                                     <span class="ar">IDLE</span>           <span class="as">resetAnimation()</span>  <span class="as">restart</span>
+                                  <span class="as">(rollback done)</span>        <span class="as">|</span>
+                                                       <span class="as">v</span>
+                                                    <span class="ar">IDLE</span> <span class="as">ou</span> <span class="av">ROLLING_BACK</span></div>
+
+      <h3>freeze</h3>
+      <ul>
+        <li>Le TileEntity passe en etat <code>FROZEN</code>.</li>
+        <li>Le tick du TileEntity s'arrete (pas de <code>update()</code>).</li>
+        <li>Le TESR rend la derniere frame de l'animation (statique).</li>
+        <li>Pour sortir : <code>playAnimation("autre")</code>, <code>resetAnimation()</code>, ou <code>stopAnimation()</code>.</li>
+      </ul>
+
+      <h3>rollback</h3>
+      <ul>
+        <li>Le TileEntity passe en etat <code>ROLLING_BACK</code>.</li>
+        <li>L'animation se joue en inverse, de la derniere frame vers la frame 0.</li>
+        <li>Duree du rollback = <code>rollbackDuration</code> ticks (defaut: moitie de <code>duration</code>).</li>
+        <li>Les easings sont inverses : un <code>ease_out</code> forward devient un <code>ease_in</code> en rollback.</li>
+        <li>Les events ne se declenchent PAS pendant le rollback.</li>
+        <li>A la fin du rollback, passage en <code>IDLE</code>.</li>
+      </ul>
+
+      <h3>rollback_instant</h3>
+      <ul>
+        <li>Snap immediat a la frame 0 (pose par defaut).</li>
+        <li>Passage direct en <code>IDLE</code>.</li>
+        <li>Peut causer un saut visuel — a utiliser pour les animations courtes ou mecaniques.</li>
+      </ul>
+
+      <h3>wait_server</h3>
+      <ul>
+        <li>Le TileEntity passe en etat <code>WAITING_SERVER</code>.</li>
+        <li>Le tick s'arrete, le TESR rend la derniere frame (comme freeze).</li>
+        <li>Le serveur doit appeler <code>te.resetAnimation()</code> pour declencher un rollback, ou <code>te.resetAnimation(true)</code> pour un retour instantane.</li>
+        <li><strong>Cas d'usage :</strong> une lootbox s'ouvre, reste ouverte en attendant que le serveur genere le loot, puis se referme quand le loot est distribue.</li>
+      </ul>
+
+      <h3>loop</h3>
+      <ul>
+        <li>A la derniere frame, le playhead revient a la frame 0 et l'animation recommence.</li>
+        <li>Si <code>blendOut</code> et <code>blendIn</code> sont > 0, le rebouclage est fluide.</li>
+        <li>Les events se redeclenchent a chaque cycle.</li>
+        <li>Boucle infinie jusqu'a <code>stopAnimation()</code> ou <code>playAnimation("autre")</code>.</li>
+      </ul>
+
+      <h3>loop_count</h3>
+      <ul>
+        <li>Comme <code>loop</code> mais s'arrete apres <code>loopCount</code> repetitions.</li>
+        <li>Apres la derniere repetition, passe en <code>FROZEN</code> a la derniere frame.</li>
+        <li>Si <code>loopCount = 3</code>, l'animation joue 3 fois au total (pas 3 fois apres la premiere).</li>
+      </ul>
+
+      <h3>loop_pause</h3>
+      <ul>
+        <li>Comme <code>loop</code> mais attend <code>loopPause</code> ticks a la frame 0 avant de recommencer.</li>
+        <li>Pendant la pause, le TileEntity est en <code>IDLE</code> (pas de tick, rendu statique frame 0).</li>
+        <li>Ideal pour les animations idle intermittentes (ex: une machine qui fait un cycle toutes les 3 secondes).</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Persistence NBT :</strong> l'etat d'animation (currentAnimation, animStartTick, animationState) est sauvegarde en NBT sur le TileEntity. Quand un chunk est decharge puis recharge, l'animation reprend la ou elle en etait. Si le block etait en etat PLAYING et que plus de <code>duration</code> ticks se sont ecoules, le endBehavior est applique immediatement au chargement.</div>
+      </div>
+    </section>
+
+    <!-- S10 — PERFORMANCE -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num erinium-num">10</span> Performance &amp; Optimisations</h2>
+
+      <h3 class="first">Objectif de performance</h3>
+      <p>Le framework doit supporter <strong>100 blocks animes simultanement visibles</strong> dans le champ de vision d'un joueur, dont <strong>20 en animation active</strong> et <strong>80 en IDLE</strong>, sans impact mesurable sur le framerate (delta < 1ms par frame a 60 FPS). Cote serveur, 500 blocks animes dans les chunks charges ne doivent pas impacter les TPS.</p>
+
+      <h3>Optimisations implementees</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Optimisation</th><th>Cible</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>Cache des modeles parses</td><td>Client</td><td><code>AnimModelCache</code> (singleton) stocke les <code>AnimatedBlockModel</code> parses. Un modele Blockbench n'est parse qu'une seule fois, meme si 100 blocks du meme type existent. Cle = ResourceLocation du modele.</td></tr>
+            <tr><td>Cache des animations parsees</td><td>Client + Serveur</td><td>Les fichiers .erianim sont parses une seule fois et stockes dans <code>AnimModelCache</code>. Cle = ResourceLocation du .erianim.</td></tr>
+            <tr><td>ITickable conditionnel</td><td>Serveur</td><td>Le <code>update()</code> du TileEntity retourne immediatement si l'etat est IDLE, FROZEN, PAUSED, ou WAITING_SERVER. Seuls PLAYING et ROLLING_BACK executent du code dans le tick (pour declencher les events).</td></tr>
+            <tr><td>Pas de sync par tick</td><td>Reseau</td><td>Le serveur envoie un seul packet au declenchement d'une animation (nom + startTick + endBehavior). Le client calcule la progression localement. Aucun traffic reseau pendant la lecture.</td></tr>
+            <tr><td>Interpolation partialTicks</td><td>Client</td><td>L'interpolation est calculee dans le TESR via <code>partialTicks</code>, donnant un rendu fluide independant du tickrate. Pas de tick client pour l'animation, tout est calcule au moment du rendu.</td></tr>
+            <tr><td>Distance de rendu max</td><td>Client</td><td><code>getMaxRenderDistanceSquared()</code> configurable par type de block. Au-dela, le TESR ne dessine rien. Defaut: 48 blocks (2304 squared).</td></tr>
+            <tr><td>Culling frustum</td><td>Client</td><td>Forge appelle <code>isGlobalRenderer()</code> = false par defaut. Le TESR est automatiquement cull par le frustum camera Minecraft. Pas de rendu pour les blocks hors champ de vision.</td></tr>
+            <tr><td>Eviter les allocations dans le rendu</td><td>Client</td><td>Le TESR reutilise des tableaux pre-alloues pour les poses animees. Pas de <code>new float[]</code> a chaque frame. Les <code>AnimationState</code> sont des objets mutables reutilises.</td></tr>
+            <tr><td>Batch par texture</td><td>Client</td><td>Lors du rendu d'un modele multi-textures, les faces utilisant la meme texture sont regroupees pour minimiser les <code>bindTexture()</code> calls.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Benchmarks cibles</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Scenario</th><th>Metric</th><th>Cible</th></tr></thead>
+          <tbody>
+            <tr><td>100 blocks IDLE visibles a 48 blocks</td><td>Render time delta</td><td>&lt; 0.5ms / frame</td></tr>
+            <tr><td>20 blocks PLAYING visibles a 32 blocks</td><td>Render time delta</td><td>&lt; 1.0ms / frame</td></tr>
+            <tr><td>500 TileEntities charges (serveur)</td><td>TPS impact</td><td>&lt; 0.1ms / tick quand tous IDLE</td></tr>
+            <tr><td>50 TileEntities PLAYING (serveur)</td><td>TPS impact</td><td>&lt; 0.5ms / tick (event dispatch)</td></tr>
+            <tr><td>Parse d'un modele 200 elements</td><td>Temps de parse</td><td>&lt; 5ms (une seule fois)</td></tr>
+            <tr><td>Parse d'un .erianim 10 animations</td><td>Temps de parse</td><td>&lt; 2ms (une seule fois)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Profilage :</strong> un compteur de performance integre a EriAPI (<code>AnimPerf</code>) mesure le temps total passe dans le rendu des blocks animes par frame. Accessible via la commande debug <code>/erianim perf</code>. Affiche le nombre de blocks rendus, le temps total, et le temps moyen par block.</div>
+      </div>
+    </section>
+
+    <!-- S11 — INTEGRATIONS -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num aetherite-num">11</span> Integrations EriAPI</h2>
+
+      <h3 class="first">Compatibilite EriBlock</h3>
+      <p><code>EriAnimBlock.create()</code> est une extension de <code>EriBlock.create()</code>. Il herite de toutes les methodes du builder EriBlock (material, hardness, resistance, harvestTool, drop, onActivated, etc.) et ajoute les methodes specifiques a l'animation (model, animation, renderDistance, defaultAnimation). Un <code>EriAnimBlock</code> EST un <code>EriBlock</code> avec un TESR attache.</p>
+
+      <h3>Compatibilite EriData</h3>
+      <p>L'etat d'animation est stocke directement dans le NBT du TileEntity via les methodes standard <code>writeToNBT()</code> / <code>readFromNBT()</code>. Si le mod consommateur utilise <code>@EriData</code> pour des donnees supplementaires sur le TileEntity, les deux systemes coexistent sans conflit.</p>
+
+      <h3>Events systeme</h3>
+      <p>Le framework emet des events Forge standard que les mods peuvent ecouter :</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Event</th><th>Quand</th><th>Champs</th></tr></thead>
+          <tbody>
+            <tr><td>AnimationStartEvent</td><td>Quand playAnimation() est appele</td><td>world, pos, tileEntity, animationName, endBehavior</td></tr>
+            <tr><td>AnimationEndEvent</td><td>Quand l'animation atteint la derniere frame (avant endBehavior)</td><td>world, pos, tileEntity, animationName, endBehavior</td></tr>
+            <tr><td>AnimationResetEvent</td><td>Quand resetAnimation() ou stopAnimation() est appele</td><td>world, pos, tileEntity, previousAnimation, instant</td></tr>
+            <tr><td>AnimationLoopEvent</td><td>Quand une animation en loop/loop_count recommence un cycle</td><td>world, pos, tileEntity, animationName, currentLoop, maxLoops</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Tous les events sont <code>Cancelable</code>. Annuler un <code>AnimationStartEvent</code> empeche l'animation de demarrer. Annuler un <code>AnimationResetEvent</code> empeche le reset.</p>
+
+      <div class="code-block"><span class="cm">// Ecouter les events d'animation via EriEvents</span>
+<span class="ty">EriEvents</span>.<span class="fn">on</span>(<span class="ty">AnimationStartEvent</span>.<span class="kw">class</span>, e -> {
+    <span class="kw">if</span> (<span class="st">"open"</span>.<span class="fn">equals</span>(e.<span class="fn">getAnimationName</span>())) {
+        <span class="ty">EriniumFaction</span>.LOGGER.<span class="fn">info</span>(<span class="st">"Lootbox opened at "</span> + e.<span class="fn">getPos</span>());
+    }
+});
+
+<span class="cm">// Ou avec @SubscribeEvent classique</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onAnimEnd</span>(<span class="ty">AnimationEndEvent</span> event) {
+    <span class="kw">if</span> (<span class="st">"faction_core_activate"</span>.<span class="fn">equals</span>(event.<span class="fn">getAnimationName</span>())) {
+        <span class="fn">activateCore</span>(event.<span class="fn">getWorld</span>(), event.<span class="fn">getPos</span>());
+    }
+}</div>
+
+      <h3>Commandes debug</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Permission</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>/erianim play &lt;x&gt; &lt;y&gt; &lt;z&gt; &lt;anim&gt;</td><td>OP level 2</td><td>Joue une animation sur un block anime a la position donnee.</td></tr>
+            <tr><td>/erianim play &lt;x&gt; &lt;y&gt; &lt;z&gt; &lt;anim&gt; &lt;endBehavior&gt;</td><td>OP level 2</td><td>Joue avec override du endBehavior.</td></tr>
+            <tr><td>/erianim reset &lt;x&gt; &lt;y&gt; &lt;z&gt;</td><td>OP level 2</td><td>Reset l'animation (rollback).</td></tr>
+            <tr><td>/erianim reset &lt;x&gt; &lt;y&gt; &lt;z&gt; instant</td><td>OP level 2</td><td>Reset instantane.</td></tr>
+            <tr><td>/erianim stop &lt;x&gt; &lt;y&gt; &lt;z&gt;</td><td>OP level 2</td><td>Stop l'animation (retour IDLE).</td></tr>
+            <tr><td>/erianim list &lt;x&gt; &lt;y&gt; &lt;z&gt;</td><td>OP level 2</td><td>Liste les animations disponibles pour le block a cette position.</td></tr>
+            <tr><td>/erianim state &lt;x&gt; &lt;y&gt; &lt;z&gt;</td><td>OP level 2</td><td>Affiche l'etat courant : animation, state, progress, tick.</td></tr>
+            <tr><td>/erianim perf</td><td>OP level 2</td><td>Affiche les stats de performance : blocks rendus, temps total, temps moyen.</td></tr>
+            <tr><td>/erianim reload</td><td>OP level 3</td><td>Recharge tous les modeles et animations depuis le disque (hot reload pour le dev).</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Toutes les commandes ont de l'auto-completion : les coordonnees suggerent la position du joueur, les noms d'animation suggerent ceux du .erianim du block cible, les endBehaviors suggerent les valeurs valides.</p>
+    </section>
+
+    <!-- S12 — PLAN DE TESTS -->
+    <section class="section-card" id="s12">
+      <h2><span class="s-num">12</span> Plan de tests</h2>
+
+      <h3 class="first">Tests unitaires — Parsing</h3>
+      <ul class="checklist">
+        <li><strong>Parse modele Blockbench basique :</strong> un modele avec 2 groupes, 4 elements, 1 texture. Verifier que tous les groupes, elements, pivots et UV sont correctement parses.</li>
+        <li><strong>Parse modele avec groupes imbriques :</strong> 3 niveaux de hierarchie. Verifier que la structure parent-enfant est correcte.</li>
+        <li><strong>Parse modele multi-textures :</strong> modele avec 3 textures differentes. Verifier que les references "#0", "#1", "#2" sont correctement resolues.</li>
+        <li><strong>Parse modele avec rotations statiques :</strong> elements avec rotation initiale. Verifier angle, axe et origine.</li>
+        <li><strong>Conversion coordonnees :</strong> verifier que les positions Blockbench (0-16) sont correctement converties en OpenGL (0-1).</li>
+        <li><strong>Parse .erianim minimal :</strong> un fichier avec 1 animation, 1 track, 2 keyframes. Verifier tous les champs.</li>
+        <li><strong>Parse .erianim complet :</strong> fichier avec 3 animations, multiples tracks, events, endBehaviors differents. Verifier chaque champ.</li>
+        <li><strong>Parse .erianim avec defauts :</strong> fichier sans les champs optionnels. Verifier que les valeurs par defaut sont appliquees (easing: linear, endBehavior: freeze, etc.).</li>
+      </ul>
+
+      <h3>Tests unitaires — Interpolation</h3>
+      <ul class="checklist">
+        <li><strong>Interpolation lineaire :</strong> 2 keyframes (tick 0: [0,0,0], tick 20: [90,0,0]). Verifier que tick 10 = [45,0,0].</li>
+        <li><strong>Interpolation ease_out :</strong> verifier que la courbe est decelerative (valeur a mi-chemin > 50% de la progression lineaire).</li>
+        <li><strong>Interpolation bounce :</strong> verifier que la valeur depasse la cible puis revient (overshoot characteristic).</li>
+        <li><strong>Interpolation elastic :</strong> verifier l'oscillation amortie.</li>
+        <li><strong>Interpolation avec 3+ keyframes :</strong> verifier que l'easing s'applique par segment (entre chaque paire de keyframes consecutives).</li>
+        <li><strong>Interpolation partialTicks :</strong> verifier que la valeur entre deux ticks est correcte (ex: tick 5 + partialTicks 0.5 = progression equivalente a tick 5.5).</li>
+        <li><strong>Interpolation multi-composant :</strong> rotation + translation + scale sur le meme groupe au meme tick. Verifier l'independance.</li>
+      </ul>
+
+      <h3>Tests unitaires — endBehavior</h3>
+      <ul class="checklist">
+        <li><strong>freeze :</strong> apres duration ticks, l'etat passe a FROZEN. La pose est celle de la derniere keyframe.</li>
+        <li><strong>rollback :</strong> apres duration ticks, l'etat passe a ROLLING_BACK. Apres rollbackDuration ticks, etat = IDLE, pose = frame 0.</li>
+        <li><strong>rollback_instant :</strong> apres duration ticks, etat = IDLE immediatement, pose = frame 0.</li>
+        <li><strong>wait_server :</strong> apres duration ticks, etat = WAITING_SERVER. Appel resetAnimation() -> ROLLING_BACK ou IDLE.</li>
+        <li><strong>loop :</strong> apres duration ticks, le playhead revient a 0 et PLAYING continue.</li>
+        <li><strong>loop_count :</strong> apres N repetitions, etat = FROZEN.</li>
+        <li><strong>loop_pause :</strong> apres chaque cycle, pause de loopPause ticks a frame 0, puis recommence.</li>
+      </ul>
+
+      <h3>Tests unitaires — Blend</h3>
+      <ul class="checklist">
+        <li><strong>blendIn basique :</strong> transition depuis IDLE vers une animation avec blendIn=5. Verifier que pendant 5 ticks, la pose est une interpolation lineaire.</li>
+        <li><strong>blendIn depuis une autre animation :</strong> pendant que "idle_breathe" joue, declencher "open". Verifier que le blend part de la pose courante de idle_breathe.</li>
+        <li><strong>blendIn = 0 :</strong> pas de transition, saut direct a la premiere keyframe.</li>
+        <li><strong>blendOut vers IDLE :</strong> animation avec blendOut=5 se terminant. Verifier transition vers pose par defaut.</li>
+      </ul>
+
+      <h3>Tests integration — TileEntity</h3>
+      <ul class="checklist">
+        <li><strong>Persistence NBT :</strong> placer un block anime, jouer une animation, sauvegarder le monde, recharger. Verifier que l'etat d'animation est restaure.</li>
+        <li><strong>Chunk unload/reload :</strong> block anime en animation. S'eloigner pour decharger le chunk, revenir. Verifier la reprise correcte.</li>
+        <li><strong>Sync client/serveur :</strong> un joueur declenche une animation. Un second joueur a proximite voit-il l'animation commencer au bon moment ?</li>
+        <li><strong>Joueur rejoignant :</strong> un block est en etat FROZEN quand un joueur se connecte. Le joueur voit-il la bonne pose ?</li>
+        <li><strong>Callbacks :</strong> enregistrer un callback, jouer l'animation, verifier que le callback est appele au bon tick cote serveur.</li>
+        <li><strong>Events Forge :</strong> enregistrer un listener sur AnimationStartEvent, jouer une animation, verifier que l'event est emis avec les bons champs.</li>
+      </ul>
+
+      <h3>Tests visuels</h3>
+      <ul class="checklist">
+        <li><strong>Fidelite Blockbench :</strong> exporter un modele depuis Blockbench, l'afficher in-game, comparer visuellement avec le preview Blockbench. Les proportions, UV, et textures doivent correspondre.</li>
+        <li><strong>Fidelite editeur Python :</strong> creer une animation dans l'editeur, exporter le .erianim, l'afficher in-game. Le mouvement doit etre visuellement identique au preview de l'editeur.</li>
+        <li><strong>Easings :</strong> animer un groupe avec chaque easing disponible. Verifier visuellement que les courbes correspondent aux descriptions.</li>
+        <li><strong>Multi-groupe :</strong> modele avec 5+ groupes animes simultanement. Verifier l'absence de glitch visuel.</li>
+      </ul>
+
+      <h3>Tests performance</h3>
+      <ul class="checklist">
+        <li><strong>100 blocks IDLE :</strong> placer 100 blocks animes dans le champ de vision (tous en IDLE). Mesurer le delta de framerate par rapport a 0 blocks.</li>
+        <li><strong>20 blocks PLAYING :</strong> declencher des animations sur 20 blocks simultanement. Mesurer le delta de framerate.</li>
+        <li><strong>Distance de rendu :</strong> verifier que les blocks au-dela de renderDistance ne sont pas rendus (via compteur AnimPerf).</li>
+        <li><strong>Cache modele :</strong> 100 blocks du meme type. Verifier qu'un seul parse a lieu (via log ou compteur).</li>
+        <li><strong>500 TileEntities serveur :</strong> 500 blocks animes en IDLE dans les chunks charges. Mesurer l'impact TPS via <code>/forge tps</code>.</li>
+        <li><strong>Stress test serveur :</strong> 50 blocks passant en PLAYING simultanement avec events (son + callback). Mesurer le spike TPS.</li>
+      </ul>
+
+      <h3>Tests editeur Python</h3>
+      <ul class="checklist">
+        <li><strong>Import Blockbench :</strong> ouvrir un .json Blockbench dans l'editeur. Verifier que l'arbre des groupes, le viewport 3D, et les textures correspondent.</li>
+        <li><strong>Round-trip :</strong> creer une animation dans l'editeur, exporter en .erianim, reimporter le .erianim dans l'editeur. Verifier que toutes les keyframes et proprietes sont identiques.</li>
+        <li><strong>Undo/Redo :</strong> effectuer 10 actions, undo 5 fois, redo 3 fois. Verifier la coherence.</li>
+        <li><strong>Export vers Java :</strong> exporter un .erianim depuis l'editeur, le charger dans le runtime Java, comparer le rendu in-game avec le preview de l'editeur.</li>
+        <li><strong>Validation export :</strong> tenter d'exporter avec des noms de groupes invalides ou des ticks hors range. Verifier que l'editeur affiche des erreurs.</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+<script>
+document.getElementById('navToggle').addEventListener('click', function() {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+// Active nav highlighting
+var links = document.querySelectorAll('.nav-link');
+var sections = document.querySelectorAll('section[id]');
+window.addEventListener('scroll', function() {
+  var scrollY = window.scrollY;
+  sections.forEach(function(section) {
+    var top = section.offsetTop - 80;
+    var bottom = top + section.offsetHeight;
+    var id = section.getAttribute('id');
+    if (scrollY >= top && scrollY < bottom) {
+      links.forEach(function(l) { l.classList.remove('active'); });
+      var active = document.querySelector('.nav-link[href="#' + id + '"]');
+      if (active) active.classList.add('active');
+    }
+  });
+}, { passive: true });
+</script>
+</body>
+</html>

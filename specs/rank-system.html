@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Système de Grades | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 60% 10%, rgba(46,204,113,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT — SIDEBAR + MAIN
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 12px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan   { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green  { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+
+  /* =========================================================
+     CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num {
+    background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%);
+  }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr {
+    background: rgba(107,47,160,0.18);
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  tbody td {
+    padding: 10px 16px;
+    border-top: 1px solid var(--card-bdr);
+    color: var(--slate);
+  }
+
+  tbody tr:hover {
+    background: rgba(107,47,160,0.06);
+  }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  pre {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #d4d4d8;
+    margin: 16px 0;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  pre .kw  { color: var(--violet-l); }
+  pre .str { color: var(--green); }
+  pre .num { color: var(--cyan); }
+  pre .cmt { color: #555; font-style: italic; }
+  pre .ann { color: var(--gold); }
+
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12px;
+    background: rgba(107,47,160,0.12);
+    padding: 2px 7px;
+    border-radius: 5px;
+    color: var(--violet-l);
+  }
+
+  /* =========================================================
+     ANIMATION
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* =========================================================
+     MOBILE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 860px) {
+    .sidebar {
+      position: fixed;
+      left: -300px;
+      top: 0;
+      z-index: 99;
+      transition: left .3s;
+      height: 100vh;
+    }
+
+    .sidebar.open { left: 0; }
+
+    .mobile-nav-toggle { display: block; }
+
+    .main { padding: 48px 20px 80px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========================================================= -->
+  <!-- SIDEBAR                                                     -->
+  <!-- ========================================================= -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a href="index.html" class="sidebar-back">&#8592; Retour aux specs</a>
+
+    <div class="sidebar-title">Sections</div>
+    <a href="#overview"     class="nav-link"><span class="num">01</span> Vue d'ensemble</a>
+    <a href="#storage"      class="nav-link"><span class="num">02</span> Stockage fichiers</a>
+    <a href="#structure"    class="nav-link"><span class="num">03</span> Structure d'un grade</a>
+    <a href="#default"      class="nav-link"><span class="num">04</span> Grade par d&eacute;faut</a>
+    <a href="#permissions"  class="nav-link"><span class="num">05</span> Syst&egrave;me de permissions</a>
+    <a href="#inheritance"  class="nav-link"><span class="num">06</span> H&eacute;ritage</a>
+    <a href="#chat"         class="nav-link"><span class="num">07</span> Int&eacute;gration chat &amp; tab</a>
+    <a href="#commands"     class="nav-link"><span class="num">08</span> Commandes</a>
+    <a href="#architecture" class="nav-link"><span class="num">09</span> Architecture</a>
+    <a href="#examples"     class="nav-link"><span class="num">10</span> Exemples</a>
+  </aside>
+
+  <!-- ========================================================= -->
+  <!-- MAIN CONTENT                                                -->
+  <!-- ========================================================= -->
+  <main class="main">
+
+    <header class="page-header">
+      <div class="eyebrow">Cahier des charges</div>
+      <h1>Syst&egrave;me de Grades</h1>
+      <p>Syst&egrave;me de rangs serveur avec permissions, pr&eacute;fixe/suffixe, h&eacute;ritage et gestion par fichiers JSON &mdash; ind&eacute;pendant des factions.</p>
+      <div class="header-badges">
+        <span class="badge badge-violet">Permissions</span>
+        <span class="badge badge-cyan">Fichiers JSON</span>
+        <span class="badge badge-green">Chat &amp; Tab</span>
+      </div>
+    </header>
+
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <!-- §01 VUE D'ENSEMBLE                                         -->
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <div class="section-card" id="overview">
+      <h2><span class="s-num">01</span> Vue d'ensemble</h2>
+      <p>Le syst&egrave;me de grades permet d'attribuer des rangs aux joueurs avec des permissions, un pr&eacute;fixe et un suffixe qui s'affichent dans le chat et la tablist. Chaque grade est un fichier JSON ind&eacute;pendant, facilement modifiable sans red&eacute;marrer le serveur.</p>
+
+      <h3 class="first">Piliers du syst&egrave;me</h3>
+      <ul>
+        <li><strong>Fichiers JSON</strong> &mdash; un fichier par grade dans <code>config/EriniumFaction/ranks/</code></li>
+        <li><strong>Grade par d&eacute;faut</strong> &mdash; fichier <code>default.json</code> cr&eacute;&eacute; automatiquement, attribu&eacute; &agrave; tout joueur sans grade explicite</li>
+        <li><strong>Permissions</strong> &mdash; n&oelig;uds hi&eacute;rarchiques avec support wildcard (<code>*</code>) et n&eacute;gation (<code>-</code>)</li>
+        <li><strong>H&eacute;ritage</strong> &mdash; un grade peut h&eacute;riter des permissions d'un ou plusieurs autres grades</li>
+        <li><strong>Pr&eacute;fixe &amp; Suffixe</strong> &mdash; avec codes couleurs <code>&amp;</code> (ex: <code>&amp;c[Admin]</code>), affich&eacute;s dans le chat et la tablist</li>
+        <li><strong>Priorit&eacute;</strong> &mdash; d&eacute;termine l'ordre d'affichage et quel grade prime en cas de conflit</li>
+        <li><strong>Hot-reload</strong> &mdash; commande <code>/rank reload</code> pour recharger les fichiers sans red&eacute;marrage</li>
+        <li><strong>Multi-grade</strong> &mdash; un joueur a un seul grade actif (le plus prioritaire attribu&eacute;)</li>
+      </ul>
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <!-- §02 STOCKAGE FICHIERS                                      -->
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <div class="section-card" id="storage">
+      <h2><span class="s-num">02</span> Stockage fichiers</h2>
+
+      <h3 class="first">Arborescence</h3>
+<pre>
+config/EriniumFaction/
+&#9500;&#9472;&#9472; ranks/
+&#9474;   &#9500;&#9472;&#9472; default.json      <span class="cmt">// Grade par d&eacute;faut — cr&eacute;&eacute; auto si absent</span>
+&#9474;   &#9500;&#9472;&#9472; vip.json           <span class="cmt">// Exemple grade VIP</span>
+&#9474;   &#9500;&#9472;&#9472; mod.json           <span class="cmt">// Exemple grade Mod&eacute;rateur</span>
+&#9474;   &#9492;&#9472;&#9472; admin.json         <span class="cmt">// Exemple grade Admin</span>
+&#9492;&#9472;&#9472; player-ranks.json             <span class="cmt">// Assignations joueur &rarr; grade</span>
+</pre>
+
+      <h3>Fichier <code>player-ranks.json</code></h3>
+      <p>Stocke les assignations joueur &rarr; grade. Le grade est r&eacute;f&eacute;renc&eacute; par son identifiant (nom du fichier sans <code>.json</code>).</p>
+<pre>
+{
+  <span class="str">"550e8400-e29b-41d4-a716-446655440000"</span>: <span class="str">"admin"</span>,
+  <span class="str">"6ba7b810-9dad-11d1-80b4-00c04fd430c8"</span>: <span class="str">"mod"</span>,
+  <span class="str">"7c9e6679-7425-40de-944b-e07fc1f90ae7"</span>: <span class="str">"vip"</span>
+}
+</pre>
+      <p>Les joueurs absents de ce fichier re&ccedil;oivent automatiquement le grade <code>default</code>.</p>
+
+      <h3>Chargement</h3>
+      <ul>
+        <li><strong>Au d&eacute;marrage serveur</strong> &mdash; tous les fichiers <code>.json</code> du dossier <code>ranks/</code> sont lus et pars&eacute;s</li>
+        <li><strong>Si le dossier n'existe pas</strong> &mdash; il est cr&eacute;&eacute; automatiquement avec <code>default.json</code></li>
+        <li><strong>Hot-reload</strong> &mdash; <code>/rank reload</code> relit tous les fichiers et r&eacute;applique les permissions</li>
+        <li><strong>Sauvegarde</strong> &mdash; seul <code>player-ranks.json</code> est &eacute;crit par le serveur (les fichiers de grades ne sont jamais modifi&eacute;s par le code, uniquement par l'admin)</li>
+      </ul>
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <!-- §03 STRUCTURE D'UN GRADE                                   -->
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <div class="section-card" id="structure">
+      <h2><span class="s-num">03</span> Structure d'un grade</h2>
+
+      <p>Chaque fichier JSON repr&eacute;sente un grade complet :</p>
+
+<pre>
+{
+  <span class="str">"name"</span>: <span class="str">"Mod&eacute;rateur"</span>,
+  <span class="str">"priority"</span>: <span class="num">50</span>,
+  <span class="str">"prefix"</span>: <span class="str">"&amp;9[Mod] "</span>,
+  <span class="str">"suffix"</span>: <span class="str">""</span>,
+  <span class="str">"color"</span>: <span class="str">"&amp;9"</span>,
+  <span class="str">"inherits"</span>: [<span class="str">"vip"</span>],
+  <span class="str">"permissions"</span>: [
+    <span class="str">"moderation.kick"</span>,
+    <span class="str">"moderation.mute"</span>,
+    <span class="str">"moderation.ban"</span>,
+    <span class="str">"teleport.*"</span>,
+    <span class="str">"-gamemode.creative"</span>
+  ]
+}
+</pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Champ</th>
+              <th>Type</th>
+              <th>Obligatoire</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>name</strong></td>
+              <td>String</td>
+              <td>Oui</td>
+              <td>Nom d'affichage du grade (supporte les <code>&amp;</code> couleurs)</td>
+            </tr>
+            <tr>
+              <td><strong>priority</strong></td>
+              <td>int</td>
+              <td>Oui</td>
+              <td>Priorit&eacute; (0&#8211;1000). Plus &eacute;lev&eacute; = plus important. D&eacute;termine l'ordre tablist et le grade actif si conflit</td>
+            </tr>
+            <tr>
+              <td><strong>prefix</strong></td>
+              <td>String</td>
+              <td>Non</td>
+              <td>Pr&eacute;fixe affich&eacute; avant le pseudo dans le chat et la tablist. Supporte <code>&amp;</code> couleurs. D&eacute;faut : <code>""</code></td>
+            </tr>
+            <tr>
+              <td><strong>suffix</strong></td>
+              <td>String</td>
+              <td>Non</td>
+              <td>Suffixe affich&eacute; apr&egrave;s le pseudo. Supporte <code>&amp;</code> couleurs. D&eacute;faut : <code>""</code></td>
+            </tr>
+            <tr>
+              <td><strong>color</strong></td>
+              <td>String</td>
+              <td>Non</td>
+              <td>Code couleur <code>&amp;</code> appliqu&eacute; au pseudo du joueur dans le chat/tab. D&eacute;faut : <code>"&amp;7"</code></td>
+            </tr>
+            <tr>
+              <td><strong>inherits</strong></td>
+              <td>String[]</td>
+              <td>Non</td>
+              <td>Liste des identifiants de grades dont h&eacute;riter les permissions. D&eacute;faut : <code>[]</code></td>
+            </tr>
+            <tr>
+              <td><strong>permissions</strong></td>
+              <td>String[]</td>
+              <td>Non</td>
+              <td>Liste des n&oelig;uds de permission. Supporte wildcards et n&eacute;gation. D&eacute;faut : <code>[]</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Codes couleurs support&eacute;s</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Code</th><th>Couleur</th><th>Code</th><th>Style</th></tr></thead>
+          <tbody>
+            <tr><td><code>&amp;0</code></td><td>Noir</td><td><code>&amp;l</code></td><td>Gras</td></tr>
+            <tr><td><code>&amp;1</code></td><td>Bleu fonc&eacute;</td><td><code>&amp;o</code></td><td>Italique</td></tr>
+            <tr><td><code>&amp;2</code></td><td>Vert fonc&eacute;</td><td><code>&amp;n</code></td><td>Soulign&eacute;</td></tr>
+            <tr><td><code>&amp;3</code></td><td>Cyan fonc&eacute;</td><td><code>&amp;m</code></td><td>Barr&eacute;</td></tr>
+            <tr><td><code>&amp;4</code></td><td>Rouge fonc&eacute;</td><td><code>&amp;k</code></td><td>Obfusqu&eacute;</td></tr>
+            <tr><td><code>&amp;5</code></td><td>Violet</td><td><code>&amp;r</code></td><td>Reset</td></tr>
+            <tr><td><code>&amp;6</code></td><td>Or</td><td></td><td></td></tr>
+            <tr><td><code>&amp;7</code></td><td>Gris</td><td></td><td></td></tr>
+            <tr><td><code>&amp;8</code></td><td>Gris fonc&eacute;</td><td></td><td></td></tr>
+            <tr><td><code>&amp;9</code></td><td>Bleu</td><td></td><td></td></tr>
+            <tr><td><code>&amp;a</code></td><td>Vert</td><td></td><td></td></tr>
+            <tr><td><code>&amp;b</code></td><td>Cyan</td><td></td><td></td></tr>
+            <tr><td><code>&amp;c</code></td><td>Rouge</td><td></td><td></td></tr>
+            <tr><td><code>&amp;d</code></td><td>Rose</td><td></td><td></td></tr>
+            <tr><td><code>&amp;e</code></td><td>Jaune</td><td></td><td></td></tr>
+            <tr><td><code>&amp;f</code></td><td>Blanc</td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <!-- §04 GRADE PAR DÉFAUT                                       -->
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <div class="section-card" id="default">
+      <h2><span class="s-num">04</span> Grade par d&eacute;faut</h2>
+
+      <p>Le fichier <code>default.json</code> est g&eacute;n&eacute;r&eacute; automatiquement au premier d&eacute;marrage si absent :</p>
+
+<pre>
+{
+  <span class="str">"name"</span>: <span class="str">"Joueur"</span>,
+  <span class="str">"priority"</span>: <span class="num">0</span>,
+  <span class="str">"prefix"</span>: <span class="str">"&amp;7"</span>,
+  <span class="str">"suffix"</span>: <span class="str">""</span>,
+  <span class="str">"color"</span>: <span class="str">"&amp;7"</span>,
+  <span class="str">"inherits"</span>: [],
+  <span class="str">"permissions"</span>: [
+    <span class="str">"faction.command.basic"</span>,
+    <span class="str">"chat.use"</span>
+  ]
+}
+</pre>
+
+      <ul>
+        <li><strong>Ne peut pas &ecirc;tre supprim&eacute;</strong> &mdash; la commande <code>/rank delete default</code> est refus&eacute;e</li>
+        <li><strong>Priorit&eacute; 0</strong> &mdash; tout grade cr&eacute;&eacute; avec une priorit&eacute; sup&eacute;rieure le surpasse</li>
+        <li><strong>Fallback automatique</strong> &mdash; un joueur dont le grade assign&eacute; n'existe plus retombe sur <code>default</code></li>
+      </ul>
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <!-- §05 SYSTÈME DE PERMISSIONS                                 -->
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <div class="section-card" id="permissions">
+      <h2><span class="s-num">05</span> Syst&egrave;me de permissions</h2>
+
+      <h3 class="first">Format des n&oelig;uds</h3>
+      <p>Les permissions utilisent un format hi&eacute;rarchique &agrave; points : <code>cat&eacute;gorie.sous-cat&eacute;gorie.action</code></p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Syntaxe</th><th>Effet</th><th>Exemple</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>node.exact</code></td>
+              <td>Accorde cette permission pr&eacute;cise</td>
+              <td><code>moderation.kick</code></td>
+            </tr>
+            <tr>
+              <td><code>node.*</code></td>
+              <td>Accorde toutes les permissions sous ce pr&eacute;fixe</td>
+              <td><code>moderation.*</code> &#8594; kick, ban, mute, etc.</td>
+            </tr>
+            <tr>
+              <td><code>*</code></td>
+              <td>Toutes les permissions (super-admin)</td>
+              <td><code>*</code></td>
+            </tr>
+            <tr>
+              <td><code>-node.exact</code></td>
+              <td>Retire explicitement cette permission (m&ecirc;me h&eacute;rit&eacute;e ou wildcard)</td>
+              <td><code>-gamemode.creative</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>R&eacute;solution des permissions</h3>
+      <p>L'ordre de priorit&eacute; pour v&eacute;rifier si un joueur a une permission :</p>
+      <ul>
+        <li><strong>1.</strong> N&eacute;gations du grade actif (<code>-permission</code>) &mdash; toujours prioritaires</li>
+        <li><strong>2.</strong> Permissions exactes du grade actif</li>
+        <li><strong>3.</strong> Wildcards du grade actif (<code>node.*</code>)</li>
+        <li><strong>4.</strong> Permissions h&eacute;rit&eacute;es (r&eacute;cursif, m&ecirc;me logique 1-2-3)</li>
+        <li><strong>5.</strong> Permissions du grade <code>default</code> (toujours appliqu&eacute;es en dernier recours)</li>
+      </ul>
+
+      <h3>Permissions pr&eacute;d&eacute;finies EriniumFaction</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Permission</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>faction.command.basic</code></td><td>Commandes faction de base (/f create, /f info, etc.)</td></tr>
+            <tr><td><code>faction.command.admin</code></td><td>Commandes admin faction (/f admin claim, etc.)</td></tr>
+            <tr><td><code>chat.use</code></td><td>Parler dans le chat</td></tr>
+            <tr><td><code>chat.color</code></td><td>Utiliser les codes couleur dans le chat</td></tr>
+            <tr><td><code>gamemode.survival</code></td><td>Passer en mode survie</td></tr>
+            <tr><td><code>gamemode.creative</code></td><td>Passer en mode cr&eacute;atif</td></tr>
+            <tr><td><code>gamemode.spectator</code></td><td>Passer en mode spectateur</td></tr>
+            <tr><td><code>teleport.spawn</code></td><td>Se t&eacute;l&eacute;porter au spawn</td></tr>
+            <tr><td><code>teleport.player</code></td><td>Se t&eacute;l&eacute;porter &agrave; un joueur</td></tr>
+            <tr><td><code>teleport.*</code></td><td>Toutes les t&eacute;l&eacute;portations</td></tr>
+            <tr><td><code>moderation.kick</code></td><td>Kick un joueur</td></tr>
+            <tr><td><code>moderation.ban</code></td><td>Ban un joueur</td></tr>
+            <tr><td><code>moderation.mute</code></td><td>Mute un joueur</td></tr>
+            <tr><td><code>moderation.*</code></td><td>Toutes les commandes de mod&eacute;ration</td></tr>
+            <tr><td><code>rank.manage</code></td><td>G&eacute;rer les grades (commandes /rank)</td></tr>
+            <tr><td><code>rank.reload</code></td><td>Recharger les fichiers de grades</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Les mods tiers peuvent enregistrer leurs propres n&oelig;uds. Le syst&egrave;me accepte n'importe quelle cha&icirc;ne comme permission.</p>
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <!-- §06 HÉRITAGE                                               -->
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <div class="section-card" id="inheritance">
+      <h2><span class="s-num">06</span> H&eacute;ritage</h2>
+
+      <p>Un grade peut h&eacute;riter des permissions d'un ou plusieurs autres grades via le champ <code>inherits</code>.</p>
+
+      <h3 class="first">Exemple de cha&icirc;ne</h3>
+<pre>
+<span class="cmt">// default.json — priorit&eacute; 0</span>
+<span class="str">"permissions"</span>: [<span class="str">"faction.command.basic"</span>, <span class="str">"chat.use"</span>]
+
+<span class="cmt">// vip.json — priorit&eacute; 10, h&eacute;rite de default</span>
+<span class="str">"inherits"</span>: [<span class="str">"default"</span>]
+<span class="str">"permissions"</span>: [<span class="str">"chat.color"</span>, <span class="str">"teleport.spawn"</span>]
+
+<span class="cmt">// mod.json — priorit&eacute; 50, h&eacute;rite de vip</span>
+<span class="str">"inherits"</span>: [<span class="str">"vip"</span>]
+<span class="str">"permissions"</span>: [<span class="str">"moderation.*"</span>, <span class="str">"teleport.*"</span>, <span class="str">"-gamemode.creative"</span>]
+
+<span class="cmt">// admin.json — priorit&eacute; 100, h&eacute;rite de mod</span>
+<span class="str">"inherits"</span>: [<span class="str">"mod"</span>]
+<span class="str">"permissions"</span>: [<span class="str">"*"</span>]
+</pre>
+
+      <p>Le mod&eacute;rateur a : <code>moderation.*</code> + <code>teleport.*</code> + <code>chat.color</code> + <code>teleport.spawn</code> + <code>faction.command.basic</code> + <code>chat.use</code>, mais PAS <code>gamemode.creative</code> (n&eacute;gation explicite).</p>
+
+      <ul>
+        <li><strong>R&eacute;cursif</strong> &mdash; si A h&eacute;rite de B qui h&eacute;rite de C, A obtient les permissions de B et C</li>
+        <li><strong>D&eacute;tection de boucles</strong> &mdash; si A h&eacute;rite de B et B h&eacute;rite de A, le syst&egrave;me d&eacute;tecte la boucle et l'ignore avec un warning dans les logs</li>
+        <li><strong>Les n&eacute;gations du grade enfant priment</strong> &mdash; si le parent donne <code>gamemode.*</code> et l'enfant a <code>-gamemode.creative</code>, la n&eacute;gation gagne</li>
+      </ul>
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <!-- §07 INTÉGRATION CHAT & TAB                                 -->
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <div class="section-card" id="chat">
+      <h2><span class="s-num">07</span> Int&eacute;gration chat &amp; tab</h2>
+
+      <h3 class="first">Format du chat</h3>
+      <p>Le message chat est reformatt&eacute; selon le grade du joueur :</p>
+<pre>
+{prefix}{color}{pseudo}{suffix} <span class="str">&amp;7&raquo;</span> {message}
+
+<span class="cmt">// Exemple : &amp;c[Admin] &amp;cKilliMusic &amp;7&raquo; Salut tout le monde !</span>
+<span class="cmt">// Exemple : &amp;9[Mod] &amp;9PlayerName &amp;7&raquo; Bonjour</span>
+<span class="cmt">// Exemple : &amp;7PlayerName &amp;7&raquo; Hello</span>
+</pre>
+
+      <h3>Intégration faction</h3>
+      <p>Si le joueur a une faction et que <code>showFactionInChat</code> est activ&eacute;, le tag faction s'ajoute :</p>
+<pre>
+{prefix}{color}{pseudo}{suffix} <span class="str">&amp;8[</span>{factionTag}<span class="str">]</span> <span class="str">&amp;7&raquo;</span> {message}
+</pre>
+
+      <h3>Tablist</h3>
+      <ul>
+        <li><strong>Tri par priorit&eacute;</strong> &mdash; les joueurs sont class&eacute;s par priorit&eacute; de grade (d&eacute;croissante), puis par pseudo</li>
+        <li><strong>Affichage</strong> &mdash; <code>{prefix}{color}{pseudo}</code> dans l'onglet joueur</li>
+        <li><strong>Mixin</strong> &mdash; <code>MixinNetHandlerPlayServer</code> ou <code>MixinPlayerList</code> pour intercepter les packets tablist</li>
+      </ul>
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <!-- §08 COMMANDES                                              -->
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <div class="section-card" id="commands">
+      <h2><span class="s-num">08</span> Commandes</h2>
+
+      <p>Toutes les commandes sont sous <code>/rank</code>. Permission requise : <code>rank.manage</code> (sauf <code>/rank info</code> et <code>/rank list</code>).</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Description</th><th>Permission</th></tr></thead>
+          <tbody>
+            <tr><td><code>/rank list</code></td><td>Liste tous les grades avec leur priorit&eacute;</td><td>Aucune</td></tr>
+            <tr><td><code>/rank info &lt;grade&gt;</code></td><td>Affiche les d&eacute;tails d'un grade (perms, h&eacute;ritage, pr&eacute;fixe)</td><td>Aucune</td></tr>
+            <tr><td><code>/rank set &lt;joueur&gt; &lt;grade&gt;</code></td><td>Assigne un grade &agrave; un joueur</td><td><code>rank.manage</code></td></tr>
+            <tr><td><code>/rank remove &lt;joueur&gt;</code></td><td>Retire le grade d'un joueur (retombe sur default)</td><td><code>rank.manage</code></td></tr>
+            <tr><td><code>/rank create &lt;id&gt;</code></td><td>Cr&eacute;e un nouveau fichier de grade avec les valeurs par d&eacute;faut</td><td><code>rank.manage</code></td></tr>
+            <tr><td><code>/rank delete &lt;id&gt;</code></td><td>Supprime un fichier de grade (impossible pour <code>default</code>)</td><td><code>rank.manage</code></td></tr>
+            <tr><td><code>/rank setprefix &lt;id&gt; &lt;prefix&gt;</code></td><td>Modifie le pr&eacute;fixe d'un grade</td><td><code>rank.manage</code></td></tr>
+            <tr><td><code>/rank setsuffix &lt;id&gt; &lt;suffix&gt;</code></td><td>Modifie le suffixe d'un grade</td><td><code>rank.manage</code></td></tr>
+            <tr><td><code>/rank setpriority &lt;id&gt; &lt;n&gt;</code></td><td>Modifie la priorit&eacute; d'un grade</td><td><code>rank.manage</code></td></tr>
+            <tr><td><code>/rank setcolor &lt;id&gt; &lt;code&gt;</code></td><td>Modifie la couleur du pseudo</td><td><code>rank.manage</code></td></tr>
+            <tr><td><code>/rank addperm &lt;id&gt; &lt;perm&gt;</code></td><td>Ajoute une permission au grade</td><td><code>rank.manage</code></td></tr>
+            <tr><td><code>/rank removeperm &lt;id&gt; &lt;perm&gt;</code></td><td>Retire une permission du grade</td><td><code>rank.manage</code></td></tr>
+            <tr><td><code>/rank addinherit &lt;id&gt; &lt;parent&gt;</code></td><td>Ajoute un h&eacute;ritage</td><td><code>rank.manage</code></td></tr>
+            <tr><td><code>/rank removeinherit &lt;id&gt; &lt;parent&gt;</code></td><td>Retire un h&eacute;ritage</td><td><code>rank.manage</code></td></tr>
+            <tr><td><code>/rank reload</code></td><td>Recharge tous les fichiers de grades</td><td><code>rank.reload</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Les commandes qui modifient un grade (<code>setprefix</code>, <code>addperm</code>, etc.) mettent &agrave; jour le fichier JSON correspondant imm&eacute;diatement.</p>
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <!-- §09 ARCHITECTURE                                           -->
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <div class="section-card" id="architecture">
+      <h2><span class="s-num cyan-num">09</span> Architecture</h2>
+
+      <h3 class="first">Structure des fichiers Java</h3>
+<pre>
+fr.eriniumgroup.eriniumfaction/
+&#9500;&#9472;&#9472; rank/
+&#9474;   &#9500;&#9472;&#9472; RankInfo.java            <span class="cmt">// POJO : name, priority, prefix, suffix, color, inherits, permissions</span>
+&#9474;   &#9500;&#9472;&#9472; RankManager.java         <span class="cmt">// Singleton : chargement JSON, r&eacute;solution permissions, assignations</span>
+&#9474;   &#9500;&#9472;&#9472; PermissionResolver.java  <span class="cmt">// Logique de r&eacute;solution : wildcard, n&eacute;gation, h&eacute;ritage r&eacute;cursif</span>
+&#9474;   &#9500;&#9472;&#9472; RankCommand.java         <span class="cmt">// Commande /rank avec toutes les sous-commandes</span>
+&#9474;   &#9492;&#9472;&#9472; event/
+&#9474;       &#9500;&#9472;&#9472; RankChatHandler.java <span class="cmt">// Intercepte ServerChatEvent pour formater le message</span>
+&#9474;       &#9492;&#9472;&#9472; RankTabHandler.java  <span class="cmt">// Mixin ou event pour la tablist</span>
+</pre>
+
+      <h3>RankManager &mdash; Singleton</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>M&eacute;thode</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>init(File configDir)</code></td><td>Charge ou cr&eacute;e le dossier <code>ranks/</code> et <code>player-ranks.json</code></td></tr>
+            <tr><td><code>reload()</code></td><td>Recharge tous les fichiers de grades et r&eacute;applique</td></tr>
+            <tr><td><code>getRank(String id)</code></td><td>Retourne un <code>RankInfo</code> par son identifiant</td></tr>
+            <tr><td><code>getAllRanks()</code></td><td>Retourne tous les grades charg&eacute;s, tri&eacute;s par priorit&eacute;</td></tr>
+            <tr><td><code>getPlayerRank(UUID)</code></td><td>Retourne le grade d'un joueur (ou <code>default</code>)</td></tr>
+            <tr><td><code>setPlayerRank(UUID, String id)</code></td><td>Assigne un grade et sauvegarde <code>player-ranks.json</code></td></tr>
+            <tr><td><code>removePlayerRank(UUID)</code></td><td>Retire l'assignation (retombe sur default)</td></tr>
+            <tr><td><code>hasPermission(UUID, String perm)</code></td><td>V&eacute;rifie si un joueur a une permission</td></tr>
+            <tr><td><code>createRank(String id)</code></td><td>Cr&eacute;e un nouveau fichier JSON avec les valeurs par d&eacute;faut</td></tr>
+            <tr><td><code>deleteRank(String id)</code></td><td>Supprime le fichier JSON (refuse <code>default</code>)</td></tr>
+            <tr><td><code>saveRank(RankInfo)</code></td><td>Sauvegarde un grade modifi&eacute; dans son fichier JSON</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>PermissionResolver</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>M&eacute;thode</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>hasPermission(RankInfo, String, Set&lt;String&gt; visited)</code></td><td>R&eacute;solution r&eacute;cursive avec d&eacute;tection de boucles</td></tr>
+            <tr><td><code>getEffectivePermissions(RankInfo)</code></td><td>Retourne l'ensemble des permissions r&eacute;solues (pour /rank info)</td></tr>
+            <tr><td><code>matchesWildcard(String perm, String pattern)</code></td><td>V&eacute;rifie si un n&oelig;ud correspond &agrave; un wildcard</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Initialisation</h3>
+      <ul>
+        <li><strong>FMLServerStartingEvent</strong> &mdash; <code>RankManager.getInstance().init(configDir)</code></li>
+        <li><strong>FMLServerStartingEvent</strong> &mdash; <code>event.registerServerCommand(RankCommand.create())</code></li>
+        <li><strong>FMLServerStoppingEvent</strong> &mdash; <code>RankManager.getInstance().save()</code></li>
+      </ul>
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <!-- §10 EXEMPLES                                               -->
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <div class="section-card" id="examples">
+      <h2><span class="s-num cyan-num">10</span> Exemples complets</h2>
+
+      <h3 class="first">default.json</h3>
+<pre>
+{
+  <span class="str">"name"</span>: <span class="str">"Joueur"</span>,
+  <span class="str">"priority"</span>: <span class="num">0</span>,
+  <span class="str">"prefix"</span>: <span class="str">""</span>,
+  <span class="str">"suffix"</span>: <span class="str">""</span>,
+  <span class="str">"color"</span>: <span class="str">"&amp;7"</span>,
+  <span class="str">"inherits"</span>: [],
+  <span class="str">"permissions"</span>: [
+    <span class="str">"faction.command.basic"</span>,
+    <span class="str">"chat.use"</span>,
+    <span class="str">"teleport.spawn"</span>
+  ]
+}
+</pre>
+
+      <h3>vip.json</h3>
+<pre>
+{
+  <span class="str">"name"</span>: <span class="str">"&amp;aVIP"</span>,
+  <span class="str">"priority"</span>: <span class="num">10</span>,
+  <span class="str">"prefix"</span>: <span class="str">"&amp;a[VIP] "</span>,
+  <span class="str">"suffix"</span>: <span class="str">" &amp;a&starf;"</span>,
+  <span class="str">"color"</span>: <span class="str">"&amp;a"</span>,
+  <span class="str">"inherits"</span>: [<span class="str">"default"</span>],
+  <span class="str">"permissions"</span>: [
+    <span class="str">"chat.color"</span>,
+    <span class="str">"teleport.player"</span>
+  ]
+}
+</pre>
+
+      <h3>mod.json</h3>
+<pre>
+{
+  <span class="str">"name"</span>: <span class="str">"&amp;9Mod&eacute;rateur"</span>,
+  <span class="str">"priority"</span>: <span class="num">50</span>,
+  <span class="str">"prefix"</span>: <span class="str">"&amp;9[Mod] "</span>,
+  <span class="str">"suffix"</span>: <span class="str">""</span>,
+  <span class="str">"color"</span>: <span class="str">"&amp;9"</span>,
+  <span class="str">"inherits"</span>: [<span class="str">"vip"</span>],
+  <span class="str">"permissions"</span>: [
+    <span class="str">"moderation.*"</span>,
+    <span class="str">"teleport.*"</span>,
+    <span class="str">"gamemode.survival"</span>,
+    <span class="str">"gamemode.spectator"</span>
+  ]
+}
+</pre>
+
+      <h3>admin.json</h3>
+<pre>
+{
+  <span class="str">"name"</span>: <span class="str">"&amp;cAdministrateur"</span>,
+  <span class="str">"priority"</span>: <span class="num">100</span>,
+  <span class="str">"prefix"</span>: <span class="str">"&amp;c[Admin] "</span>,
+  <span class="str">"suffix"</span>: <span class="str">""</span>,
+  <span class="str">"color"</span>: <span class="str">"&amp;c"</span>,
+  <span class="str">"inherits"</span>: [<span class="str">"mod"</span>],
+  <span class="str">"permissions"</span>: [
+    <span class="str">"*"</span>
+  ]
+}
+</pre>
+
+      <h3>R&eacute;sultat dans le chat</h3>
+<pre>
+<span class="cmt">// Joueur sans grade :</span>
+<span class="str">&amp;7</span>Steve <span class="str">&amp;7</span>&raquo; Bonjour !
+
+<span class="cmt">// VIP :</span>
+<span class="str">&amp;a</span>[VIP] <span class="str">&amp;a</span>Alex <span class="str">&amp;a</span>&starf; <span class="str">&amp;7</span>&raquo; Salut !
+
+<span class="cmt">// Mod&eacute;rateur avec faction [WAR] :</span>
+<span class="str">&amp;9</span>[Mod] <span class="str">&amp;9</span>Notch <span class="str">&amp;8</span>[WAR] <span class="str">&amp;7</span>&raquo; Hello
+
+<span class="cmt">// Admin :</span>
+<span class="str">&amp;c</span>[Admin] <span class="str">&amp;c</span>Dinnerbone <span class="str">&amp;7</span>&raquo; Bienvenue
+</pre>
+    </div>
+
+    <div style="text-align:center;padding:20px 0;color:var(--slate);font-size:12px;border-top:1px solid var(--card-bdr);margin-top:16px">
+      EriniumFaction &mdash; Cahier des charges Syst&#232;me de Grades &mdash; Version 1.0 &mdash; 2026
+    </div>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+
+<script>
+  (function() {
+    var links = document.querySelectorAll('.nav-link');
+    var sections = [];
+    links.forEach(function(l) {
+      var id = l.getAttribute('href').replace('#', '');
+      var el = document.getElementById(id);
+      if (el) sections.push({ id: id, el: el, link: l });
+    });
+
+    function onScroll() {
+      var scroll = window.scrollY + 120;
+      var active = null;
+      for (var i = 0; i < sections.length; i++) {
+        if (sections[i].el.offsetTop <= scroll) active = sections[i];
+      }
+      links.forEach(function(l) { l.classList.remove('active'); });
+      if (active) active.link.classList.add('active');
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    links.forEach(function(l) {
+      l.addEventListener('click', function() {
+        document.getElementById('sidebar').classList.remove('open');
+      });
+    });
+  })();
+</script>
+</body>
+</html>

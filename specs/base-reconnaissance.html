@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Reconnaissance de Base | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #4AE0E0; --aetherite: #9B59B6; --erinium: #FFD700;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(74,224,224,0.07) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(255,215,0,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, var(--cyan) 40%, var(--erinium) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.35); background: rgba(230,126,34,0.08); }
+  .badge-valterite{ color: var(--valterite);border-color: rgba(74,224,224,0.35); background: rgba(74,224,224,0.08); }
+  .badge-aetherite{ color: var(--aetherite);border-color: rgba(155,89,182,0.35); background: rgba(155,89,182,0.08); }
+  .badge-erinium  { color: var(--erinium);  border-color: rgba(255,215,0,0.35);  background: rgba(255,215,0,0.08); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h2 .s-num.valterite-num { background: linear-gradient(135deg, #1a8080 0%, var(--valterite) 100%); }
+  .section-card h2 .s-num.aetherite-num { background: linear-gradient(135deg, #5c2d6e 0%, var(--aetherite) 100%); }
+  .section-card h2 .s-num.erinium-num   { background: linear-gradient(135deg, #a07800 0%, var(--erinium) 100%); color: #1a1200; }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '›'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .tag-val { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(74,224,224,0.10); color: var(--valterite); border: 1px solid rgba(74,224,224,0.25); letter-spacing: 0.05em; }
+  .tag-aeth { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(155,89,182,0.10); color: var(--aetherite); border: 1px solid rgba(155,89,182,0.25); letter-spacing: 0.05em; }
+  .tag-erin { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(255,215,0,0.10); color: var(--erinium); border: 1px solid rgba(255,215,0,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .ascii-diagram .ab { color: var(--rare); }
+  .ascii-diagram .am { color: var(--aetherite); }
+  .ascii-diagram .avt { color: var(--valterite); }
+  .ascii-diagram .aer { color: var(--erinium); }
+  .ascii-diagram .aor { color: var(--orange); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  /* Tier cards */
+  .tier-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 20px 0; }
+  .tier-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 22px 20px; }
+  .tier-card.valterite { border-top: 3px solid var(--valterite); }
+  .tier-card.aetherite { border-top: 3px solid var(--aetherite); }
+  .tier-card.erinium   { border-top: 3px solid var(--erinium); }
+  .tier-card-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .tier-card.valterite .tier-card-name { color: var(--valterite); }
+  .tier-card.aetherite .tier-card-name { color: var(--aetherite); }
+  .tier-card.erinium   .tier-card-name { color: var(--erinium); }
+  .tier-card-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); margin-bottom: 14px; }
+  .tier-card-stat { font-size: 12px; color: var(--slate); margin: 5px 0; }
+  .tier-card-stat strong { color: var(--text); }
+  .tier-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; display: inline-block; margin-bottom: 12px; }
+  .tier-badge.val { color: var(--valterite); background: rgba(74,224,224,0.08); border: 1px solid rgba(74,224,224,0.25); }
+  .tier-badge.aeth { color: var(--aetherite); background: rgba(155,89,182,0.08); border: 1px solid rgba(155,89,182,0.25); }
+  .tier-badge.erin { color: var(--erinium); background: rgba(255,215,0,0.08); border: 1px solid rgba(255,215,0,0.25); }
+  /* Checklist */
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  /* Idea cards */
+  .idea-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 20px 24px; margin: 12px 0; border-left: 3px solid var(--violet-l); }
+  .idea-card-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .idea-card p { font-size: 13px; color: var(--slate); margin-bottom: 0; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .tier-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Unclaim Finder Station</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Les 3 Tiers</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Le Rapport</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Algorithme de Scan</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Cave Block</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Idees Additionnelles</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Recettes de Craft</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Architecture Technique</a>
+    <a class="nav-link" href="#s9b"><span class="num">09b</span> Assets</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges · EriniumFaction</div>
+      <h1>Reconnaissance de Base</h1>
+      <p>Outils technologiques pour detecter les bases ennemies non-claim : la Station de Recherche par tiers (Valterite / Aetherite / Erinium), le Bloc de Vision Souterraine, et plusieurs gadgets de reconnaissance complementaires.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-valterite">Tier 1 Valterite</span>
+        <span class="badge badge-aetherite">Tier 2 Aetherite</span>
+        <span class="badge badge-erinium">Tier 3 Erinium</span>
+        <span class="badge badge-orange">Scan async batche</span>
+        <span class="badge badge-red">Alerte PvP live</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Probleme actuel</h3>
+      <p>Sur un serveur PvP Faction, trouver les bases ennemies non-claim est une activite centrale du jeu. Actuellement, les joueurs doivent explorer manuellement des centaines de chunks — c'est long, frustrant, et favorise uniquement les joueurs qui passent le plus de temps en jeu plutot que ceux qui jouent intelligemment.</p>
+      <p>Le systeme de Reconnaissance introduit des <strong>outils technologiques a progression par tier</strong> pour detecter les bases cachees, avec un equilibrage fin entre precision, cout d'utilisation et risque PvP genere.</p>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Activite de reconnaissance active :</strong> donner aux joueurs un moyen tactique et risque de chercher des bases non-claim, pas juste une solution automatique.</li>
+        <li><strong>Tension PvP inherente :</strong> le scan alerte les joueurs a proximite en temps reel. Utiliser un scanner, c'est s'exposer. Le scanner doit etre protege.</li>
+        <li><strong>Progression par tier :</strong> plus le tier est eleve, plus la precision est haute — mais le cout, le risque et l'engagement augmentent en proportion.</li>
+        <li><strong>Faux rapports comme mecanique de jeu :</strong> les tiers 1 et 2 generent des coordonnees fictives melangees aux vraies. Le joueur ne peut pas distinguer le vrai du faux sans explorer physiquement. Cela preserve l'exploration comme element de jeu.</li>
+        <li><strong>Performance 500-1000 joueurs :</strong> le scan est entierement asynchrone et batche. Il ne bloque jamais le thread principal. Maximum 3 scans simultanes globalement.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Contrainte serveur :</strong> Avec 500-1000 joueurs, plusieurs scans peuvent etre lances en meme temps. Le ScanManager limite les scans actifs a 3 globalement. Les scans supplementaires sont mis en queue et demarrent automatiquement quand une place se libere. Aucun scan ne bloque le tick serveur.</div>
+      </div>
+
+      <h3>Ce que le systeme ne fait pas</h3>
+      <ul>
+        <li><strong>Pas de detection des chunks claim :</strong> le scan ignore totalement les territoires de faction. Seules les bases non-claimees sont detectees.</li>
+        <li><strong>Pas de coordonnee exacte pour les tiers bas :</strong> tier 1 et 2 donnent des coordonnees approximatives avec offset aleatoire. L'exploration physique reste necessaire.</li>
+        <li><strong>Pas de chargement force des chunks :</strong> les chunks non charges sont scanes via lecture de fichiers region (.mca) sur disque — aucun chargement en memoire, aucune entite instanciee. Le mod ne force jamais le chargement permanent de chunks.</li>
+        <li><strong>Pas de X-ray client :</strong> le Cave Block est un affichage decoratif local, pas un bypass du rendu vanilla.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S2 — UNCLAIM FINDER STATION ═══ -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Unclaim Finder Station</h2>
+
+      <h3 class="first">Principe general</h3>
+      <p>Un bloc placable qui scanne les chunks non-claim dans son rayon pour detecter des <strong>concentrations de TileEntities</strong> (coffres, fours, dispensers, hoppers, etc.). Apres un temps de scan configurable par tier, il genere un <strong>rapport papier</strong> (item custom) contenant les coordonnees approximatives des bases detectees, melangees a des faux rapports selon le tier.</p>
+
+      <h3>Regles fondamentales du bloc</h3>
+      <ul>
+        <li><strong>Durabilite limitee :</strong> le bloc possede un nombre d'utilisations fixes selon le tier. Chaque scan reussi consomme 1 point de durabilite.</li>
+        <li><strong>Durabilite persistante dans l'item :</strong> quand on casse le bloc, la durabilite restante est ecrite dans le NBT de l'item drop. Quand on le repose, la durabilite est restauree depuis le NBT. Un bloc use a 3 utilisations restantes garde ces 3 utilisations apres etre deplace.</li>
+        <li><strong>Detection non-claim uniquement :</strong> avant d'analyser un chunk, le scanner verifie s'il est claim par une faction. Si oui, il est skip entierement. Les territories de faction sont invisibles au scanner.</li>
+        <li><strong>Clustering avant rapport :</strong> le scanner ne donne pas une coordonnee par TileEntity. Il regroupe les TEs proches en clusters (voir Section 05) et ne rapporte qu'un point par cluster. Un entrepot de 30 coffres = 1 coordonnee dans le rapport.</li>
+        <li><strong>Coordonnees imprecises par tier :</strong> un offset aleatoire est applique sur X et Z de chaque cluster avant d'etre ecrit dans le rapport. L'amplitude de l'offset depend du tier.</li>
+        <li><strong>Alerte immediate au lancement :</strong> DES LE LANCEMENT du scan (pas a la fin), tous les joueurs dans le rayon de detection recoivent un message chat : <em>"Une onde de recherche a traverse votre position."</em> Cela cree de la tension : les joueurs proches savent qu'un scanner est actif.</li>
+        <li><strong>Tier 3 — position revelee :</strong> pour le scanner Erinium, l'alerte envoyee aux joueurs inclut les coordonnees exactes du bloc scanner. Le joueur qui scanne doit donc defendre son bloc pendant 5 minutes. Si le bloc est detruit avant la fin du scan, le rapport est perdu et la durabilite est quand meme consommee.</li>
+      </ul>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Regles d'alerte strictes :</strong> L'alerte est envoyee au DEBUT du scan, pas a la fin. Pour le Tier 3 (Erinium), le message inclut les coordonnees exactes du scanner. Ces regles sont non-negociables — elles constituent l'equilibre PvP du systeme.</div>
+      </div>
+
+      <h3>TileEntities considerees comme "indicateurs de base"</h3>
+      <p>Le scanner ne detecte que ces types de TileEntities — les blocs utilitaires qui indiquent clairement une occupation humaine :</p>
+      <ul>
+        <li><strong>TileEntityChest</strong> — coffre simple et double</li>
+        <li><strong>TileEntityFurnace</strong> — four standard</li>
+        <li><strong>TileEntityDispenser</strong> — distributeur</li>
+        <li><strong>TileEntityDropper</strong> — droppeur</li>
+        <li><strong>TileEntityHopper</strong> — entonnoir</li>
+        <li><strong>TileEntityBrewingStand</strong> — etabli de brassage</li>
+        <li><strong>TileEntityShulkerBox</strong> — boite de shulker</li>
+        <li><strong>TileEntityEnchantmentTable</strong> — table d'enchantement</li>
+      </ul>
+      <p>Les blocs non-fonctionnels (portes, torches, escaliers) sont ignores. Un joueur qui pose uniquement des blocs decoratifs ne sera pas detecte.</p>
+    </section>
+
+    <!-- ═══ S3 — LES 3 TIERS ═══ -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num valterite-num">03</span> Les 3 Tiers</h2>
+
+      <h3 class="first">Tableau comparatif</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Parametre</th>
+              <th><span style="color:var(--valterite)">Tier 1 — Valterite</span></th>
+              <th><span style="color:var(--aetherite)">Tier 2 — Aetherite</span></th>
+              <th><span style="color:var(--erinium)">Tier 3 — Erinium</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Durabilite (utilisations)</td>
+              <td><strong style="color:var(--valterite)">25</strong></td>
+              <td><strong style="color:var(--aetherite)">10</strong></td>
+              <td><strong style="color:var(--erinium)">5</strong></td>
+            </tr>
+            <tr>
+              <td>Portee de scan (rayon)</td>
+              <td>800 blocs</td>
+              <td>500 blocs</td>
+              <td>300 blocs</td>
+            </tr>
+            <tr>
+              <td>Duree du scan</td>
+              <td>30 secondes (600 ticks)</td>
+              <td>1 min 30 (1 800 ticks)</td>
+              <td>5 minutes (6 000 ticks)</td>
+            </tr>
+            <tr>
+              <td>Precision coordonnees</td>
+              <td>+/- 500 blocs</td>
+              <td>+/- 200 blocs</td>
+              <td>+/- 50 blocs</td>
+            </tr>
+            <tr>
+              <td>Faux rapports generes</td>
+              <td><strong style="color:var(--red)">3</strong></td>
+              <td><strong style="color:var(--orange)">2</strong></td>
+              <td><strong style="color:var(--green)">0</strong></td>
+            </tr>
+            <tr>
+              <td>Rayon d'alerte joueurs</td>
+              <td>800 blocs</td>
+              <td>500 blocs</td>
+              <td>300 blocs</td>
+            </tr>
+            <tr>
+              <td>Revele position scanner</td>
+              <td><span class="tag-no">NON</span></td>
+              <td><span class="tag-no">NON</span></td>
+              <td><span class="tag-yes">OUI — coordonnees exactes</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Philosophie des tiers</h3>
+      <div class="tier-grid">
+        <div class="tier-card valterite">
+          <div class="tier-card-name">Valterite Scanner</div>
+          <div class="tier-card-sub">Tier 1 — Reconnaissance brute</div>
+          <span class="tier-badge val">25 utilisations</span>
+          <div class="tier-card-stat"><strong>Grande portee :</strong> 800 blocs</div>
+          <div class="tier-card-stat"><strong>Imprecision :</strong> +/- 500 blocs</div>
+          <div class="tier-card-stat"><strong>Faux rapports :</strong> 3 fictifs</div>
+          <div class="tier-card-stat" style="margin-top:10px;font-style:italic;">Le joueur recoit un rapport avec jusqu'a 5-6 coordonnees dont 3 sont completement fausses. Il doit explorer chaque point manuellement. Outil de reconnaissance brute — long mais peu risque.</div>
+        </div>
+        <div class="tier-card aetherite">
+          <div class="tier-card-name">Aetherite Scanner</div>
+          <div class="tier-card-sub">Tier 2 — Analyse avancee</div>
+          <span class="tier-badge aeth">10 utilisations</span>
+          <div class="tier-card-stat"><strong>Portee :</strong> 500 blocs</div>
+          <div class="tier-card-stat"><strong>Imprecision :</strong> +/- 200 blocs</div>
+          <div class="tier-card-stat"><strong>Faux rapports :</strong> 2 fictifs</div>
+          <div class="tier-card-stat" style="margin-top:10px;font-style:italic;">Portee reduite, precision meilleure. Le joueur peut raisonnablement trouver la base en explorant les coordonnees. Moins d'utilisations — il faut choisir quand scanner.</div>
+        </div>
+        <div class="tier-card erinium">
+          <div class="tier-card-name">Erinium Scanner</div>
+          <div class="tier-card-sub">Tier 3 — Precision ultime</div>
+          <span class="tier-badge erin">5 utilisations</span>
+          <div class="tier-card-stat"><strong>Portee :</strong> 300 blocs</div>
+          <div class="tier-card-stat"><strong>Imprecision :</strong> +/- 50 blocs</div>
+          <div class="tier-card-stat"><strong>Faux rapports :</strong> aucun</div>
+          <div class="tier-card-stat" style="margin-top:10px;font-style:italic;color:var(--erinium);">MAIS : position exacte revelee aux joueurs alertes. Defendre le scanner pendant 5 minutes est un engagement — un pari. Si detruit, le rapport est perdu.</div>
+        </div>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Equilibrage intentionnel :</strong> Le tier 3 (Erinium) n'est pas simplement "meilleur" — il est un <em>pari strategique</em>. Sa portee est plus courte (300 blocs vs 800 pour le tier 1), il expose la position exacte du scanner, et n'a que 5 utilisations. En contrepartie, il ne genere aucun faux rapport et la precision est quasi parfaite. Les tiers inferieurs ont une portee superieure et moins de risque, au prix de fausses pistes.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S4 — LE RAPPORT ═══ -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Le Rapport (Unclaim Finder Station Paper)</h2>
+
+      <h3 class="first">Item custom : <code>unclaim_report</code></h3>
+      <ul>
+        <li><strong>Non-stackable</strong> (maxStackSize = 1) — chaque rapport est unique</li>
+        <li><strong>Droppable et echangeable</strong> — le rapport peut etre vole, echange, donne. Il a une valeur marchande entre joueurs.</li>
+        <li><strong>Stockage NBT complet :</strong> toutes les donnees sont dans le NBT de l'item, rien en memoire serveur apres generation</li>
+      </ul>
+
+      <h3>Structure NBT du rapport</h3>
+      <div class="code-block"><span class="cm">// Structure NBT de l'item unclaim_report</span>
+{
+  <span class="st">"timestamp"</span>: <span class="nu">1234567890L</span>,         <span class="cm">// System.currentTimeMillis()</span>
+  <span class="st">"scanner_x"</span>: <span class="nu">1200</span>,               <span class="cm">// position du bloc scanner</span>
+  <span class="st">"scanner_y"</span>: <span class="nu">64</span>,
+  <span class="st">"scanner_z"</span>: <span class="nu">-800</span>,
+  <span class="st">"tier"</span>: <span class="nu">1</span>,                       <span class="cm">// 1=Valterite, 2=Aetherite, 3=Erinium</span>
+  <span class="st">"scanner_player"</span>: <span class="st">"UUID..."</span>,     <span class="cm">// UUID du joueur qui a lance le scan</span>
+  <span class="st">"scanner_name"</span>: <span class="st">"PlayerName"</span>,
+  <span class="st">"clusters"</span>: [
+    {
+      <span class="st">"x"</span>: <span class="nu">942</span>, <span class="st">"y"</span>: <span class="nu">58</span>, <span class="st">"z"</span>: <span class="nu">-1104</span>,   <span class="cm">// coordonnees avec offset applique</span>
+      <span class="st">"density"</span>: <span class="nu">2</span>,                  <span class="cm">// 0=Faible, 1=Moyenne, 2=Forte</span>
+      <span class="st">"te_count"</span>: <span class="nu">18</span>,                <span class="cm">// nombre de TEs detectees dans ce cluster</span>
+      <span class="st">"fake"</span>: <span class="nu">0</span>                     <span class="cm">// 0=vrai, 1=faux — flag JAMAIS visible par le joueur</span>
+    },
+    <span class="cm">// ... autres clusters (vrais + faux melanges aleatoirement)</span>
+  ]
+}</div>
+
+      <h3>GUI du rapport (clic droit avec le papier en main)</h3>
+      <ul>
+        <li><strong>EriGuiScreen</strong> — pas de Container, affichage pur client-side</li>
+        <li><strong>Titre :</strong> "Rapport de Reconnaissance — [date formattee]"</li>
+        <li><strong>Scanner par :</strong> nom du joueur + tier utilise</li>
+        <li><strong>Pour chaque cluster :</strong> coordonnees X/Y/Z (avec offset), densite estimee (Faible / Moyenne / Forte), distance depuis la position du scanner</li>
+        <li><strong>Aucune indication fake/vrai</strong> — tous les clusters sont affiches identiquement</li>
+        <li><strong>Coordonnees cliquables :</strong> clic sur un cluster copie <code>/tp X Y Z</code> dans le chat (utile pour les admins). Pour les joueurs normaux, c'est juste une reference visuelle.</li>
+        <li><strong>Style Liquid Glass</strong> — panneau translucide, backdrop-filter, coins arrondis, animations EriAPI</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Valeur du rapport :</strong> Le rapport est un item physique dans le monde — il peut etre vole dans les coffres d'une faction, vendu entre joueurs, ou decouvert sur un joueur tue. Un rapport Erinium (precision +/- 50 blocs, 0 faux) est une information de haute valeur tactique.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S5 — ALGORITHME DE SCAN ═══ -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num orange-num">05</span> Algorithme de Scan</h2>
+
+      <h3 class="first">Vue d'ensemble — 5 etapes</h3>
+      <p>Le scan est entierement asynchrone. Il ne bloque jamais le thread principal du serveur. La logique est distribuee sur plusieurs ticks via <code>EriScheduler.repeat()</code>.</p>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Serveur 500-1000 joueurs :</strong> plusieurs scans simultanes sont possibles. Les regles de performance ci-dessous sont non-negociables : pas de boucle bloquante, pas de chargement force de chunks, max 3 scans actifs globaux, batching obligatoire. Les lectures de fichiers region sont asynchrones (thread separe), les resultats sont mis en cache par region pour 5 minutes, et le nombre de lectures disque est limite a 4 par tick (configurable).</div>
+      </div>
+
+      <h3>Etape 1 — Collecte (async/batch)</h3>
+      <ul>
+        <li>Le scan ne traite PAS tous les chunks d'un coup. Il est decoup en iterations : <strong>4 chunks par tick</strong> (configurable, defaut 4).</li>
+        <li>Les chunks sont divises en anneaux concentriques depuis le scanner. Chaque iteration traite le prochain lot de chunks non-traites.</li>
+        <li><strong>Pour chaque chunk dans le rayon :</strong>
+          <ol style="padding-left:20px;margin-top:8px;color:var(--slate);font-size:13px;line-height:2;">
+            <li>Verifier si le chunk est claim par une faction → si oui, <strong>skip</strong></li>
+            <li>Verifier si le chunk est charge en memoire :<br>
+              &bull; <strong>Si charge :</strong> lire les TileEntities directement depuis la memoire via <code>chunk.getTileEntityMap().values()</code> (lecture instantanee, aucun I/O)<br>
+              &bull; <strong>Si non charge :</strong> lire les donnees NBT du chunk depuis le <strong>fichier region (.mca)</strong> sur le disque, sans charger le chunk en memoire. Le fichier region est a <code>world/region/r.X.Z.mca</code> (chaque region contient 32×32 chunks). Lire le tag NBT <code>Level.TileEntities</code> avec <code>RegionFileCache</code> ou un <code>RandomAccessFile</code> direct. Extraire les positions et types des TEs. Cette operation est faite <strong>de facon asynchrone</strong> via <code>EriScheduler.async()</code> pour ne pas bloquer le thread serveur. Les donnees de region parsees sont mises en cache 5 minutes pour eviter de relire le meme fichier plusieurs fois pendant un scan.
+            </li>
+            <li>Filtrer : garder uniquement les types "indicateurs de base" (voir Section 02)</li>
+            <li>Stocker les positions dans une liste temporaire locale au ScanTask</li>
+          </ol>
+        </li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Pourquoi la lecture des fichiers region est sans impact sur les performances :</strong> Lire le NBT d'un chunk depuis un fichier .mca n'est <em>pas</em> un chargement de chunk — aucune entite n'est instanciee, aucun tick n'est enregistre, aucune memoire de chunk n'est allouee. C'est une lecture de donnees binaires brutes sur le disque, effectuee dans un thread separee via <code>EriScheduler.async()</code>. Le thread principal du serveur n'est jamais bloque. Le cache par region (5 min) garantit que le meme fichier n'est pas relu plusieurs fois pendant la duree d'un scan.</div>
+      </div>
+
+      <h3>Etape 2 — Clustering</h3>
+      <p>Regrouper les TileEntities collectees en clusters significatifs :</p>
+      <ul>
+        <li>Algorithme greedy simple : pour chaque TE non-assignee, creer un nouveau cluster et y ajouter toutes les TEs a moins de <strong>30 blocs</strong>.</li>
+        <li>Un cluster est <strong>valide</strong> uniquement si il contient au moins <strong>3 TileEntities</strong>. Les fours isoles dans les grottes de survie sont ignores.</li>
+        <li>Pour chaque cluster valide : calculer la coordonnee centrale (moyenne X, Y, Z de toutes les TEs du cluster) + compter le nombre total de TEs (= densite).</li>
+        <li>Seuils de densite : 3-8 TEs = Faible, 9-20 TEs = Moyenne, 21+ TEs = Forte.</li>
+      </ul>
+
+      <h3>Etape 3 — Application de l'imprecision</h3>
+      <p>Pour chaque cluster, appliquer un offset aleatoire a la coordonnee centrale avant de l'ecrire dans le rapport :</p>
+      <div class="code-block"><span class="cm">// precision = amplitude de l'offset (500, 200, ou 50 selon le tier)</span>
+<span class="kw">int</span> offsetX = random.nextInt(precision * 2) - precision;  <span class="cm">// [-precision, +precision]</span>
+<span class="kw">int</span> offsetY = random.nextInt(precision / 2) - precision / 4; <span class="cm">// Y moins decale</span>
+<span class="kw">int</span> offsetZ = random.nextInt(precision * 2) - precision;
+
+<span class="cm">// Y est borne pour rester dans les limites du monde</span>
+<span class="kw">int</span> reportedX = cluster.centerX + offsetX;
+<span class="kw">int</span> reportedY = Math.max(1, Math.min(255, cluster.centerY + offsetY));
+<span class="kw">int</span> reportedZ = cluster.centerZ + offsetZ;</div>
+
+      <h3>Etape 4 — Ajout des faux rapports</h3>
+      <ul>
+        <li>Generer N faux clusters (3 pour Tier 1, 2 pour Tier 2, 0 pour Tier 3).</li>
+        <li>Position aleatoire a l'interieur du rayon de scan (pas en dehors).</li>
+        <li>Densite aleatoire parmi les 3 niveaux (Faible / Moyenne / Forte).</li>
+        <li>Le flag <code>fake = 1</code> est ecrit dans le NBT mais <strong>n'est jamais affiche au joueur</strong> dans le GUI.</li>
+        <li><strong>Melange aleatoire :</strong> les vrais et faux clusters sont melanges dans la liste finale. L'ordre est aleatoire pour que le premier cluster ne soit pas systematiquement le vrai.</li>
+      </ul>
+
+      <h3>Etape 5 — Generation et livraison du rapport</h3>
+      <ul>
+        <li>Creer l'item <code>unclaim_report</code> avec le NBT complet.</li>
+        <li>Dropper l'item dans le monde au-dessus du bloc scanner (Y+1).</li>
+        <li>Consommer 1 point de durabilite du TileEntity.</li>
+        <li>Si durabilite = 0 apres consommation : briser le bloc, pas de drop (ou drop d'un item vide pour recup les materiaux — a definir).</li>
+      </ul>
+
+      <h3>ScanManager — limitation des scans simultanes</h3>
+      <div class="code-block"><span class="cm">// ScanManager.java — Singleton</span>
+<span class="kw">public class</span> <span class="cl">ScanManager</span> {
+    <span class="kw">private static final int</span> MAX_CONCURRENT_SCANS = <span class="nu">3</span>;
+    <span class="kw">private final</span> <span class="cl">List</span>&lt;<span class="cl">ScanTask</span>&gt; activeScans = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;&gt;();
+    <span class="kw">private final</span> <span class="cl">Queue</span>&lt;<span class="cl">ScanTask</span>&gt; pendingQueue = <span class="kw">new</span> <span class="cl">LinkedList</span>&lt;&gt;();
+
+    <span class="kw">public boolean</span> <span class="fn">tryStartScan</span>(<span class="cl">ScanTask</span> task) {
+        <span class="kw">if</span> (activeScans.size() &lt; MAX_CONCURRENT_SCANS) {
+            activeScans.add(task);
+            task.<span class="fn">start</span>();
+            <span class="kw">return true</span>;
+        }
+        pendingQueue.<span class="fn">add</span>(task);
+        <span class="cm">// Notifier le joueur qu'il est en queue</span>
+        <span class="kw">return false</span>;
+    }
+
+    <span class="kw">public void</span> <span class="fn">onScanComplete</span>(<span class="cl">ScanTask</span> task) {
+        activeScans.<span class="fn">remove</span>(task);
+        <span class="kw">if</span> (!pendingQueue.<span class="fn">isEmpty</span>()) {
+            <span class="cl">ScanTask</span> next = pendingQueue.<span class="fn">poll</span>();
+            activeScans.<span class="fn">add</span>(next);
+            next.<span class="fn">start</span>();
+        }
+    }
+
+    <span class="kw">public void</span> <span class="fn">cancelScansFor</span>(<span class="cl">UUID</span> playerUUID) {
+        <span class="cm">// Appele quand un joueur quitte le serveur</span>
+        activeScans.<span class="fn">removeIf</span>(t -> t.getOwner().<span class="fn">equals</span>(playerUUID) &amp;&amp; t.<span class="fn">cancel</span>());
+        pendingQueue.<span class="fn">removeIf</span>(t -> t.getOwner().<span class="fn">equals</span>(playerUUID));
+    }
+}</div>
+
+      <h3>ScanTask — batching par tick</h3>
+      <div class="code-block"><span class="cm">// ScanTask.java — une tache de scan</span>
+<span class="kw">public class</span> <span class="cl">ScanTask</span> {
+    <span class="kw">private static final int</span> CHUNKS_PER_TICK = <span class="nu">4</span>;
+    <span class="kw">private final</span> <span class="cl">List</span>&lt;<span class="cl">ChunkPos</span>&gt; chunksToScan;  <span class="cm">// pre-calcule au moment du start</span>
+    <span class="kw">private int</span> currentIndex = <span class="nu">0</span>;
+    <span class="kw">private final</span> <span class="cl">List</span>&lt;<span class="cl">BlockPos</span>&gt; collectedTEs = <span class="kw">new</span> <span class="cl">ArrayList</span>&lt;&gt;();
+    <span class="kw">private</span> <span class="cl">ScheduledTask</span> scheduledTask;
+
+    <span class="kw">public void</span> <span class="fn">start</span>() {
+        scheduledTask = <span class="cl">EriScheduler</span>.<span class="fn">repeat</span>(<span class="nu">1</span>, () -> {
+            <span class="kw">if</span> (cancelled) { scheduledTask.<span class="fn">cancel</span>(); <span class="kw">return</span>; }
+
+            <span class="kw">int</span> end = Math.<span class="fn">min</span>(currentIndex + CHUNKS_PER_TICK, chunksToScan.<span class="fn">size</span>());
+            <span class="kw">for</span> (<span class="kw">int</span> i = currentIndex; i &lt; end; i++) {
+                <span class="fn">processChunk</span>(chunksToScan.<span class="fn">get</span>(i));
+            }
+            currentIndex = end;
+
+            <span class="kw">if</span> (currentIndex >= chunksToScan.<span class="fn">size</span>()) {
+                <span class="fn">finalize</span>();
+                scheduledTask.<span class="fn">cancel</span>();
+            }
+        });
+    }
+
+    <span class="kw">private void</span> <span class="fn">processChunk</span>(<span class="cl">ChunkPos</span> pos) {
+        <span class="cm">// 1. Skip si claim</span>
+        <span class="kw">if</span> (<span class="cl">FactionClaimManager</span>.<span class="fn">isClaimed</span>(pos)) <span class="kw">return</span>;
+
+        <span class="kw">if</span> (world.<span class="fn">isChunkLoaded</span>(pos.x, pos.z, <span class="kw">false</span>)) {
+            <span class="cm">// 2a. Chunk charge en memoire — lecture directe, aucun I/O</span>
+            <span class="cl">Chunk</span> chunk = world.<span class="fn">getChunk</span>(pos.x, pos.z);
+            <span class="kw">for</span> (<span class="cl">TileEntity</span> te : chunk.<span class="fn">getTileEntityMap</span>().<span class="fn">values</span>()) {
+                <span class="kw">if</span> (<span class="fn">isBaseIndicator</span>(te)) collectedTEs.<span class="fn">add</span>(te.<span class="fn">getPos</span>());
+            }
+        } <span class="kw">else</span> {
+            <span class="cm">// 2b. Chunk non charge — lire le NBT depuis le fichier region (.mca) sans charger le chunk</span>
+            <span class="cm">// Calcul du fichier region : r.(chunkX>>5).(chunkZ>>5).mca</span>
+            <span class="cm">// Lecture asynchrone via EriScheduler.async() pour ne pas bloquer le thread serveur</span>
+            <span class="cm">// Cache par region (5 min) : RegionDataCache.get(regionX, regionZ)</span>
+            <span class="cl">RegionDataCache</span>.<span class="fn">getAsync</span>(world, pos, regionTEs -> {
+                <span class="kw">for</span> (<span class="cl">BlockPos</span> tePos : regionTEs) {
+                    <span class="kw">if</span> (<span class="fn">isBaseIndicatorByType</span>(tePos, regionTEs)) collectedTEs.<span class="fn">add</span>(tePos);
+                }
+            });
+            <span class="cm">// La lecture I/O est non-bloquante : le resultat est integre au collectedTEs quand disponible</span>
+        }
+    }
+}</div>
+    </section>
+
+    <!-- ═══ S6 — CAVE BLOCK ═══ -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num aetherite-num">06</span> Cave Block (Bloc de Vision Souterraine)</h2>
+
+      <h3 class="first">Principe</h3>
+      <p>Un bloc transparent special qui permet aux joueurs de <strong>visualiser les espaces vides souterrains</strong> sous leur position. Quand un joueur regarde a travers un Cave Block, il peut detecter des grottes, tunnels ou espaces amenages sous le sol.</p>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Ce n'est pas du X-ray :</strong> le Cave Block ne bypasse pas le rendu vanilla. Il utilise une detection serveur (scan des 32 blocs sous lui) et emet des <strong>particules indicatrices</strong> cote client. Le joueur voit les particules, pas les blocs souterrains directement.</div>
+      </div>
+
+      <h3>Comportement technique</h3>
+      <ul>
+        <li><strong>Rendu :</strong> transparent comme du verre (<code>BlockRenderLayer.TRANSLUCENT</code>), texture distincte avec une teinte bleutee</li>
+        <li><strong>Detection souterraine :</strong> le TileEntity scanne periodiquement les 32 blocs en dessous de lui (Y-1 a Y-32) pour detecter des <strong>espaces vides</strong> (blocs AIR ou semi-transparents)</li>
+        <li><strong>Frequence de scan :</strong> une fois toutes les 5 secondes (100 ticks) pour ne pas peser sur les TPS avec de nombreux blocs places</li>
+        <li><strong>Emission de particules :</strong> quand un espace vide est detecte, emettre des particules <code>SPELL_WITCH</code> (ou particule custom) depuis la face inferieure du bloc, avec une intensite proportionnelle au volume d'air detecte. Plus il y a de vide sous le bloc, plus les particules sont denses.</li>
+        <li><strong>Pas de TileEntity persistant si aucun espace :</strong> si le sol est completement solide, le bloc passe en mode "inactif" et ne tick plus jusqu'a ce qu'un bloc en dessous soit retire</li>
+      </ul>
+
+      <h3>Craft</h3>
+      <div class="ascii-diagram"><span class="as">Craft du Cave Block :</span>
+
+  <span class="ac">G G G</span>     G = Verre (Glass)
+  <span class="ac">G</span> <span class="am">A</span> <span class="ac">G</span>     A = Cristal Aetherite
+  <span class="ac">G G G</span>
+
+<span class="as">Resultat : 1x Cave Block</span></div>
+
+      <h3>Limitations intentionnelles</h3>
+      <ul>
+        <li>Le Cave Block ne revele pas les coordonnees exactes des espaces — juste leur presence et approximativement leur volume</li>
+        <li>Il doit etre physiquement place au sol — pas utilisable en l'air</li>
+        <li>Les espaces vides artificiels (bases creusees) et naturels (grottes) sont traites identiquement — le joueur doit explorer pour determiner la nature du vide</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S7 — IDEES ADDITIONNELLES ═══ -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num green-num">07</span> Idees Additionnelles (Propositions)</h2>
+
+      <p>Ces trois features sont des propositions — elles ne font pas partie du scope initial mais s'integrent naturellement dans le systeme de reconnaissance.</p>
+
+      <div class="idea-card">
+        <div class="idea-card-title">7.1 — Mine Proximity Detector (Detecteur de Proximite)</div>
+        <p>Un item portable (tenu en main) qui vibre/emet un son quand le joueur s'approche d'une zone avec beaucoup de TileEntities non-claim. Portee : 50 blocs. Ne donne PAS de coordonnees — juste une indication de proximite (son plus intense = plus proche). Consomme de la durabilite passif au fil du temps (1 point par minute d'utilisation). Tier unique : Aetherite. Durabilite : 60 minutes. Utile pour "pister" une base apres avoir recu un rapport imprecis.</p>
+      </div>
+
+      <div class="idea-card">
+        <div class="idea-card-title">7.2 — Scanner Portatif (Handheld Scanner)</div>
+        <p>Un item tenu en main secondaire. Affiche un overlay HUD via le systeme OverlayMod d'EriAPI avec une boussole qui pointe vers le cluster de TEs non-claim le plus proche dans un rayon de 100 blocs. Consomme 1 point de durabilite par minute active. Ne donne PAS de coordonnees exactes — seulement une direction. Tier Erinium. Durabilite : 3 heures d'utilisation. Ideal en phase de chasse apres avoir exploite un rapport d'Aetherite Scanner.</p>
+      </div>
+
+      <div class="artifact-card" style="border-left: 4px solid var(--erinium, #c8a800);">
+        <div class="idea-card-title">7.3 — Leurre de Base (Decoy Station)</div>
+
+        <h4>Principe</h4>
+        <p>Un bloc qui genere de fausses TileEntities fantomes dans un rayon de <strong>250 blocs</strong>. Ces TEs fantomes apparaissent dans les scans de l'Unclaim Finder Station mais n'existent pas physiquement. Le joueur place le leurre pour tromper les scanners ennemis et les envoyer au mauvais endroit.</p>
+
+        <h4>Fonctionnement technique — chunks decharges</h4>
+        <p>Le leurre ecrit ses fausses TEs directement dans les fichiers region (.mca) au moment du placement. Ainsi, meme si le chunk est decharge, les fausses TEs sont detectees par le scan (qui lit les region files pour les chunks non-charges). Quand le leurre est casse ou expire, les fausses TEs sont nettoyees des fichiers region.</p>
+
+        <h4>Restrictions anti-spam</h4>
+        <ul>
+          <li><strong>Maximum 1 leurre actif par faction</strong> — impossible d'en placer un deuxieme tant que le premier existe.</li>
+          <li><strong>Interdit dans les chunks claim</strong> — le leurre ne peut PAS etre place dans un chunk claim par quelque faction que ce soit (ni la sienne, ni allie, ni ennemi). Il doit etre en territoire sauvage/neutre uniquement.</li>
+          <li><strong>Distance minimum de 200 blocs</strong> entre le leurre et le chunk claim le plus proche de la faction du joueur. Empeche de mettre le leurre juste a cote de sa propre base pour creer de la confusion.</li>
+        </ul>
+
+        <h4>Difficulte d'obtention</h4>
+        <p><strong>Craft tres cher :</strong></p>
+        <div class="ascii-diagram"><span class="aer">E</span> <span class="ay">N</span> <span class="aer">E</span>     <span class="aer">E</span> = Fragment d'Erinium
+<span class="ay">N</span> <span class="ag">S</span> <span class="ay">N</span>     <span class="ay">N</span> = Nether Star
+<span class="aer">E</span> <span class="ay">N</span> <span class="aer">E</span>     <span class="ag">S</span> = Oeil d'Ender (Ender Eye)
+
+<span class="as">Resultat : 1x Decoy Station (usage unique)</span></div>
+        <ul>
+          <li><strong>Usage unique</strong> — l'item est consomme au placement (durabilite 1).</li>
+          <li><strong>Expiration 24h en temps reel</strong> — pas en ticks de jeu, en temps reel (<code>System.currentTimeMillis()</code> stocke en NBT du TileEntity). Apres 24h le bloc se detruit automatiquement et les fausses TEs sont nettoyees.</li>
+        </ul>
+
+        <h4>Possibilite d'echec</h4>
+        <ul>
+          <li><strong>15% de chance de dysfonctionnement au placement</strong> — le leurre ne genere rien, l'item est quand meme consomme. Le joueur recoit un message : <em>"Le leurre a dysfonctionn&eacute;... Les composants sont perdus."</em> Pas de remboursement.</li>
+          <li><strong>Detection par les scanners</strong> — a chaque scan ennemi qui traverse la zone du leurre, le scanner a une chance de detecter que le signal est faux :
+            <ul>
+              <li><strong>Tier 1 (Valterite) : 0% de detection</strong> — le leurre passe toujours pour vrai.</li>
+              <li><strong>Tier 2 (Aetherite) : 30% de chance de detection</strong> — si detecte, le rapport marque ce cluster comme <em>"Signal instable"</em> (indice subtil, pas une certitude).</li>
+              <li><strong>Tier 3 (Erinium) : 60% de chance de detection</strong> — meme marquage <em>"Signal instable"</em>.</li>
+            </ul>
+          </li>
+          <li>Le marquage <em>"Signal instable"</em> n'est PAS une confirmation que c'est un leurre — le joueur doit quand meme aller verifier. Mais c'est un indice.</li>
+        </ul>
+
+        <h4>Donnees du leurre</h4>
+        <ul>
+          <li>Nombre de fausses TEs generees : <strong>8-15</strong> (aleatoire) repartis dans le rayon de 250 blocs.</li>
+          <li>Types de fausses TEs : melanges (coffres, fours, dispensers) pour simuler une vraie base.</li>
+          <li>Les fausses TEs sont regroupees en <strong>2-4 clusters</strong> pour simuler 2-4 fausses bases.</li>
+        </ul>
+
+        <h4>Table recapitulative</h4>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Parametre</th><th>Valeur</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Rayon de leurre</td><td>250 blocs</td></tr>
+              <tr><td>Limite par faction</td><td>1 actif max</td></tr>
+              <tr><td>Zone de placement</td><td>Territoire sauvage uniquement</td></tr>
+              <tr><td>Distance min du claim propre</td><td>200 blocs</td></tr>
+              <tr><td>Durabilite</td><td>1 (usage unique)</td></tr>
+              <tr><td>Expiration</td><td>24h temps reel</td></tr>
+              <tr><td>Chance dysfonctionnement</td><td>15%</td></tr>
+              <tr><td>Detection par Tier 1</td><td>0%</td></tr>
+              <tr><td>Detection par Tier 2</td><td>30%</td></tr>
+              <tr><td>Detection par Tier 3</td><td>60%</td></tr>
+              <tr><td>Fausses TEs generees</td><td>8-15</td></tr>
+              <tr><td>Faux clusters simules</td><td>2-4</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Le leurre est un outil strategique couteux et risque.</strong> Il peut dysfonctionner, etre detecte, et expire apres 24h. Son placement en territoire sauvage loin de sa base signifie que l'ennemi peut aussi le trouver et le detruire.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S8 — RECETTES DE CRAFT ═══ -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num">08</span> Recettes de Craft</h2>
+
+      <h3 class="first">Unclaim Finder Station — Tier 1 (Valterite)</h3>
+      <div class="ascii-diagram"><span class="avt">V</span> <span class="ac">E</span> <span class="avt">V</span>     <span class="avt">V</span> = Lingot Valterite
+<span class="ac">E</span> <span class="ac">C</span> <span class="ac">E</span>     <span class="ac">E</span> = Perle d'Ender
+<span class="avt">V</span> <span class="ac">E</span> <span class="avt">V</span>     <span class="ac">C</span> = Boussole
+
+<span class="as">Resultat : 1x Unclaim Finder Station (Valterite) — 25 utilisations</span></div>
+
+      <h3>Unclaim Finder Station — Tier 2 (Aetherite)</h3>
+      <div class="ascii-diagram"><span class="am">A</span> <span class="ag">E</span> <span class="am">A</span>     <span class="am">A</span> = Lingot Aetherite
+<span class="ag">E</span> <span class="ac">C</span> <span class="ag">E</span>     <span class="ag">E</span> = Oeil d'Ender
+<span class="am">A</span> <span class="ag">E</span> <span class="am">A</span>     <span class="ac">C</span> = Boussole
+
+<span class="as">Resultat : 1x Unclaim Finder Station (Aetherite) — 10 utilisations</span></div>
+
+      <h3>Unclaim Finder Station — Tier 3 (Erinium)</h3>
+      <div class="ascii-diagram"><span class="aer">E</span> <span class="ay">N</span> <span class="aer">E</span>     <span class="aer">E</span> = Lingot Erinium
+<span class="ay">N</span> <span class="ag">M</span> <span class="ay">N</span>     <span class="ay">N</span> = Etoile du Nether (Nether Star)
+<span class="aer">E</span> <span class="ay">N</span> <span class="aer">E</span>     <span class="ag">M</span> = Oeil d'Ender
+
+<span class="as">Resultat : 1x Unclaim Finder Station (Erinium) — 5 utilisations</span></div>
+
+      <h3>Cave Block</h3>
+      <div class="ascii-diagram"><span class="ac">G G G</span>     <span class="ac">G</span> = Verre (Glass)
+<span class="ac">G</span> <span class="am">A</span> <span class="ac">G</span>     <span class="am">A</span> = Cristal Aetherite
+<span class="ac">G G G</span>
+
+<span class="as">Resultat : 4x Cave Block</span></div>
+
+      <h3>Decoy Station</h3>
+      <div class="ascii-diagram"><span class="aer">E</span> <span class="ay">N</span> <span class="aer">E</span>     <span class="aer">E</span> = Fragment d'Erinium
+<span class="ay">N</span> <span class="ag">S</span> <span class="ay">N</span>     <span class="ay">N</span> = Nether Star
+<span class="aer">E</span> <span class="ay">N</span> <span class="aer">E</span>     <span class="ag">S</span> = Oeil d'Ender (Ender Eye)
+
+<span class="as">Resultat : 1x Decoy Station (usage unique)</span></div>
+
+      <h3>Rapport de reconnaissance</h3>
+      <p>L'item <code>unclaim_report</code> n'a pas de recette — il est genere exclusivement par un scan reussi de l'Unclaim Finder Station. Il ne peut pas etre cree en craft.</p>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Toutes les recettes</strong> utilisent <code>EriRecipe.shaped()</code> depuis le package <code>recon/ReconRecipes.java</code>, enregistrees dans <code>CommonProxy.postInit()</code>.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S9 — ARCHITECTURE TECHNIQUE ═══ -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num erinium-num">09</span> Architecture Technique</h2>
+
+      <h3 class="first">Structure du package</h3>
+      <div class="code-block">fr.eriniumgroup.eriniumfaction.recon/
+├── station/
+│   ├── BlockFinderStation.java     <span class="cm">// Bloc 3 tiers (meta/property TIER_1/2/3), extends Block</span>
+│   ├── TileFinderStation.java      <span class="cm">// TileEntity : durabilite, timer, lancement scan</span>
+│   ├── ScanTask.java               <span class="cm">// Logique de scan batchee (N chunks/tick via EriScheduler)</span>
+│   ├── ScanCluster.java            <span class="cm">// Data class : centerX/Y/Z, teCount, density, fake</span>
+│   └── ScanManager.java            <span class="cm">// Singleton : gestion scans actifs (max 3), queue</span>
+├── report/
+│   ├── ReportItem.java             <span class="cm">// Item custom unclaim_report, maxStack=1</span>
+│   ├── ReportData.java             <span class="cm">// Serialization/deserialization NBT du rapport</span>
+│   └── GuiReport.java              <span class="cm">// EriGuiScreen pour afficher le contenu du rapport</span>
+├── cave/
+│   ├── BlockCave.java              <span class="cm">// Bloc transparent, BlockRenderLayer.TRANSLUCENT</span>
+│   ├── TileCave.java               <span class="cm">// TileEntity : scan 32 blocs sous, update 100 ticks</span>
+│   └── CaveParticleHandler.java    <span class="cm">// Emission particules client-side</span>
+├── ReconItems.java                 <span class="cm">// Registration items (unclaim_report, items optionnels)</span>
+├── ReconBlocks.java                <span class="cm">// Registration blocs (finder_station x3, cave_block)</span>
+└── ReconRecipes.java               <span class="cm">// Recettes de craft (EriRecipe.shaped)</span></div>
+
+      <h3>Points techniques critiques</h3>
+      <ul>
+        <li><strong>ScanTask utilise EriScheduler.repeat(1, ...) :</strong> un callback par tick, traitant 4 chunks maximum par appel. Jamais de boucle bloquante.</li>
+        <li><strong>Durabilite NBT bi-directionnelle :</strong> <code>onBlockPlacedBy()</code> lit le NBT de l'ItemStack et initialise la durabilite du TileEntity. <code>onBlockHarvested()</code> ecrit la durabilite restante dans le drop ItemStack. La durabilite ne se perd jamais lors d'un deplacement.</li>
+        <li><strong>Faux rapports generes cote serveur uniquement :</strong> le client recoit l'item avec le NBT complet. Le flag <code>fake</code> est dans le NBT mais le <code>GuiReport</code> ne l'affiche jamais. Il est invisible pour le joueur, mais visible pour le code.</li>
+        <li><strong>Chunks non-charges = lecture region async :</strong> si un chunk n'est pas en memoire, le ScanTask lit son NBT depuis le fichier region <code>.mca</code> via <code>RegionDataCache.getAsync()</code> sans jamais charger le chunk. Le cache region evite les relecures redondantes (TTL 5 minutes). Maximum 4 lectures region par tick (configurable). Le thread serveur n'est jamais bloque — la lecture I/O est deleguee a un thread separee via <code>EriScheduler.async()</code>.</li>
+        <li><strong>Annulation au deconnect :</strong> <code>PlayerEvent.PlayerLoggedOutEvent</code> appelle <code>ScanManager.cancelScansFor(player.getUniqueID())</code>. Aucun scan orphelin ne reste actif.</li>
+        <li><strong>Annulation si bloc detruit :</strong> le TileEntity s'invalide (invalidate()) quand le bloc est casse. Le ScanTask verifie <code>tile.isInvalid()</code> a chaque iteration et s'annule si vrai.</li>
+        <li><strong>BlockFinderStation — 3 tiers en un bloc :</strong> utiliser une <code>PropertyEnum</code> TIER (VALTERITE, AETHERITE, ERINIUM) stockee dans le blockstate. Evite de creer 3 classes de blocs separees. La logique de tier est delegue au TileEntity via <code>TileFinderStation.getTier()</code>.</li>
+        <li><strong>TileCave — early return agressif :</strong> si aucun espace vide detecte lors du dernier scan, le TileEntity passe en mode inactif et ne retick plus jusqu'a ce qu'un BlockUpdate adjacent le reveille.</li>
+      </ul>
+
+      <h3>NBT TileFinderStation — champs obligatoires</h3>
+      <div class="code-block"><span class="cm">// writeToNBT / readFromNBT de TileFinderStation</span>
+<span class="st">"durability"</span>   <span class="cm">// int : utilisations restantes</span>
+<span class="st">"maxDurability"</span> <span class="cm">// int : max selon tier (25, 10, 5)</span>
+<span class="st">"scanning"</span>      <span class="cm">// boolean : scan en cours</span>
+<span class="st">"scanStartTick"</span> <span class="cm">// long : world.getTotalWorldTime() au moment du lancement</span>
+<span class="st">"scanOwner"</span>     <span class="cm">// String (UUID) : joueur qui a lance le scan</span></div>
+
+      <h3>Considerations CleanRoom (Java 25 / forge 1.12.2)</h3>
+      <ul>
+        <li>Pas d'imports <code>sun.*</code> ni <code>Unsafe</code> — le generateur aleatoire utilise <code>java.util.Random</code></li>
+        <li>Pas d'ASM brut — si un Mixin est necessaire (ex: intercepter le break du bloc scanner pendant un scan actif), utiliser SpongePowered Mixin via <code>mixins.eriniumfaction.json</code></li>
+        <li>Rester en Java 8 — pas de <code>var</code>, pas de streams complexes dans les hot paths</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S9b — ASSETS ═══ -->
+    <section class="section-card" id="s9b">
+      <h2><span class="s-num cyan-num">09b</span> Assets</h2>
+
+      <h3 class="first">Unclaim Finder Station — Textures (32×32 pixel art)</h3>
+      <p>Trois blocs distincts, un par tier. Chaque tier a sa couleur dominante : <span style="color:var(--valterite)">Valterite (cyan)</span>, <span style="color:var(--aetherite)">Aetherite (violet)</span>, <span style="color:var(--erinium)">Erinium (or)</span>.</p>
+      <ul>
+        <li><strong>Face avant :</strong> motif antenne / radar emblematique, avec la couleur dominante du tier comme accent lumineux</li>
+        <li><strong>Cotes :</strong> texture neutre avec details technologiques (boulons, plaques) et une bande de couleur du tier sur les bords</li>
+        <li><strong>Dessus :</strong> vue de dessus avec radar circulaire centree, teinte dominante du tier</li>
+        <li><strong>Etat SCANNING :</strong> variante de texture pour chaque face quand le scan est actif — lueur pulsee, particules integrees dans la texture, antenne "animee" (via blockstate SCANNING=true). Pas d'animation Java — uniquement deux etats de texture distincts.</li>
+        <li><strong>Item :</strong> une texture 32×32 pour chaque tier (vue de face du bloc, isometrique ou flat selon le rendu item)</li>
+      </ul>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fichier texture</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>valterite_finder_station_front.png</td><td>Face avant tier 1 (etat idle)</td></tr>
+            <tr><td>valterite_finder_station_front_scanning.png</td><td>Face avant tier 1 (etat scanning)</td></tr>
+            <tr><td>valterite_finder_station_side.png</td><td>Cotes tier 1</td></tr>
+            <tr><td>valterite_finder_station_top.png</td><td>Dessus tier 1</td></tr>
+            <tr><td>aetherite_finder_station_front.png</td><td>Face avant tier 2 (etat idle)</td></tr>
+            <tr><td>aetherite_finder_station_front_scanning.png</td><td>Face avant tier 2 (etat scanning)</td></tr>
+            <tr><td>aetherite_finder_station_side.png</td><td>Cotes tier 2</td></tr>
+            <tr><td>aetherite_finder_station_top.png</td><td>Dessus tier 2</td></tr>
+            <tr><td>erinium_finder_station_front.png</td><td>Face avant tier 3 (etat idle)</td></tr>
+            <tr><td>erinium_finder_station_front_scanning.png</td><td>Face avant tier 3 (etat scanning)</td></tr>
+            <tr><td>erinium_finder_station_side.png</td><td>Cotes tier 3</td></tr>
+            <tr><td>erinium_finder_station_top.png</td><td>Dessus tier 3</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Cave Block — Texture</h3>
+      <ul>
+        <li><strong>Texture unique :</strong> verre avec teinte bleutee/violette distincte du verre vanilla (eviter toute confusion visuelle)</li>
+        <li><strong>RenderLayer :</strong> <code>TRANSLUCENT</code> — le bloc est transparent, le joueur peut voir a travers</li>
+        <li><strong>Fichier :</strong> <code>cave_block.png</code> (32×32)</li>
+      </ul>
+
+      <h3>Report Paper — Texture</h3>
+      <ul>
+        <li><strong>Texture item :</strong> parchemin / papier avec un symbole de radar ou d'onde au centre</li>
+        <li><strong>Style :</strong> rappel visuel du tier qui l'a genere serait un bonus (teinte de bordure), mais pas obligatoire — un design unique suffit</li>
+        <li><strong>Fichier :</strong> <code>unclaim_report.png</code> (32×32 item)</li>
+      </ul>
+
+      <h3>Modeles JSON</h3>
+      <ul>
+        <li><strong>3 blockstates de station</strong> (un par tier) : <code>valterite_finder_station.json</code>, <code>aetherite_finder_station.json</code>, <code>erinium_finder_station.json</code>. Chaque fichier expose 4 rotations <code>FACING</code> (NORTH/SOUTH/EAST/WEST) × 2 etats <code>SCANNING</code> (true/false) = 8 variants par tier.</li>
+        <li><strong>3 block models de station</strong> : parent <code>block/orientable</code> avec les proprietes <code>front</code>, <code>side</code>, <code>top</code> pointant vers les textures du tier correspondant. Un second model par tier pour l'etat <code>SCANNING=true</code> pointant vers les textures de scanning.</li>
+        <li><strong>3 item models de station</strong> : parent <code>item/generated</code> avec la texture front du tier en <code>layer0</code>.</li>
+        <li><strong>1 blockstate cave_block.json</strong> : aucun variant — state simple, une seule texture.</li>
+        <li><strong>1 item model unclaim_report.json</strong> : parent <code>item/generated</code>, <code>layer0</code> sur la texture parchemin.</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Structure des fichiers assets :</strong> tous les fichiers sont dans <code>src/main/resources/assets/eriniumfaction/</code>. Blockstates dans <code>blockstates/</code>, block models dans <code>models/block/</code>, item models dans <code>models/item/</code>, textures dans <code>textures/blocks/</code> et <code>textures/items/</code>.</div>
+      </div>
+
+      <h3>Traductions FR/EN</h3>
+      <p>Toutes les cles de traduction sont a ajouter dans <code>en_US.lang</code> et <code>fr_FR.lang</code>.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Cle</th><th>FR</th><th>EN</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>tile.eriniumfaction.valterite_finder_station.name</td><td>Station de Recherche Valterite</td><td>Valterite Finder Station</td></tr>
+            <tr><td>tile.eriniumfaction.aetherite_finder_station.name</td><td>Station de Recherche Aetherite</td><td>Aetherite Finder Station</td></tr>
+            <tr><td>tile.eriniumfaction.erinium_finder_station.name</td><td>Station de Recherche Erinium</td><td>Erinium Finder Station</td></tr>
+            <tr><td>tile.eriniumfaction.cave_block.name</td><td>Bloc de Vision Souterraine</td><td>Cave Vision Block</td></tr>
+            <tr><td>item.eriniumfaction.unclaim_report.name</td><td>Rapport de Reconnaissance</td><td>Reconnaissance Report</td></tr>
+            <tr><td>eriniumfaction.recon.scan_alert</td><td>Une onde de recherche a traverse votre position.</td><td>A reconnaissance wave has swept through your position.</td></tr>
+            <tr><td>eriniumfaction.recon.scan_alert_tier3</td><td>Une onde de recherche a traverse votre position. Source : %d, %d, %d</td><td>A reconnaissance wave has swept through your position. Source: %d, %d, %d</td></tr>
+            <tr><td>eriniumfaction.recon.scan_queued</td><td>Scan en attente (file saturee). Demarrera automatiquement.</td><td>Scan queued (slots full). Will start automatically.</td></tr>
+            <tr><td>eriniumfaction.recon.scan_in_progress</td><td>Un scan est deja en cours sur cette station.</td><td>A scan is already in progress on this station.</td></tr>
+            <tr><td>eriniumfaction.recon.durability_depleted</td><td>Cette station est epuisee et ne peut plus scanner.</td><td>This station is depleted and can no longer scan.</td></tr>
+            <tr><td>eriniumfaction.recon.scan_interrupted</td><td>Scan interrompu : la station a ete detruite.</td><td>Scan interrupted: the station was destroyed.</td></tr>
+            <tr><td>eriniumfaction.recon.report.title</td><td>Rapport de Reconnaissance</td><td>Reconnaissance Report</td></tr>
+            <tr><td>eriniumfaction.recon.report.by</td><td>Genere par : %s (Tier %d)</td><td>Generated by: %s (Tier %d)</td></tr>
+            <tr><td>eriniumfaction.recon.report.density.low</td><td>Densite : Faible</td><td>Density: Low</td></tr>
+            <tr><td>eriniumfaction.recon.report.density.medium</td><td>Densite : Moyenne</td><td>Density: Medium</td></tr>
+            <tr><td>eriniumfaction.recon.report.density.high</td><td>Densite : Forte</td><td>Density: High</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ S10 — PLAN DE TESTS ═══ -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num red-num">10</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests fonctionnels — Unclaim Finder Station</h3>
+      <ul class="checklist">
+        <li><strong>Durabilite persistante :</strong> placer T1, scanner 3 fois (22 restants), casser, reposer → confirmer 22 affiche dans le tooltip</li>
+        <li><strong>Detection non-claim uniquement :</strong> placer 20 coffres dans un chunk claim, scanner → aucun cluster dans le rapport</li>
+        <li><strong>Detection non-claim valide :</strong> placer 20 coffres dans un chunk non-claim → cluster present dans le rapport</li>
+        <li><strong>Seuil minimum 3 TEs :</strong> placer 2 coffres isoles → pas de cluster genere</li>
+        <li><strong>Clustering :</strong> 15 coffres en groupes de 5 a 35 blocs de distance → 3 clusters distincts dans le rapport</li>
+        <li><strong>Faux rapports Tier 1 :</strong> rapport T1 avec 1 vrai cluster → 4 entrees au total dans le rapport (1 vrai + 3 faux)</li>
+        <li><strong>Faux rapports Tier 2 :</strong> rapport T2 avec 1 vrai cluster → 3 entrees (1 vrai + 2 faux)</li>
+        <li><strong>Tier 3 — zero faux rapport :</strong> rapport T3 avec 1 vrai cluster → exactement 1 entree dans le rapport</li>
+        <li><strong>Offset de precision :</strong> verifier que les coordonnees dans le rapport T1 different des coordonnees reelles de +/- 500 blocs max</li>
+        <li><strong>Alerte au lancement :</strong> placer un joueur a 700 blocs du scanner T1, lancer le scan → joueur recoit le message d'alerte immediatement au lancement, pas a la fin</li>
+        <li><strong>Alerte Tier 3 — position revelee :</strong> scan T3 → l'alerte recue par les joueurs proches inclut les coordonnees exactes du scanner</li>
+        <li><strong>Destruction pendant scan T3 :</strong> lancer un scan T3, casser le bloc avant la fin → pas de rapport genere, durabilite quand meme consommee</li>
+      </ul>
+
+      <h3>Tests fonctionnels — Cave Block</h3>
+      <ul class="checklist">
+        <li><strong>Detection de vide :</strong> placer le Cave Block au-dessus d'une grotte naturelle → particules emises sur la face inferieure</li>
+        <li><strong>Sol plein — mode inactif :</strong> placer le Cave Block sur un sol sans grotte en dessous → aucune particule, TileEntity inactif</li>
+        <li><strong>Reactiver apres creusage :</strong> avec un Cave Block inactif, creuser un bloc en dessous → le bloc deteckte la mise a jour et repasse en mode actif</li>
+        <li><strong>Intensite proportionnelle :</strong> grotte de 5 blocs vs grotte de 50 blocs → plus de particules pour la grande grotte</li>
+      </ul>
+
+      <h3>Tests de performance (serveur 500-1000 joueurs)</h3>
+      <ul class="checklist">
+        <li><strong>3 scans simultanes :</strong> lancer 3 scans T1 en meme temps → chaque scan traite 4 chunks/tick, pas de spike TPS visible</li>
+        <li><strong>File d'attente (queue) :</strong> lancer 5 scans → les 2 derniers sont mis en queue et demarrent apres que les 2 premiers se terminent</li>
+        <li><strong>Scan avec deconnexion :</strong> lancer un scan, se deconnecter → scan annule proprement, aucun scan orphelin en memoire</li>
+        <li><strong>Scan avec destruction du bloc :</strong> lancer un scan, casser le bloc scanner → ScanTask annule proprement via <code>tile.isInvalid()</code></li>
+        <li><strong>100 Cave Blocks actifs :</strong> placer 100 Cave Blocks au-dessus de grottes → verifier l'impact TPS sur le tick (doit etre negligeable grace au scan 100 ticks)</li>
+        <li><strong>Pas de chunk loading force :</strong> verifier avec un log serveur que le scan T1 (800 blocs) ne force jamais le chargement de chunks non-charges — les chunks non charges doivent etre scannes via lecture region async uniquement</li>
+        <li><strong>Lecture region async :</strong> verifier que le scan d'un chunk non charge ne bloque pas le thread principal (mesurer le temps du tick serveur pendant un scan touchant des chunks non charges)</li>
+        <li><strong>Cache region :</strong> lancer deux scans successifs dans la meme zone → le deuxieme scan doit utiliser le cache region et ne pas relire les fichiers .mca</li>
+        <li><strong>Stress test clustering :</strong> 500 coffres dans un rayon de 300 blocs → verifier que le clustering termine sans timeout</li>
+      </ul>
+
+      <h3>Tests GUI</h3>
+      <ul class="checklist">
+        <li><strong>Ouverture rapport :</strong> clic droit avec un item unclaim_report en main → GuiReport s'ouvre avec les clusters affiches</li>
+        <li><strong>Format des donnees :</strong> coordonnees, densite, distance depuis le scanner tous correctement affiches</li>
+        <li><strong>Pas de flag fake visible :</strong> inspecter le GUI avec des rapports contenant des faux clusters → aucune indication visuelle de leur nature</li>
+        <li><strong>Clic coordonnees :</strong> cliquer sur un cluster dans le GUI → commande /tp copiee dans le chat</li>
+        <li><strong>Resolutions multiples :</strong> tester le GUI en 1920x1080, 1280x720, 2560x1440 → mise en page correcte via ScaleManager</li>
+      </ul>
+
+      <h3>Tests d'integrite NBT</h3>
+      <ul class="checklist">
+        <li><strong>Rapport survive au restart serveur :</strong> generer un rapport, stocker dans un coffre, redemarrer le serveur → rapport lisible et donnees intactes</li>
+        <li><strong>Durabilite survive au restart :</strong> poser un scanner a 12/25, casser, redemarrer, reposer → 12 utilisations restantes</li>
+        <li><strong>Rapport echangeable :</strong> joueur A genere un rapport, le donne au joueur B → B peut l'ouvrir et voir les donnees</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+
+<script>
+var toggle = document.getElementById('navToggle');
+var sidebar = document.getElementById('sidebar');
+if (toggle && sidebar) {
+  toggle.addEventListener('click', function() { sidebar.classList.toggle('open'); });
+}
+
+// Highlight active nav link on scroll
+var sections = document.querySelectorAll('section[id]');
+var navLinks = document.querySelectorAll('.nav-link');
+window.addEventListener('scroll', function() {
+  var scrollY = window.scrollY + 120;
+  sections.forEach(function(sec) {
+    if (scrollY >= sec.offsetTop && scrollY < sec.offsetTop + sec.offsetHeight) {
+      navLinks.forEach(function(l) { l.classList.remove('active'); });
+      var active = document.querySelector('.nav-link[href="#' + sec.id + '"]');
+      if (active) active.classList.add('active');
+    }
+  });
+});
+</script>
+</body>
+</html>

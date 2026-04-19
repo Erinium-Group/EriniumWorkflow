@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Refonte HUD Barres de Vie &amp; Status | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 50% 90%, rgba(231,76,60,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 12px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+
+  /* =========================================================
+     SECTION CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr { background: rgba(107,47,160,0.18); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .tag-opt { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(241,196,15,0.10); color: var(--gold); border: 1px solid rgba(241,196,15,0.25); letter-spacing: 0.05em; }
+
+  /* =========================================================
+     COLOR SWATCHES
+  ========================================================= */
+  .color-swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: middle;
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .cl  { color: #FFCB6B; }
+
+  /* =========================================================
+     ASCII DIAGRAMS
+  ========================================================= */
+  .ascii-diagram {
+    background: rgba(5,5,10,0.75);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 11.5px;
+    line-height: 1.65;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+  }
+
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .ao { color: var(--orange); }
+  .ascii-diagram .as { color: var(--slate); }
+
+  /* =========================================================
+     INFO BOXES
+  ========================================================= */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2);   }
+
+  /* =========================================================
+     HUD BAR VISUAL DEMO
+  ========================================================= */
+  .hud-demo {
+    background: rgba(0,0,0,0.60);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    margin: 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 11px;
+  }
+
+  .hud-demo-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .hud-bar-track {
+    height: 8px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.06);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .hud-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+  }
+
+  .bar-hp   { background: linear-gradient(90deg, #E74C3C, #8B1A1A); }
+  .bar-abs  { background: linear-gradient(90deg, #FFD700, #B8860B); }
+  .bar-food { background: linear-gradient(90deg, #E67E22, #8B4513); }
+  .bar-air  { background: linear-gradient(90deg, #00B4D8, #023E8A); }
+  .bar-mnt  { background: linear-gradient(90deg, #2ECC71, #1A8449); }
+  .bar-xp   { background: linear-gradient(90deg, #6B2FA0, #00E5FF); }
+  .bar-bg   { background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.05); }
+
+  .hud-label { color: var(--slate); font-size: 10px; min-width: 60px; }
+  .hud-val   { color: var(--text);  font-size: 10px; min-width: 48px; }
+
+  /* =========================================================
+     ANIMATIONS + DIVIDER
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-bdr), transparent);
+    margin: 24px 0;
+  }
+
+  /* =========================================================
+     MOBILE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,47,160,0.4);
+    transition: transform .2s;
+  }
+
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 50;
+      width: 260px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+  }
+
+  @media (max-width: 600px) {
+    .section-card { padding: 24px 18px; }
+    .page-header h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+
+    <span class="sidebar-title">Sommaire</span>
+
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Architecture Technique</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Structure Visuelle</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Barre de Vie</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Barre de Nourriture</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Indicateur d'Armure</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Barre d'Oxygene</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Vie de Monture</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Barre d'XP</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Animations &amp; Transitions</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Integrations</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Refonte HUD — Barres de Vie &amp; Status</h1>
+      <p>Remplacement complet de toutes les barres de statut vanilla au-dessus de la barre d'action par un OverlayMod EriAPI minimaliste et elegant : vie, nourriture, armure, oxygene, monture et XP en barres sleek style RPG moderne.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-red">Mixin GuiIngame</span>
+        <span class="badge badge-violet">OverlayMod EriAPI</span>
+        <span class="badge badge-cyan">Client-Side Only</span>
+        <span class="badge badge-gold">Liquid Glass</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <div class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <p>Le HUD vanilla de Minecraft 1.12.2 affiche la vie sous forme de coeurs pixelises, la nourriture en jambons, l'armure en icones metalliques et l'oxygene en bulles — un visuel fonctionnel pour un jeu arcade, mais totalement inadequat pour un serveur faction/PvP serieux avec une identite visuelle elaboree.</p>
+
+      <p>Sur un serveur PvP 1.8 (sans cooldown d'attaque), les informations de sante sont consultees en permanence. Chaque information manquante ou difficile a lire est un desavantage tactique. Le HUD doit etre instantanement lisible, ne pas polluer visuellement le reste de l'ecran, et refleter l'esthetique glass morphism du mod.</p>
+
+      <h3>Problemes du HUD vanilla</h3>
+      <ul>
+        <li><strong>Coeurs pixelises</strong> — Difficiles a lire en un coup d'oeil lors d'un combat rapide (PvP 1.8 jitter click)</li>
+        <li><strong>Pas de valeurs numeriques</strong> — Impossible de savoir si on est a 5.5 ou 6 PV sans compter les demi-coeurs</li>
+        <li><strong>Absorption non differenciee</strong> — Les coeurs dores se fondent dans le reste</li>
+        <li><strong>Style totalement deconnecte</strong> — Icones 16x16 retro vs panneaux glass morphism violet/cyan du mod</li>
+        <li><strong>Layout non optimal</strong> — Les barres vanilla sont dispersees et non centrees</li>
+        <li><strong>XP bar inconsistante</strong> — Style graphique different du reste du HUD</li>
+      </ul>
+
+      <h3>Objectifs de la refonte</h3>
+      <ul>
+        <li><strong>Lisibilite instantanee</strong> — Valeur numerique sur chaque barre, visible au premier coup d'oeil</li>
+        <li><strong>Non distrayant</strong> — Barres fines, translucides, pas de surcharge visuelle</li>
+        <li><strong>Coherence visuelle</strong> — Style Liquid Glass, palette violet/cyan, coins arrondis</li>
+        <li><strong>Conditionnel intelligent</strong> — Armure cachee si 0, oxygene visible seulement sous l'eau, monture seulement si montee</li>
+        <li><strong>Animations fluides</strong> — Lerp des valeurs pour eviter les sauts brusques</li>
+        <li><strong>Performance</strong> — Construction unique de l'arbre de composants, mise a jour des valeurs seulement</li>
+      </ul>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Regle CLAUDE.md</strong> — Ne JAMAIS coder d'overlay brut (RenderGameOverlayEvent + OpenGL direct). TOUJOURS utiliser le systeme OverlayMod d'EriAPI (extends OverlayMod, register via OverlayModManager). L'implementation doit etre un <code>StatusBarsOverlay extends OverlayMod</code>.</div>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>PvP 1.8</strong> — Le serveur utilise un mod PvP 1.8 sans cooldown d'attaque. L'attribut ATTACK_SPEED est inutile. Les animations et effets visuels du HUD ne doivent JAMAIS etre bases sur l'attack speed. La barre de vie est la reference principale de survie en combat.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S2 — ARCHITECTURE TECHNIQUE ═══ -->
+    <div class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Architecture Technique</h2>
+
+      <p>L'implementation repose sur deux parties : un ensemble de Mixins qui annulent le rendu vanilla des barres de statut, et un <code>StatusBarsOverlay</code> qui s'appuie entierement sur EriAPI pour le rendu personnalise.</p>
+
+      <h3 class="first">Classes Mixin cibles</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Classe cible</th>
+              <th>Methode annulee</th>
+              <th>Couvre</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>net.minecraft.client.gui.GuiIngame</code></td>
+              <td><code>renderHealth(ScaledResolution)</code></td>
+              <td>Coeurs de vie + coeurs absorption</td>
+            </tr>
+            <tr>
+              <td><code>net.minecraft.client.gui.GuiIngame</code></td>
+              <td><code>renderFood(ScaledResolution)</code></td>
+              <td>Jambons de nourriture</td>
+            </tr>
+            <tr>
+              <td><code>net.minecraft.client.gui.GuiIngame</code></td>
+              <td><code>renderArmor(ScaledResolution)</code></td>
+              <td>Icones d'armure</td>
+            </tr>
+            <tr>
+              <td><code>net.minecraft.client.gui.GuiIngame</code></td>
+              <td><code>renderAir(ScaledResolution)</code></td>
+              <td>Bulles d'oxygene</td>
+            </tr>
+            <tr>
+              <td><code>net.minecraft.client.gui.GuiIngame</code></td>
+              <td><code>renderMountHealth(ScaledResolution)</code></td>
+              <td>Coeurs de monture</td>
+            </tr>
+            <tr>
+              <td><code>net.minecraft.client.gui.GuiIngame</code></td>
+              <td><code>renderExperience(ScaledResolution)</code></td>
+              <td>Barre d'XP vanilla</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Toutes ces methodes sont injectees avec <code>@Inject at HEAD, cancellable = true</code>. La condition d'annulation est simple : si <code>StatusBarsOverlay</code> est actif (visible), appeler <code>ci.cancel()</code>. Sinon, laisser le vanilla s'afficher (fallback si EriAPI n'est pas charge).</p>
+
+      <div class="code-block"><span class="an">@Mixin</span>(<span class="ty">GuiIngame</span>.<span class="kw">class</span>)
+<span class="kw">public class</span> <span class="cl">MixinGuiIngameStatusBars</span> {
+
+    <span class="an">@Inject</span>(method = <span class="st">"renderHealth"</span>, at = <span class="an">@At</span>(<span class="st">"HEAD"</span>), cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">cancelRenderHealth</span>(<span class="ty">ScaledResolution</span> resolution, <span class="ty">CallbackInfo</span> ci) {
+        <span class="kw">if</span> (<span class="cl">StatusBarsOverlay</span>.<span class="fn">isActive</span>()) ci.<span class="fn">cancel</span>();
+    }
+
+    <span class="an">@Inject</span>(method = <span class="st">"renderFood"</span>, at = <span class="an">@At</span>(<span class="st">"HEAD"</span>), cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">cancelRenderFood</span>(<span class="ty">ScaledResolution</span> resolution, <span class="ty">CallbackInfo</span> ci) {
+        <span class="kw">if</span> (<span class="cl">StatusBarsOverlay</span>.<span class="fn">isActive</span>()) ci.<span class="fn">cancel</span>();
+    }
+
+    <span class="an">@Inject</span>(method = <span class="st">"renderArmor"</span>, at = <span class="an">@At</span>(<span class="st">"HEAD"</span>), cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">cancelRenderArmor</span>(<span class="ty">ScaledResolution</span> resolution, <span class="ty">CallbackInfo</span> ci) {
+        <span class="kw">if</span> (<span class="cl">StatusBarsOverlay</span>.<span class="fn">isActive</span>()) ci.<span class="fn">cancel</span>();
+    }
+
+    <span class="an">@Inject</span>(method = <span class="st">"renderAir"</span>, at = <span class="an">@At</span>(<span class="st">"HEAD"</span>), cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">cancelRenderAir</span>(<span class="ty">ScaledResolution</span> resolution, <span class="ty">CallbackInfo</span> ci) {
+        <span class="kw">if</span> (<span class="cl">StatusBarsOverlay</span>.<span class="fn">isActive</span>()) ci.<span class="fn">cancel</span>();
+    }
+
+    <span class="an">@Inject</span>(method = <span class="st">"renderMountHealth"</span>, at = <span class="an">@At</span>(<span class="st">"HEAD"</span>), cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">cancelRenderMountHealth</span>(<span class="ty">ScaledResolution</span> resolution, <span class="ty">CallbackInfo</span> ci) {
+        <span class="kw">if</span> (<span class="cl">StatusBarsOverlay</span>.<span class="fn">isActive</span>()) ci.<span class="fn">cancel</span>();
+    }
+
+    <span class="an">@Inject</span>(method = <span class="st">"renderExperience"</span>, at = <span class="an">@At</span>(<span class="st">"HEAD"</span>), cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">cancelRenderExperience</span>(<span class="ty">ScaledResolution</span> resolution, <span class="ty">CallbackInfo</span> ci) {
+        <span class="kw">if</span> (<span class="cl">StatusBarsOverlay</span>.<span class="fn">isActive</span>()) ci.<span class="fn">cancel</span>();
+    }
+}</div>
+
+      <h3>Structure des classes</h3>
+      <div class="ascii-diagram"><span class="av">fr.eriniumgroup.eriniumfaction.hud/</span>
+<span class="as">├──</span> <span class="ac">StatusBarsOverlay.java</span>       <span class="as">extends OverlayMod — rendu principal</span>
+<span class="as">└──</span> <span class="av">mixin/</span>
+<span class="as">    └──</span> <span class="ac">MixinGuiIngameStatusBars.java</span>  <span class="as">Annule les 6 rendus vanilla</span>
+
+<span class="as">Enregistrement :</span>
+<span class="as">  ClientProxy.init() :</span>
+<span class="as">    OverlayModManager.register(new StatusBarsOverlay());</span>
+
+<span class="as">mixins.eriniumfaction.json — section "client" :</span>
+<span class="as">  "MixinGuiIngameStatusBars"</span>
+
+<span class="as">Arbre de composants (construit une seule fois dans buildOverlay()) :</span>
+<span class="as">ContainerComponent root (0, 0, 640, 60)  — zone de design du panneau</span>
+<span class="as">  ├── Groupe armure (conditionnel)         — au-dessus barre HP gauche</span>
+<span class="as">  │   ├── Rectangle  icone armure 10x10</span>
+<span class="as">  │   └── Label      valeur armure "14"</span>
+<span class="as">  ├── Rectangle  bg barre HP               — x=0, y=14, w=280, h=8</span>
+<span class="as">  ├── GradientRectangle  fill HP           — largeur = f(hp/maxHp)</span>
+<span class="as">  ├── GradientRectangle  fill absorption   — apres le fill HP</span>
+<span class="as">  ├── Label      texte "18/20"             — centre sur la barre HP</span>
+<span class="as">  ├── Rectangle  bg barre food             — x=360, y=14, w=280, h=8</span>
+<span class="as">  ├── GradientRectangle  fill food         — largeur = f(food/20)</span>
+<span class="as">  ├── Label      texte "19/20"             — centre sur la barre food</span>
+<span class="as">  ├── Groupe air (conditionnel, masque)    — centre entre les deux barres</span>
+<span class="as">  │   ├── Rectangle  bg barre air</span>
+<span class="as">  │   ├── GradientRectangle  fill air</span>
+<span class="as">  │   └── Label      texte air</span>
+<span class="as">  ├── Rectangle  bg barre XP              — x=0, y=26, w=640, h=4</span>
+<span class="as">  ├── GradientRectangle  fill XP</span>
+<span class="as">  └── Label      niveau XP                — a gauche de la barre XP</span></div>
+
+      <h3>Registration de l'OverlayMod</h3>
+      <div class="code-block"><span class="cm">// Dans ClientProxy.init()</span>
+<span class="cl">OverlayModManager</span>.<span class="fn">register</span>(<span class="kw">new</span> <span class="cl">StatusBarsOverlay</span>());
+
+<span class="cm">// Structure de base de l'overlay</span>
+<span class="kw">public class</span> <span class="cl">StatusBarsOverlay</span> <span class="kw">extends</span> <span class="cl">OverlayMod</span> {
+
+    <span class="kw">private static final int</span> W = <span class="nu">640</span>; <span class="cm">// largeur design (HP 280 + gap 80 + food 280)</span>
+    <span class="kw">private static final int</span> H = <span class="nu">60</span>;  <span class="cm">// hauteur design (armure + barres + xp + padding)</span>
+
+    <span class="kw">public</span> <span class="cl">StatusBarsOverlay</span>() {
+        <span class="kw">super</span>(<span class="st">"status_bars"</span>, <span class="st">"Status Bars HUD"</span>, W, H);
+        <span class="fn">setCategory</span>(<span class="st">"HUD"</span>);
+        <span class="cm">// Centre en bas : x = 0.5 - (640/1920)/2 = 0.5 - 0.1667 = 0.3333</span>
+        <span class="fn">setDefaultPosition</span>(<span class="nu">0.333f</span>, <span class="nu">0.930f</span>);
+        <span class="fn">setLayer</span>(<span class="cl">OverlayLayer</span>.POST_HOTBAR);
+    }
+
+    <span class="kw">public static boolean</span> <span class="fn">isActive</span>() {
+        <span class="cl">StatusBarsOverlay</span> inst = (<span class="cl">StatusBarsOverlay</span>) <span class="cl">OverlayModManager</span>.<span class="fn">get</span>(<span class="st">"status_bars"</span>);
+        <span class="kw">return</span> inst != <span class="kw">null</span> &amp;&amp; inst.<span class="fn">isVisible</span>();
+    }
+}</div>
+    </div>
+
+    <!-- ═══ S3 — STRUCTURE VISUELLE ═══ -->
+    <div class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Structure Visuelle</h2>
+
+      <p>Toutes les coordonnees sont en pixels design 1920x1080. Le <code>ScaleManager</code> d'EriAPI convertit automatiquement vers la resolution reelle du joueur. L'overlay est positionne juste au-dessus de la barre de raccourcis, centre horizontalement.</p>
+
+      <h3 class="first">Maquette ASCII — Vue globale</h3>
+      <div class="ascii-diagram"><span class="as">                         ← 640 px design →</span>
+<span class="as"> y=0  ┌──────────────────────────────────────────────────────────────┐</span>
+<span class="as">      │</span>  <span class="ay">[⚔ 14]</span>                                                      <span class="as">│  ← armure (si > 0)</span>
+<span class="as"> y=14 │</span>  <span class="ar">█████████████████████████░░░░░░</span>  <span class="as">        </span>  <span class="ao">████████████████░░░░</span>  <span class="as">│</span>
+<span class="as">      │</span>  <span class="ar">       18/20 HP                </span>  <span class="as">        </span>  <span class="ao">    19/20 Food    </span>  <span class="as">│</span>
+<span class="as"> y=24 │</span>                     <span class="ac">████░░░░░ air 8/10</span>                       <span class="as">│  ← oxygene (si sous l'eau)</span>
+<span class="as"> y=30 │</span>  <span class="av">██████████████████████████████████████████████████░░░░░░░░░░</span>  <span class="as">│  ← XP bar</span>
+<span class="as">      │</span>  <span class="av">Nv.15</span>                                                        <span class="as">│</span>
+<span class="as"> y=40 └──────────────────────────────────────────────────────────────┘</span>
+<span class="as">      ←─ 280 px ─→         ← 80 px →        ←─ 280 px ─→</span>
+<span class="as">         barre HP            zone air           barre food</span>
+
+<span class="as">Quand monture active (remplace barre food) :</span>
+<span class="as">                                               ←─ 280 px ─→</span>
+<span class="as">                                               <span class="ag">████████░░░░ 8/10</span></span></div>
+
+      <h3>Dimensions de tous les elements</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Element</th>
+              <th>x (design)</th>
+              <th>y (design)</th>
+              <th>w (design)</th>
+              <th>h (design)</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Panneau racine</td>
+              <td>0</td>
+              <td>0</td>
+              <td>640</td>
+              <td>60</td>
+              <td>Transparent — pas de fond propre</td>
+            </tr>
+            <tr>
+              <td>Icone armure</td>
+              <td>0</td>
+              <td>0</td>
+              <td>10</td>
+              <td>10</td>
+              <td>Visible seulement si armure &gt; 0</td>
+            </tr>
+            <tr>
+              <td>Label valeur armure</td>
+              <td>14</td>
+              <td>1</td>
+              <td>40</td>
+              <td>10</td>
+              <td>Format : "14" — scale 0.65f</td>
+            </tr>
+            <tr>
+              <td>Fond barre HP</td>
+              <td>0</td>
+              <td>14</td>
+              <td>280</td>
+              <td>8</td>
+              <td>rgba(0,0,0,0.35), border rgba(255,255,255,0.05), cornerRadius 4</td>
+            </tr>
+            <tr>
+              <td>Fill barre HP</td>
+              <td>0</td>
+              <td>14</td>
+              <td>variable</td>
+              <td>8</td>
+              <td>w = 280 * (hp / maxHp) — gradient #E74C3C → #8B1A1A</td>
+            </tr>
+            <tr>
+              <td>Fill absorption</td>
+              <td>apres fill HP</td>
+              <td>14</td>
+              <td>variable</td>
+              <td>8</td>
+              <td>Commence apres le fill HP, gradient #FFD700 → #B8860B</td>
+            </tr>
+            <tr>
+              <td>Label HP</td>
+              <td>0</td>
+              <td>14</td>
+              <td>280</td>
+              <td>8</td>
+              <td>Texte "18/20" centre dans la barre, scale 0.6f, ombre</td>
+            </tr>
+            <tr>
+              <td>Fond barre food</td>
+              <td>360</td>
+              <td>14</td>
+              <td>280</td>
+              <td>8</td>
+              <td>Meme style que HP, masque si monture active</td>
+            </tr>
+            <tr>
+              <td>Fill barre food</td>
+              <td>360</td>
+              <td>14</td>
+              <td>variable</td>
+              <td>8</td>
+              <td>gradient #E67E22 → #8B4513</td>
+            </tr>
+            <tr>
+              <td>Label food</td>
+              <td>360</td>
+              <td>14</td>
+              <td>280</td>
+              <td>8</td>
+              <td>Texte "19/20" centre, scale 0.6f, ombre</td>
+            </tr>
+            <tr>
+              <td>Fond barre air</td>
+              <td>240</td>
+              <td>24</td>
+              <td>160</td>
+              <td>6</td>
+              <td>Centre entre HP et food, visible seulement sous l'eau</td>
+            </tr>
+            <tr>
+              <td>Fill barre air</td>
+              <td>240</td>
+              <td>24</td>
+              <td>variable</td>
+              <td>6</td>
+              <td>gradient #00B4D8 → #023E8A</td>
+            </tr>
+            <tr>
+              <td>Fond barre monture</td>
+              <td>360</td>
+              <td>14</td>
+              <td>280</td>
+              <td>8</td>
+              <td>Remplace barre food quand monture active</td>
+            </tr>
+            <tr>
+              <td>Fill barre monture</td>
+              <td>360</td>
+              <td>14</td>
+              <td>variable</td>
+              <td>8</td>
+              <td>gradient #2ECC71 → #1A8449</td>
+            </tr>
+            <tr>
+              <td>Fond barre XP</td>
+              <td>0</td>
+              <td>30</td>
+              <td>640</td>
+              <td>4</td>
+              <td>Tres fine, toute la largeur</td>
+            </tr>
+            <tr>
+              <td>Fill barre XP</td>
+              <td>0</td>
+              <td>30</td>
+              <td>variable</td>
+              <td>4</td>
+              <td>gradient #6B2FA0 → #00E5FF</td>
+            </tr>
+            <tr>
+              <td>Label niveau</td>
+              <td>0</td>
+              <td>36</td>
+              <td>40</td>
+              <td>10</td>
+              <td>Format : "Nv.15", scale 0.65f, couleur violet-light</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Palette de couleurs complete</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Element</th>
+              <th>Couleur debut</th>
+              <th>Couleur fin</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Vie (HP)</td>
+              <td><span class="color-swatch" style="background:#E74C3C;"></span><code>#E74C3C</code></td>
+              <td><span class="color-swatch" style="background:#8B1A1A;"></span><code>#8B1A1A</code></td>
+              <td>Rouge vif → rouge fonce</td>
+            </tr>
+            <tr>
+              <td>Absorption</td>
+              <td><span class="color-swatch" style="background:#FFD700;"></span><code>#FFD700</code></td>
+              <td><span class="color-swatch" style="background:#B8860B;"></span><code>#B8860B</code></td>
+              <td>Or vif → or fonce</td>
+            </tr>
+            <tr>
+              <td>Nourriture</td>
+              <td><span class="color-swatch" style="background:#E67E22;"></span><code>#E67E22</code></td>
+              <td><span class="color-swatch" style="background:#8B4513;"></span><code>#8B4513</code></td>
+              <td>Orange → brun</td>
+            </tr>
+            <tr>
+              <td>Armure</td>
+              <td><span class="color-swatch" style="background:#5B9BD5;"></span><code>#5B9BD5</code></td>
+              <td>—</td>
+              <td>Bleu acier, pas de gradient (icone + texte)</td>
+            </tr>
+            <tr>
+              <td>Oxygene (air)</td>
+              <td><span class="color-swatch" style="background:#00B4D8;"></span><code>#00B4D8</code></td>
+              <td><span class="color-swatch" style="background:#023E8A;"></span><code>#023E8A</code></td>
+              <td>Cyan clair → bleu profond</td>
+            </tr>
+            <tr>
+              <td>Monture</td>
+              <td><span class="color-swatch" style="background:#2ECC71;"></span><code>#2ECC71</code></td>
+              <td><span class="color-swatch" style="background:#1A8449;"></span><code>#1A8449</code></td>
+              <td>Vert emeraude → vert fonce</td>
+            </tr>
+            <tr>
+              <td>XP</td>
+              <td><span class="color-swatch" style="background:#6B2FA0;"></span><code>#6B2FA0</code></td>
+              <td><span class="color-swatch" style="background:#00E5FF;"></span><code>#00E5FF</code></td>
+              <td>Violet → cyan (couleurs du mod)</td>
+            </tr>
+            <tr>
+              <td>Fond des barres</td>
+              <td colspan="2"><code>rgba(0, 0, 0, 0.35)</code></td>
+              <td>Translucide fonce</td>
+            </tr>
+            <tr>
+              <td>Bordure des barres</td>
+              <td colspan="2"><code>rgba(255, 255, 255, 0.05)</code></td>
+              <td>1px, tres subtile</td>
+            </tr>
+            <tr>
+              <td>Texte sur les barres</td>
+              <td colspan="2"><code>#FFFFFF</code> avec ombre</td>
+              <td>Lisible sur n'importe quelle couleur de fond</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Demo visuelle des barres</h3>
+      <div class="hud-demo">
+        <div class="hud-demo-row">
+          <span class="hud-label">Vie</span>
+          <div class="hud-bar-track" style="width: 200px;">
+            <div class="hud-bar-fill bar-hp" style="width: 82%;"></div>
+          </div>
+          <span class="hud-val">18/22 HP</span>
+        </div>
+        <div class="hud-demo-row">
+          <span class="hud-label">Vie + Abs</span>
+          <div class="hud-bar-track" style="width: 200px;">
+            <div class="hud-bar-fill bar-hp" style="width: 70%; display:inline-block;"></div>
+            <div class="hud-bar-fill bar-abs" style="width: 14%; display:inline-block; margin-left:0;"></div>
+          </div>
+          <span class="hud-val">14/20 +3</span>
+        </div>
+        <div class="hud-demo-row">
+          <span class="hud-label">Nourriture</span>
+          <div class="hud-bar-track" style="width: 200px;">
+            <div class="hud-bar-fill bar-food" style="width: 95%;"></div>
+          </div>
+          <span class="hud-val">19/20</span>
+        </div>
+        <div class="hud-demo-row">
+          <span class="hud-label">Oxygene</span>
+          <div class="hud-bar-track" style="width: 200px;">
+            <div class="hud-bar-fill bar-air" style="width: 60%;"></div>
+          </div>
+          <span class="hud-val">6/10 air</span>
+        </div>
+        <div class="hud-demo-row">
+          <span class="hud-label">Monture</span>
+          <div class="hud-bar-track" style="width: 200px;">
+            <div class="hud-bar-fill bar-mnt" style="width: 75%;"></div>
+          </div>
+          <span class="hud-val">15/20 HP</span>
+        </div>
+        <div class="hud-demo-row">
+          <span class="hud-label">XP</span>
+          <div class="hud-bar-track" style="width: 200px; height: 4px;">
+            <div class="hud-bar-fill bar-xp" style="width: 45%;"></div>
+          </div>
+          <span class="hud-val">Nv.15</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ S4 — BARRE DE VIE ═══ -->
+    <div class="section-card" id="s4">
+      <h2><span class="s-num red-num">04</span> Barre de Vie</h2>
+
+      <p>La barre de vie est l'element le plus critique — elle doit etre lisible d'un coup d'oeil lors des combats PvP 1.8 a haute frequence de clic.</p>
+
+      <h3 class="first">Sources de donnees</h3>
+      <div class="code-block"><span class="ty">EntityPlayer</span> player = <span class="cl">Minecraft</span>.<span class="fn">getMinecraft</span>().player;
+
+<span class="ty">float</span> hp        = player.<span class="fn">getHealth</span>();           <span class="cm">// HP actuels (0 a maxHP)</span>
+<span class="ty">float</span> maxHp      = player.<span class="fn">getMaxHealth</span>();        <span class="cm">// HP max (vanilla = 20.0f)</span>
+<span class="ty">float</span> absorption = player.<span class="fn">getAbsorptionAmount</span>(); <span class="cm">// PV dores (0 par defaut)</span>
+
+<span class="cm">// HP max peut etre modifie par la stat Vigueur du systeme RPG</span>
+<span class="cm">// RpgManager applique le bonus en modifiant l'attribut MAX_HEALTH vanilla</span>
+<span class="cm">// donc getMaxHealth() retourne TOUJOURS la valeur correcte (avec bonus Vigueur)</span></div>
+
+      <h3>Regles d'affichage</h3>
+      <ul>
+        <li><strong>Texte</strong> — Format : <code>"(int)hp / (int)maxHp"</code> ex : <code>"18/20"</code> ou <code>"18/30"</code> si Vigueur augmente le max. Centrer dans la barre.</li>
+        <li><strong>Absorption</strong> — Si <code>absorption &gt; 0</code>, la section doree s'ajoute a la droite du fill HP. La largeur totale des deux fills ne peut pas depasser 280 px. Formule : <code>fillHpW = 280 * (hp / (maxHp + absorption))</code>, <code>fillAbsW = 280 * (absorption / (maxHp + absorption))</code>.</li>
+        <li><strong>Texte avec absorption</strong> — Format : <code>"18/20 +4"</code> quand absorption &gt; 0.</li>
+        <li><strong>Flash de degat</strong> — Quand HP diminue, faire un <code>shake(6)</code> sur la barre de vie.</li>
+        <li><strong>Pulsation danger</strong> — Quand HP &lt; 20% du maxHP, activer une animation pingPong sur l'opacite de la barre (0.40f to 1.0f, 25 ticks, EASE_IN_OUT). Stopper quand HP remonte au-dessus de 25%.</li>
+      </ul>
+
+      <h3>Formules lerp</h3>
+      <div class="code-block"><span class="cm">// Valeurs affichees (interpolees vers les valeurs reelles)</span>
+<span class="kw">private float</span> displayHp        = <span class="nu">20f</span>;
+<span class="kw">private float</span> displayMaxHp      = <span class="nu">20f</span>;
+<span class="kw">private float</span> displayAbsorption = <span class="nu">0f</span>;
+
+<span class="cm">// Constante d'interpolation (par frame)</span>
+<span class="kw">private static final float</span> LERP_SPEED = <span class="nu">0.15f</span>;
+
+<span class="cm">// Dans onFrame() — appele chaque frame</span>
+<span class="kw">private void</span> <span class="fn">updateDisplayValues</span>() {
+    <span class="ty">float</span> realHp  = <span class="cl">Minecraft</span>.<span class="fn">getMinecraft</span>().player.<span class="fn">getHealth</span>();
+    <span class="ty">float</span> realMax  = <span class="cl">Minecraft</span>.<span class="fn">getMinecraft</span>().player.<span class="fn">getMaxHealth</span>();
+    <span class="ty">float</span> realAbs  = <span class="cl">Minecraft</span>.<span class="fn">getMinecraft</span>().player.<span class="fn">getAbsorptionAmount</span>();
+
+    <span class="cm">// Lerp lineaire : valeur += (cible - valeur) * vitesse</span>
+    displayHp        += (realHp  - displayHp)        * LERP_SPEED;
+    displayMaxHp     += (realMax - displayMaxHp)      * LERP_SPEED;
+    displayAbsorption += (realAbs - displayAbsorption) * LERP_SPEED;
+
+    <span class="cm">// Detecter perte de HP pour l'effet shake</span>
+    <span class="kw">if</span> (realHp &lt; lastRealHp - <span class="nu">0.05f</span> &amp;&amp; hpBarBg != <span class="kw">null</span>) {
+        hpBarBg.<span class="fn">shake</span>(<span class="nu">6</span>);
+    }
+    lastRealHp = realHp;
+}</div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Lerp dans onFrame() vs onTick()</strong> — Le lerp doit se faire dans <code>onFrame()</code> (appele chaque frame rendue) et non <code>onTick()</code> (20/sec). Cela garantit une animation fluide quel que soit le FPS. La mise a jour de la largeur des fills GradientRectangle doit egalement se faire dans <code>onFrame()</code>.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S5 — BARRE DE NOURRITURE ═══ -->
+    <div class="section-card" id="s5">
+      <h2><span class="s-num orange-num">05</span> Barre de Nourriture</h2>
+
+      <p>La barre de nourriture est positionnee a droite de la barre de vie. Elle est cachee quand le joueur monte une entite (remplacee par la barre de vie de monture).</p>
+
+      <h3 class="first">Sources de donnees</h3>
+      <div class="code-block"><span class="ty">FoodStats</span> food = player.<span class="fn">getFoodStats</span>();
+
+<span class="ty">int</span>   foodLevel      = food.<span class="fn">getFoodLevel</span>();      <span class="cm">// 0 a 20</span>
+<span class="ty">float</span> saturation     = food.<span class="fn">getSaturationLevel</span>(); <span class="cm">// 0.0 a foodLevel (max 20)</span>
+<span class="cm">// saturation diminue en premier avant le food level</span></div>
+
+      <h3>Regles d'affichage</h3>
+      <ul>
+        <li><strong>Texte</strong> — Format : <code>"19/20"</code> centrer dans la barre. Toujours sur 20 (c'est le max vanilla).</li>
+        <li><strong>Indicateur de saturation</strong> — Petit point brillant (ou micro-barre secondaire de 2px de hauteur en bas de la barre principale) de couleur jaune clair (<code>#F1C40F</code>) dont la largeur represente la saturation. Visible seulement si saturation &gt; 0.</li>
+        <li><strong>Alerte faim</strong> — Quand foodLevel &lt;= 6 (30%), activer la pulsation pingPong sur la barre (identique au danger HP : 0.40f to 1.0f, 30 ticks, EASE_IN_OUT).</li>
+        <li><strong>Masquage monture</strong> — Quand <code>player.isRiding()</code> est vrai, masquer entierement la barre food et afficher la barre de vie monture a sa place (voir section 08).</li>
+        <li><strong>Lerp</strong> — Appliquer le lerp avec LERP_SPEED = 0.12f (un peu plus lent que HP pour un effet plus doux).</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Saturation non affichee comme valeur numerique</strong> — La saturation est un mecanisme technique que le joueur vanilla n'est pas cense voir explicitement. L'indicateur est visuel (micro-barre ou point) et subtil, pas un chiffre.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S6 — INDICATEUR D'ARMURE ═══ -->
+    <div class="section-card" id="s6">
+      <h2><span class="s-num cyan-num">06</span> Indicateur d'Armure</h2>
+
+      <p>L'armure est affichee sous forme d'un indicateur compact : une icone de bouclier et la valeur numerique, positionnes au-dessus de la barre de vie a gauche.</p>
+
+      <h3 class="first">Source de donnees</h3>
+      <div class="code-block"><span class="cm">// Valeur d'armure totale (0 a 20 points de base)</span>
+<span class="ty">int</span> armorValue = <span class="cl">TotalArmorValueHelper</span>.<span class="fn">getTotalArmorValue</span>(player);
+<span class="cm">// Ou via l'attribut direct :</span>
+<span class="ty">int</span> armorValue = (<span class="ty">int</span>) player.<span class="fn">getTotalArmorValue</span>(); <span class="cm">// methode vanilla GuiIngame</span></div>
+
+      <h3>Regles d'affichage</h3>
+      <ul>
+        <li><strong>Visibilite</strong> — L'indicateur est invisible si <code>armorValue == 0</code>. Il apparait avec un fadeIn(8) quand l'armure passe de 0 a &gt; 0.</li>
+        <li><strong>Position</strong> — Au-dessus du debut de la barre HP : x=0, y=0, dans la zone de design de l'overlay.</li>
+        <li><strong>Icone</strong> — Symbole unicode <code>&#9956;</code> (bouclier) ou utiliser une texture de l'icone armure vanilla. Couleur : <code>#5B9BD5</code>.</li>
+        <li><strong>Valeur</strong> — Affichee a droite de l'icone, format : simple entier <code>"14"</code>. Couleur : <code>#5B9BD5</code>. Scale 0.65f.</li>
+        <li><strong>Pas de lerp</strong> — L'armure change rarement et en valeur entiere, pas besoin d'interpolation.</li>
+        <li><strong>Pas de saturation</strong> — Ne pas afficher la reduction de degats par enchant Protecion ou toughness ici, juste la valeur d'armure brute.</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Armure maximale</strong> — La valeur peut depasser 20 si la stat Resistance RPG ajoute des points d'armure virtuels. Afficher la valeur reelle retournee par <code>getTotalArmorValue()</code> sans la plafonner.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S7 — BARRE D'OXYGENE ═══ -->
+    <div class="section-card" id="s7">
+      <h2><span class="s-num">07</span> Barre d'Oxygene</h2>
+
+      <p>La barre d'oxygene est un element conditionnel — elle n'existe visuellement que lorsque le joueur est sous l'eau et que son niveau d'air diminue. Elle apparait en fondu et disparait de meme.</p>
+
+      <h3 class="first">Source de donnees</h3>
+      <div class="code-block"><span class="ty">int</span> air    = player.<span class="fn">getAir</span>();    <span class="cm">// 0 a 300 (300 = plein, en ticks)</span>
+<span class="ty">int</span> maxAir = <span class="nu">300</span>;               <span class="cm">// Constante vanilla</span>
+
+<span class="cm">// Detection : sous l'eau quand air < 300 et player est dans l'eau</span>
+<span class="kw">boolean</span> underwater = player.<span class="fn">isInsideOfMaterial</span>(<span class="cl">Material</span>.WATER)
+                   || player.<span class="fn">isInsideOfMaterial</span>(<span class="cl">Material</span>.ICE);
+<span class="kw">boolean</span> showAir    = underwater &amp;&amp; air &lt; maxAir;</div>
+
+      <h3>Regles d'affichage</h3>
+      <ul>
+        <li><strong>Apparition</strong> — Quand <code>showAir</code> passe de false a true : <code>airGroup.fadeIn(12)</code>.</li>
+        <li><strong>Disparition</strong> — Quand <code>showAir</code> passe de true a false (joueur sort de l'eau) : <code>airGroup.fadeOut(20)</code>, puis masquer apres la fin du fadeOut.</li>
+        <li><strong>Position</strong> — Centree entre les barres HP et food (x=240, y=24, w=160, h=6). Visible seulement dans cette zone — ne pas empieter sur les barres principales.</li>
+        <li><strong>Format texte</strong> — A droite de la barre d'air : <code>"&lt;icone vague&gt; (air/maxAir en secondes)"</code> ex : <code>"~ 8s"</code> (air/20 arrondi). Scale 0.55f.</li>
+        <li><strong>Urgence</strong> — Quand air &lt; 60 (3 secondes), pulsation rapide : 0.3f to 1.0f, 15 ticks pingPong. Couleur de fill devient plus claire (<code>#48CAE4</code>).</li>
+        <li><strong>Lerp</strong> — Appliquer lerp LERP_SPEED = 0.10f (plus lent, l'oxygene monte/descend lentement).</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Gestion du groupe conditionnel</strong> — Creer un <code>ContainerComponent airGroup</code> qui contient le fond, le fill et le texte. Appeler <code>airGroup.visible(false)</code> a la construction. La visibilite est geree dans <code>onTick()</code> avec detection du changement d'etat.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S8 — VIE DE MONTURE ═══ -->
+    <div class="section-card" id="s8">
+      <h2><span class="s-num green-num">08</span> Vie de Monture</h2>
+
+      <p>Quand le joueur chevauche une entite (cheval, cochon, araignee, etc.), la barre de nourriture est remplacee par la barre de vie de la monture. La nourriture du joueur n'est pas pertinente en combat monte.</p>
+
+      <h3 class="first">Source de donnees</h3>
+      <div class="code-block"><span class="kw">boolean</span> isRiding = player.<span class="fn">isRiding</span>();
+
+<span class="kw">if</span> (isRiding) {
+    <span class="ty">Entity</span> mount = player.<span class="fn">getRidingEntity</span>();
+    <span class="kw">if</span> (mount <span class="kw">instanceof</span> <span class="ty">EntityLivingBase</span>) {
+        <span class="ty">EntityLivingBase</span> livingMount = (<span class="ty">EntityLivingBase</span>) mount;
+        <span class="ty">float</span> mountHp    = livingMount.<span class="fn">getHealth</span>();
+        <span class="ty">float</span> mountMaxHp = livingMount.<span class="fn">getMaxHealth</span>();
+        <span class="cm">// Afficher la barre de monture en remplacement de la barre food</span>
+    }
+}
+
+<span class="cm">// Cas specifique : cheval (EntityHorse)</span>
+<span class="cm">// getMaxHealth() sur un EntityHorse retourne la bonne valeur (15-30 HP selon le cheval)</span></div>
+
+      <h3>Regles d'affichage</h3>
+      <ul>
+        <li><strong>Transition</strong> — Quand le joueur monte : <code>foodGroup.fadeOut(8)</code> puis <code>mountGroup.fadeIn(8)</code>. Transition inverse a la descente.</li>
+        <li><strong>Format texte</strong> — <code>"(int)mountHp / (int)mountMaxHp"</code> ex : <code>"15/20"</code>. Prefixe optionnel avec icone de cheval.</li>
+        <li><strong>Gradient</strong> — Vert (#2ECC71 → #1A8449) pour distinguer immediatement de la vie du joueur.</li>
+        <li><strong>Lerp</strong> — Appliquer lerp LERP_SPEED = 0.15f (identique a HP joueur).</li>
+        <li><strong>Shake</strong> — Quand la vie de la monture diminue, appliquer <code>mountBarBg.shake(4)</code> (moins intense que pour le joueur).</li>
+        <li><strong>Monture non-vivante</strong> — Si <code>getRidingEntity()</code> n'est pas une <code>EntityLivingBase</code> (ex: bateau, wagonnet), afficher la barre food normalement.</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S9 — BARRE D'XP ═══ -->
+    <div class="section-card" id="s9">
+      <h2><span class="s-num">09</span> Barre d'XP</h2>
+
+      <p>La barre d'XP est un element tres fin (4px de hauteur design) s'etendant sur toute la largeur du panneau, positionnee juste en dessous des barres de vie et nourriture. Elle affiche le niveau vanilla du joueur et le pourcentage de progression vers le prochain niveau.</p>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>XP vanilla vs XP RPG</strong> — Cette barre affiche les points d'experience vanilla Minecraft (ceux obtenus en tuant des mobs, minant, etc. et visibles en bas de l'ecran). La barre XP RPG du systeme RPG est geree par <code>RpgHudOverlay</code> et affiche l'XP RPG separement. Les deux coexistent.</div>
+      </div>
+
+      <h3 class="first">Sources de donnees</h3>
+      <div class="code-block"><span class="ty">int</span>   xpLevel = player.experienceLevel;     <span class="cm">// Niveau vanilla (0, 1, 2, ...)</span>
+<span class="ty">float</span> xpPct   = player.experience;           <span class="cm">// Progression 0.0f a 1.0f vers le prochain niveau</span>
+
+<span class="cm">// Calcul de l'XP total necessaire pour le niveau actuel (formule vanilla) :</span>
+<span class="cm">// Niveau 0-15  : 2*lvl + 7 XP</span>
+<span class="cm">// Niveau 16-30 : 5*lvl - 38 XP</span>
+<span class="cm">// Niveau 31+   : 9*lvl - 158 XP</span></div>
+
+      <h3>Regles d'affichage</h3>
+      <ul>
+        <li><strong>Largeur fill</strong> — <code>fillW = 640 * xpPct</code>.</li>
+        <li><strong>Label niveau</strong> — Positionne a gauche de la barre XP (x=0, y=36), format : <code>"Nv.15"</code>. Couleur : <code>#9B4FCF</code> (violet-light). Scale 0.65f.</li>
+        <li><strong>Gradient</strong> — Violet #6B2FA0 → Cyan #00E5FF (couleurs du mod EriniumFaction).</li>
+        <li><strong>Level up flash</strong> — Quand le niveau augmente, faire un <code>xpBar.pulse(10)</code> et un bref fadeOut/fadeIn du label (rebirth visuel).</li>
+        <li><strong>Lerp</strong> — LERP_SPEED = 0.08f (tres lent — la barre XP ne doit pas sauter brusquement lors d'un gain d'XP important).</li>
+        <li><strong>Integration RpgHudOverlay</strong> — Cette barre XP vanilla n'interfere pas avec la barre XP RPG de <code>RpgHudOverlay</code>. Elles sont positionnees a des hauteurs differentes dans le repere de design 1920x1080.</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S10 — ANIMATIONS & TRANSITIONS ═══ -->
+    <div class="section-card" id="s10">
+      <h2><span class="s-num gold-num">10</span> Animations &amp; Transitions</h2>
+
+      <p>Les animations sont le coeur de l'experience visuelle du HUD. Elles doivent etre fluides, non intrusives et fournir un retour immediat sur les changements d'etat.</p>
+
+      <h3 class="first">Algorithme de lerp (interpolation lineaire)</h3>
+      <div class="code-block"><span class="cm">// Formule generale, appliquee dans onFrame() pour chaque valeur interpolee</span>
+<span class="cm">// displayValue converge vers targetValue a la vitesse LERP_SPEED chaque frame</span>
+displayValue += (targetValue - displayValue) * LERP_SPEED;
+
+<span class="cm">// Si la difference est negligeable, clamper pour eviter la derive infinie</span>
+<span class="kw">if</span> (<span class="cl">Math</span>.<span class="fn">abs</span>(targetValue - displayValue) &lt; <span class="nu">0.01f</span>) {
+    displayValue = targetValue;
+}
+
+<span class="cm">// Conversion display → largeur de barre :</span>
+<span class="ty">int</span> fillWidth = (<span class="ty">int</span>) (BAR_W * (displayValue / maxValue));
+fillWidth = <span class="cl">Math</span>.<span class="fn">max</span>(<span class="nu">0</span>, <span class="cl">Math</span>.<span class="fn">min</span>(BAR_W, fillWidth));</div>
+
+      <h3>Vitesses de lerp par barre</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Barre</th>
+              <th>LERP_SPEED</th>
+              <th>Raison</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Vie (HP)</td>
+              <td><code>0.15f</code></td>
+              <td>Rapide — critique en combat PvP</td>
+            </tr>
+            <tr>
+              <td>Nourriture</td>
+              <td><code>0.12f</code></td>
+              <td>Legrement plus lent — moins urgent</td>
+            </tr>
+            <tr>
+              <td>Oxygene</td>
+              <td><code>0.10f</code></td>
+              <td>Descente lente, sensation d'etouffement progressif</td>
+            </tr>
+            <tr>
+              <td>Monture</td>
+              <td><code>0.15f</code></td>
+              <td>Identique a HP joueur</td>
+            </tr>
+            <tr>
+              <td>XP</td>
+              <td><code>0.08f</code></td>
+              <td>Tres lent — l'XP s'accumule graduellement</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Catalogue des animations declenchables</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Evenement</th>
+              <th>Animation</th>
+              <th>Parametres</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Perte de HP</td>
+              <td><code>hpBarBg.shake(6)</code></td>
+              <td>Tremblement horizontal 6px amplitude</td>
+            </tr>
+            <tr>
+              <td>HP &lt; 20% maxHP</td>
+              <td>pingPong opacite</td>
+              <td>0.40f → 1.0f, 25 ticks, EASE_IN_OUT, loop</td>
+            </tr>
+            <tr>
+              <td>HP recupere au-dessus de 25%</td>
+              <td>Stopper le pingPong</td>
+              <td>Resetopacite a 1.0f</td>
+            </tr>
+            <tr>
+              <td>Faim &lt;= 6</td>
+              <td>pingPong opacite food</td>
+              <td>0.40f → 1.0f, 30 ticks, EASE_IN_OUT, loop</td>
+            </tr>
+            <tr>
+              <td>Oxygene &lt; 60 ticks</td>
+              <td>pingPong opacite air rapide</td>
+              <td>0.30f → 1.0f, 15 ticks, LINEAR, loop</td>
+            </tr>
+            <tr>
+              <td>Entree dans l'eau</td>
+              <td><code>airGroup.fadeIn(12)</code></td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>Sortie de l'eau</td>
+              <td><code>airGroup.fadeOut(20)</code></td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>Monture a cheval</td>
+              <td><code>foodGroup.fadeOut(8)</code> puis <code>mountGroup.fadeIn(8)</code></td>
+              <td>Sequentiel</td>
+            </tr>
+            <tr>
+              <td>Descente de monture</td>
+              <td><code>mountGroup.fadeOut(8)</code> puis <code>foodGroup.fadeIn(8)</code></td>
+              <td>Sequentiel</td>
+            </tr>
+            <tr>
+              <td>Niveau XP monte</td>
+              <td><code>xpBar.pulse(10)</code></td>
+              <td>Scale 0→1 pop</td>
+            </tr>
+            <tr>
+              <td>Armure equipee (0 → &gt; 0)</td>
+              <td><code>armorGroup.fadeIn(8)</code></td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>Armure retiree (&gt; 0 → 0)</td>
+              <td><code>armorGroup.fadeOut(8)</code></td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Gestion des animations persistantes (danger)</h3>
+      <div class="code-block"><span class="cm">// Champs de l'overlay pour tracker l'etat des animations de danger</span>
+<span class="kw">private</span> <span class="ty">Animation</span> hpDangerAnim  = <span class="kw">null</span>;
+<span class="kw">private boolean</span>   hpInDanger   = <span class="kw">false</span>;
+
+<span class="cm">// Dans onTick() — verifier le changement d'etat de danger</span>
+<span class="kw">boolean</span> nowInDanger = (player.<span class="fn">getHealth</span>() / player.<span class="fn">getMaxHealth</span>()) &lt; <span class="nu">0.20f</span>;
+
+<span class="kw">if</span> (nowInDanger &amp;&amp; !hpInDanger) {
+    hpInDanger = <span class="kw">true</span>;
+    hpDangerAnim = <span class="cl">Animation</span>.<span class="fn">create</span>(<span class="nu">0.40f</span>, <span class="nu">1.0f</span>, <span class="nu">25</span>)
+            .<span class="fn">easing</span>(<span class="cl">Easing</span>.EASE_IN_OUT)
+            .<span class="fn">pingPong</span>()
+            .<span class="fn">scope</span>(<span class="st">"overlay"</span>)
+            .<span class="fn">onUpdate</span>(v -&gt; { <span class="kw">if</span> (hpBarFill != <span class="kw">null</span>) hpBarFill.<span class="fn">setOpacity</span>(v); });
+    <span class="cl">AnimationManager</span>.<span class="fn">getInstance</span>().<span class="fn">play</span>(hpDangerAnim);
+
+} <span class="kw">else if</span> (!nowInDanger &amp;&amp; hpInDanger) {
+    hpInDanger = <span class="kw">false</span>;
+    <span class="kw">if</span> (hpDangerAnim != <span class="kw">null</span>) { hpDangerAnim.<span class="fn">stop</span>(); hpDangerAnim = <span class="kw">null</span>; }
+    <span class="kw">if</span> (hpBarFill != <span class="kw">null</span>) hpBarFill.<span class="fn">setOpacity</span>(<span class="nu">1.0f</span>);
+}</div>
+    </div>
+
+    <!-- ═══ S11 — INTEGRATIONS ═══ -->
+    <div class="section-card" id="s11">
+      <h2><span class="s-num">11</span> Integrations</h2>
+
+      <h3 class="first">Integration RPG — stat Vigueur</h3>
+      <p>La stat <strong>Vigueur</strong> du systeme RPG (<code>RpgManager</code>) modifie <code>player.getMaxHealth()</code> en ajoutant des PV supplementaires via l'attribut Forge <code>MAX_HEALTH</code>. La barre de vie <code>StatusBarsOverlay</code> lit <code>player.getMaxHealth()</code> directement — elle affiche automatiquement le bon maximum sans aucune integration supplementaire.</p>
+      <ul>
+        <li>Pas de couplage direct avec <code>RpgPlayerData</code></li>
+        <li>La valeur numerique affichee (<code>"18/30"</code>) reflete correctement les 30 PV d'un personnage haut niveau</li>
+        <li>La barre s'adapte automatiquement a la largeur (toujours 280 px pour 100%)</li>
+      </ul>
+
+      <h3>Coexistence avec RpgHudOverlay</h3>
+      <p><code>RpgHudOverlay</code> affiche la barre XP RPG, le niveau RPG et le prestige en bas de l'ecran (position <code>y=0.925f</code>). <code>StatusBarsOverlay</code> est positionne a <code>y=0.930f</code> (juste en-dessous), ce qui cree une zone d'interface coherente centree en bas de l'ecran.</p>
+      <ul>
+        <li>Aucun conflit de couche — les deux utilisent <code>OverlayLayer.POST_HOTBAR</code></li>
+        <li>Positions par defaut calculees pour ne pas se superposer</li>
+        <li>L'utilisateur peut repositionner chaque overlay independamment via l'interface de gestion des overlays EriAPI</li>
+      </ul>
+
+      <h3>Coexistence avec MagicHudOverlay</h3>
+      <p><code>MagicHudOverlay</code> (barre de mana + slots de sorts) est positionne a <code>y=0.875f</code>. Aucune interaction avec les barres de statut. La mana est une ressource RPG independante des HP/food vanilla.</p>
+
+      <h3>Barre d'XP vanilla vs XP RPG</h3>
+      <p>Ce <code>StatusBarsOverlay</code> annule l'affichage de la barre XP vanilla via le Mixin <code>renderExperience</code> et la remplace par sa propre barre XP en bas du panneau. La barre XP RPG de <code>RpgHudOverlay</code> reste inchangee et continue d'afficher l'XP du systeme de progression RPG.</p>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Regle de bonne pratique</strong> — Ne jamais lire <code>RpgPlayerData</code> directement depuis <code>StatusBarsOverlay</code>. Les PV max doivent toujours passer par <code>player.getMaxHealth()</code> (attribut Minecraft). Si le systeme RPG modifie cet attribut, la barre de vie l'affichera automatiquement sans couplage.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S12 — PLAN DE TESTS ═══ -->
+    <div class="section-card" id="s12">
+      <h2><span class="s-num cyan-num">12</span> Plan de Tests</h2>
+
+      <p>Verification exhaustive de tous les etats et transitions possibles, en jeu en mode developpeur (runClient).</p>
+
+      <h3 class="first">Tests de la barre de vie</h3>
+      <ul>
+        <li>HP plein (20/20) — barre entierement remplie, texte exact</li>
+        <li>HP partiel (9/20) — remplissage correct a 45%</li>
+        <li>HP critique (1/20, &lt; 20%) — pulsation active, shake au degat</li>
+        <li>HP 0 — barre vide, pas d'erreur NaN/division par zero</li>
+        <li>HP max augmente (Vigueur RPG, ex: 30 PV max) — barre et texte s'adaptent</li>
+        <li>Absorption presente — section doree apres section rouge, texte "+4"</li>
+        <li>Absorption = 0 — section doree absente, pas de rendu parasite</li>
+        <li>Soin apres degat — lerp visible, pas de saut instantane</li>
+      </ul>
+
+      <h3>Tests de la barre de nourriture</h3>
+      <ul>
+        <li>Nourriture pleine (20/20) — barre entierement remplie</li>
+        <li>Nourriture faible (&lt;= 6) — pulsation active</li>
+        <li>Saturation visible — micro-indicateur proportionnel a la saturation</li>
+        <li>Nourriture 0 — barre vide, pas d'erreur</li>
+        <li>Consommation d'aliment — lerp visible</li>
+      </ul>
+
+      <h3>Tests de l'indicateur d'armure</h3>
+        <ul>
+        <li>Armure = 0 — indicateur totalement absent</li>
+        <li>Armure = 0 → equipement d'un casque (4 points) — fadeIn visible</li>
+        <li>Armure complete (20 points) — valeur "20" affichee correctement</li>
+        <li>Desequipement d'une piece — fadeOut si armure retombe a 0</li>
+        <li>Armure &gt; 20 (bonus RPG Resistance) — valeur superieure a 20 affichee sans troncature</li>
+      </ul>
+
+      <h3>Tests de la barre d'oxygene</h3>
+      <ul>
+        <li>Hors de l'eau — barre d'air completement absente</li>
+        <li>Entree dans l'eau — fadeIn de la barre d'air</li>
+        <li>Niveau d'air qui diminue — lerp visible, texte "~ Xs" mis a jour</li>
+        <li>Air critique (&lt; 60 ticks = 3s) — pulsation rapide active</li>
+        <li>Air = 0 — barre vide</li>
+        <li>Sortie de l'eau — fadeOut de la barre d'air</li>
+        <li>Potion de respiration — air ne diminue plus, barre reste pleine sous l'eau</li>
+      </ul>
+
+      <h3>Tests de la barre de monture</h3>
+      <ul>
+        <li>Pas de monture — barre food visible, barre monture absente</li>
+        <li>Montee a cheval — transition food → monture (fadeOut puis fadeIn)</li>
+        <li>Vie monture partielle — remplissage et lerp corrects</li>
+        <li>Vie monture = 0 — barre vide, pas d'erreur</li>
+        <li>Descente — transition monture → food (fadeOut puis fadeIn)</li>
+        <li>Monture non-vivante (bateau) — barre food reste visible</li>
+        <li>Cheval haut PV (30 HP max) — barre et texte s'adaptent</li>
+      </ul>
+
+      <h3>Tests de la barre d'XP</h3>
+      <ul>
+        <li>Niveau 0, XP = 0 — barre vide, texte "Nv.0"</li>
+        <li>XP partielle — remplissage correct selon le pourcentage</li>
+        <li>Level up — pulse visible, texte niveau mis a jour</li>
+        <li>Niveau eleve (&gt; 30) — pas de depassement de barre</li>
+      </ul>
+
+      <h3>Tests des mixins et annulation vanilla</h3>
+      <ul>
+        <li>Overlay actif — aucun coeur, jambon, bulle, icone armure vanilla visible</li>
+        <li>Overlay desactive manuellement (via menu overlays EriAPI) — rendu vanilla restaure</li>
+        <li>EriAPI non charge (fallback) — le mixin ne cancelle pas, vanilla s'affiche normalement</li>
+      </ul>
+
+      <h3>Tests de performance</h3>
+      <ul>
+        <li>FPS stables (pas de chute lors du rendu) — verifier avec F3</li>
+        <li>Pas de recreation de l'arbre de composants chaque frame — verifier avec profiler</li>
+        <li>Pas de fuite memoire lors de transitions repetees (monter/descendre 100 fois)</li>
+        <li>Pas de crash lors d'une mort (player.getHealth() = 0, puis respawn)</li>
+      </ul>
+
+      <h3>Tests visuels de coherence</h3>
+      <ul>
+        <li>Texte lisible sur toutes les couleurs de fond de barre</li>
+        <li>Coins arrondis corrects, pas de pixels qui depassent</li>
+        <li>Bordure des barres subtile (pas trop visible)</li>
+        <li>Aucun overlap entre armure, HP, air et XP a toutes les combinaisons d'etat</li>
+        <li>Rendu correct a differentes resolutions (720p, 1080p, 1440p, 4K)</li>
+        <li>Rendu correct avec differents facteurs GUI (options video)</li>
+      </ul>
+    </div>
+
+  </main>
+</div><!-- /layout -->
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<script>
+// Highlight active nav link on scroll
+(function() {
+  var links = document.querySelectorAll('.nav-link');
+  var sections = [];
+  links.forEach(function(l) {
+    var id = l.getAttribute('href');
+    if (id && id.startsWith('#')) {
+      var el = document.querySelector(id);
+      if (el) sections.push({ link: l, el: el });
+    }
+  });
+
+  function onScroll() {
+    var scrollY = window.scrollY + 120;
+    var active = null;
+    sections.forEach(function(s) {
+      if (s.el.offsetTop <= scrollY) active = s;
+    });
+    links.forEach(function(l) { l.classList.remove('active'); });
+    if (active) active.link.classList.add('active');
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+
+</body>
+</html>

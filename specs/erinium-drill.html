@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Foreuse d'Erinium | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 50% 90%, rgba(241,196,15,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 12px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+
+  /* =========================================================
+     SECTION CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #a0201a 0%, var(--red) 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '>';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr { background: rgba(107,47,160,0.18); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .cl  { color: #FFCB6B; }
+
+  /* =========================================================
+     ASCII DIAGRAMS
+  ========================================================= */
+  .ascii-diagram {
+    background: rgba(5,5,10,0.75);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 11.5px;
+    line-height: 1.65;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+  }
+
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+
+  /* =========================================================
+     INFO BOXES
+  ========================================================= */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2);   }
+
+  /* =========================================================
+     ANIMATIONS + DIVIDER
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-bdr), transparent);
+    margin: 24px 0;
+  }
+
+  /* =========================================================
+     MOBILE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,47,160,0.4);
+    transition: transform .2s;
+  }
+
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 50;
+      width: 260px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+  }
+
+  @media (max-width: 600px) {
+    .section-card { padding: 24px 18px; }
+    .page-header h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+
+    <span class="sidebar-title">Sommaire</span>
+
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Architecture Technique</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Mecanique de Forage</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Structures de Donnees</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Reseau &amp; Synchronisation</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Visuel &amp; Audio</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Equilibrage &amp; Limites</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Cas Limites</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Foreuse d'Erinium</h1>
+      <p>Item de siege consommable permettant de percer un tunnel 1x2 sur 5 blocs de profondeur a travers les murs d'une base faction ennemie. Obtenu exclusivement par loot, il constitue le seul moyen portable de brecher des murs en territoire revendique.</p>
+      <div class="header-badges">
+        <span class="badge badge-red">Siege</span>
+        <span class="badge badge-gold">EPIC Rarity</span>
+        <span class="badge badge-violet">TileEntity</span>
+        <span class="badge badge-cyan">Bypass Claims</span>
+        <span class="badge badge-orange">Consommable</span>
+      </div>
+    </div>
+
+    <!-- S1 — CONTEXTE & OBJECTIFS -->
+    <div class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Pourquoi cet item ?</h3>
+      <p>Dans un serveur faction, les bases fortifiees sont actuellement quasi imprenables une fois revendiquees. Le systeme de claims empeche toute destruction de bloc par des joueurs non-membres. Cela cree un desequilibre : les defenseurs n'ont aucune raison de craindre une attaque, ce qui tue la dynamique PvP faction vs faction.</p>
+      <p>La Foreuse d'Erinium introduit un outil de siege rare et bruyant qui force les defenseurs a reagir. Elle ne rend pas les bases vulnerables en permanence — elle cree une fenetre de 30 secondes pendant laquelle un attaquant peut tenter de percer un mur, mais les defenseurs sont alertes et peuvent detruire la foreuse avant qu'elle finisse.</p>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Briser le statu quo defensif</strong> — donner aux attaquants un moyen concret de penetrer les bases fortifiees.</li>
+        <li><strong>Rarete et poids strategique</strong> — l'item est rare (loot uniquement, pas de craft). Chaque utilisation est une decision strategique majeure.</li>
+        <li><strong>Contre-jeu riche</strong> — le bruit de 50 blocs, la lumiere, les particules et la barre de vie visible permettent aux defenseurs de reagir. La foreuse est destructible.</li>
+        <li><strong>Anti-spam</strong> — max 1 foreuse active par faction + cooldown 5 minutes empechent le spam de foreuses.</li>
+        <li><strong>Simplicite d'utilisation</strong> — poser, cliquer droit, attendre. Pas de GUI complexe.</li>
+      </ul>
+
+      <h3>Source d'obtention</h3>
+      <p>La Foreuse d'Erinium n'a <strong>aucune recette de craft</strong>. Elle est obtenue exclusivement par des sources decidees par le staff :</p>
+      <ul>
+        <li><strong>Events serveur</strong> — recompense de raid, tournoi, event saisonnier.</li>
+        <li><strong>Boss drops</strong> — drop rare d'un boss de donjon ou de monde.</li>
+        <li><strong>Lootbox</strong> — tier legendaire/epique des lootbox du serveur.</li>
+        <li><strong>Admin shop</strong> — achat a prix tres eleve en Eris (si le staff le decide).</li>
+      </ul>
+      <p>La source exacte est configurable par le staff sans modification du code. L'item est enregistre dans le registre Forge et peut etre donne via <code>/give</code>.</p>
+    </div>
+
+    <!-- S2 — ARCHITECTURE TECHNIQUE -->
+    <div class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Architecture Technique</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <div class="ascii-diagram"><span class="ag">[ Joueur attaquant ]</span>
+       |
+       | place ItemEriniumDrill contre un mur
+       v
+<span class="ac">[ BlockEriniumDrill (bloc place) ]</span>
+       |
+       | clic droit sur le bloc pour activer
+       v
+<span class="av">[ TileEntityEriniumDrill (serveur) ]</span>
+       |
+       | valide : claims ennemi, pas de bedrock devant,
+       | cooldown faction OK, pas de foreuse active
+       | demarre timer 30s (600 ticks)
+       |
+       | chaque 120 ticks (6 sec) :
+       |   - detruit le bloc suivant dans le tunnel 1x2
+       |   - avance la position de forage
+       |
+       | broadcast PacketDrillSync aux clients dans 50 blocs
+       v
+<span class="ac">[ Client : rendu animation + son + particules ]</span>
+       |
+       | 30s ecoulees : tunnel 1x2x5 complet
+       | le bloc foreuse est detruit (consommable)
+       v
+<span class="ar">[ Cooldown 5min applique a la faction attaquante ]</span></div>
+
+      <h3>Package et classes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Classe</th><th>Package</th><th>Cote</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td>ItemEriniumDrill</td><td>siege</td><td>Commun</td><td>Item posable, rarete EPIC, stack 1, effet glow</td></tr>
+            <tr><td>BlockEriniumDrill</td><td>siege</td><td>Commun</td><td>Bloc place, orientation par facing du joueur, TileEntity provider</td></tr>
+            <tr><td>TileEntityEriniumDrill</td><td>siege</td><td>Commun</td><td>Logique de forage, timer, validation, destruction des blocs</td></tr>
+            <tr><td>DrillSiegeManager</td><td>siege</td><td>Serveur</td><td>Singleton : tracking foreuses actives par faction, cooldowns</td></tr>
+            <tr><td>PacketDrillSync</td><td>siege</td><td>Commun</td><td>Packet client : etat (actif/inactif), progression, direction</td></tr>
+            <tr><td>PacketDrillSyncHandler</td><td>siege</td><td>Client</td><td>Recoit PacketDrillSync, met a jour le rendu client</td></tr>
+            <tr><td>DrillRenderer</td><td>siege</td><td>Client</td><td>TileEntitySpecialRenderer : animation rotation, particules, lumiere</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Registration</h3>
+      <ul>
+        <li><strong>Item</strong> — enregistre via <code>RegistryEvent.Register&lt;Item&gt;</code>, modele JSON + texture, creative tab Erinium.</li>
+        <li><strong>Block</strong> — enregistre via <code>RegistryEvent.Register&lt;Block&gt;</code>, blockstate JSON, block model JSON, item model JSON.</li>
+        <li><strong>TileEntity</strong> — enregistre via <code>GameRegistry.registerTileEntity(TileEntityEriniumDrill.class, new ResourceLocation("eriniumfaction", "erinium_drill"))</code>.</li>
+        <li><strong>TESR</strong> — <code>ClientRegistry.bindTileEntitySpecialRenderer(TileEntityEriniumDrill.class, new DrillRenderer())</code> dans ClientProxy.</li>
+        <li><strong>Packet</strong> — enregistre dans le <code>SimpleNetworkWrapper</code> du mod.</li>
+        <li><strong>Pas de recette</strong> — aucun appel a <code>EriRecipe</code> ou <code>GameRegistry.addRecipe()</code>.</li>
+      </ul>
+    </div>
+
+    <!-- S3 — MECANIQUE DE FORAGE -->
+    <div class="section-card" id="s3">
+      <h2><span class="s-num gold-num">03</span> Mecanique de Forage</h2>
+
+      <h3 class="first">Placement</h3>
+      <ul>
+        <li>Le joueur tient l'item <code>ItemEriniumDrill</code> et fait un clic droit contre un mur.</li>
+        <li>Le bloc <code>BlockEriniumDrill</code> est place dans l'espace libre devant le mur, face au mur (direction du regard du joueur).</li>
+        <li>Le bloc utilise la propriete <code>FACING</code> (EnumFacing horizontales : NORTH, SOUTH, EAST, WEST) pour stocker la direction de forage.</li>
+        <li>L'item est consomme du hotbar au placement.</li>
+      </ul>
+
+      <h3>Activation</h3>
+      <ul>
+        <li>Le joueur fait un clic droit sur le bloc place pour activer le forage.</li>
+        <li>Avant l'activation, le serveur valide toutes les conditions (voir section Equilibrage).</li>
+        <li>Si la validation echoue, un message d'erreur est envoye via <code>EriChat</code> au joueur et la foreuse reste inactive.</li>
+        <li>Si la validation reussit, le TileEntity passe en etat <strong>ACTIVE</strong> et le timer demarre.</li>
+      </ul>
+
+      <h3>Processus de forage</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Temps</th><th>Ticks</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>0s</td><td>0</td><td>Activation. Son de forage demarre. Particules demarrent. Lumiere active (level 12).</td></tr>
+            <tr><td>6s</td><td>120</td><td>Bloc 1 detruit (position facing+1, couche basse + couche haute).</td></tr>
+            <tr><td>12s</td><td>240</td><td>Bloc 2 detruit (facing+2).</td></tr>
+            <tr><td>18s</td><td>360</td><td>Bloc 3 detruit (facing+3).</td></tr>
+            <tr><td>24s</td><td>480</td><td>Bloc 4 detruit (facing+4).</td></tr>
+            <tr><td>30s</td><td>600</td><td>Bloc 5 detruit (facing+5). Forage termine. La foreuse est detruite.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>A chaque palier de 6 secondes, la foreuse detruit <strong>2 blocs</strong> (un a hauteur des pieds, un a hauteur de la tete du joueur) a la profondeur correspondante. Cela cree un tunnel 1x2 (1 large, 2 haut) de 5 blocs de profondeur.</p>
+
+      <h3>Tunnel 1x2x5 — geometrie</h3>
+      <div class="ascii-diagram"><span class="as">Vue de dessus (forage vers NORTH, foreuse en X) :</span>
+
+  <span class="ar">B5</span>  <span class="ar">B4</span>  <span class="ar">B3</span>  <span class="ar">B2</span>  <span class="ar">B1</span>  <span class="ac">X</span>  <span class="ag">Joueur</span>
+  z-5  z-4  z-3  z-2  z-1  z0
+
+<span class="as">Vue de face (section du tunnel) :</span>
+
+  <span class="ay">[ ]</span>   &lt;-- y+1 (tete)
+  <span class="ay">[ ]</span>   &lt;-- y+0 (pieds)
+
+<span class="as">Chaque colonne Bn est 2 blocs de haut (y et y+1).</span>
+<span class="as">Total : 10 blocs detruits (5 positions x 2 hauteurs).</span></div>
+
+      <h3>Interaction avec BlockHealth</h3>
+      <div class="info-box danger">
+        <div class="icon">&#9888;</div>
+        <div class="content">
+          <strong>La foreuse ignore completement le systeme BlockHealth.</strong> Les blocs sont detruits directement via <code>world.setBlockToAir(pos)</code> quel que soit leur HP restant. C'est la raison d'etre de la foreuse : bypasser les protections de resistance des blocs renforces.
+        </div>
+      </div>
+
+      <h3>Interaction avec les claims</h3>
+      <div class="info-box info">
+        <div class="icon">&#8505;</div>
+        <div class="content">
+          <strong>La foreuse fonctionne en territoire ennemi.</strong> C'est le seul item portable capable de detruire des blocs dans un claim qui n'appartient pas au joueur. La validation verifie que le joueur est bien dans un <strong>claim ennemi</strong> (pas son propre claim, pas un claim allie, pas un terrain neutre). Tenter de placer la foreuse en terrain non-ennemi affiche un message d'erreur.
+        </div>
+      </div>
+    </div>
+
+    <!-- S4 — STRUCTURES DE DONNEES -->
+    <div class="section-card" id="s4">
+      <h2><span class="s-num">04</span> Structures de Donnees</h2>
+
+      <h3 class="first">TileEntityEriniumDrill — champs NBT</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Champ</th><th>Type</th><th>NBT Key</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>active</td><td>boolean</td><td>"Active"</td><td>La foreuse est-elle en train de forer</td></tr>
+            <tr><td>ticksRemaining</td><td>int</td><td>"TicksRemaining"</td><td>Ticks restants avant la fin du forage (600 au depart)</td></tr>
+            <tr><td>facing</td><td>EnumFacing</td><td>"Facing"</td><td>Direction du forage (redondant avec blockstate, mais persiste en NBT)</td></tr>
+            <tr><td>blocksDestroyed</td><td>int</td><td>"BlocksDestroyed"</td><td>Nombre de colonnes deja detruites (0-5)</td></tr>
+            <tr><td>ownerUUID</td><td>String</td><td>"OwnerUUID"</td><td>UUID du joueur qui a place la foreuse</td></tr>
+            <tr><td>ownerFaction</td><td>String</td><td>"OwnerFaction"</td><td>Nom de la faction du joueur au moment du placement</td></tr>
+            <tr><td>drillHealth</td><td>float</td><td>"DrillHealth"</td><td>Points de vie restants de la foreuse (20.0 par defaut)</td></tr>
+            <tr><td>maxDrillHealth</td><td>float</td><td>"MaxDrillHealth"</td><td>Points de vie max (20.0)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>DrillSiegeManager — donnees en memoire</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">DrillSiegeManager</span> {
+    <span class="cm">// Singleton</span>
+    <span class="kw">private static final</span> <span class="ty">DrillSiegeManager</span> INSTANCE = <span class="kw">new</span> <span class="ty">DrillSiegeManager</span>();
+
+    <span class="cm">// Faction name -> BlockPos de la foreuse active (null = pas de foreuse active)</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">BlockPos</span>&gt; activeDrills = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+
+    <span class="cm">// Faction name -> timestamp (System.currentTimeMillis) de fin de cooldown</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">Long</span>&gt; cooldowns = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+
+    <span class="kw">public boolean</span> <span class="fn">canActivate</span>(<span class="ty">String</span> factionName) { ... }
+    <span class="kw">public void</span> <span class="fn">registerActive</span>(<span class="ty">String</span> factionName, <span class="ty">BlockPos</span> pos) { ... }
+    <span class="kw">public void</span> <span class="fn">onDrillFinished</span>(<span class="ty">String</span> factionName) { ... }
+    <span class="kw">public void</span> <span class="fn">onDrillDestroyed</span>(<span class="ty">String</span> factionName) { ... }
+    <span class="kw">public long</span> <span class="fn">getRemainingCooldown</span>(<span class="ty">String</span> factionName) { ... }
+}</div>
+
+      <h3>BlockEriniumDrill — proprietes du bloc</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Propriete</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Material</td><td>Material.IRON</td></tr>
+            <tr><td>Hardness</td><td>5.0f</td></tr>
+            <tr><td>Resistance</td><td>10.0f</td></tr>
+            <tr><td>Harvest tool</td><td>pickaxe, level 2</td></tr>
+            <tr><td>Light level (inactif)</td><td>0</td></tr>
+            <tr><td>Light level (actif)</td><td>12</td></tr>
+            <tr><td>Bounding box</td><td>Bloc complet (1x1x1)</td></tr>
+            <tr><td>BlockState properties</td><td>FACING (horizontal), ACTIVE (boolean)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>ItemEriniumDrill — proprietes de l'item</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Propriete</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Rarity</td><td>EnumRarity.EPIC (nom jaune)</td></tr>
+            <tr><td>Max stack size</td><td>1</td></tr>
+            <tr><td>Has effect (glow)</td><td><span class="tag-yes">OUI</span></td></tr>
+            <tr><td>Creative tab</td><td>EriniumCreativeTab</td></tr>
+            <tr><td>Tooltip ligne 1</td><td>Cle i18n : <code>item.erinium_drill.tooltip1</code> — "Item de siege — perce un tunnel 1x2x5"</td></tr>
+            <tr><td>Tooltip ligne 2</td><td>Cle i18n : <code>item.erinium_drill.tooltip2</code> — "Placer contre un mur ennemi et activer"</td></tr>
+            <tr><td>Tooltip ligne 3</td><td>Cle i18n : <code>item.erinium_drill.tooltip3</code> — "Consommable — detruit apres utilisation"</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- S5 — RESEAU & SYNCHRONISATION -->
+    <div class="section-card" id="s5">
+      <h2><span class="s-num cyan-num">05</span> Reseau &amp; Synchronisation</h2>
+
+      <h3 class="first">PacketDrillSync</h3>
+      <p>Packet envoye du serveur aux clients dans un rayon de 50 blocs autour de la foreuse. Envoye a l'activation, a chaque destruction de bloc, et a la fin/destruction.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Champ</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>pos</td><td>BlockPos</td><td>Position de la foreuse</td></tr>
+            <tr><td>active</td><td>boolean</td><td>La foreuse est-elle active</td></tr>
+            <tr><td>ticksRemaining</td><td>int</td><td>Ticks restants</td></tr>
+            <tr><td>blocksDestroyed</td><td>int</td><td>Nombre de colonnes detruites</td></tr>
+            <tr><td>facing</td><td>int</td><td>EnumFacing.getIndex()</td></tr>
+            <tr><td>drillHealth</td><td>float</td><td>HP restants de la foreuse</td></tr>
+            <tr><td>maxDrillHealth</td><td>float</td><td>HP max</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Frequence d'envoi</h3>
+      <ul>
+        <li><strong>A l'activation</strong> — 1 packet immediatement.</li>
+        <li><strong>Pendant le forage</strong> — 1 packet toutes les 20 ticks (1 seconde) pour la mise a jour de la barre de progression et de la vie.</li>
+        <li><strong>A chaque destruction de bloc</strong> — 1 packet supplementaire.</li>
+        <li><strong>A la fin/destruction</strong> — 1 packet final avec <code>active = false</code>.</li>
+      </ul>
+
+      <h3>Ciblage des packets</h3>
+      <p>Le packet est envoye uniquement aux joueurs dans un rayon de <strong>50 blocs</strong> autour de la foreuse via <code>NetworkRegistry.TargetPoint</code>. Cela correspond aussi au rayon sonore, garantissant que tous les joueurs qui entendent la foreuse voient egalement son etat.</p>
+
+      <div class="info-box tip">
+        <div class="icon">&#10003;</div>
+        <div class="content">
+          <strong>Performance</strong> : avec 1 packet/seconde cible sur 50 blocs, la charge reseau est negligeable meme avec 1000 joueurs. Seuls les joueurs proches recoivent les packets.
+        </div>
+      </div>
+    </div>
+
+    <!-- S6 — VISUEL & AUDIO -->
+    <div class="section-card" id="s6">
+      <h2><span class="s-num orange-num">06</span> Visuel &amp; Audio</h2>
+
+      <h3 class="first">Modele et animation du bloc</h3>
+      <ul>
+        <li><strong>Inactif</strong> — modele statique d'une foreuse mecanique (bloc metallique avec un embout de forage visible).</li>
+        <li><strong>Actif</strong> — le TESR (<code>DrillRenderer</code>) rend le bloc avec une animation de rotation de l'embout de forage. Vitesse de rotation : 360 degres / 20 ticks (1 tour/seconde).</li>
+        <li><strong>Lumiere</strong> — le bloc emet une lumiere de niveau 12 quand actif (via blockstate property ACTIVE qui change le <code>getLightValue()</code>).</li>
+      </ul>
+
+      <h3>Particules</h3>
+      <ul>
+        <li><strong>Fumee</strong> — <code>EnumParticleTypes.SMOKE_LARGE</code> emis depuis la face de forage, 3-5 particules par tick.</li>
+        <li><strong>Etincelles</strong> — <code>EnumParticleTypes.LAVA</code> (petites particules orange incandescentes), 1-2 par tick.</li>
+        <li><strong>Poussiere de bloc</strong> — <code>EnumParticleTypes.BLOCK_CRACK</code> avec le type du bloc en train d'etre fore, 2-3 par tick a la position du bloc cible actuel.</li>
+        <li>Les particules sont generees cote client uniquement, dans le <code>DrillRenderer</code> ou via un handler <code>TickEvent.ClientTickEvent</code>.</li>
+      </ul>
+
+      <h3>Son</h3>
+      <ul>
+        <li><strong>Son de forage</strong> — son custom en boucle, audible dans un rayon de <strong>50 blocs</strong>. Duree du fichier : 6 secondes en boucle.</li>
+        <li><strong>Son de destruction de bloc</strong> — son vanilla <code>block.stone.break</code> a chaque bloc detruit.</li>
+        <li><strong>Son de fin</strong> — son custom de "machine qui s'arrete" quand le forage est termine.</li>
+        <li><strong>Son de destruction de la foreuse</strong> — son <code>entity.item.break</code> + explosion legere si la foreuse est detruite par les defenseurs.</li>
+        <li>Le volume est eleve (1.5f) avec un range etendu pour garantir l'audibilite a 50 blocs. Le pitch varie legerement (0.95-1.05) pour eviter la monotonie.</li>
+      </ul>
+
+      <h3>Barre de vie de la foreuse</h3>
+      <ul>
+        <li>La barre de vie est visible par <strong>tous les joueurs</strong> (attaquants et defenseurs) dans un rayon de 20 blocs.</li>
+        <li>Rendue comme une barre horizontale au-dessus du bloc (similaire a une bossbar d'entite), via le TESR.</li>
+        <li>Couleur : vert a 100%, jaune a 50%, rouge en dessous de 25%.</li>
+        <li>Affiche aussi la progression du forage : "Forage : 40% (2/5 blocs)".</li>
+      </ul>
+    </div>
+
+    <!-- S7 — EQUILIBRAGE & LIMITES -->
+    <div class="section-card" id="s7">
+      <h2><span class="s-num red-num">07</span> Equilibrage &amp; Limites</h2>
+
+      <h3 class="first">Constantes d'equilibrage</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Parametre</th><th>Valeur</th><th>Justification</th></tr></thead>
+          <tbody>
+            <tr><td>Duree totale du forage</td><td>30 secondes (600 ticks)</td><td>Assez long pour laisser aux defenseurs le temps de reagir</td></tr>
+            <tr><td>Temps par bloc</td><td>6 secondes (120 ticks)</td><td>Progression visible et previsible</td></tr>
+            <tr><td>Profondeur du tunnel</td><td>5 blocs</td><td>Suffisant pour percer un mur standard (2-3 blocs) + marge</td></tr>
+            <tr><td>Section du tunnel</td><td>1x2 (largeur x hauteur)</td><td>Juste assez pour qu'un joueur passe</td></tr>
+            <tr><td>HP de la foreuse</td><td>20.0</td><td>~20 coups de pioche diamant pour detruire</td></tr>
+            <tr><td>Rayon sonore</td><td>50 blocs</td><td>Alerter les defenseurs a distance raisonnable</td></tr>
+            <tr><td>Lumiere active</td><td>Niveau 12</td><td>Visible de nuit, mais pas lumineux comme une torche (15)</td></tr>
+            <tr><td>Max foreuses actives/faction</td><td>1</td><td>Empecher le spam de foreuses simultanees</td></tr>
+            <tr><td>Cooldown post-utilisation</td><td>5 minutes (300 secondes)</td><td>Empecher l'enchainement rapide de foreuses</td></tr>
+            <tr><td>Cooldown post-destruction</td><td>5 minutes (300 secondes)</td><td>Meme cooldown que l'on ait fini ou ete interrompu</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Validations a l'activation</h3>
+      <p>Le serveur verifie les conditions suivantes dans <code>TileEntityEriniumDrill.activate()</code>. Si une condition echoue, un message d'erreur est envoye et l'activation est refusee :</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Condition</th><th>Message d'erreur (cle i18n)</th></tr></thead>
+          <tbody>
+            <tr><td>Le joueur a une faction</td><td><code>drill.error.no_faction</code></td></tr>
+            <tr><td>La foreuse est en claim ennemi</td><td><code>drill.error.not_enemy_claim</code></td></tr>
+            <tr><td>Pas de foreuse deja active pour cette faction</td><td><code>drill.error.already_active</code></td></tr>
+            <tr><td>Cooldown de faction expire</td><td><code>drill.error.cooldown</code> (affiche le temps restant)</td></tr>
+            <tr><td>Les 5 blocs devant ne sont pas tous bedrock</td><td><code>drill.error.bedrock</code></td></tr>
+            <tr><td>Pas de Faction Core block dans le chemin</td><td><code>drill.error.faction_core</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Blocs immunises</h3>
+      <ul>
+        <li><strong>Bedrock</strong> — la foreuse s'arrete quand elle rencontre un bloc de bedrock. Les blocs deja detruits restent detruits, mais le forage s'arrete la.</li>
+        <li><strong>Faction Core</strong> — si le serveur utilise un bloc "faction core", la foreuse refuse de le detruire et s'arrete.</li>
+        <li><strong>Air</strong> — les blocs d'air sont ignores (comptes comme "deja detruits"), la foreuse avance sans perdre de temps sur eux.</li>
+      </ul>
+
+      <h3>Destruction de la foreuse par les defenseurs</h3>
+      <ul>
+        <li>Les defenseurs peuvent attaquer la foreuse en la frappant (clic gauche, attaque standard).</li>
+        <li>Chaque attaque inflige des degats bases sur l'arme utilisee (degats d'attaque de l'item en main). Pioche diamant = ~1.0 degat par coup.</li>
+        <li>Avec 20 HP, il faut environ <strong>20 coups de pioche diamant</strong> pour detruire la foreuse.</li>
+        <li>Quand <code>drillHealth &lt;= 0</code>, la foreuse est detruite : le bloc disparait, son de destruction joue, cooldown de 5 minutes applique a la faction attaquante.</li>
+        <li>Les degats sont geres dans <code>BlockEriniumDrill.onBlockClicked()</code> cote serveur.</li>
+      </ul>
+    </div>
+
+    <!-- S8 — CAS LIMITES -->
+    <div class="section-card" id="s8">
+      <h2><span class="s-num green-num">08</span> Cas Limites</h2>
+
+      <h3 class="first">Chunk unload pendant le forage</h3>
+      <p>Si le chunk contenant la foreuse est unload (tous les joueurs s'eloignent), le TileEntity est serialise en NBT avec son etat actuel (ticks restants, blocs detruits). Au rechargement du chunk, le TileEntity reprend le forage exactement ou il s'etait arrete. Le timer ne continue PAS pendant que le chunk est decharge.</p>
+
+      <h3>Redemarrage du serveur</h3>
+      <p>Meme logique que le chunk unload : le TileEntity est sauvegarde en NBT. Au redemarrage, le forage reprend. Le <code>DrillSiegeManager</code> reconstruit sa map de foreuses actives au chargement des TileEntities (via <code>onLoad()</code> du TE).</p>
+      <p>Les cooldowns du <code>DrillSiegeManager</code> sont en memoire (pas persistes). Au redemarrage, tous les cooldowns sont reinitialises. C'est acceptable car un redemarrage est rare et les cooldowns sont courts (5 minutes).</p>
+
+      <h3>Le joueur se deconnecte apres activation</h3>
+      <p>La foreuse continue de forer. Elle ne depend pas de la presence du joueur. Le TileEntity est autonome.</p>
+
+      <h3>Le claim est perdu pendant le forage</h3>
+      <p>Si la faction cible perd son claim pendant le forage (unclaim, dissolution), la foreuse continue. La validation n'est faite qu'a l'activation. Le forage en cours n'est pas interrompu.</p>
+
+      <h3>Placement en terrain non-ennemi</h3>
+      <p>L'item <code>ItemEriniumDrill</code> empeche le placement (<code>onItemUse()</code> retourne <code>EnumActionResult.FAIL</code>) si la position cible n'est pas dans un claim ennemi. Message d'erreur via <code>EriChat</code>.</p>
+
+      <h3>Foreuse placee mais jamais activee</h3>
+      <p>Le bloc reste pose indefiniment comme un bloc normal. Il peut etre casse par n'importe qui (c'est un bloc dans un claim ennemi, donc les defenseurs peuvent le casser normalement). Il peut aussi etre casse par l'attaquant pour le recuperer (drop l'item). Pas de cooldown applique si la foreuse n'a jamais ete activee.</p>
+
+      <h3>Explosion pendant le forage</h3>
+      <p>Si une explosion touche le bloc de la foreuse, elle subit des degats proportionnels a la puissance de l'explosion (comme un bloc normal). Si ses HP tombent a zero, elle est detruite.</p>
+
+      <h3>Deux factions attaquent la meme base</h3>
+      <p>Chaque faction a sa propre limite de 1 foreuse active. Deux factions differentes peuvent donc avoir chacune une foreuse active sur la meme base ennemie. La limite de 1 est par faction attaquante, pas par faction cible.</p>
+    </div>
+
+    <!-- S9 — PLAN DE TESTS -->
+    <div class="section-card" id="s9">
+      <h2><span class="s-num">09</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests fonctionnels</h3>
+      <ul>
+        <li>Placer la foreuse contre un mur en claim ennemi, activer, verifier que le tunnel 1x2x5 est creuse en 30 secondes.</li>
+        <li>Verifier que la foreuse est detruite (disparait) apres le forage.</li>
+        <li>Verifier que l'item est consomme au placement.</li>
+        <li>Tenter de placer en terrain neutre / propre / allie — doit etre refuse.</li>
+        <li>Tenter d'activer sans faction — doit etre refuse.</li>
+        <li>Tenter d'activer pendant le cooldown — doit etre refuse avec temps restant affiche.</li>
+        <li>Tenter d'activer avec une autre foreuse deja active pour la faction — doit etre refuse.</li>
+      </ul>
+
+      <h3>Tests defenseurs</h3>
+      <ul>
+        <li>Attaquer la foreuse avec une pioche diamant — verifier qu'il faut ~20 coups pour la detruire.</li>
+        <li>Verifier que la barre de vie diminue et change de couleur.</li>
+        <li>Verifier que la destruction applique le cooldown de 5 minutes a la faction attaquante.</li>
+        <li>Verifier que le son/particules s'arretent a la destruction.</li>
+      </ul>
+
+      <h3>Tests visuels et audio</h3>
+      <ul>
+        <li>Verifier le son de forage a 10, 30 et 50 blocs de distance.</li>
+        <li>Verifier que le son n'est plus audible a 55+ blocs.</li>
+        <li>Verifier les particules de fumee et d'etincelles pendant le forage.</li>
+        <li>Verifier la lumiere de niveau 12 la nuit (visible mais pas extreme).</li>
+        <li>Verifier l'animation de rotation du TESR.</li>
+        <li>Verifier la barre de vie et la barre de progression au-dessus du bloc.</li>
+      </ul>
+
+      <h3>Tests blocs speciaux</h3>
+      <ul>
+        <li>Foreuse face a du bedrock — doit s'arreter sans detruire le bedrock.</li>
+        <li>Foreuse face a un mix air + blocs — doit skip l'air et detruire les blocs solides.</li>
+        <li>Foreuse face au Faction Core (si existant) — doit s'arreter.</li>
+        <li>Foreuse face a de l'obsidienne — doit detruire (ignore BlockHealth).</li>
+      </ul>
+
+      <h3>Tests persistence</h3>
+      <ul>
+        <li>Activer la foreuse, quitter et recharger le chunk — le forage doit reprendre.</li>
+        <li>Activer la foreuse, redemarrer le serveur — le forage doit reprendre.</li>
+        <li>Verifier que le DrillSiegeManager reconstruit les foreuses actives au reload.</li>
+      </ul>
+
+      <h3>Tests performance</h3>
+      <ul>
+        <li>5 foreuses actives simultanement (5 factions differentes) — TPS stable.</li>
+        <li>Verifier que les packets sont bien limites a 50 blocs de rayon.</li>
+        <li>Verifier que les particules ne causent pas de FPS drop a proximite.</li>
+      </ul>
+
+      <h3>Tests edge cases</h3>
+      <ul>
+        <li>Joueur place la foreuse et se deconnecte — le forage continue.</li>
+        <li>Le claim est unclaim pendant le forage — le forage continue.</li>
+        <li>Deux factions attaquent la meme base — les deux foreuses fonctionnent independamment.</li>
+        <li>Foreuse placee mais pas activee — peut etre cassee, pas de cooldown.</li>
+        <li>Explosion a cote de la foreuse active — degats proportionnels.</li>
+      </ul>
+    </div>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" id="navToggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<script>
+  // Active nav link on scroll
+  const links = document.querySelectorAll('.nav-link');
+  const sections = document.querySelectorAll('.section-card[id]');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector('.nav-link[href="#' + e.target.id + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.35 });
+  sections.forEach(s => obs.observe(s));
+</script>
+
+</body>
+</html>

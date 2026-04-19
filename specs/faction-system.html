@@ -1,0 +1,1694 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Système de Faction | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* =========================================================
+     NOISE + GRADIENTS (identiques roadmap)
+  ========================================================= */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 60% 10%, rgba(46,204,113,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT — SIDEBAR + MAIN
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 12px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  /* MAIN */
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan   { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green  { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+
+  /* =========================================================
+     CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num {
+    background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%);
+  }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr {
+    background: rgba(107,47,160,0.18);
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(46,204,113,0.12);
+    color: var(--green);
+    border: 1px solid rgba(46,204,113,0.3);
+    letter-spacing: 0.05em;
+  }
+
+  .tag-no {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(231,76,60,0.10);
+    color: #E74C3C;
+    border: 1px solid rgba(231,76,60,0.25);
+    letter-spacing: 0.05em;
+  }
+
+  .tag-role {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.05em;
+  }
+
+  .role-leader   { background: rgba(241,196,15,0.12);  color: #F1C40F; border: 1px solid rgba(241,196,15,0.3); }
+  .role-officer  { background: rgba(0,229,255,0.10);   color: var(--cyan); border: 1px solid rgba(0,229,255,0.25); }
+  .role-member   { background: rgba(107,47,160,0.12);  color: var(--violet-l); border: 1px solid rgba(107,47,160,0.3); }
+  .role-recruit  { background: rgba(136,146,164,0.12); color: var(--slate); border: 1px solid rgba(136,146,164,0.25); }
+  .role-none     { background: rgba(136,146,164,0.08); color: var(--slate); border: 1px solid rgba(136,146,164,0.2); }
+  .role-officer-plus { background: rgba(0,229,255,0.08); color: var(--cyan); border: 1px solid rgba(0,229,255,0.2); }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  /* Syntax highlighting */
+  .kw  { color: #C792EA; } /* keyword */
+  .ty  { color: #FFCB6B; } /* type */
+  .fn  { color: #82AAFF; } /* function */
+  .st  { color: #C3E88D; } /* string */
+  .cm  { color: #546E7A; font-style: italic; } /* comment */
+  .an  { color: #F78C6C; } /* annotation */
+  .nu  { color: #F78C6C; } /* number */
+  .op  { color: #89DDFF; } /* operator / punctuation */
+  .cl  { color: #FFCB6B; } /* class name */
+
+  /* =========================================================
+     METHOD CARDS
+  ========================================================= */
+  .method-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .method-card {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    border-left: 3px solid var(--violet);
+  }
+
+  .method-card.cyan-accent { border-left-color: var(--cyan); }
+  .method-card.green-accent { border-left-color: var(--green); }
+
+  .method-sig {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12px;
+    color: #82AAFF;
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+
+  .method-sig .ret { color: #FFCB6B; }
+  .method-sig .kw  { color: #C792EA; }
+
+  .method-desc {
+    font-size: 13px;
+    color: var(--slate);
+    margin-bottom: 6px;
+  }
+
+  .method-note {
+    font-size: 12px;
+    color: rgba(136,146,164,0.7);
+    font-style: italic;
+  }
+
+  .method-note strong { color: rgba(0,229,255,0.7); font-style: normal; }
+
+  /* =========================================================
+     ASCII DIAGRAMS
+  ========================================================= */
+  .ascii-diagram {
+    background: rgba(5,5,10,0.75);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 11.5px;
+    line-height: 1.65;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+  }
+
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+
+  /* =========================================================
+     NETWORK FLOW
+  ========================================================= */
+  .flow-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 12px 0;
+  }
+
+  .flow-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 16px;
+    background: rgba(5,5,10,0.45);
+    border: 1px solid var(--card-bdr);
+    border-radius: 8px;
+    font-size: 13px;
+  }
+
+  .flow-arrow {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .flow-cs { background: rgba(107,47,160,0.2); color: var(--violet-l); border: 1px solid rgba(107,47,160,0.3); }
+  .flow-sc { background: rgba(0,229,255,0.1);  color: var(--cyan);     border: 1px solid rgba(0,229,255,0.2); }
+
+  .flow-text { color: var(--slate); }
+  .flow-text code {
+    font-family: 'JetBrains Mono','Fira Code','Consolas',monospace;
+    font-size: 11.5px;
+    color: var(--cyan);
+    background: rgba(0,229,255,0.07);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  /* =========================================================
+     INFO BOXES
+  ========================================================= */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+
+  /* =========================================================
+     FILE TREE
+  ========================================================= */
+  .file-tree {
+    background: rgba(5,5,10,0.75);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.8;
+    overflow-x: auto;
+    margin: 14px 0;
+  }
+
+  .ft-dir  { color: var(--cyan); font-weight: 600; }
+  .ft-file { color: var(--text); }
+  .ft-cm   { color: var(--slate); font-style: italic; }
+  .ft-sym  { color: rgba(136,146,164,0.4); }
+
+  /* =========================================================
+     ANIMATIONS
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* =========================================================
+     DIVIDER
+  ========================================================= */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-bdr), transparent);
+    margin: 24px 0;
+  }
+
+  /* =========================================================
+     MOBILE TOGGLE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,47,160,0.4);
+    transition: transform .2s;
+  }
+
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 50;
+      width: 260px;
+    }
+
+    .sidebar.open { transform: translateX(0); }
+
+    .main {
+      padding: 32px 20px 60px;
+    }
+
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+  }
+
+  @media (max-width: 600px) {
+    .section-card { padding: 24px 18px; }
+    .page-header h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+
+    <span class="sidebar-title">Sommaire</span>
+
+    <a class="nav-link" href="#s1"><span class="num">01</span> Vue d'ensemble</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Structure des donn&#233;es</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Configuration serveur</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> FactionManager</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Commandes</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> GUIs</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Events Forge</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Architecture fichiers</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Flux r&#233;seau</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <!-- HEADER -->
+    <header class="page-header" id="top">
+      <div class="eyebrow">EriniumFaction &#8212; Sp&#233;cification technique</div>
+      <h1>Cahier des charges<br>Syst&#232;me de Faction</h1>
+      <p>Document de r&#233;f&#233;rence exhaustif pour l'impl&#233;mentation du syst&#232;me de faction PvP, bas&#233; sur EriAPI. Toutes les donn&#233;es, APIs, commandes, GUIs et flux r&#233;seau sont d&#233;crits ici.</p>
+      <div class="header-badges">
+        <span class="badge badge-violet">Minecraft 1.12.2</span>
+        <span class="badge badge-cyan">EriAPI Framework</span>
+        <span class="badge badge-green">Forge 14.23.5.2864</span>
+        <span class="badge badge-violet">Java 8</span>
+        <span class="badge badge-cyan">SpongePowered Mixin</span>
+      </div>
+    </header>
+
+    <!-- =====================================================================
+         SECTION 1 — VUE D'ENSEMBLE
+    ====================================================================== -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Vue d'ensemble</h2>
+
+      <p>Le syst&#232;me de faction d'EriniumFaction impl&#233;mente le mod&#232;le classique PvP que tous les joueurs de serveurs Minecraft connaissent&#160;: cr&#233;ation de groupes, revendication de territoire (claims), gestion des relations diplomatiques, et m&#233;canique de <em>power</em> pour &#233;quilibrer l'expansion.</p>
+
+      <h3 class="first">Objectif</h3>
+      <p>Offrir une exp&#233;rience faction familière et &#233;prouv&#233;e, enrichie par des <strong>GUIs modernes</strong> via EriAPI tout en maintenant les commandes classiques <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">/f</code> pour les joueurs qui les pr&#233;f&#232;rent.</p>
+
+      <h3>Piliers du syst&#232;me</h3>
+      <ul>
+        <li><strong>Factions</strong> — groupes de joueurs avec hi&#233;rarchie (Leader, Officer, Member, Recruit)</li>
+        <li><strong>Territory / Claims</strong> — revendication de chunks avec contrainte de power</li>
+        <li><strong>Power</strong> — ressource par joueur qui se r&#233;g&#233;n&#232;re et se perd &#224; la mort, limite les claims</li>
+        <li><strong>Diplomatie</strong> — relations ALLY / NEUTRAL / ENEMY entre factions</li>
+        <li><strong>Home</strong> — point de t&#233;l&#233;portation sur territoire propre</li>
+        <li><strong>Banque</strong> — tr&#233;sorerie commune &#224; la faction</li>
+        <li><strong>Chat multi-canal</strong> — global, faction-only, et alliances</li>
+        <li><strong>GUIs</strong> — tous les &#233;crans sont construits avec EriAPI (<code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">EriGuiScreen</code>, 1920&#215;1080 design coords)</li>
+      </ul>
+
+      <div class="info-box tip" style="margin-top:20px">
+        <div class="icon" style="color:var(--green)">&#9670;</div>
+        <div class="content"><strong>R&#232;gle absolue :</strong> tout ce qui est couvert par EriAPI (GUI, Data, Events, Keys, Chat, Scheduler, Network) DOIT utiliser EriAPI. Aucun boilerplate Forge brut l&#224; o&#249; l'API existe.</div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SECTION 2 — STRUCTURE DES DONNÉES
+    ====================================================================== -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num">02</span> Structure des donn&#233;es</h2>
+
+      <!-- FactionPlayerData -->
+      <h3 class="first">FactionPlayerData <span style="font-weight:400;font-size:12px;color:var(--slate)">— @EriData | scope=PLAYER | persistOnDeath=true</span></h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Champ</th>
+              <th>Type</th>
+              <th>@Sync client</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>factionId</td><td>String</td><td><span class="tag-yes">OUI</span></td><td>ID unique de la faction. Cha&#238;ne vide = sans faction.</td></tr>
+            <tr><td>factionRole</td><td>String</td><td><span class="tag-yes">OUI</span></td><td>R&#244;le dans la faction&#160;: LEADER / OFFICER / MEMBER / RECRUIT</td></tr>
+            <tr><td>power</td><td>float</td><td><span class="tag-no">NON</span></td><td>Power actuel du joueur (calcul lazy avec r&#233;g&#233;n&#233;ration).</td></tr>
+            <tr><td>maxPower</td><td>float</td><td><span class="tag-no">NON</span></td><td>Plafond de power (depuis config <code style="font-size:11px;color:var(--cyan)">maxPlayerPower</code>).</td></tr>
+            <tr><td>lastPowerUpdateTime</td><td>long</td><td><span class="tag-no">NON</span></td><td>Timestamp (ms) de la derni&#232;re mise &#224; jour du power. Permet le recalcul lazy.</td></tr>
+            <tr><td>lastDeathTime</td><td>long</td><td><span class="tag-no">NON</span></td><td>Timestamp de la derni&#232;re mort. Utilis&#233; pour les statistiques et logs.</td></tr>
+            <tr><td>totalKills</td><td>int</td><td><span class="tag-no">NON</span></td><td>Total de kills PvP depuis la cr&#233;ation du compte.</td></tr>
+            <tr><td>totalDeaths</td><td>int</td><td><span class="tag-no">NON</span></td><td>Total de morts.</td></tr>
+            <tr><td>joinedFactionTime</td><td>long</td><td><span class="tag-no">NON</span></td><td>Timestamp d'adh&#233;sion &#224; la faction actuelle.</td></tr>
+            <tr><td>chatMode</td><td>String</td><td><span class="tag-no">NON</span></td><td>Canal de chat actif&#160;: DEFAULT / FACTION / ALLY</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- FactionWorldData -->
+      <h3>FactionWorldData <span style="font-weight:400;font-size:12px;color:var(--slate)">— @EriData | scope=WORLD</span></h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Champ</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>factions</td><td>Map&lt;String,String&gt;</td><td>Cl&#233;&#160;: factionId &#8594; Valeur&#160;: JSON s&#233;rialis&#233; de FactionInfo</td></tr>
+            <tr><td>claims</td><td>Map&lt;String,String&gt;</td><td>Cl&#233;&#160;: <code style="font-size:11px;color:var(--cyan)">"x,z,dim"</code> (chunk coords + dimension) &#8594; Valeur&#160;: factionId</td></tr>
+            <tr><td>invitations</td><td>Map&lt;String,String&gt;</td><td>Cl&#233;&#160;: <code style="font-size:11px;color:var(--cyan)">"playerUUID:factionId"</code> &#8594; Valeur&#160;: timestamp d'expiration (ms)</td></tr>
+            <tr><td>relations</td><td>Map&lt;String,String&gt;</td><td>Cl&#233;&#160;: <code style="font-size:11px;color:var(--cyan)">"factionId1:factionId2"</code> (tri&#233; alphab&#233;tiquement) &#8594; Valeur&#160;: ALLY / ENEMY / NEUTRAL</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- FactionInfo -->
+      <h3>FactionInfo <span style="font-weight:400;font-size:12px;color:var(--slate)">— POJO s&#233;rialis&#233; en JSON dans FactionWorldData.factions</span></h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Champ</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>id</td><td>String</td><td>UUID unique g&#233;n&#233;r&#233; &#224; la cr&#233;ation.</td></tr>
+            <tr><td>name</td><td>String</td><td>Nom affiché de la faction.</td></tr>
+            <tr><td>description</td><td>String</td><td>Description libre (max configurable).</td></tr>
+            <tr><td>tag</td><td>String</td><td>Tag court (2&#8211;8 chars) affich&#233; dans le chat entre crochets.</td></tr>
+            <tr><td>leaderUUID</td><td>String</td><td>UUID du leader courant.</td></tr>
+            <tr><td>leaderName</td><td>String</td><td>Nom du leader (cache pour affichage hors-ligne).</td></tr>
+            <tr><td>members</td><td>List&lt;String&gt;</td><td>UUID de tous les membres (toutes r&#244;les confondues).</td></tr>
+            <tr><td>memberRoles</td><td>Map&lt;String,String&gt;</td><td>UUID &#8594; r&#244;le (LEADER / OFFICER / MEMBER / RECRUIT).</td></tr>
+            <tr><td>memberNames</td><td>Map&lt;String,String&gt;</td><td>UUID &#8594; dernier nom connu (cache pour affichage hors-ligne).</td></tr>
+            <tr><td>createdTime</td><td>long</td><td>Timestamp de cr&#233;ation de la faction.</td></tr>
+            <tr><td>color</td><td>int</td><td>Couleur ARGB de la faction (affich&#233;e dans la carte, le chat).</td></tr>
+            <tr><td>bank</td><td>double</td><td>Montant en banque.</td></tr>
+            <tr><td>homeWorld</td><td>String</td><td>Identifiant de dimension du home (ex. <code style="font-size:11px;color:var(--cyan)">"overworld"</code>).</td></tr>
+            <tr><td>homeX / homeY / homeZ</td><td>double</td><td>Coordonn&#233;es du point de home.</td></tr>
+            <tr><td>homeYaw / homePitch</td><td>float</td><td>Rotation du joueur &#224; l'arriv&#233;e au home.</td></tr>
+            <tr><td>homeSet</td><td>boolean</td><td>Indique si un home a &#233;t&#233; d&#233;fini.</td></tr>
+            <tr><td>open</td><td>boolean</td><td>Si <code style="font-size:11px;color:var(--cyan)">true</code>, les joueurs peuvent rejoindre sans invitation.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Enums -->
+      <h3>Enums</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Enum</th><th>Valeurs</th><th>D&#233;tail</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>FactionRole</td>
+              <td>
+                <span class="tag-role role-leader">LEADER(4)</span>&nbsp;
+                <span class="tag-role role-officer">OFFICER(3)</span>&nbsp;
+                <span class="tag-role role-member">MEMBER(2)</span>&nbsp;
+                <span class="tag-role role-recruit">RECRUIT(1)</span>
+              </td>
+              <td>Chaque r&#244;le a un <code style="font-size:11px;color:var(--cyan)">displayName</code> et une <code style="font-size:11px;color:var(--cyan)">priority</code>. Les permissions sont bas&#233;es sur la comparaison de priority.</td>
+            </tr>
+            <tr>
+              <td>RelationType</td>
+              <td>
+                <span class="tag-role role-member" style="color:var(--green);border-color:rgba(46,204,113,0.3);background:rgba(46,204,113,0.1)">ALLY</span>&nbsp;
+                <span class="tag-role role-recruit">NEUTRAL</span>&nbsp;
+                <span class="tag-role" style="color:#E74C3C;border:1px solid rgba(231,76,60,0.3);background:rgba(231,76,60,0.1)">ENEMY</span>
+              </td>
+              <td>Chaque type a un <code style="font-size:11px;color:var(--cyan)">displayName</code> et une <code style="font-size:11px;color:var(--cyan)">color</code> (int ARGB) pour l'affichage.</td>
+            </tr>
+            <tr>
+              <td>ChatMode</td>
+              <td><code style="font-size:11px;color:var(--cyan)">DEFAULT</code>&nbsp;&nbsp;<code style="font-size:11px;color:var(--cyan)">FACTION</code>&nbsp;&nbsp;<code style="font-size:11px;color:var(--cyan)">ALLY</code></td>
+              <td>Canal de chat actif du joueur, persist&#233; dans FactionPlayerData.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SECTION 3 — CONFIGURATION SERVEUR
+    ====================================================================== -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num">03</span> Configuration serveur</h2>
+
+      <p>Classe&#160;: <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">fr.eriniumgroup.eriniumfaction.config.FactionConfig</code></p>
+      <p>Toutes les valeurs sont expos&#233;es via <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">@EriConfig</code> d'EriAPI et modifiables dans le fichier de config g&#233;n&#233;r&#233; par Forge.</p>
+
+      <!-- general -->
+      <h3 class="first">Cat&#233;gorie — general</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Champ</th><th>Type</th><th>D&#233;faut</th><th>Range</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>maxFactionNameLength</td><td>int</td><td>16</td><td>3 – 32</td><td>Longueur maximale du nom de faction.</td></tr>
+            <tr><td>minFactionNameLength</td><td>int</td><td>3</td><td>2 – 16</td><td>Longueur minimale du nom de faction.</td></tr>
+            <tr><td>allowedNamePattern</td><td>String</td><td><code style="font-size:11px;color:var(--cyan)">^[a-zA-Z0-9_]+$</code></td><td>—</td><td>Regex de validation du nom (et du tag).</td></tr>
+            <tr><td>maxFactionDescription</td><td>int</td><td>100</td><td>0 – 500</td><td>Longueur maximale de la description.</td></tr>
+            <tr><td>maxTagLength</td><td>int</td><td>5</td><td>2 – 8</td><td>Longueur maximale du tag de faction.</td></tr>
+            <tr><td>minTagLength</td><td>int</td><td>2</td><td>1 – 5</td><td>Longueur minimale du tag.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- power -->
+      <h3>Cat&#233;gorie — power</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Champ</th><th>Type</th><th>D&#233;faut</th><th>Range</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>defaultPlayerPower</td><td>float</td><td>10.0</td><td>1 – 100</td><td>Power initial &#224; la cr&#233;ation / rejoindre une faction.</td></tr>
+            <tr><td>maxPlayerPower</td><td>float</td><td>10.0</td><td>1 – 100</td><td>Plafond de power par joueur.</td></tr>
+            <tr><td>powerLossOnDeath</td><td>float</td><td>2.0</td><td>0 – 50</td><td>Power perdu &#224; chaque mort.</td></tr>
+            <tr><td>powerRegenPerMinute</td><td>float</td><td>0.2</td><td>0.01 – 10</td><td>Power r&#233;g&#233;n&#233;r&#233; par minute de jeu (en ligne).</td></tr>
+            <tr><td>powerRegenOffline</td><td>boolean</td><td>false</td><td>—</td><td>Si true, la r&#233;g&#233;n&#233;ration continue hors-ligne (calcul lazy au login).</td></tr>
+            <tr><td>claimsPerPower</td><td>int</td><td>1</td><td>1 – 10</td><td>Nombre de chunks claimables par point de power total de faction.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- claims -->
+      <h3>Cat&#233;gorie — claims</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Champ</th><th>Type</th><th>D&#233;faut</th><th>Range</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>maxClaimsPerFaction</td><td>int</td><td>200</td><td>10 – 10&#160;000</td><td>Cap absolu de chunks claimables, ind&#233;pendant du power.</td></tr>
+            <tr><td>claimCost</td><td>double</td><td>0</td><td>0 – 10&#160;000</td><td>Co&#251;t en argent par claim. 0 = gratuit.</td></tr>
+            <tr><td>unclaimRefundMultiplier</td><td>float</td><td>0.5</td><td>0 – 1</td><td>Fraction du claimCost rembours&#233;e lors d'un unclaim.</td></tr>
+            <tr><td>minDistanceBetweenFactions</td><td>int</td><td>5</td><td>0 – 100</td><td>Distance minimale (en chunks) entre deux factions distinctes.</td></tr>
+            <tr><td>overclaimEnabled</td><td>boolean</td><td>true</td><td>—</td><td>Si true, une faction peut voler un chunk si le power de la faction cible est inf&#233;rieur au nombre de claims.</td></tr>
+            <tr><td>worldBorderSize</td><td>int</td><td>10&#160;000</td><td>1&#160;000 – 100&#160;000</td><td>Rayon du monde en blocs (limite les claims en bord de map).</td></tr>
+            <tr><td>claimOnlyConnected</td><td>boolean</td><td>false</td><td>—</td><td>Si true, chaque nouveau claim doit &#234;tre adjacent &#224; un claim existant de la faction.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- combat -->
+      <h3>Cat&#233;gorie — combat</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Champ</th><th>Type</th><th>D&#233;faut</th><th>Range</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>friendlyFireAllies</td><td>boolean</td><td>false</td><td>—</td><td>Autorise les d&#233;g&#226;ts entre membres d'alliances.</td></tr>
+            <tr><td>friendlyFireFaction</td><td>boolean</td><td>false</td><td>—</td><td>Autorise les d&#233;g&#226;ts entre membres de la m&#234;me faction.</td></tr>
+            <tr><td>pvpDeniedInOwnTerritory</td><td>boolean</td><td>false</td><td>—</td><td>Bloque le PvP dans les chunks claim&#233;s par la faction du d&#233;fenseur.</td></tr>
+            <tr><td>teleportDelay</td><td>int</td><td>5</td><td>0 – 60</td><td>Secondes d'attente avant TP au home.</td></tr>
+            <tr><td>teleportCancelOnMove</td><td>boolean</td><td>true</td><td>—</td><td>Annule le TP si le joueur bouge pendant le d&#233;lai.</td></tr>
+            <tr><td>teleportCancelOnDamage</td><td>boolean</td><td>true</td><td>—</td><td>Annule le TP si le joueur re&#231;oit des d&#233;g&#226;ts pendant le d&#233;lai.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- economy -->
+      <h3>Cat&#233;gorie — economy</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Champ</th><th>Type</th><th>D&#233;faut</th><th>Range</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>factionCreationCost</td><td>double</td><td>0</td><td>0 – 1&#160;000&#160;000</td><td>Co&#251;t en argent pour cr&#233;er une faction.</td></tr>
+            <tr><td>factionBankEnabled</td><td>boolean</td><td>true</td><td>—</td><td>Active ou d&#233;sactive la banque de faction.</td></tr>
+            <tr><td>factionBankMax</td><td>double</td><td>1&#160;000&#160;000</td><td>0 – 999&#160;999&#160;999</td><td>Solde maximal autoris&#233; dans la banque.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- members -->
+      <h3>Cat&#233;gorie — members</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Champ</th><th>Type</th><th>D&#233;faut</th><th>Range</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>maxMembers</td><td>int</td><td>50</td><td>2 – 1&#160;000</td><td>Nombre maximum de membres par faction.</td></tr>
+            <tr><td>maxAlliances</td><td>int</td><td>5</td><td>0 – 50</td><td>Nombre maximum d'alliances actives simultan&#233;es.</td></tr>
+            <tr><td>inviteExpirationMinutes</td><td>int</td><td>5</td><td>1 – 60</td><td>Dur&#233;e de validit&#233; d'une invitation en minutes.</td></tr>
+            <tr><td>defaultRole</td><td>String</td><td>"RECRUIT"</td><td>—</td><td>R&#244;le attribu&#233; automatiquement &#224; tout nouveau membre.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- display -->
+      <h3>Cat&#233;gorie — display</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Champ</th><th>Type</th><th>D&#233;faut</th><th>Range</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>factionTagColor</td><td>int</td><td><code style="font-size:11px;color:var(--gold)">0xFFFFD700</code></td><td>@ColorField</td><td>Couleur par d&#233;faut du tag faction dans le chat.</td></tr>
+            <tr><td>showFactionInTablist</td><td>boolean</td><td>true</td><td>—</td><td>Affiche le tag de faction dans le tablist.</td></tr>
+            <tr><td>showFactionInChat</td><td>boolean</td><td>true</td><td>—</td><td>Pr&#233;fixe les messages chat avec le tag de faction.</td></tr>
+            <tr><td>territoryTitleEnabled</td><td>boolean</td><td>true</td><td>—</td><td>Affiche un title/subtitle quand un joueur entre sur un territoire.</td></tr>
+            <tr><td>territoryTitleDuration</td><td>int</td><td>40</td><td>10 – 200</td><td>Dur&#233;e d'affichage du title en ticks (40 = 2 secondes).</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SECTION 4 — FACTIONMANAGER
+    ====================================================================== -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num">04</span> FactionManager — API centrale</h2>
+
+      <p>Singleton&#160;: <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">FactionManager.getInstance()</code> — classe&#160;: <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">fr.eriniumgroup.eriniumfaction.faction.FactionManager</code></p>
+      <p>Toute la logique m&#233;tier passe par ce manager. Les handlers d'events, commandes et GUIs l'appellent exclusivement.</p>
+
+      <!-- Cycle de vie -->
+      <h3 class="first">Cycle de vie</h3>
+      <div class="method-group">
+        <div class="method-card green-accent">
+          <div class="method-sig"><span class="kw">public void</span> <span class="fn">init</span>(<span class="cl">World</span> world)</div>
+          <div class="method-desc">Charge FactionWorldData depuis DataManager. Appel&#233; dans FMLServerStartingEvent. D&#233;finit la r&#233;f&#233;rence de monde pour les saves.</div>
+        </div>
+        <div class="method-card green-accent">
+          <div class="method-sig"><span class="kw">public void</span> <span class="fn">save</span>()</div>
+          <div class="method-desc">Persiste FactionWorldData via DataManager. Appel&#233; &#224; l'arr&#234;t du serveur et toutes les 1200 ticks (auto-save).</div>
+        </div>
+        <div class="method-card green-accent">
+          <div class="method-sig"><span class="cl">World</span> <span class="fn">getWorld</span>()</div>
+          <div class="method-desc">Retourne la r&#233;f&#233;rence au monde serveur courant. Utilis&#233; pour acc&#233;der &#224; FactionWorldData.</div>
+        </div>
+      </div>
+
+      <!-- Création / Suppression -->
+      <h3>Cr&#233;ation / Suppression</h3>
+      <div class="method-group">
+        <div class="method-card">
+          <div class="method-sig"><span class="ret">FactionInfo</span> <span class="fn">createFaction</span>(<span class="cl">EntityPlayerMP</span> player, <span class="cl">String</span> name, <span class="cl">String</span> tag)</div>
+          <div class="method-desc">Cr&#233;e une nouvelle faction. Retourne le FactionInfo cr&#233;&#233; ou <code style="font-size:11px;color:#E74C3C">null</code> si validation &#233;choue.</div>
+          <div class="method-note"><strong>Validations :</strong> joueur sans faction, nom unique, tag unique, longueur et pattern respectés, solde suffisant (factionCreationCost). <strong>Effets :</strong> cr&#233;e FactionInfo avec UUID, met &#224; jour FactionPlayerData (factionId, factionRole=LEADER), envoie message EriChat, sauvegarde.</div>
+        </div>
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">disbandFaction</span>(<span class="cl">String</span> factionId)</div>
+          <div class="method-desc">Dissout une faction. Retourne false si la faction n'existe pas.</div>
+          <div class="method-note"><strong>Effets :</strong> supprime tous les claims de cette faction, reset FactionPlayerData de chaque membre (factionId="", factionRole=""), supprime toutes les relations impliquant cette faction, retire les invitations pendantes, sauvegarde.</div>
+        </div>
+      </div>
+
+      <!-- Membres -->
+      <h3>Membres</h3>
+      <div class="method-group">
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">invitePlayer</span>(<span class="cl">String</span> factionId, <span class="cl">EntityPlayerMP</span> inviter, <span class="cl">EntityPlayerMP</span> target)</div>
+          <div class="method-desc">Envoie une invitation. Validations&#160;: inviter est OFFICER+, target n'est pas d&#233;j&#224; dans une faction, target non d&#233;j&#224; invit&#233;, faction non pleine. Cr&#233;e l'entr&#233;e dans invitations avec timestamp d'expiration. Envoie message cliquable EriChat au target.</div>
+        </div>
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">acceptInvitation</span>(<span class="cl">EntityPlayerMP</span> player, <span class="cl">String</span> factionId)</div>
+          <div class="method-desc">Accepte une invitation. V&#233;rifie que l'invitation existe et n'est pas expir&#233;e, que la faction n'est pas pleine. Met &#224; jour FactionPlayerData, ajoute le joueur &#224; FactionInfo avec le r&#244;le defaultRole.</div>
+        </div>
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">declineInvitation</span>(<span class="cl">EntityPlayerMP</span> player, <span class="cl">String</span> factionId)</div>
+          <div class="method-desc">Refuse une invitation. Supprime l'entr&#233;e dans invitations, notifie la faction via EriChat.</div>
+        </div>
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">joinFaction</span>(<span class="cl">EntityPlayerMP</span> player, <span class="cl">String</span> factionId)</div>
+          <div class="method-desc">Rejoindre une faction ouverte (open=true). M&#234;mes validations qu'acceptInvitation. Impossible si la faction est ferm&#233;e.</div>
+        </div>
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">leaveFaction</span>(<span class="cl">EntityPlayerMP</span> player)</div>
+          <div class="method-desc">Le joueur quitte sa faction. Si le joueur est le seul membre&#160;: disbandFaction automatique. Si leader avec d'autres membres&#160;: refus&#233; (doit d'abord transf&#233;rer le leadership).</div>
+        </div>
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">kickPlayer</span>(<span class="cl">String</span> factionId, <span class="cl">EntityPlayerMP</span> kicker, <span class="cl">String</span> targetUUID)</div>
+          <div class="method-desc">Exclut un membre. Validation&#160;: kicker a une priority strictement sup&#233;rieure &#224; la priority du target. Un OFFICER ne peut pas kick un autre OFFICER.</div>
+        </div>
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">promotePlayer</span>(<span class="cl">String</span> factionId, <span class="cl">String</span> targetUUID)</div>
+          <div class="method-desc">Monte le r&#244;le d'un joueur d'un cran&#160;: RECRUIT&#8594;MEMBER&#8594;OFFICER. Un OFFICER ne peut pas promouvoir au rang LEADER (utiliser transferLeadership).</div>
+        </div>
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">demotePlayer</span>(<span class="cl">String</span> factionId, <span class="cl">String</span> targetUUID)</div>
+          <div class="method-desc">Descend le r&#244;le d'un joueur d'un cran&#160;: OFFICER&#8594;MEMBER&#8594;RECRUIT. Impossible sur le LEADER.</div>
+        </div>
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">transferLeadership</span>(<span class="cl">String</span> factionId, <span class="cl">String</span> newLeaderUUID)</div>
+          <div class="method-desc">Transf&#232;re le leadership. L'ancien leader devient OFFICER. Met &#224; jour leaderUUID et leaderName dans FactionInfo, ainsi que les memberRoles des deux joueurs.</div>
+        </div>
+      </div>
+
+      <!-- Claims -->
+      <h3>Claims</h3>
+      <div class="method-group">
+        <div class="method-card cyan-accent">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">claimChunk</span>(<span class="cl">EntityPlayerMP</span> player)</div>
+          <div class="method-desc">Claim le chunk o&#249; se trouve le joueur.</div>
+          <div class="method-note"><strong>Validations :</strong> joueur est OFFICER+, power total suffisant (getMaxClaims &gt; getClaimCount), chunk non d&#233;j&#224; claim&#233; par une autre faction (sauf si overclaim activ&#233; et power insuffisant chez la cible), distance minimale entre factions respect&#233;e, non en zone prot&#233;g&#233;e (spawn/warzone), maxClaimsPerFaction non atteint, claimOnlyConnected respect&#233; si activ&#233;. D&#233;bite claimCost si configur&#233;.</div>
+        </div>
+        <div class="method-card cyan-accent">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">unclaimChunk</span>(<span class="cl">EntityPlayerMP</span> player)</div>
+          <div class="method-desc">Retire la revendication du chunk actuel. Le chunk doit appartenir &#224; la faction du joueur. Rembourse unclaimRefundMultiplier * claimCost.</div>
+        </div>
+        <div class="method-card cyan-accent">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">unclaimAll</span>(<span class="cl">String</span> factionId)</div>
+          <div class="method-desc">Retire tous les claims d'une faction d'un coup. R&#233;serv&#233; au LEADER ou &#224; un appel interne (disband).</div>
+        </div>
+        <div class="method-card cyan-accent">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">autoClaimToggle</span>(<span class="cl">EntityPlayerMP</span> player)</div>
+          <div class="method-desc">Active/d&#233;sactive le mode auto-claim&#160;: chaque chunk visit&#233; par le joueur est automatiquement claim&#233;. &#201;tat stock&#233; temporairement c&#244;t&#233; serveur (non persist&#233;).</div>
+        </div>
+        <div class="method-card cyan-accent">
+          <div class="method-sig"><span class="cl">String</span> <span class="fn">getFactionAt</span>(<span class="kw">int</span> chunkX, <span class="kw">int</span> chunkZ, <span class="kw">int</span> dimension)</div>
+          <div class="method-desc">Retourne le factionId qui poss&#232;de ce chunk, ou null si wilderness.</div>
+        </div>
+        <div class="method-card cyan-accent">
+          <div class="method-sig"><span class="kw">int</span> <span class="fn">getClaimCount</span>(<span class="cl">String</span> factionId) &nbsp;|&nbsp; <span class="kw">int</span> <span class="fn">getMaxClaims</span>(<span class="cl">String</span> factionId)</div>
+          <div class="method-desc">getClaimCount&#160;: compte les claims depuis FactionWorldData. getMaxClaims&#160;: Math.min(maxClaimsPerFaction, getTotalPower(factionId) * claimsPerPower).</div>
+        </div>
+        <div class="method-card cyan-accent">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">isOverclaimed</span>(<span class="cl">String</span> factionId)</div>
+          <div class="method-desc">True si getClaimCount &gt; getMaxClaims (faction vuln&#233;rable &#224; l'overclaim).</div>
+        </div>
+      </div>
+
+      <!-- Power -->
+      <h3>Power</h3>
+      <div class="method-group">
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">float</span> <span class="fn">getPlayerPower</span>(<span class="cl">EntityPlayerMP</span> player)</div>
+          <div class="method-desc">Calcule le power actuel avec r&#233;g&#233;n&#233;ration lazy&#160;: power += min((now - lastPowerUpdateTime) / 60000 * powerRegenPerMinute, maxPower - power). Met &#224; jour lastPowerUpdateTime et persiste. Retourne la valeur clamped dans [0, maxPower].</div>
+        </div>
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">float</span> <span class="fn">getTotalPower</span>(<span class="cl">String</span> factionId)</div>
+          <div class="method-desc">Somme du power de tous les membres (calcul&#233; via getPlayerPower sur les joueurs en ligne, valeur stock&#233;e pour les hors-ligne).</div>
+        </div>
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">void</span> <span class="fn">onPlayerDeath</span>(<span class="cl">EntityPlayerMP</span> player)</div>
+          <div class="method-desc">Soustrait powerLossOnDeath au power du joueur (min 0). Met &#224; jour totalDeaths et lastDeathTime. Envoie notification au joueur.</div>
+        </div>
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">void</span> <span class="fn">updatePlayerPower</span>(<span class="cl">EntityPlayerMP</span> player)</div>
+          <div class="method-desc">Force le recalcul et la sauvegarde du power. Utilis&#233; au login pour int&#233;grer la r&#233;g&#233;n&#233;ration hors-ligne (si powerRegenOffline=true).</div>
+        </div>
+      </div>
+
+      <!-- Relations -->
+      <h3>Relations diplomatiques</h3>
+      <div class="method-group">
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">setRelation</span>(<span class="cl">String</span> factionId, <span class="cl">String</span> otherFactionId, <span class="cl">RelationType</span> type)</div>
+          <div class="method-desc">D&#233;finit une relation entre deux factions.</div>
+          <div class="method-note"><strong>Validations :</strong> les deux factions existent, pas soi-m&#234;me, maxAlliances respect&#233; pour ALLY. L'alliance est un double-opt-in&#160;: elle n'est effective que quand les deux factions ont d&#233;clar&#233; ALLY &#224; l'autre. La cl&#233; dans relations est construite avec les deux IDs tri&#233;s alphab&#233;tiquement.</div>
+        </div>
+        <div class="method-card">
+          <div class="method-sig"><span class="cl">RelationType</span> <span class="fn">getRelation</span>(<span class="cl">String</span> f1, <span class="cl">String</span> f2) &nbsp;|&nbsp; <span class="cl">List&lt;FactionInfo&gt;</span> <span class="fn">getAllies</span>(<span class="cl">String</span> factionId) &nbsp;|&nbsp; <span class="cl">List&lt;FactionInfo&gt;</span> <span class="fn">getEnemies</span>(<span class="cl">String</span> factionId)</div>
+          <div class="method-desc">Lecture des relations. getRelation retourne NEUTRAL si aucune entr&#233;e dans la map.</div>
+        </div>
+      </div>
+
+      <!-- Home -->
+      <h3>Home</h3>
+      <div class="method-group">
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">setHome</span>(<span class="cl">String</span> factionId, <span class="cl">EntityPlayerMP</span> player)</div>
+          <div class="method-desc">D&#233;finit le home de la faction aux coordonn&#233;es actuelles du joueur. Validation&#160;: le chunk doit &#234;tre claim&#233; par la faction.</div>
+        </div>
+        <div class="method-card">
+          <div class="method-sig"><span class="kw">boolean</span> <span class="fn">teleportHome</span>(<span class="cl">EntityPlayerMP</span> player)</div>
+          <div class="method-desc">D&#233;marre le compte &#224; rebours de TP (teleportDelay secondes) via EriScheduler. Si teleportCancelOnMove ou teleportCancelOnDamage, &#233;coute les events correspondants et annule via task.cancel().</div>
+        </div>
+      </div>
+
+      <!-- Lookups -->
+      <h3>Lookups &amp; utilitaires</h3>
+      <div class="method-group">
+        <div class="method-card cyan-accent">
+          <div class="method-sig">
+            <span class="cl">FactionInfo</span> <span class="fn">getFaction</span>(<span class="cl">String</span> factionId)<br>
+            <span class="cl">FactionInfo</span> <span class="fn">getFactionByName</span>(<span class="cl">String</span> name)<br>
+            <span class="cl">FactionInfo</span> <span class="fn">getFactionByTag</span>(<span class="cl">String</span> tag)<br>
+            <span class="cl">FactionInfo</span> <span class="fn">getPlayerFaction</span>(<span class="cl">EntityPlayerMP</span> player)<br>
+            <span class="cl">FactionInfo</span> <span class="fn">getPlayerFaction</span>(<span class="cl">String</span> playerUUID)<br>
+            <span class="cl">List&lt;FactionInfo&gt;</span> <span class="fn">getAllFactions</span>()<br>
+            <span class="cl">FactionRole</span> <span class="fn">getPlayerRole</span>(<span class="cl">String</span> playerUUID)<br>
+            <span class="kw">boolean</span> <span class="fn">hasFaction</span>(<span class="cl">EntityPlayerMP</span> player)<br>
+            <span class="kw">boolean</span> <span class="fn">isLeader</span>(<span class="cl">EntityPlayerMP</span> player)<br>
+            <span class="kw">boolean</span> <span class="fn">isOfficerOrAbove</span>(<span class="cl">EntityPlayerMP</span> player)
+          </div>
+          <div class="method-desc">M&#233;thodes de lecture et v&#233;rification. Retournent null si non trouv&#233;. La s&#233;rialisation/d&#233;s&#233;rialisation de FactionInfo depuis le JSON est transparente.</div>
+        </div>
+      </div>
+
+      <!-- Invitations -->
+      <h3>Invitations</h3>
+      <div class="method-group">
+        <div class="method-card">
+          <div class="method-sig">
+            <span class="kw">boolean</span> <span class="fn">hasInvitation</span>(<span class="cl">String</span> playerUUID, <span class="cl">String</span> factionId)<br>
+            <span class="cl">List&lt;FactionInfo&gt;</span> <span class="fn">getPendingInvitations</span>(<span class="cl">String</span> playerUUID)<br>
+            <span class="kw">void</span> <span class="fn">cleanExpiredInvitations</span>()
+          </div>
+          <div class="method-desc">cleanExpiredInvitations est appel&#233;e dans le tick auto-save (toutes les 1200 ticks). Supprime les entr&#233;es dont le timestamp est d&#233;pass&#233;.</div>
+        </div>
+      </div>
+
+      <!-- Chat -->
+      <h3>Chat</h3>
+      <div class="method-group">
+        <div class="method-card">
+          <div class="method-sig">
+            <span class="kw">void</span> <span class="fn">setChatMode</span>(<span class="cl">EntityPlayerMP</span> player, <span class="cl">ChatMode</span> mode)<br>
+            <span class="cl">ChatMode</span> <span class="fn">getChatMode</span>(<span class="cl">EntityPlayerMP</span> player)
+          </div>
+          <div class="method-desc">Modifie/lit le canal de chat actif. Persist&#233; dans FactionPlayerData.chatMode.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SECTION 5 — COMMANDES
+    ====================================================================== -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num">05</span> Commandes</h2>
+      <p>Toutes les commandes sont regroup&#233;es sous un unique <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">FactionCommand</code> enregistr&#233; en tant que sous-commandes de <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">/f</code>. Alias&#160;: <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">/faction</code>.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Commande</th>
+              <th>R&#244;le min</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>/f create &lt;nom&gt; &lt;tag&gt;</td><td><span class="tag-role role-none">Sans faction</span></td><td>Cr&#233;e une nouvelle faction. Validation nom, tag, co&#251;t en argent.</td></tr>
+            <tr><td>/f disband</td><td><span class="tag-role role-leader">LEADER</span></td><td>Dissout la faction irr&#233;m&#233;diablement. Demande confirmation.</td></tr>
+            <tr><td>/f invite &lt;joueur&gt;</td><td><span class="tag-role role-officer">OFFICER</span></td><td>Invite un joueur sans faction. Envoie message cliquable.</td></tr>
+            <tr><td>/f join &lt;faction&gt;</td><td><span class="tag-role role-none">Sans faction</span></td><td>Rejoindre une faction ouverte (open=true) sans invitation.</td></tr>
+            <tr><td>/f accept [faction]</td><td><span class="tag-role role-none">Sans faction</span></td><td>Accepte une invitation. Argument optionnel si plusieurs invitations pendantes.</td></tr>
+            <tr><td>/f deny [faction]</td><td><span class="tag-role role-none">Sans faction</span></td><td>Refuse une invitation.</td></tr>
+            <tr><td>/f leave</td><td><span class="tag-role role-member">MEMBER+</span></td><td>Quitter la faction. Refus&#233; si leader avec des membres restants.</td></tr>
+            <tr><td>/f kick &lt;joueur&gt;</td><td><span class="tag-role role-officer">OFFICER</span></td><td>Exclut un membre de rang inf&#233;rieur.</td></tr>
+            <tr><td>/f promote &lt;joueur&gt;</td><td><span class="tag-role role-leader">LEADER</span></td><td>Monte le r&#244;le d'un membre d'un cran.</td></tr>
+            <tr><td>/f demote &lt;joueur&gt;</td><td><span class="tag-role role-leader">LEADER</span></td><td>Descend le r&#244;le d'un membre d'un cran.</td></tr>
+            <tr><td>/f leader &lt;joueur&gt;</td><td><span class="tag-role role-leader">LEADER</span></td><td>Transf&#232;re le leadership &#224; un autre membre.</td></tr>
+            <tr><td>/f claim</td><td><span class="tag-role role-officer">OFFICER</span></td><td>Claim le chunk actuel.</td></tr>
+            <tr><td>/f unclaim</td><td><span class="tag-role role-officer">OFFICER</span></td><td>Unclaim le chunk actuel (si appartient &#224; la faction).</td></tr>
+            <tr><td>/f unclaimall</td><td><span class="tag-role role-leader">LEADER</span></td><td>Retire tous les claims de la faction. Demande confirmation.</td></tr>
+            <tr><td>/f autoclaim</td><td><span class="tag-role role-officer">OFFICER</span></td><td>Active/d&#233;sactive le mode auto-claim.</td></tr>
+            <tr><td>/f sethome</td><td><span class="tag-role role-officer">OFFICER</span></td><td>D&#233;finit le home de faction (doit &#234;tre sur territoire propre).</td></tr>
+            <tr><td>/f home</td><td><span class="tag-role role-member">MEMBER+</span></td><td>T&#233;l&#233;portation au home avec d&#233;lai configurable.</td></tr>
+            <tr><td>/f map</td><td><span class="tag-role role-member">MEMBER+</span></td><td>Affiche une carte ASCII 9&#215;9 des chunks autour du joueur dans le chat.</td></tr>
+            <tr><td>/f info [faction]</td><td><span class="tag-role role-none">Tous</span></td><td>Affiche les infos d&#233;taill&#233;es d'une faction. Sans argument&#160;: sa propre faction.</td></tr>
+            <tr><td>/f list [page]</td><td><span class="tag-role role-none">Tous</span></td><td>Liste toutes les factions avec pagination EriChat (ChatPaginator).</td></tr>
+            <tr><td>/f who &lt;joueur&gt;</td><td><span class="tag-role role-none">Tous</span></td><td>Affiche la faction et le r&#244;le d'un joueur.</td></tr>
+            <tr><td>/f ally &lt;faction&gt;</td><td><span class="tag-role role-officer">OFFICER</span></td><td>Propose ou accepte une alliance. Double-opt-in requis.</td></tr>
+            <tr><td>/f enemy &lt;faction&gt;</td><td><span class="tag-role role-officer">OFFICER</span></td><td>D&#233;clare une faction ennemie (unilat&#233;ral).</td></tr>
+            <tr><td>/f neutral &lt;faction&gt;</td><td><span class="tag-role role-officer">OFFICER</span></td><td>R&#233;tablit une relation neutre.</td></tr>
+            <tr><td>/f chat [faction|ally|default]</td><td><span class="tag-role role-member">MEMBER+</span></td><td>Change le canal de chat actif. Sans argument&#160;: toggle DEFAULT&#8596;FACTION.</td></tr>
+            <tr><td>/f desc &lt;texte&gt;</td><td><span class="tag-role role-officer">OFFICER</span></td><td>Modifie la description de la faction.</td></tr>
+            <tr><td>/f tag &lt;tag&gt;</td><td><span class="tag-role role-leader">LEADER</span></td><td>Change le tag de la faction. Validation longueur et unicit&#233;.</td></tr>
+            <tr><td>/f color &lt;hex&gt;</td><td><span class="tag-role role-leader">LEADER</span></td><td>Change la couleur de la faction (ex. <code style="font-size:11px;color:var(--cyan)">#FF5500</code>).</td></tr>
+            <tr><td>/f open</td><td><span class="tag-role role-leader">LEADER</span></td><td>Toggle la faction entre ouverte (join sans invitation) et ferm&#233;e.</td></tr>
+            <tr><td>/f bank deposit &lt;montant&gt;</td><td><span class="tag-role role-member">MEMBER+</span></td><td>D&#233;pose de l'argent dans la banque faction depuis son solde personnel.</td></tr>
+            <tr><td>/f bank withdraw &lt;montant&gt;</td><td><span class="tag-role role-officer">OFFICER</span></td><td>Retire de l'argent de la banque faction vers son solde personnel.</td></tr>
+            <tr><td>/f bank balance</td><td><span class="tag-role role-member">MEMBER+</span></td><td>Affiche le solde de la banque faction.</td></tr>
+            <tr><td>/f menu</td><td><span class="tag-role role-member">MEMBER+</span></td><td>Ouvre le GUI principal via GuiNetworkHandler.openGui().</td></tr>
+            <tr><td>/f help [page]</td><td><span class="tag-role role-none">Tous</span></td><td>Affiche l'aide paginée avec toutes les commandes disponibles.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info" style="margin-top:16px">
+        <div class="icon" style="color:var(--cyan)">&#9432;</div>
+        <div class="content">L'autocompl&#233;tion des arguments (noms de joueurs, noms de factions) est g&#233;r&#233;e via la m&#233;thode <code>addTabCompletionOptions</code> de Forge, en lisant les donn&#233;es de FactionManager.</div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SECTION 6 — GUIs
+    ====================================================================== -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num">06</span> GUIs — EriAPI EriGuiScreen</h2>
+      <p>Tous les &#233;crans h&#233;ritent de <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">EriGuiScreen</code>. Les coordonn&#233;es sont toujours en pixels design 1920&#215;1080 — le ScaleManager g&#232;re la conversion. Les GUIs communiquent avec le serveur via <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">GuiNetworkHandler</code>.</p>
+
+      <!-- GUI 1 -->
+      <h3 class="first">GUI 1 — Menu Faction Principal <code style="font-size:11px;font-weight:400;color:var(--slate)">GuiFactionMain</code></h3>
+      <p>Acc&#232;s&#160;: touche configurable (EriKeys, KEY_F) ou commande <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">/f menu</code>.</p>
+
+      <p style="color:var(--slate);font-size:13px;margin-bottom:8px">&#201;tat A — Joueur sans faction</p>
+      <div class="ascii-diagram"><span class="as">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</span>
+<span class="as">&#9474;</span>  <span class="ac">Rejoindre ou Cr&#233;er une Faction</span>                                <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>                                                                    <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</span>  <span class="as">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="av">CR&#201;ER UNE FACTION</span>              <span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="ag">FACTIONS OUVERTES</span>               <span class="as">&#9474;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9474;</span>                                <span class="as">&#9474;</span>  <span class="as">&#9474;</span>  <span class="as">[ TextField recherche ]</span>         <span class="as">&#9474;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9474;</span>  <span class="as">Nom :</span> <span class="as">[ TextField            ]</span>  <span class="as">&#9474;</span>  <span class="as">&#9474;</span> &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; <span class="as">&#9474;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9474;</span>  <span class="as">Tag :</span> <span class="as">[ TextField            ]</span>  <span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="ac">Valiant</span>  <span class="as">[VLT]  12/50 mbr  </span> <span class="av">[Rejoindre]</span> <span class="as">&#9474;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9474;</span>                                <span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="ag">NightWolves</span>  <span class="as">[NW]   7/50 mbr</span>  <span class="av">[Rejoindre]</span> <span class="as">&#9474;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9474;</span>  <span class="as">[ Button : Cr&#233;er la faction ]</span>   <span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="as">&#8226; &#8226; &#8226; ScrollList &#8226; &#8226; &#8226;</span>          <span class="as">&#9474;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span>  <span class="as">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span></div>
+
+      <p style="color:var(--slate);font-size:13px;margin-bottom:8px">&#201;tat B — Joueur dans une faction</p>
+      <div class="ascii-diagram"><span class="as">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</span>
+<span class="as">&#9474;</span> <span class="ay">[ VALIANT ]</span>  <span class="ac">La faction des champions</span>                <span class="as">[ X Fermer ]  &#9474;</span>
+<span class="as">&#9474;</span>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;<span class="as">&#9474;</span>
+<span class="as">&#9474;</span>                                                                    <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="av">Membres</span>     <span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="av">Power</span>        <span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="av">Claims</span>       <span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="av">Banque</span>       <span class="as">&#9474;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="ac">12 / 50</span>     <span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="ac">94.2 / 120</span>  <span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="ac">47 / 94</span>     <span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="ag">$12&#160;450</span>     <span class="as">&#9474;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>                                                                    <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">[ Btn: Membres ]  [ Btn: Carte ]  [ Btn: Relations ]  [ Btn: Settings ]</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>                                                                    <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">MEMBRES EN LIGNE &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="ay">&#9672; Killi</span>      <span class="as">[LEADER]</span>   <span class="ac">Power: 10.0</span>                          <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="ac">&#9672; Steve</span>      <span class="as">[OFFICER]</span>  <span class="ac">Power:  8.4</span>                          <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9672; Alex       [MEMBER]   Power:  6.2</span>                          <span class="as">&#9474;</span>
+<span class="as">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span></div>
+
+      <p><strong>Composants utilis&#233;s :</strong> Rectangle (fond glassmorphism), Label (titre, stats), Button (navigation, fermeture), ScrollList (membres en ligne), ProgressBar (barres power/claims), ContainerComponent (panneaux stat), NotificationManager (retour d'action).</p>
+
+      <!-- GUI 2 -->
+      <h3>GUI 2 — Gestion des Membres <code style="font-size:11px;font-weight:400;color:var(--slate)">GuiFactionMembers</code></h3>
+
+      <div class="ascii-diagram"><span class="as">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</span>
+<span class="as">&#9474;</span> <span class="ac">Gestion des Membres</span>  <span class="as">12 / 50</span>            <span class="as">[ + Inviter ]  [ &#8592; Retour ]  &#9474;</span>
+<span class="as">&#9474;</span>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;<span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">NOM              R&#212;LE          POWER    CONNEXION      ACTIONS</span>       <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;<span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="ay">&#9670; Killi</span>         <span class="ay">[LEADER]</span>       <span class="ac">10.0</span>     <span class="ag">En ligne</span>       <span class="as">—</span>              <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="ac">&#9670; Steve</span>         <span class="ac">[OFFICER]</span>      <span class="ac"> 8.4</span>     <span class="ag">En ligne</span>       <span class="av">[&#8595;] [Kick]</span>     <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9670; Alex          [MEMBER]        6.2</span>     <span class="ag">En ligne</span>       <span class="av">[&#8593;] [&#8595;] [Kick]</span> <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9670; Bob           [RECRUIT]       4.8     il y a 2h      [&#8593;]      [Kick]</span> <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9670; ...</span>                                                               <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9670; ...                                                              &#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">ScrollList avec scrollbar verticale</span>                                 <span class="as">&#9474;</span>
+<span class="as">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span></div>
+
+      <p><strong>Composants utilis&#233;s :</strong> ScrollList (liste membres), Button (inviter, promouvoir [&#8593;], r&#233;trograder [&#8595;], kick), Label (nom, r&#244;le, power, derni&#232;re connexion). Les boutons d'action sont affich&#233;s ou masqu&#233;s dynamiquement selon le r&#244;le du joueur connect&#233;.</p>
+      <p><strong>R&#233;seau :</strong> Au clic sur "Inviter" : ouvre un champ texte pour saisir le nom, envoie <code style="font-family:monospace;font-size:12px;color:var(--cyan)">sendAction("faction_gui", "invite", targetName)</code>. Promote/demote/kick&#160;: <code style="font-family:monospace;font-size:12px;color:var(--cyan)">sendAction("faction_gui", "promote"/"demote"/"kick", uuid)</code>.</p>
+
+      <!-- GUI 3 -->
+      <h3>GUI 3 — Carte des Claims <code style="font-size:11px;font-weight:400;color:var(--slate)">GuiFactionMap</code></h3>
+
+      <div class="ascii-diagram"><span class="as">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</span>
+<span class="as">&#9474;</span>   <span class="ac">Carte des Territoires</span>  <span class="as">Claims: 47/94</span>        <span class="as">[ Claim ] [ Unclaim ] [ &#8592; ]</span> <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;<span class="as">&#9474;</span>
+<span class="as">&#9474;</span>                                                                    <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</span>  <span class="as">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9474;</span>  <span class="as">&#9632; &#9632; &#9632;</span> <span class="ar">&#9632; &#9632;</span> <span class="as">&#9632; &#9632; &#9632; &#9632;</span>  <span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="ac">Chunk s&#233;lectionn&#233;</span>     <span class="as">&#9474;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9474;</span>  <span class="ag">&#9632; &#9632; &#9632;</span> <span class="ar">&#9632; &#9632;</span> <span class="as">&#9632; &#9632;</span> <span class="ay">&#9632; &#9632;</span>  <span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="as">X: 12  Z: -8</span>          <span class="as">&#9474;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9474;</span>  <span class="ag">&#9632; &#9632;</span> <span class="ac">&#9633;</span> <span class="ag">&#9632; &#9632;</span> <span class="as">&#9632; &#9632;</span> <span class="ay">&#9632; &#9632;</span>  <span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="as">Faction: Valiant</span>      <span class="as">&#9474;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9474;</span>  <span class="ag">&#9632; &#9632; &#9632; &#9632;</span> <span class="as">&#9632; &#9632; &#9632; &#9632; &#9632;</span>  <span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="as">Statut: votre territ.</span> <span class="as">&#9474;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9474;</span>  <span class="ag">&#9632; &#9632;</span> <span class="as">&#9632; &#9632; &#9632; &#9632; &#9632; &#9632; &#9632;</span>  <span class="as">&#9474;</span>  <span class="as">&#9474;</span>                      <span class="as">&#9474;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9474;</span>                                <span class="as">&#9474;</span>  <span class="as">&#9474;</span> <span class="as">[ Claim ]  [ Unclaim ]</span> <span class="as">&#9474;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span>  <span class="as">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>                                                                    <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="ag">&#9632;</span> <span class="as">Ma faction</span>  <span class="ac">&#9632;</span> <span class="as">Allié</span>  <span class="ar">&#9632;</span> <span class="as">Ennemi</span>  <span class="as">&#9632;</span> <span class="as">Wilderness</span>  <span class="ay">&#9632;</span> <span class="as">Spawn / Zone prot.</span>  <span class="as">&#9474;</span>
+<span class="as">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span></div>
+
+      <p><strong>Impl&#233;mentation :</strong> Grille de Rectangle color&#233;s (ou composants custom via RenderUtil) repr&#233;sentant les chunks autour du joueur. &#9633; marque la position du joueur. Clic sur un chunk&#160;: met &#224; jour le panneau lat&#233;ral avec les infos. Les boutons Claim/Unclaim dans le panneau envoient <code style="font-family:monospace;font-size:12px;color:var(--cyan)">sendAction("faction_gui", "claim"/"unclaim", "chunkX,chunkZ,dim")</code>.</p>
+
+      <!-- GUI 4 -->
+      <h3>GUI 4 — Diplomatie / Relations <code style="font-size:11px;font-weight:400;color:var(--slate)">GuiFactionRelations</code></h3>
+
+      <div class="ascii-diagram"><span class="as">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</span>
+<span class="as">&#9474;</span>  <span class="ac">Diplomatie</span>                                            <span class="as">[ &#8592; Retour ]  &#9474;</span>
+<span class="as">&#9474;</span>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;<span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">INVITATIONS RE&#199;UES &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="ac">NightWolves</span> <span class="as">propose une alliance</span>           <span class="av">[Accepter]</span>  <span class="as">[Refuser]</span>    <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>                                                                    <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">TOUTES LES FACTIONS &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</span>  <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">FACTION         TAG    MEMBRES  RELATION       ACTIONS</span>             <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;<span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="ac">NightWolves</span>     <span class="as">[NW]</span>    <span class="as">23</span>       <span class="ag">ALLIÉ</span>           <span class="as">[Ennemi] [Neutre]</span>    <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">Oblivion        [OBL]    8       NEUTRE          [Allié] [Ennemi]</span>     <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="ar">BurningLegion</span>   <span class="as">[BL]</span>    <span class="as">31</span>       <span class="ar">ENNEMI</span>          <span class="as">[Allié] [Neutre]</span>    <span class="as">&#9474;</span>
+<span class="as">&#9474;</span>  <span class="as">...  ScrollList ...</span>                                                <span class="as">&#9474;</span>
+<span class="as">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span></div>
+
+      <p><strong>R&#233;seau :</strong> <code style="font-family:monospace;font-size:12px;color:var(--cyan)">sendAction("faction_gui", "setRelation", "factionId:ALLY")</code>, <code style="font-family:monospace;font-size:12px;color:var(--cyan)">sendAction("faction_gui", "allianceAccept", "factionId")</code>.</p>
+    </section>
+
+    <!-- =====================================================================
+         SECTION 7 — EVENTS FORGE
+    ====================================================================== -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num">07</span> Events Forge &#224; &#233;couter</h2>
+      <p>Tous les listeners sont enregistr&#233;s via EriEvents ou <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">@Mod.EventBusSubscriber</code> sur les handlers d&#233;di&#233;s.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Event Forge</th>
+              <th>Handler</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>FMLServerStartingEvent</td>
+              <td>FactionLifecycleHandler</td>
+              <td>Appelle <code style="font-size:11px;color:var(--cyan)">FactionManager.init(world)</code>, enregistre FactionCommand, d&#233;marre l'EriScheduler de nettoyage toutes les 1200 ticks.</td>
+            </tr>
+            <tr>
+              <td>FMLServerStoppingEvent</td>
+              <td>FactionLifecycleHandler</td>
+              <td>Appelle <code style="font-size:11px;color:var(--cyan)">FactionManager.save()</code> pour persister toutes les donn&#233;es.</td>
+            </tr>
+            <tr>
+              <td>PlayerLoggedInEvent</td>
+              <td>FactionLifecycleHandler</td>
+              <td>Appelle <code style="font-size:11px;color:var(--cyan)">DataManager</code> pour charger FactionPlayerData, <code style="font-size:11px;color:var(--cyan)">updatePlayerPower()</code>, met &#224; jour memberNames dans FactionInfo avec le nom courant du joueur.</td>
+            </tr>
+            <tr>
+              <td>PlayerLoggedOutEvent</td>
+              <td>FactionLifecycleHandler</td>
+              <td>Sauvegarde les donn&#233;es du joueur. Annule le mode auto-claim s'il &#233;tait actif.</td>
+            </tr>
+            <tr>
+              <td>LivingDeathEvent</td>
+              <td>FactionPowerHandler</td>
+              <td>Si la victime est un EntityPlayerMP&#160;: appelle <code style="font-size:11px;color:var(--cyan)">onPlayerDeath()</code>. Si l'auteur est aussi un EntityPlayerMP&#160;: incr&#233;mente totalKills.</td>
+            </tr>
+            <tr>
+              <td>ServerTickEvent (END)</td>
+              <td>FactionLifecycleHandler</td>
+              <td>Toutes les 1200 ticks&#160;: <code style="font-size:11px;color:var(--cyan)">cleanExpiredInvitations()</code> et <code style="font-size:11px;color:var(--cyan)">FactionManager.save()</code> (auto-save). G&#233;r&#233; via EriScheduler.repeat().</td>
+            </tr>
+            <tr>
+              <td>BlockBreakEvent</td>
+              <td>FactionProtectionHandler</td>
+              <td>V&#233;rifie <code style="font-size:11px;color:var(--cyan)">getFactionAt(chunk)</code>. Si le chunk appartient &#224; une faction diff&#233;rente, cancel l'event (protection territoire).</td>
+            </tr>
+            <tr>
+              <td>BlockPlaceEvent</td>
+              <td>FactionProtectionHandler</td>
+              <td>M&#234;me logique que BlockBreakEvent. Seuls les membres de la faction propri&#233;taire peuvent placer.</td>
+            </tr>
+            <tr>
+              <td>PlayerInteractEvent.RightClickBlock</td>
+              <td>FactionProtectionHandler</td>
+              <td>Prot&#232;ge les interactions (coffres, portes, leviers, boutons) sur les chunks claim&#233;s. Cancel si joueur non autoris&#233;.</td>
+            </tr>
+            <tr>
+              <td>LivingAttackEvent / AttackEntityEvent</td>
+              <td>FactionPvPHandler</td>
+              <td>G&#232;re le friendly fire&#160;: si friendlyFireFaction=false, cancel les d&#233;g&#226;ts entre membres de la m&#234;me faction. Si friendlyFireAllies=false, cancel entre alliances. Si pvpDeniedInOwnTerritory=true, cancel le PvP sur territoire propre.</td>
+            </tr>
+            <tr>
+              <td>ServerChatEvent</td>
+              <td>FactionChatHandler</td>
+              <td>Intercepte les messages. Si chatMode=FACTION, redirige le message aux membres en ligne via EriChat. Si chatMode=ALLY, le distribue aux membres de la faction ET des alliances. Pr&#233;fixe le message avec le tag de faction si showFactionInChat=true.</td>
+            </tr>
+            <tr>
+              <td>PlayerChangedDimensionEvent</td>
+              <td>FactionTerritoryHandler</td>
+              <td>R&#233;initialise l'affichage de territoire apr&#232;s changement de dimension.</td>
+            </tr>
+            <tr>
+              <td>PlayerTickEvent (ServerTickEvent) ou PlayerMoveEvent</td>
+              <td>FactionTerritoryHandler</td>
+              <td>V&#233;rifie p&#233;riodiquement si le joueur a chang&#233; de chunk. Si oui&#160;: r&#233;cup&#232;re la nouvelle faction, affiche un title/subtitle avec le nom de la faction (si territoryTitleEnabled). G&#232;re aussi l'auto-claim si activ&#233;.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SECTION 8 — ARCHITECTURE FICHIERS
+    ====================================================================== -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num">08</span> Architecture des fichiers</h2>
+
+      <div class="file-tree"><span class="ft-dir">fr.eriniumgroup.eriniumfaction/</span>
+<span class="ft-sym">├── </span><span class="ft-dir">config/</span>
+<span class="ft-sym">│   └── </span><span class="ft-file">FactionConfig.java</span>           <span class="ft-cm">  &lt;-- @EriConfig, toutes les valeurs configurables</span>
+<span class="ft-sym">│</span>
+<span class="ft-sym">├── </span><span class="ft-dir">faction/</span>
+<span class="ft-sym">│   ├── </span><span class="ft-file">FactionManager.java</span>          <span class="ft-cm">  &lt;-- Singleton, toute la logique m&#233;tier</span>
+<span class="ft-sym">│   ├── </span><span class="ft-file">FactionRole.java</span>             <span class="ft-cm">  &lt;-- Enum LEADER/OFFICER/MEMBER/RECRUIT</span>
+<span class="ft-sym">│   ├── </span><span class="ft-file">RelationType.java</span>            <span class="ft-cm">  &lt;-- Enum ALLY/NEUTRAL/ENEMY</span>
+<span class="ft-sym">│   ├── </span><span class="ft-file">ChatMode.java</span>                <span class="ft-cm">  &lt;-- Enum DEFAULT/FACTION/ALLY</span>
+<span class="ft-sym">│   │</span>
+<span class="ft-sym">│   ├── </span><span class="ft-dir">data/</span>
+<span class="ft-sym">│   │   ├── </span><span class="ft-file">FactionPlayerData.java</span>   <span class="ft-cm">  &lt;-- @EriData PLAYER, donn&#233;es par joueur</span>
+<span class="ft-sym">│   │   ├── </span><span class="ft-file">FactionWorldData.java</span>    <span class="ft-cm">  &lt;-- @EriData WORLD, toutes les factions + claims</span>
+<span class="ft-sym">│   │   └── </span><span class="ft-file">FactionInfo.java</span>         <span class="ft-cm">  &lt;-- POJO s&#233;rialis&#233; en JSON, une faction</span>
+<span class="ft-sym">│   │</span>
+<span class="ft-sym">│   ├── </span><span class="ft-dir">command/</span>
+<span class="ft-sym">│   │   └── </span><span class="ft-file">FactionCommand.java</span>      <span class="ft-cm">  &lt;-- Toutes les sous-commandes /f</span>
+<span class="ft-sym">│   │</span>
+<span class="ft-sym">│   ├── </span><span class="ft-dir">event/</span>
+<span class="ft-sym">│   │   ├── </span><span class="ft-file">FactionProtectionHandler.java</span> <span class="ft-cm">  &lt;-- Block break/place/interact sur claims</span>
+<span class="ft-sym">│   │   ├── </span><span class="ft-file">FactionPvPHandler.java</span>       <span class="ft-cm">  &lt;-- Friendly fire faction/allié</span>
+<span class="ft-sym">│   │   ├── </span><span class="ft-file">FactionChatHandler.java</span>      <span class="ft-cm">  &lt;-- Canaux faction/ally, pr&#233;fixe tag</span>
+<span class="ft-sym">│   │   ├── </span><span class="ft-file">FactionPowerHandler.java</span>     <span class="ft-cm">  &lt;-- Death, r&#233;g&#233;n&#233;ration, kills/deaths</span>
+<span class="ft-sym">│   │   ├── </span><span class="ft-file">FactionTerritoryHandler.java</span> <span class="ft-cm">  &lt;-- Title territoire, auto-claim au d&#233;placement</span>
+<span class="ft-sym">│   │   └── </span><span class="ft-file">FactionLifecycleHandler.java</span> <span class="ft-cm">  &lt;-- Login/logout, start/stop serveur, auto-save</span>
+<span class="ft-sym">│   │</span>
+<span class="ft-sym">│   └── </span><span class="ft-dir">gui/</span>
+<span class="ft-sym">│       ├── </span><span class="ft-file">GuiFactionMain.java</span>          <span class="ft-cm">  &lt;-- Menu principal (cr&#233;er/rejoindre ou dashboard)</span>
+<span class="ft-sym">│       ├── </span><span class="ft-file">GuiFactionMembers.java</span>       <span class="ft-cm">  &lt;-- Gestion des membres</span>
+<span class="ft-sym">│       ├── </span><span class="ft-file">GuiFactionMap.java</span>           <span class="ft-cm">  &lt;-- Carte interactive des claims</span>
+<span class="ft-sym">│       └── </span><span class="ft-file">GuiFactionRelations.java</span>     <span class="ft-cm">  &lt;-- Diplomatie et alliances</span>
+<span class="ft-sym">│</span>
+<span class="ft-sym">├── </span><span class="ft-dir">proxy/</span>
+<span class="ft-sym">│   ├── </span><span class="ft-file">CommonProxy.java</span>             <span class="ft-cm">  &lt;-- preInit: DataManager.register, EriCap.register</span>
+<span class="ft-sym">│   └── </span><span class="ft-file">ClientProxy.java</span>             <span class="ft-cm">  &lt;-- init: EriKeys, GuiNetworkHandler.registerGui</span>
+<span class="ft-sym">│</span>
+<span class="ft-sym">├── </span><span class="ft-dir">mixin/</span>
+<span class="ft-sym">│   ├── </span><span class="ft-file">MixinLoader.java</span>
+<span class="ft-sym">│   └── </span><span class="ft-cm">(mixins futur si besoin)</span>
+<span class="ft-sym">│</span>
+<span class="ft-sym">└── </span><span class="ft-file">EriniumFaction.java</span>              <span class="ft-cm">  &lt;-- @Mod, MODID, VERSION, LOGGER, proxy</span></div>
+
+      <div class="info-box warn">
+        <div class="icon" style="color:var(--gold)">&#9888;</div>
+        <div class="content"><strong>Ordre d'initialisation :</strong> Dans CommonProxy.preInit(), enregistrer dans cet ordre&#160;: (1) FactionConfig, (2) DataManager.init() + register(FactionPlayerData), register(FactionWorldData). Dans FMLServerStartingEvent&#160;: FactionManager.init(world). Dans ClientProxy.init()&#160;: EriKeys, GuiNetworkHandler.registerGui.</div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SECTION 9 — FLUX RÉSEAU
+    ====================================================================== -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num">09</span> Flux de donn&#233;es r&#233;seau</h2>
+      <p>Toute la communication GUI&#160;&#8596;&#160;Serveur passe par <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">GuiNetworkHandler</code> d'EriAPI. Identifiant canal global&#160;: <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">"faction_gui"</code>.</p>
+
+      <h3 class="first">Enregistrement (CommonProxy.preInit)</h3>
+      <div class="code-block"><span class="cm">// C&#244;t&#233; serveur — traite les actions envoy&#233;es par les GUIs clients</span>
+<span class="cl">GuiNetworkHandler</span>.<span class="fn">registerActionHandler</span>(<span class="st">"faction_gui"</span>, (player, action, data) -> {
+    <span class="kw">switch</span> (action) {
+        <span class="kw">case</span> <span class="st">"create"</span>:
+            <span class="cl">FactionManager</span>.<span class="fn">getInstance</span>().<span class="fn">createFaction</span>(player, data.<span class="fn">getString</span>(<span class="st">"name"</span>), data.<span class="fn">getString</span>(<span class="st">"tag"</span>));
+            <span class="kw">break</span>;
+        <span class="kw">case</span> <span class="st">"invite"</span>:
+            <span class="cm">// data = UUID cible</span>
+            <span class="kw">break</span>;
+        <span class="kw">case</span> <span class="st">"claim"</span>:
+            <span class="cl">FactionManager</span>.<span class="fn">getInstance</span>().<span class="fn">claimChunk</span>(player);
+            <span class="kw">break</span>;
+        <span class="kw">case</span> <span class="st">"unclaim"</span>:
+            <span class="cl">FactionManager</span>.<span class="fn">getInstance</span>().<span class="fn">unclaimChunk</span>(player);
+            <span class="kw">break</span>;
+        <span class="kw">case</span> <span class="st">"promote"</span>:
+        <span class="kw">case</span> <span class="st">"demote"</span>:
+        <span class="kw">case</span> <span class="st">"kick"</span>:
+        <span class="kw">case</span> <span class="st">"setRelation"</span>:
+        <span class="kw">case</span> <span class="st">"allianceAccept"</span>:
+        <span class="kw">case</span> <span class="st">"allianceDeny"</span>:
+        <span class="cm">// ... etc.</span>
+    }
+});</div>
+
+      <h3>Enregistrement (ClientProxy.init)</h3>
+      <div class="code-block"><span class="cm">// C&#244;t&#233; client — associe un identifiant GUI &#224; sa classe</span>
+<span class="cl">GuiNetworkHandler</span>.<span class="fn">registerGui</span>(<span class="st">"faction_gui"</span>, data -> <span class="kw">new</span> <span class="cl">GuiFactionMain</span>(data));
+
+<span class="cm">// Enregistrement de la touche d'ouverture</span>
+<span class="cl">EriKeys</span>.<span class="fn">create</span>(<span class="st">"eriniumfaction.open_menu"</span>)
+    .<span class="fn">key</span>(<span class="cl">Keyboard</span>.KEY_F)
+    .<span class="fn">category</span>(<span class="st">"Erinium Faction"</span>)
+    .<span class="fn">context</span>(<span class="cl">KeyContext</span>.IN_GAME)
+    .<span class="fn">onPress</span>(() -> <span class="cl">GuiNetworkHandler</span>.<span class="fn">requestOpenGui</span>(<span class="st">"faction_gui"</span>))
+    .<span class="fn">register</span>();</div>
+
+      <h3>Actions Client &#8594; Serveur</h3>
+      <div class="flow-block">
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">CLIENT &#8594; SRV</span>
+          <div class="flow-text"><code>sendAction("faction_gui", "create", nbt{name, tag})</code> — Cr&#233;er une faction depuis le GUI</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">CLIENT &#8594; SRV</span>
+          <div class="flow-text"><code>sendAction("faction_gui", "invite", nbt{targetName})</code> — Inviter un joueur</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">CLIENT &#8594; SRV</span>
+          <div class="flow-text"><code>sendAction("faction_gui", "claim", nbt{chunkX, chunkZ, dim})</code> — Claim un chunk depuis la carte</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">CLIENT &#8594; SRV</span>
+          <div class="flow-text"><code>sendAction("faction_gui", "promote", nbt{targetUUID})</code> — Promouvoir un membre</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">CLIENT &#8594; SRV</span>
+          <div class="flow-text"><code>sendAction("faction_gui", "demote", nbt{targetUUID})</code> — R&#233;trograder un membre</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">CLIENT &#8594; SRV</span>
+          <div class="flow-text"><code>sendAction("faction_gui", "kick", nbt{targetUUID})</code> — Kick un membre</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">CLIENT &#8594; SRV</span>
+          <div class="flow-text"><code>sendAction("faction_gui", "setRelation", nbt{factionId, relationType})</code> — Changer une relation</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">CLIENT &#8594; SRV</span>
+          <div class="flow-text"><code>sendAction("faction_gui", "allianceAccept", nbt{factionId})</code> — Accepter une demande d'alliance</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">CLIENT &#8594; SRV</span>
+          <div class="flow-text"><code>sendAction("faction_gui", "join", nbt{factionId})</code> — Rejoindre une faction ouverte</div>
+        </div>
+      </div>
+
+      <h3>Donn&#233;es Serveur &#8594; Client</h3>
+      <div class="flow-block">
+        <div class="flow-item">
+          <span class="flow-arrow flow-sc">SRV &#8594; CLIENT</span>
+          <div class="flow-text"><code>GuiNetworkHandler.openGui(player, "faction_gui", nbt{hasFaction, factionJson})</code> — Ouvre le GUI avec donn&#233;es initiales</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-sc">SRV &#8594; CLIENT</span>
+          <div class="flow-text"><code>sendData(player, "faction_gui", "faction_info", nbt{factionJson})</code> — Rafra&#238;chit les donn&#233;es affich&#233;es</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-sc">SRV &#8594; CLIENT</span>
+          <div class="flow-text"><code>sendData(player, "faction_gui", "map_data", nbt{chunksJson})</code> — Envoie les donn&#233;es de la carte (chunks autour du joueur)</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-sc">SRV &#8594; CLIENT</span>
+          <div class="flow-text"><code>sendData(player, "faction_gui", "action_result", nbt{success, message})</code> — R&#233;sultat d'une action (pour Notification)</div>
+        </div>
+      </div>
+
+      <h3>Impl&#233;mentation c&#244;t&#233; GUI</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">GuiFactionMain</span> <span class="kw">extends</span> <span class="cl">EriGuiScreen</span> <span class="kw">implements</span> <span class="cl">IGuiDataReceiver</span> {
+
+    <span class="an">@Override</span>
+    <span class="kw">protected void</span> <span class="fn">buildGui</span>() {
+        <span class="cm">// Construction avec les donn&#233;es initiales re&#231;ues &#224; l'ouverture</span>
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">onGuiDataReceived</span>(<span class="cl">String</span> key, <span class="cl">NBTTagCompound</span> data) {
+        <span class="kw">if</span> (<span class="st">"faction_info"</span>.<span class="fn">equals</span>(key)) {
+            <span class="fn">refreshDisplay</span>(data);        <span class="cm">// Mise &#224; jour des labels, stats</span>
+        } <span class="kw">else if</span> (<span class="st">"action_result"</span>.<span class="fn">equals</span>(key)) {
+            <span class="kw">if</span> (data.<span class="fn">getBoolean</span>(<span class="st">"success"</span>)) {
+                <span class="cl">NotificationManager</span>.<span class="fn">success</span>(data.<span class="fn">getString</span>(<span class="st">"message"</span>));
+            } <span class="kw">else</span> {
+                <span class="cl">NotificationManager</span>.<span class="fn">error</span>(data.<span class="fn">getString</span>(<span class="st">"message"</span>));
+            }
+        }
+    }
+}</div>
+
+      <div class="info-box tip">
+        <div class="icon" style="color:var(--green)">&#10003;</div>
+        <div class="content"><strong>Principe de base :</strong> le serveur est toujours la source de v&#233;rit&#233;. Les GUIs sont en lecture seule sauf pour envoyer des actions. Chaque action d&#233;clenche une validation serveur et un retour <code>action_result</code>. Les donn&#233;es affich&#233;es ne sont jamais modifi&#233;es localement avant confirmation serveur.</div>
+      </div>
+    </section>
+
+    <div style="text-align:center;padding:20px 0;color:var(--slate);font-size:12px;border-top:1px solid var(--card-bdr);margin-top:16px">
+      EriniumFaction &mdash; Cahier des charges Syst&#232;me de Faction &mdash; Version 1.0 &mdash; 2026
+    </div>
+
+  </main>
+</div>
+
+<!-- Mobile toggle -->
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+
+<script>
+  // Highlight active nav link on scroll
+  (function() {
+    var links = document.querySelectorAll('.nav-link');
+    var sections = [];
+    links.forEach(function(l) {
+      var id = l.getAttribute('href').replace('#', '');
+      var el = document.getElementById(id);
+      if (el) sections.push({ id: id, el: el, link: l });
+    });
+
+    function onScroll() {
+      var scroll = window.scrollY + 120;
+      var active = null;
+      for (var i = 0; i < sections.length; i++) {
+        if (sections[i].el.offsetTop <= scroll) active = sections[i];
+      }
+      links.forEach(function(l) { l.classList.remove('active'); });
+      if (active) active.link.classList.add('active');
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    // Close sidebar on mobile when clicking a link
+    links.forEach(function(l) {
+      l.addEventListener('click', function() {
+        document.getElementById('sidebar').classList.remove('open');
+      });
+    });
+  })();
+</script>
+</body>
+</html>

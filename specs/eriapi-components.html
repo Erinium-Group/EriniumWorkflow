@@ -1,0 +1,1986 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — EriAPI Composants &amp; Overlay Modulaire | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 60% 10%, rgba(0,229,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 4px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .sidebar-sep {
+    height: 1px;
+    background: var(--card-bdr);
+    margin: 10px 0 4px;
+  }
+
+  /* MAIN */
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* HEADER */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 12px;
+  }
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--cyan) 60%, var(--violet-l) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+  .badge-violet { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan   { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green  { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold   { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-orange { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+
+  /* CARDS */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+  .section-card h2 .s-num.cyan-num {
+    background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%);
+  }
+  .section-card h2 .s-num.gold-num {
+    background: linear-gradient(135deg, #c0960a 0%, var(--gold) 100%);
+  }
+  .section-card h2 .s-num.orange-num {
+    background: linear-gradient(135deg, #b5500a 0%, var(--orange) 100%);
+  }
+  .section-card h2 .s-num.green-num {
+    background: linear-gradient(135deg, #1a7a3a 0%, var(--green) 100%);
+  }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cyan);
+    margin: 20px 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-card h4::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 14px;
+    background: var(--cyan);
+    border-radius: 2px;
+  }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+  .section-card ul li strong { color: var(--text); }
+  .section-card ul li code { color: var(--cyan); font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 12px; }
+
+  /* TABLES */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  tbody td code { color: var(--cyan); font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 11.5px; }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .cl  { color: #FFCB6B; }
+
+  /* COMP GRID */
+  .comp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .comp-card {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: border-color .2s;
+  }
+  .comp-card:hover { border-color: rgba(107,47,160,0.3); }
+  .comp-card-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .comp-card-name .comp-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(0,229,255,0.08);
+    color: var(--cyan);
+    border: 1px solid rgba(0,229,255,0.2);
+  }
+  .comp-card-name .comp-tag-violet {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(107,47,160,0.12);
+    color: var(--violet-l);
+    border: 1px solid rgba(107,47,160,0.3);
+  }
+  .comp-card-desc { font-size: 12.5px; color: var(--slate); line-height: 1.5; }
+  .comp-card-pkg { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--violet-l); margin-top: 4px; }
+
+  /* SHAPE GRID */
+  .shape-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 16px 0;
+  }
+  .shape-card {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    text-align: center;
+    transition: border-color .2s, background .2s;
+  }
+  .shape-card:hover { border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.03); }
+  .shape-icon { font-size: 28px; margin-bottom: 8px; line-height: 1; }
+  .shape-name { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .shape-desc { font-size: 11px; color: var(--slate); line-height: 1.4; }
+
+  /* PHASE TIMELINE */
+  .phase-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 16px 0;
+    position: relative;
+  }
+  .phase-list::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 20px;
+    bottom: 20px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--violet), rgba(107,47,160,0.1));
+  }
+  .phase-item { display: flex; gap: 16px; padding: 16px 0; position: relative; }
+  .phase-dot {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(107,47,160,0.2);
+    border: 2px solid var(--violet);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--violet-l);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .phase-content { flex: 1; padding-top: 8px; }
+  .phase-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .phase-tasks { font-size: 13px; color: var(--slate); }
+
+  /* CHECKLIST */
+  .checklist { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+  .check-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--slate); }
+  .check-item::before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1.5px solid rgba(107,47,160,0.4);
+    background: rgba(107,47,160,0.08);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .check-item strong { color: var(--text); }
+
+  /* CALLOUT */
+  .callout {
+    display: flex;
+    gap: 14px;
+    padding: 16px 20px;
+    border-radius: var(--radius-sm);
+    margin: 16px 0;
+    border: 1px solid;
+  }
+  .callout-info  { background: rgba(0,229,255,0.04);   border-color: rgba(0,229,255,0.18); }
+  .callout-warn  { background: rgba(241,196,15,0.04);  border-color: rgba(241,196,15,0.2); }
+  .callout-violet{ background: rgba(107,47,160,0.07);  border-color: rgba(107,47,160,0.25); }
+  .callout-green { background: rgba(46,204,113,0.05);  border-color: rgba(46,204,113,0.22); }
+  .callout-icon  { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout-body  { flex: 1; }
+  .callout-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .callout-text  { font-size: 13px; color: var(--slate); line-height: 1.5; }
+
+  /* MOCKUP */
+  .mockup {
+    background: rgba(5,5,12,0.85);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin: 16px 0;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12px;
+    color: #8892A4;
+    line-height: 1.8;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .mockup .m-title { color: var(--text); font-weight: 700; }
+  .mockup .m-cyan  { color: var(--cyan); }
+  .mockup .m-violet{ color: var(--violet-l); }
+  .mockup .m-green { color: var(--green); }
+  .mockup .m-gold  { color: var(--gold); }
+  .mockup .m-slate { color: #546E7A; }
+
+  /* SEP */
+  .sep { height: 1px; background: var(--card-bdr); margin: 24px 0; }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 32px 24px 60px; }
+    .comp-grid { grid-template-columns: 1fr; }
+    .shape-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+
+    <a href="../roadmap.html" class="sidebar-back">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      Roadmap
+    </a>
+
+    <div class="sidebar-title">Sections</div>
+    <a href="#contexte" class="nav-link active"><span class="num">01</span>Contexte &amp; Vision</a>
+    <a href="#gui-composants" class="nav-link"><span class="num">02</span>Composants GUI (9)</a>
+    <a href="#overlay-modulaire" class="nav-link"><span class="num">03</span>Overlay Modulaire</a>
+    <a href="#progressbar" class="nav-link"><span class="num">04</span>ProgressBar Enhanced</a>
+    <a href="#overlay-composants" class="nav-link"><span class="num">05</span>Composants Overlay (6)</a>
+    <a href="#architecture" class="nav-link"><span class="num">06</span>Architecture technique</a>
+    <a href="#implementation" class="nav-link"><span class="num">07</span>Plan d'implementation</a>
+    <a href="#tests" class="nav-link"><span class="num">08</span>Tests</a>
+
+    <div class="sidebar-sep"></div>
+    <div class="sidebar-title">Composants GUI</div>
+    <a href="#dropdown" class="nav-link">Dropdown / Select</a>
+    <a href="#toggleswitch" class="nav-link">ToggleSwitch</a>
+    <a href="#modal" class="nav-link">Modal / Dialog</a>
+    <a href="#playerhead" class="nav-link">PlayerHead</a>
+    <a href="#itemstack" class="nav-link">ItemStackRenderer</a>
+    <a href="#divider" class="nav-link">Divider</a>
+    <a href="#badge-comp" class="nav-link">Badge</a>
+    <a href="#accordion" class="nav-link">Accordion</a>
+    <a href="#carousel" class="nav-link">Carousel</a>
+
+    <div class="sidebar-sep"></div>
+    <div class="sidebar-title">Overlay Modulaire</div>
+    <a href="#overlaymod" class="nav-link">OverlayMod (base)</a>
+    <a href="#overlaymodmanager" class="nav-link">OverlayModManager</a>
+    <a href="#gui-manager" class="nav-link">GUI Manager</a>
+    <a href="#gui-editeur" class="nav-link">GUI Editeur</a>
+    <a href="#persistance" class="nav-link">Persistance JSON</a>
+    <a href="#mod-settings" class="nav-link">ModSettings</a>
+
+    <div class="sidebar-sep"></div>
+    <div class="sidebar-title">Composants Overlay</div>
+    <a href="#floatingtext" class="nav-link">FloatingText</a>
+    <a href="#iconbar" class="nav-link">IconBar</a>
+    <a href="#overlay-progressbar" class="nav-link">OverlayProgressBar</a>
+    <a href="#anchoredgroup" class="nav-link">AnchoredGroup</a>
+    <a href="#blinkingindicator" class="nav-link">BlinkingIndicator</a>
+    <a href="#overlaytoast" class="nav-link">OverlayToast</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">EriAPI · Cahier des charges</div>
+      <h1>Composants GUI &amp;<br>Overlay Modulaire</h1>
+      <p>Refonte complete du systeme d'overlay : 9 nouveaux composants GUI, un systeme d'overlay modulaire inspire de Lunar Client avec drag &amp; drop et persistance, plus 6 composants overlay specialises.</p>
+      <div class="header-badges">
+        <span class="badge badge-violet">EriAPI</span>
+        <span class="badge badge-cyan">Java 8</span>
+        <span class="badge badge-cyan">Forge 1.12.2</span>
+        <span class="badge badge-orange">23 taches</span>
+        <span class="badge badge-violet">7 phases</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         01 — CONTEXTE & VISION
+    ═══════════════════════════════════════ -->
+    <div class="section-card" id="contexte">
+      <h2><span class="s-num">01</span>Contexte &amp; Vision</h2>
+
+      <h3 class="first">Perimetre de ce cahier</h3>
+      <p>EriAPI est le framework Minecraft Forge 1.12.2 utilise par EriniumFaction comme couche de base. Ce cahier des charges couvre quatre grands domaines :</p>
+      <ul>
+        <li><strong>Nouveaux composants GUI</strong> — 9 composants s'integrant dans le systeme <code>EriGuiScreen</code> existant (Dropdown, ToggleSwitch, Modal, PlayerHead, ItemStackRenderer, Divider, Badge, Accordion, Carousel)</li>
+        <li><strong>Systeme d'overlay modulaire</strong> — architecture complete inspiree de Lunar Client, remplacant le systeme <code>EriOverlay</code> actuel par un systeme que le joueur controle entierement</li>
+        <li><strong>ProgressBar Enhanced</strong> — composant de barre de progression polyvalent avec 9 formes geometriques pour les overlays</li>
+        <li><strong>Composants overlay</strong> — 6 composants legers optimises pour le rendu en jeu (FloatingText, IconBar, OverlayProgressBar, AnchoredGroup, BlinkingIndicator, OverlayToast)</li>
+      </ul>
+
+      <div class="callout callout-warn">
+        <div class="callout-icon">&#9888;</div>
+        <div class="callout-body">
+          <div class="callout-title">R&#232;gle absolue — R&#233;tro-compatibilit&#233;</div>
+          <div class="callout-text">
+            Le syst&#232;me d'overlay existant (<code>EriOverlay</code>, <code>OverlayManager</code>, <code>Anchor</code>, <code>OverlayLayer</code>, <code>OverlayEventHandler</code>) est remplac&#233; par le nouveau syst&#232;me modulaire (<code>OverlayMod</code>). <strong>Ne JAMAIS supprimer ces fichiers.</strong> Ils doivent &#234;tre marqu&#233;s <code>@Deprecated</code> avec un message renvoyant vers <code>OverlayMod</code> et <code>OverlayModManager</code>. Le code existant qui les utilise doit continuer &#224; fonctionner.
+          </div>
+        </div>
+      </div>
+
+      <h3>Philosophie : EriAPI fournit les outils, pas le contenu</h3>
+      <div class="callout callout-violet">
+        <div class="callout-icon">&#128161;</div>
+        <div class="callout-body">
+          <div class="callout-title">Regle fondamentale</div>
+          <div class="callout-text">EriAPI ne fournit AUCUN mod d'overlay concret. Elle fournit uniquement l'infrastructure. C'est EriniumFaction (ou n'importe quel autre mod) qui cree les <code>OverlayMod</code> specifiques (barre de mana, HUD de faction, timer de sort, etc.).</div>
+        </div>
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="callout-icon">&#9888;</div>
+        <div class="callout-body">
+          <div class="callout-title">R&#232;gle de style — Liquid Glass vs rendu en jeu</div>
+          <div class="callout-text">
+            <strong>Liquid Glass s'applique UNIQUEMENT aux GUI EriAPI</strong> (GUI Manager, GUI &#201;diteur, GUI ModSettings) et &#224; l'affichage des mods dans le menu de configuration position/taille (bordures et fond semi-transparent pour visualiser les limites du mod).<br><br>
+            <strong>En jeu (rendu r&#233;el)</strong>, EriAPI n'impose AUCUN style aux mods d'overlay. Le d&#233;veloppeur choisit lui-m&#234;me le fond, les bordures, le style de son mod — ou n'en met aucun. Un mod peut &#234;tre totalement transparent, avoir un fond custom, ou n'importe quel style. C'est &#224; lui de g&#233;rer le rendu visuel de son contenu.<br><br>
+            <strong>R&#233;sum&#233; :</strong> EriAPI = liquid glass pour ses propres &#233;crans de config. OverlayMod en jeu = libert&#233; totale du d&#233;veloppeur.
+          </div>
+        </div>
+      </div>
+
+      <h3>Comparaison : ancien vs nouveau systeme d'overlay</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Ancien systeme (EriOverlay)</th><th>Nouveau systeme (OverlayMod)</th></tr></thead>
+          <tbody>
+            <tr><td>Position fixee par le developpeur</td><td>Position controlee par le joueur (drag &amp; drop)</td></tr>
+            <tr><td>Taille fixe par le developpeur</td><td>Scale ajustable par le joueur</td></tr>
+            <tr><td>Activation/desactivation : code</td><td>Activation/desactivation : GUI ingame</td></tr>
+            <tr><td>Aucune persistance des preferences</td><td>Persistance JSON automatique</td></tr>
+            <tr><td>Aucun GUI de gestion</td><td>GUI Manager + GUI Editeur (liquid glass)</td></tr>
+            <tr><td>Pas de concept de "mod d'overlay"</td><td>Concept clair : chaque feature = un OverlayMod</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Compatibilite</h3>
+      <p>Les classes <code>EriOverlay</code>, <code>OverlayManager</code>, <code>Anchor</code>, <code>OverlayLayer</code> et <code>OverlayEventHandler</code> sont conservees mais marquees <code>@Deprecated</code> avec un message renvoyant vers <code>OverlayMod</code>. Aucun code existant ne casse.</p>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         02 — COMPOSANTS GUI
+    ═══════════════════════════════════════ -->
+    <div class="section-card" id="gui-composants">
+      <h2><span class="s-num">02</span>Composants GUI (9)</h2>
+      <p>Tous ces composants s'integrent dans le systeme <code>EriGuiScreen</code> existant. Les coordonnees sont en pixels design 1920x1080 — le <code>ScaleManager</code> gere la conversion automatiquement.</p>
+
+      <div class="comp-grid">
+        <div class="comp-card"><div class="comp-card-name">Dropdown / Select<span class="comp-tag">Nouveau</span></div><div class="comp-card-desc">Menu deroulant avec recherche et navigation clavier</div><div class="comp-card-pkg">fr.eri.eriapi.gui.components.Dropdown</div></div>
+        <div class="comp-card"><div class="comp-card-name">ToggleSwitch<span class="comp-tag">Nouveau</span></div><div class="comp-card-desc">Interrupteur anime avec slide du curseur</div><div class="comp-card-pkg">fr.eri.eriapi.gui.components.ToggleSwitch</div></div>
+        <div class="comp-card"><div class="comp-card-name">Modal / Dialog<span class="comp-tag">Nouveau</span></div><div class="comp-card-desc">Popup modale avec fond sombre et focus trap</div><div class="comp-card-pkg">fr.eri.eriapi.gui.components.Modal</div></div>
+        <div class="comp-card"><div class="comp-card-name">PlayerHead<span class="comp-tag">Nouveau</span></div><div class="comp-card-desc">Rendu 3D de la tete du skin d'un joueur</div><div class="comp-card-pkg">fr.eri.eriapi.gui.components.PlayerHead</div></div>
+        <div class="comp-card"><div class="comp-card-name">ItemStackRenderer<span class="comp-tag">Nouveau</span></div><div class="comp-card-desc">Affiche un ItemStack avec tooltip et count</div><div class="comp-card-pkg">fr.eri.eriapi.gui.components.ItemStackRenderer</div></div>
+        <div class="comp-card"><div class="comp-card-name">Divider<span class="comp-tag">Nouveau</span></div><div class="comp-card-desc">Separateur horizontal ou vertical avec gradient</div><div class="comp-card-pkg">fr.eri.eriapi.gui.components.Divider</div></div>
+        <div class="comp-card"><div class="comp-card-name">Badge<span class="comp-tag">Nouveau</span></div><div class="comp-card-desc">Tag arrondi auto-dimensionne avec icone optionnelle</div><div class="comp-card-pkg">fr.eri.eriapi.gui.components.Badge</div></div>
+        <div class="comp-card"><div class="comp-card-name">Accordion<span class="comp-tag">Nouveau</span></div><div class="comp-card-desc">Sections repliables avec animation de hauteur</div><div class="comp-card-pkg">fr.eri.eriapi.gui.components.Accordion</div></div>
+        <div class="comp-card"><div class="comp-card-name">Carousel<span class="comp-tag">Nouveau</span></div><div class="comp-card-desc">Defilement horizontal avec fleches, points et scroll auto</div><div class="comp-card-pkg">fr.eri.eriapi.gui.components.Carousel</div></div>
+      </div>
+
+      <!-- DROPDOWN -->
+      <h3 id="dropdown">Dropdown / Select</h3>
+      <p>Menu deroulant permettant de choisir une valeur parmi une liste. Supporte la recherche textuelle, la navigation clavier et une animation d'ouverture/fermeture fluide.</p>
+      <h4>Constructeur</h4>
+      <div class="code-block"><span class="kw">new</span> <span class="ty">Dropdown</span>(<span class="kw">int</span> x, <span class="kw">int</span> y, <span class="kw">int</span> width, <span class="kw">int</span> height)</div>
+      <h4>API</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>addOption(label, value)</code></td><td><code>String, String</code></td><td>Ajoute une entree dans la liste</td></tr>
+            <tr><td><code>setSelected(value)</code></td><td><code>String</code></td><td>Selectionne programmatiquement une valeur</td></tr>
+            <tr><td><code>getSelected()</code></td><td>—</td><td>Retourne la valeur actuellement selectionnee</td></tr>
+            <tr><td><code>onChange(consumer)</code></td><td><code>Consumer&lt;String&gt;</code></td><td>Callback appele quand la selection change</td></tr>
+            <tr><td><code>placeholder(text)</code></td><td><code>String</code></td><td>Texte affiche quand rien n'est selectionne</td></tr>
+            <tr><td><code>maxVisibleItems(n)</code></td><td><code>int</code></td><td>Nombre max d'items visibles avant scroll (defaut 6)</td></tr>
+            <tr><td><code>searchable(enabled)</code></td><td><code>boolean</code></td><td>Active le champ de recherche filtrante</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Comportement</h4>
+      <ul>
+        <li>Click sur le composant ouvre la liste deroulante vers le bas (ou vers le haut si pas d'espace)</li>
+        <li>Click en dehors de la liste ferme la liste</li>
+        <li>Scroll dans la liste si plus de <code>maxVisibleItems</code> options</li>
+        <li>Highlight de l'option survolee au hover</li>
+        <li>Navigation clavier : fleches haut/bas, Entree pour valider, Echap pour fermer</li>
+        <li>Animation d'ouverture/fermeture : hauteur slide + fade opacity</li>
+      </ul>
+      <h4>Exemple</h4>
+      <div class="code-block"><span class="ty">Dropdown</span> dd <span class="op">=</span> <span class="kw">new</span> <span class="ty">Dropdown</span>(<span class="nu">660</span>, <span class="nu">400</span>, <span class="nu">300</span>, <span class="nu">40</span>)
+    .<span class="fn">placeholder</span>(<span class="st">"Choisir un rang..."</span>)
+    .<span class="fn">searchable</span>(<span class="kw">true</span>)
+    .<span class="fn">maxVisibleItems</span>(<span class="nu">8</span>)
+    .<span class="fn">onChange</span>(val <span class="op">-&gt;</span> <span class="fn">applyRank</span>(val));
+
+dd.<span class="fn">addOption</span>(<span class="st">"Membre"</span>,     <span class="st">"member"</span>);
+dd.<span class="fn">addOption</span>(<span class="st">"Officier"</span>,   <span class="st">"officer"</span>);
+dd.<span class="fn">addOption</span>(<span class="st">"Chef"</span>,       <span class="st">"leader"</span>);
+root.<span class="fn">add</span>(dd);</div>
+
+      <!-- TOGGLESWITCH -->
+      <h3 id="toggleswitch">ToggleSwitch</h3>
+      <p>Interrupteur on/off anime. Le curseur glisse horizontalement lors du changement d'etat. Peut afficher un label a droite.</p>
+      <h4>Constructeur</h4>
+      <div class="code-block"><span class="kw">new</span> <span class="ty">ToggleSwitch</span>(<span class="kw">int</span> x, <span class="kw">int</span> y, <span class="kw">int</span> width, <span class="kw">int</span> height)</div>
+      <h4>API</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>setState(state)</code></td><td><code>boolean</code></td><td>Definit l'etat (true = active)</td></tr>
+            <tr><td><code>getState()</code></td><td>—</td><td>Retourne l'etat actuel</td></tr>
+            <tr><td><code>onToggle(consumer)</code></td><td><code>Consumer&lt;Boolean&gt;</code></td><td>Callback appele quand l'etat change</td></tr>
+            <tr><td><code>label(text)</code></td><td><code>String</code></td><td>Texte affiche a droite du switch</td></tr>
+            <tr><td><code>activeColor(argb)</code></td><td><code>int</code></td><td>Couleur fond quand actif (defaut cyan 0xFF00E5FF)</td></tr>
+            <tr><td><code>inactiveColor(argb)</code></td><td><code>int</code></td><td>Couleur fond quand inactif (defaut gris sombre)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Exemple</h4>
+      <div class="code-block"><span class="ty">ToggleSwitch</span> toggle <span class="op">=</span> <span class="kw">new</span> <span class="ty">ToggleSwitch</span>(<span class="nu">860</span>, <span class="nu">500</span>, <span class="nu">60</span>, <span class="nu">30</span>)
+    .<span class="fn">label</span>(<span class="st">"Afficher HUD Mana"</span>)
+    .<span class="fn">setState</span>(<span class="kw">true</span>)
+    .<span class="fn">activeColor</span>(<span class="nu">0xFF00E5FF</span>)
+    .<span class="fn">onToggle</span>(on <span class="op">-&gt;</span> manaBarMod.<span class="fn">setEnabled</span>(on));
+root.<span class="fn">add</span>(toggle);</div>
+
+      <!-- MODAL -->
+      <h3 id="modal">Modal / Dialog</h3>
+      <p>Popup modale s'affichant au-dessus du GUI courant. Bloque les interactions avec le fond tant qu'elle est ouverte. Ferme sur Echap ou click du bouton de fermeture.</p>
+      <h4>Methodes statiques (factory)</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>Modal.confirm(title, msg, onConfirm, onCancel)</code></td><td><code>String, String, Runnable, Runnable</code></td><td>Dialog de confirmation avec boutons Confirmer / Annuler</td></tr>
+            <tr><td><code>Modal.alert(title, msg, onClose)</code></td><td><code>String, String, Runnable</code></td><td>Dialog d'alerte avec un seul bouton OK</td></tr>
+            <tr><td><code>Modal.custom(title, width, height)</code></td><td><code>String, int, int</code></td><td>Modal vide retournant un <code>ContainerComponent</code> pour y ajouter des composants</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Comportement</h4>
+      <ul>
+        <li>Fond sombre semi-transparent (<code>0x88000000</code>) sur tout l'ecran</li>
+        <li>Panneau central en style liquid glass : fond <code>rgba(14,14,22,0.90)</code>, bordure <code>rgba(255,255,255,0.12)</code>, <code>cornerRadius(16)</code></li>
+        <li>Animation fade in + scale in a l'ouverture</li>
+        <li>Echap appelle <code>onCancel</code> / <code>onClose</code> et ferme</li>
+        <li>Les interactions (click, scroll, touches) sont absorbees par la modal — le GUI sous-jacent ne recoit rien</li>
+      </ul>
+      <h4>Exemple</h4>
+      <div class="code-block"><span class="cm">// Dialog de confirmation</span>
+<span class="ty">Modal</span>.<span class="fn">confirm</span>(
+    <span class="st">"Dissoudre la faction ?"</span>,
+    <span class="st">"Cette action est irreversible. Tous les membres seront expulses."</span>,
+    () <span class="op">-&gt;</span> factionManager.<span class="fn">dissolve</span>(player),
+    () <span class="op">-&gt;</span> {} <span class="cm">// annulation : ne rien faire</span>
+);
+
+<span class="cm">// Modal custom</span>
+<span class="ty">ContainerComponent</span> content <span class="op">=</span> <span class="ty">Modal</span>.<span class="fn">custom</span>(<span class="st">"Parametres avances"</span>, <span class="nu">500</span>, <span class="nu">400</span>);
+content.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">Label</span>(<span class="nu">20</span>, <span class="nu">20</span>, <span class="nu">460</span>, <span class="nu">20</span>, <span class="st">"Option X"</span>));
+content.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">ToggleSwitch</span>(<span class="nu">380</span>, <span class="nu">15</span>, <span class="nu">50</span>, <span class="nu">26</span>));</div>
+
+      <!-- PLAYERHEAD -->
+      <h3 id="playerhead">PlayerHead</h3>
+      <p>Rendu 3D de la tete du skin d'un joueur. Utilise le <code>TextureManager</code> de Minecraft et le systeme de rendu 3D standard. La tete peut etre animee (rotation).</p>
+      <h4>Constructeur</h4>
+      <div class="code-block"><span class="kw">new</span> <span class="ty">PlayerHead</span>(<span class="kw">int</span> x, <span class="kw">int</span> y, <span class="kw">int</span> size, <span class="ty">GameProfile</span> profile)
+<span class="kw">new</span> <span class="ty">PlayerHead</span>(<span class="kw">int</span> x, <span class="kw">int</span> y, <span class="kw">int</span> size, <span class="ty">UUID</span> uuid) <span class="cm">// charge le profil async</span></div>
+      <h4>API</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>setProfile(profile)</code></td><td><code>GameProfile</code></td><td>Change le profil affiche</td></tr>
+            <tr><td><code>setRotation(yaw, pitch)</code></td><td><code>float, float</code></td><td>Oriente la tete (yaw: -180 a 180, pitch: -90 a 90)</td></tr>
+            <tr><td><code>showHat(enabled)</code></td><td><code>boolean</code></td><td>Affiche la couche chapeau du skin (defaut true)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Exemple</h4>
+      <div class="code-block"><span class="ty">EntityPlayer</span> p <span class="op">=</span> <span class="ty">Minecraft</span>.<span class="fn">getMinecraft</span>().player;
+<span class="ty">PlayerHead</span> head <span class="op">=</span> <span class="kw">new</span> <span class="ty">PlayerHead</span>(<span class="nu">860</span>, <span class="nu">300</span>, <span class="nu">80</span>, p.<span class="fn">getGameProfile</span>())
+    .<span class="fn">setRotation</span>(<span class="nu">-20f</span>, <span class="nu">15f</span>)
+    .<span class="fn">showHat</span>(<span class="kw">true</span>);
+root.<span class="fn">add</span>(head);</div>
+
+      <!-- ITEMSTACKRENDERER -->
+      <h3 id="itemstack">ItemStackRenderer</h3>
+      <p>Affiche un <code>ItemStack</code> avec son icone 2D (rendu via <code>RenderItem</code>). Supporte l'affichage du count, le tooltip au survol et un scale custom.</p>
+      <h4>Constructeur</h4>
+      <div class="code-block"><span class="kw">new</span> <span class="ty">ItemStackRenderer</span>(<span class="kw">int</span> x, <span class="kw">int</span> y, <span class="kw">int</span> size, <span class="ty">ItemStack</span> stack)</div>
+      <h4>API</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>setStack(stack)</code></td><td><code>ItemStack</code></td><td>Change l'ItemStack affiche</td></tr>
+            <tr><td><code>showTooltip(enabled)</code></td><td><code>boolean</code></td><td>Affiche le tooltip Minecraft au hover (defaut true)</td></tr>
+            <tr><td><code>showCount(enabled)</code></td><td><code>boolean</code></td><td>Affiche le nombre en superposition (defaut true)</td></tr>
+            <tr><td><code>scale(factor)</code></td><td><code>float</code></td><td>Facteur de scale du rendu (defaut 1.0f)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Exemple</h4>
+      <div class="code-block"><span class="ty">ItemStack</span> sword <span class="op">=</span> <span class="kw">new</span> <span class="ty">ItemStack</span>(<span class="ty">Items</span>.DIAMOND_SWORD);
+<span class="ty">ItemStackRenderer</span> renderer <span class="op">=</span> <span class="kw">new</span> <span class="ty">ItemStackRenderer</span>(<span class="nu">900</span>, <span class="nu">400</span>, <span class="nu">32</span>, sword)
+    .<span class="fn">showTooltip</span>(<span class="kw">true</span>)
+    .<span class="fn">showCount</span>(<span class="kw">false</span>)
+    .<span class="fn">scale</span>(<span class="nu">1.5f</span>);
+root.<span class="fn">add</span>(renderer);</div>
+
+      <!-- DIVIDER -->
+      <h3 id="divider">Divider</h3>
+      <p>Ligne de separation horizontale ou verticale. Peut etre une couleur unie ou un degrade. Utile pour structurer visuellement les sections d'un GUI.</p>
+      <h4>Constructeur</h4>
+      <div class="code-block"><span class="kw">new</span> <span class="ty">Divider</span>(<span class="kw">int</span> x, <span class="kw">int</span> y, <span class="kw">int</span> length)</div>
+      <h4>API</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>horizontal()</code></td><td>—</td><td>Mode horizontal (defaut)</td></tr>
+            <tr><td><code>vertical()</code></td><td>—</td><td>Mode vertical</td></tr>
+            <tr><td><code>color(argb)</code></td><td><code>int</code></td><td>Couleur unie de la ligne</td></tr>
+            <tr><td><code>thickness(px)</code></td><td><code>int</code></td><td>Epaisseur en pixels design (defaut 1)</td></tr>
+            <tr><td><code>gradient(startColor, endColor)</code></td><td><code>int, int</code></td><td>Degrade du debut vers la fin (remplace color)</td></tr>
+            <tr><td><code>margin(px)</code></td><td><code>int</code></td><td>Espace vide au debut et a la fin de la ligne</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Exemple</h4>
+      <div class="code-block"><span class="cm">// Separateur horizontal avec degrade cyan → transparent</span>
+root.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">Divider</span>(<span class="nu">60</span>, <span class="nu">200</span>, <span class="nu">500</span>)
+    .<span class="fn">gradient</span>(<span class="nu">0x4400E5FF</span>, <span class="nu">0x00000000</span>)
+    .<span class="fn">thickness</span>(<span class="nu">1</span>)
+    .<span class="fn">margin</span>(<span class="nu">20</span>));
+
+<span class="cm">// Separateur vertical</span>
+root.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">Divider</span>(<span class="nu">560</span>, <span class="nu">100</span>, <span class="nu">300</span>)
+    .<span class="fn">vertical</span>()
+    .<span class="fn">color</span>(<span class="nu">0x18FFFFFF</span>));</div>
+
+      <!-- BADGE -->
+      <h3 id="badge-comp">Badge</h3>
+      <p>Tag visuellement distinct, auto-dimensionne selon son contenu. Adapte pour afficher des categories, des statuts ou des labels courts. Peut inclure une icone a gauche du texte.</p>
+      <h4>Constructeur</h4>
+      <div class="code-block"><span class="kw">new</span> <span class="ty">Badge</span>(<span class="kw">int</span> x, <span class="kw">int</span> y, <span class="ty">String</span> text)</div>
+      <h4>API</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>color(bgColor, textColor)</code></td><td><code>int, int</code></td><td>Couleurs fond et texte</td></tr>
+            <tr><td><code>outlined(enabled)</code></td><td><code>boolean</code></td><td>Mode contour (fond transparent, bordure coloree)</td></tr>
+            <tr><td><code>cornerRadius(px)</code></td><td><code>int</code></td><td>Rayon des coins (defaut 999 = pilule)</td></tr>
+            <tr><td><code>icon(texture)</code></td><td><code>ResourceLocation</code></td><td>Icone 16x16 a gauche du texte</td></tr>
+            <tr><td><code>scale(factor)</code></td><td><code>float</code></td><td>Scale du texte (defaut 0.8f)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Exemple</h4>
+      <div class="code-block"><span class="cm">// Badge "Combat" violet outline</span>
+root.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">Badge</span>(<span class="nu">200</span>, <span class="nu">150</span>, <span class="st">"Combat"</span>)
+    .<span class="fn">color</span>(<span class="nu">0x206B2FA0</span>, <span class="nu">0xFF9B4FCF</span>)
+    .<span class="fn">outlined</span>(<span class="kw">true</span>));
+
+<span class="cm">// Badge "Actif" vert plein</span>
+root.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">Badge</span>(<span class="nu">350</span>, <span class="nu">150</span>, <span class="st">"Actif"</span>)
+    .<span class="fn">color</span>(<span class="nu">0x262ECC71</span>, <span class="nu">0xFF2ECC71</span>));</div>
+
+      <!-- ACCORDION -->
+      <h3 id="accordion">Accordion</h3>
+      <p>Conteneur avec sections repliables/depliables. Chaque section a un titre cliquable et un contenu dont la hauteur est animee. Mode <code>singleMode</code> pour ne garder qu'une section ouverte a la fois.</p>
+      <h4>Constructeur</h4>
+      <div class="code-block"><span class="kw">new</span> <span class="ty">Accordion</span>(<span class="kw">int</span> x, <span class="kw">int</span> y, <span class="kw">int</span> width)</div>
+      <h4>API</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>addSection(title, builder)</code></td><td><code>String, Consumer&lt;ContainerComponent&gt;</code></td><td>Ajoute une section avec son titre et un lambda pour construire le contenu</td></tr>
+            <tr><td><code>expandAll()</code></td><td>—</td><td>Deplie toutes les sections</td></tr>
+            <tr><td><code>collapseAll()</code></td><td>—</td><td>Replie toutes les sections</td></tr>
+            <tr><td><code>singleMode(enabled)</code></td><td><code>boolean</code></td><td>Si true : ouvrir une section ferme les autres</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Exemple</h4>
+      <div class="code-block"><span class="ty">Accordion</span> acc <span class="op">=</span> <span class="kw">new</span> <span class="ty">Accordion</span>(<span class="nu">660</span>, <span class="nu">300</span>, <span class="nu">600</span>)
+    .<span class="fn">singleMode</span>(<span class="kw">true</span>);
+
+acc.<span class="fn">addSection</span>(<span class="st">"Informations generales"</span>, section <span class="op">-&gt;</span> {
+    section.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">Label</span>(<span class="nu">10</span>, <span class="nu">10</span>, <span class="nu">580</span>, <span class="nu">20</span>, <span class="st">"Nom : "</span> <span class="op">+</span> faction.<span class="fn">getName</span>()));
+    section.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">Label</span>(<span class="nu">10</span>, <span class="nu">35</span>, <span class="nu">580</span>, <span class="nu">20</span>, <span class="st">"Membres : "</span> <span class="op">+</span> faction.<span class="fn">size</span>()));
+});
+acc.<span class="fn">addSection</span>(<span class="st">"Statistiques"</span>, section <span class="op">-&gt;</span> {
+    section.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">ProgressBar</span>(<span class="nu">10</span>, <span class="nu">10</span>, <span class="nu">580</span>, <span class="nu">16</span>).<span class="fn">value</span>(<span class="nu">0.72f</span>));
+});
+root.<span class="fn">add</span>(acc);</div>
+
+      <!-- CAROUSEL -->
+      <h3 id="carousel">Carousel</h3>
+      <p>Conteneur de defilement horizontal pour afficher plusieurs elements cote a cote avec navigation par fleches et/ou points indicateurs. Supporte le defilement automatique.</p>
+      <h4>Constructeur</h4>
+      <div class="code-block"><span class="kw">new</span> <span class="ty">Carousel</span>(<span class="kw">int</span> x, <span class="kw">int</span> y, <span class="kw">int</span> width, <span class="kw">int</span> height)</div>
+      <h4>API</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>addItem(component)</code></td><td><code>Component</code></td><td>Ajoute un element dans le carousel</td></tr>
+            <tr><td><code>setVisibleCount(n)</code></td><td><code>int</code></td><td>Nombre d'items visibles simultanement (defaut 1)</td></tr>
+            <tr><td><code>showArrows(enabled)</code></td><td><code>boolean</code></td><td>Affiche les boutons &lt; et &gt; de navigation</td></tr>
+            <tr><td><code>showDots(enabled)</code></td><td><code>boolean</code></td><td>Affiche les points indicateurs de position</td></tr>
+            <tr><td><code>autoScroll(intervalTicks)</code></td><td><code>int</code></td><td>Defilement automatique toutes les N ticks (0 = desactive)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Exemple</h4>
+      <div class="code-block"><span class="ty">Carousel</span> car <span class="op">=</span> <span class="kw">new</span> <span class="ty">Carousel</span>(<span class="nu">200</span>, <span class="nu">300</span>, <span class="nu">1520</span>, <span class="nu">400</span>)
+    .<span class="fn">setVisibleCount</span>(<span class="nu">3</span>)
+    .<span class="fn">showArrows</span>(<span class="kw">true</span>)
+    .<span class="fn">showDots</span>(<span class="kw">true</span>)
+    .<span class="fn">autoScroll</span>(<span class="nu">100</span>); <span class="cm">// change d'item toutes les 5 secondes</span>
+
+<span class="kw">for</span> (<span class="ty">FactionCard</span> card : cards) {
+    car.<span class="fn">addItem</span>(<span class="fn">buildCardComponent</span>(card));
+}
+root.<span class="fn">add</span>(car);</div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         03 — OVERLAY MODULAIRE
+    ═══════════════════════════════════════ -->
+    <div class="section-card" id="overlay-modulaire">
+      <h2><span class="s-num cyan-num">03</span>Systeme d'Overlay Modulaire</h2>
+
+      <div class="callout callout-cyan callout-info">
+        <div class="callout-icon">&#127776;</div>
+        <div class="callout-body">
+          <div class="callout-title">Concept cle : inspire de Lunar Client</div>
+          <div class="callout-text">Le joueur devient maitre de son HUD. Il active/desactive chaque element, le deplace ou il veut, ajuste sa taille. Tout se fait via des GUI en jeu. Le developpeur cree seulement des <code>OverlayMod</code> — EriAPI gere le reste.</div>
+        </div>
+      </div>
+
+      <!-- OVERLAYMOD BASE -->
+      <h3 class="first" id="overlaymod">3.1 — OverlayMod (classe de base)</h3>
+      <p>Classe abstraite que tout developpeur etend pour creer un element d'overlay configurable par le joueur. Chaque <code>OverlayMod</code> possede son propre <code>ContainerComponent</code> racine.</p>
+
+      <h4>Champs internes</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Champ</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>id</code></td><td><code>String</code></td><td>Identifiant unique (ex: <code>"eriniumfaction:mana_bar"</code>)</td></tr>
+            <tr><td><code>displayName</code></td><td><code>String</code></td><td>Nom affiche dans le GUI manager</td></tr>
+            <tr><td><code>description</code></td><td><code>String</code></td><td>Description courte pour le GUI manager</td></tr>
+            <tr><td><code>category</code></td><td><code>String</code></td><td>Categorie de regroupement (ex: "Combat", "Faction")</td></tr>
+            <tr><td><code>root</code></td><td><code>ContainerComponent</code></td><td>Conteneur racine du mod en design pixels</td></tr>
+            <tr><td><code>designWidth / designHeight</code></td><td><code>int</code></td><td>Taille de base du mod en pixels design</td></tr>
+            <tr><td><code>enabled</code></td><td><code>boolean</code></td><td>Si le mod est actif ou non</td></tr>
+            <tr><td><code>posXPercent / posYPercent</code></td><td><code>float</code></td><td>Position en % de l'ecran (0.0 = haut/gauche, 1.0 = bas/droite)</td></tr>
+            <tr><td><code>scale</code></td><td><code>float</code></td><td>Echelle de rendu (0.5 a 2.0, defaut 1.0)</td></tr>
+            <tr><td><code>built</code></td><td><code>boolean</code></td><td>Flag lazy-build : <code>buildOverlay()</code> n'est appele qu'une fois</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Methodes a surcharger</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Obligatoire</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>protected abstract void buildOverlay()</code></td><td>Oui</td><td>Construction des composants dans <code>getRoot()</code>. Appele une seule fois au premier rendu.</td></tr>
+            <tr><td><code>protected void onTick()</code></td><td>Non</td><td>Logique par tick : mise a jour des valeurs, textes, progress bars. Appele seulement si enabled.</td></tr>
+            <tr><td><code>protected void onEnabled()</code></td><td>Non</td><td>Appele quand le joueur active le mod.</td></tr>
+            <tr><td><code>protected void onDisabled()</code></td><td>Non</td><td>Appele quand le joueur desactive le mod.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>API publique</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>getRoot()</code></td><td>—</td><td>Retourne le ContainerComponent racine</td></tr>
+            <tr><td><code>setCategory(category)</code></td><td><code>String</code></td><td>Definit la categorie du mod</td></tr>
+            <tr><td><code>setDescription(desc)</code></td><td><code>String</code></td><td>Definit la description</td></tr>
+            <tr><td><code>setDefaultPosition(xPct, yPct)</code></td><td><code>float, float</code></td><td>Position par defaut (premier lancement, avant chargement JSON)</td></tr>
+            <tr><td><code>setMinScale(min)</code></td><td><code>float</code></td><td>Scale minimum autorisee (defaut 0.5)</td></tr>
+            <tr><td><code>setMaxScale(max)</code></td><td><code>float</code></td><td>Scale maximum autorisee (defaut 2.0)</td></tr>
+            <tr><td><code>rebuild()</code></td><td>—</td><td>Force la reconstruction des composants (reset built + appel buildOverlay)</td></tr>
+            <tr><td><code>getId()</code></td><td>—</td><td>Retourne l'id du mod</td></tr>
+            <tr><td><code>getDisplayName()</code></td><td>—</td><td>Retourne le nom affiche</td></tr>
+            <tr><td><code>isEnabled()</code></td><td>—</td><td>Retourne l'etat actif/inactif</td></tr>
+            <tr><td><code>getScale()</code></td><td>—</td><td>Retourne la scale actuelle</td></tr>
+            <tr><td><code>getPosXPercent() / getPosYPercent()</code></td><td>—</td><td>Position en % de l'ecran</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Exemple complet — Barre de Mana</h4>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">ManaBarMod</span> <span class="kw">extends</span> <span class="ty">OverlayMod</span> {
+
+    <span class="kw">private</span> <span class="ty">OverlayProgressBar</span> manaBar;
+    <span class="kw">private</span> <span class="ty">Label</span>              manaLabel;
+
+    <span class="kw">public</span> <span class="fn">ManaBarMod</span>() {
+        <span class="kw">super</span>(<span class="st">"eriniumfaction:mana_bar"</span>, <span class="st">"Barre de Mana"</span>, <span class="nu">220</span>, <span class="nu">36</span>);
+        <span class="fn">setCategory</span>(<span class="st">"Magie"</span>);
+        <span class="fn">setDescription</span>(<span class="st">"Affiche votre mana actuelle en bas de l'ecran."</span>);
+        <span class="fn">setDefaultPosition</span>(<span class="nu">0.5f</span>, <span class="nu">0.92f</span>); <span class="cm">// centre en bas</span>
+        <span class="fn">setMinScale</span>(<span class="nu">0.5f</span>);
+        <span class="fn">setMaxScale</span>(<span class="nu">2.0f</span>);
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">protected void</span> <span class="fn">buildOverlay</span>() {
+        manaBar <span class="op">=</span> <span class="kw">new</span> <span class="ty">OverlayProgressBar</span>(<span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">220</span>, <span class="nu">16</span>)
+            .<span class="fn">fillColor</span>(<span class="nu">0xFF00A5FF</span>)
+            .<span class="fn">backgroundColor</span>(<span class="nu">0x50000000</span>)
+            .<span class="fn">cornerRadius</span>(<span class="nu">4</span>);
+        manaLabel <span class="op">=</span> <span class="kw">new</span> <span class="ty">Label</span>(<span class="nu">0</span>, <span class="nu">20</span>, <span class="nu">220</span>, <span class="nu">14</span>, <span class="st">"100 / 100"</span>)
+            .<span class="fn">color</span>(<span class="nu">0xCCFFFFFF</span>)
+            .<span class="fn">scale</span>(<span class="nu">0.8f</span>)
+            .<span class="fn">align</span>(<span class="ty">Label</span>.<span class="cl">Align</span>.CENTER);
+        <span class="fn">getRoot</span>().<span class="fn">add</span>(manaBar);
+        <span class="fn">getRoot</span>().<span class="fn">add</span>(manaLabel);
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">protected void</span> <span class="fn">onTick</span>() {
+        <span class="ty">FactionCapData</span> cap <span class="op">=</span> <span class="ty">EriCap</span>.<span class="fn">get</span>(<span class="ty">Minecraft</span>.<span class="fn">getMinecraft</span>().player, <span class="ty">FactionCapData</span>.<span class="kw">class</span>);
+        <span class="kw">float</span> cur <span class="op">=</span> cap.mana, max <span class="op">=</span> cap.maxMana;
+        manaBar.<span class="fn">value</span>(cur <span class="op">/</span> max);
+        manaLabel.<span class="fn">setText</span>(<span class="ty">String</span>.<span class="fn">format</span>(<span class="st">"%.0f / %.0f"</span>, cur, max));
+    }
+}</div>
+
+      <h4>Enregistrement dans ClientProxy</h4>
+      <div class="code-block"><span class="cm">// ClientProxy.init()</span>
+<span class="ty">OverlayModManager</span>.<span class="fn">getInstance</span>().<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">ManaBarMod</span>());
+<span class="ty">OverlayModManager</span>.<span class="fn">getInstance</span>().<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">FactionHudMod</span>());
+<span class="ty">OverlayModManager</span>.<span class="fn">getInstance</span>().<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">SpellCooldownMod</span>());
+<span class="ty">OverlayModManager</span>.<span class="fn">getInstance</span>().<span class="fn">loadConfig</span>(); <span class="cm">// apres tous les register</span></div>
+
+      <!-- OVERLAYMODMANAGER -->
+      <h3 id="overlaymodmanager">3.2 — OverlayModManager (singleton)</h3>
+      <p>Gestionnaire central de tous les mods d'overlay enregistres. Gere le rendu, les ticks, la persistance et expose l'API de controle.</p>
+
+      <h4>API complete</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>getInstance()</code></td><td>Retourne le singleton</td></tr>
+            <tr><td><code>register(mod)</code></td><td>Enregistre un OverlayMod</td></tr>
+            <tr><td><code>unregister(id)</code></td><td>Retire un mod de la gestion</td></tr>
+            <tr><td><code>get(id)</code></td><td>Retourne un mod par son id</td></tr>
+            <tr><td><code>getAll()</code></td><td>Retourne la liste de tous les mods enregistres</td></tr>
+            <tr><td><code>getByCategory(category)</code></td><td>Retourne les mods d'une categorie</td></tr>
+            <tr><td><code>getCategories()</code></td><td>Retourne la liste des categories distinctes</td></tr>
+            <tr><td><code>enable(id)</code></td><td>Active un mod et appelle onEnabled()</td></tr>
+            <tr><td><code>disable(id)</code></td><td>Desactive un mod et appelle onDisabled()</td></tr>
+            <tr><td><code>toggle(id)</code></td><td>Inverse l'etat d'un mod</td></tr>
+            <tr><td><code>setPosition(id, xPct, yPct)</code></td><td>Change la position en % ecran</td></tr>
+            <tr><td><code>setScale(id, scale)</code></td><td>Change la scale (clampee entre min et max du mod)</td></tr>
+            <tr><td><code>resetPosition(id)</code></td><td>Remet la position par defaut du mod</td></tr>
+            <tr><td><code>resetAll()</code></td><td>Remet tous les mods a leurs valeurs par defaut</td></tr>
+            <tr><td><code>saveConfig()</code></td><td>Sauvegarde l'etat dans le JSON</td></tr>
+            <tr><td><code>loadConfig()</code></td><td>Charge le JSON (appeler apres tous les register)</td></tr>
+            <tr><td><code>renderAll(partialTicks)</code></td><td>Rend tous les mods actifs (appele par l'event handler)</td></tr>
+            <tr><td><code>tickAll()</code></td><td>Tick tous les mods actifs (appele par l'event handler)</td></tr>
+            <tr><td><code>openEditor()</code></td><td>Ouvre le GUI d'edition drag &amp; drop</td></tr>
+            <tr><td><code>openManager()</code></td><td>Ouvre le GUI de gestion on/off</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- EVENT HANDLER -->
+      <h3>3.3 — OverlayModEventHandler (interne)</h3>
+      <p>Classe interne a EriAPI, annotee <code>@Mod.EventBusSubscriber</code> avec <code>modid = "eriapi"</code> et <code>value = Side.CLIENT</code>. Le developpeur n'a pas a la toucher.</p>
+      <ul>
+        <li><strong>RenderGameOverlayEvent.Post</strong> (ElementType.ALL) → appelle <code>OverlayModManager.renderAll(partialTicks)</code></li>
+        <li><strong>ClientTickEvent</strong> (phase END) → appelle <code>OverlayModManager.tickAll()</code></li>
+        <li>Verifie <code>!Minecraft.getMinecraft().gameSettings.hideGUI</code> (F1 masque tout)</li>
+        <li>Verifie que le GUI courant n'est pas <code>GuiOverlayEditor</code> (en mode edition, le manager gere le rendu directement)</li>
+      </ul>
+
+      <!-- GUI MANAGER -->
+      <h3 id="gui-manager">3.4 — GUI Manager (activation/desactivation)</h3>
+      <p>Ecran de gestion des mods d'overlay. Style Liquid Glass inspire iOS 26. Etend <code>EriGuiScreen</code>. Ouvert via <code>OverlayModManager.openManager()</code> ou un keybinding EriKeys.</p>
+
+      <h4>Mockup detaille</h4>
+      <div class="mockup"><span class="m-slate">┌─────────────────────────────────────────────────────────────────────────────────┐
+│</span> <span class="m-title">                        Gestion des Overlays</span>                                <span class="m-slate">│
+│</span>  <span class="m-slate">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>  <span class="m-slate">│
+│</span>                                                                                 <span class="m-slate">│
+│  ┌───────────────────────────────────────────────────────────────────────────┐  │
+│  │</span> <span class="m-cyan">&#128269;</span>  <span class="m-slate">Rechercher un mod overlay...                                            </span><span class="m-slate">│  │
+│  └───────────────────────────────────────────────────────────────────────────┘  │</span>
+│                                                                                 <span class="m-slate">│
+│  [ Tous ]  [ Combat ]  [ Magie ]  [ Faction ]  [ Interface ]</span>  <span class="m-slate">← filtres onglets │
+│  ─────────────────────────────────────────────────────────────────────────────  │
+│                                                                                 │
+│  ┌────────────────────────────────┐  ┌────────────────────────────────┐         │
+│  │</span> <span class="m-title">Barre de Mana</span>              <span class="m-green">●</span>  <span class="m-slate">│  │</span> <span class="m-title">HUD de Faction</span>              <span class="m-green">●</span>  <span class="m-slate">│         │
+│  │</span> <span class="m-violet">[Magie]</span>                         <span class="m-slate">│  │</span> <span class="m-violet">[Faction]</span>                       <span class="m-slate">│         │
+│  │</span> <span class="m-slate">Affiche votre mana actuelle.    │  │ Affiche nom faction, territoire.</span><span class="m-slate">│         │
+│  │</span>                                <span class="m-slate">│  │</span>                                <span class="m-slate">│         │
+│  │  ○─────────────────────────● </span><span class="m-cyan">ON</span><span class="m-slate"> │  │  ○─────────────────────────● </span><span class="m-cyan">ON</span><span class="m-slate"> │         │
+│  │  [ Reinitialiser ]              │  │  [ Reinitialiser ]              │         │
+│  └────────────────────────────────┘  └────────────────────────────────┘         │
+│                                                                                 │
+│  ┌────────────────────────────────┐  ┌────────────────────────────────┐         │
+│  │</span> <span class="m-title">Cooldowns de Sorts</span>         <span class="m-slate">○</span>  <span class="m-slate">│  │</span> <span class="m-title">Indicateur Zone de Guerre</span>   <span class="m-green">●</span>  <span class="m-slate">│         │
+│  │</span> <span class="m-violet">[Magie]</span>                         <span class="m-slate">│  │</span> <span class="m-violet">[Combat]</span>                        <span class="m-slate">│         │
+│  │</span> <span class="m-slate">Affiche les timers de vos sorts  │  │ Point clignotant en warzone.    │         │
+│  │</span>                                <span class="m-slate">│  │</span>                                <span class="m-slate">│         │
+│  │  ●──────────────────────────○ OFF  │  │  ○─────────────────────────● </span><span class="m-cyan">ON</span><span class="m-slate"> │         │
+│  │  [ Reinitialiser ]              │  │  [ Reinitialiser ]              │         │
+│  └────────────────────────────────┘  └────────────────────────────────┘         │
+│                                                                                 │
+│  ─────────────────────────────────────────────────────────────────────────────  │
+│                                                                                 │
+│         [</span> <span class="m-cyan">&#9998; Editer les positions</span> <span class="m-slate">]                   [</span> <span class="m-slate">Fermer</span> <span class="m-slate">]              │
+└─────────────────────────────────────────────────────────────────────────────────┘</span></div>
+
+      <h4>Specifications visuelles (Liquid Glass)</h4>
+      <ul>
+        <li><strong>Fond global</strong> : degrade radial sombre <code>rgba(10,10,15,0.92)</code> + blur simule</li>
+        <li><strong>Panneau principal</strong> : <code>rgba(255,255,255,0.06)</code> fond, <code>rgba(255,255,255,0.12)</code> bordure, <code>cornerRadius(20)</code></li>
+        <li><strong>Barre de recherche</strong> : fond <code>rgba(255,255,255,0.05)</code>, bordure <code>rgba(255,255,255,0.10)</code>, icone loupe a gauche</li>
+        <li><strong>Onglets categories</strong> : boutons pills, actif = fond cyan <code>rgba(0,229,255,0.15)</code> + bordure cyan, inactif = transparent</li>
+        <li><strong>Cartes de mod</strong> : fond <code>rgba(255,255,255,0.04)</code>, bordure <code>rgba(255,255,255,0.08)</code>, <code>cornerRadius(14)</code>, hover : fond <code>rgba(255,255,255,0.08)</code></li>
+        <li><strong>ToggleSwitch</strong> integre dans chaque carte, couleur active = cyan <code>0xFF00E5FF</code></li>
+        <li><strong>Badge categorie</strong> : violet outline pour chaque carte</li>
+        <li><strong>Bouton "Editer les positions"</strong> : cyan outline, scale in au hover</li>
+        <li><strong>Animation entree</strong> : fade in 8 ticks + stagger des cartes (0, 2, 4, 6... ticks de delai)</li>
+      </ul>
+
+      <!-- GUI EDITEUR -->
+      <h3 id="gui-editeur">3.5 — GUI Editeur (drag &amp; drop)</h3>
+      <p>Ecran ou le joueur voit le monde Minecraft en fond et peut deplacer et redimensionner ses mods d'overlay. Etend <code>EriGuiScreen</code>.</p>
+
+      <h4>Mockup detaille</h4>
+      <div class="mockup"><span class="m-slate">╔═══════════════════════════════════════════════════════════════════════════════╗
+║</span>  <span class="m-cyan">[ &#9783; Grille ON ]</span>  <span class="m-slate">[ Tout reinitialiser ]</span>                     <span class="m-cyan">[ &#10003; Sauvegarder &amp; Fermer ]</span>  <span class="m-slate">║
+║</span>  <span class="m-slate">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>  <span class="m-slate">║
+║</span>                                                                               <span class="m-slate">║
+║</span>  <span class="m-slate">[Rendu du monde Minecraft en arriere-plan — leger overlay noir rgba(0,0,0,0.3)]</span><span class="m-slate">║
+║</span>                                                                               <span class="m-slate">║
+║</span>   <span class="m-slate">┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐</span>  <span class="m-slate">← HUD Faction selectionne (bordure cyan pleine)</span>  <span class="m-slate">║
+║   │</span> <span class="m-cyan">HUD de Faction</span>             <span class="m-cyan">│</span>  <span class="m-slate">◆ Coins = handles de resize (drag = scale)      </span><span class="m-slate">║
+║   │</span> <span class="m-slate">NomFaction  ◆ Power: 120    </span><span class="m-cyan">│</span>  <span class="m-slate">◇ Trait tirete = bordure de selection           </span><span class="m-slate">║
+║   │</span> <span class="m-slate">Territoire: Zone Nord       </span><span class="m-cyan">│</span>                                                  <span class="m-slate">║
+║   └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘</span>  <span class="m-cyan">◆</span>                                            <span class="m-slate">║
+║</span>             <span class="m-slate">△ guide snap centre vertical</span>                                        <span class="m-slate">║
+║</span>             <span class="m-slate">│</span>                                                                    <span class="m-slate">║
+║</span>             <span class="m-slate">│           ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐</span>            <span class="m-slate">║
+║</span>             <span class="m-slate">│           │</span> <span class="m-slate">Barre de Mana (hover = bordure blanche tiretee)  </span><span class="m-slate">│</span>            <span class="m-slate">║
+║</span>             <span class="m-slate">│           │</span> <span class="m-cyan">████████████████████░░░░░░░░░</span><span class="m-slate"> 74 / 100                </span><span class="m-slate">│</span>            <span class="m-slate">║
+║</span>             <span class="m-slate">│           └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘</span>            <span class="m-slate">║
+║</span>             <span class="m-slate">│</span>                                                                    <span class="m-slate">║
+║</span>             <span class="m-slate">▽</span>                                                                    <span class="m-slate">║
+║</span>                                                                               <span class="m-slate">║
+║</span>  <span class="m-slate">Clic droit sur un mod : [Reinitialiser position] [Reinitialiser taille]       </span><span class="m-slate">║
+╚═══════════════════════════════════════════════════════════════════════════════╝</span></div>
+
+      <h4>Comportement technique</h4>
+      <ul>
+        <li><strong>Fond</strong> : le monde Minecraft est rendu normalement, un quad noir <code>rgba(0,0,0,0.30)</code> est pose par-dessus</li>
+        <li><strong>Rendu des mods</strong> : chaque mod activ&#233; est affich&#233; avec un <strong>wrapper liquid glass</strong> (fond <code>rgba(255,255,255,0.06)</code>, bordure <code>rgba(255,255,255,0.12)</code>) pour rendre ses limites visibles — ce wrapper n'existe PAS en jeu, uniquement dans cet &#233;cran de configuration</li>
+        <li><strong>Hover</strong> : survol d'un mod → bordure blanche pointillee autour de sa zone</li>
+        <li><strong>Selection</strong> : click → bordure cyan pleine, handles de resize (petits carres de 8px) aux 4 coins</li>
+        <li><strong>Drag</strong> : maintenir click et deplacer → le mod suit le curseur. Position convertie en % ecran a la release</li>
+        <li><strong>Resize</strong> : drag d'un handle de coin → ajuste le scale du mod. Clampe entre <code>minScale</code> et <code>maxScale</code> du mod</li>
+        <li><strong>Snap to grid</strong> : si actif, snapping a une grille de 16px. Indicateur visuel : points de grille semi-transparents</li>
+        <li><strong>Snap to center</strong> : guides visuels cyan (lignes fines) quand le centre du mod s'approche a moins de 8px du centre horizontal ou vertical de l'ecran</li>
+        <li><strong>Clamping</strong> : les mods ne peuvent pas sortir de l'ecran. Position clampee a [0, 1] apres soustraction de la taille du mod</li>
+        <li><strong>Click droit</strong> : menu contextuel avec "Reinitialiser position" et "Reinitialiser taille"</li>
+        <li><strong>ESC</strong> : sauvegarde automatique + fermeture</li>
+        <li><strong>Barre d'outils</strong> : en haut, fond liquid glass. Boutons : "Grille on/off", "Tout reinitialiser", "Sauvegarder &amp; Fermer"</li>
+      </ul>
+
+      <!-- PERSISTANCE -->
+      <h3 id="persistance">3.6 — Persistance JSON</h3>
+      <p>Les preferences du joueur sont sauvegardees dans <code>.minecraft/config/eriapi/overlay_mods.json</code> via Gson.</p>
+      <h4>Format JSON</h4>
+      <div class="code-block">{
+  <span class="st">"eriniumfaction:mana_bar"</span>: {
+    <span class="st">"enabled"</span>: <span class="kw">true</span>,
+    <span class="st">"posX"</span>: <span class="nu">0.5</span>,
+    <span class="st">"posY"</span>: <span class="nu">0.92</span>,
+    <span class="st">"scale"</span>: <span class="nu">1.0</span>
+  },
+  <span class="st">"eriniumfaction:faction_hud"</span>: {
+    <span class="st">"enabled"</span>: <span class="kw">true</span>,
+    <span class="st">"posX"</span>: <span class="nu">0.02</span>,
+    <span class="st">"posY"</span>: <span class="nu">0.02</span>,
+    <span class="st">"scale"</span>: <span class="nu">0.9</span>
+  },
+  <span class="st">"eriniumfaction:spell_cooldowns"</span>: {
+    <span class="st">"enabled"</span>: <span class="kw">false</span>,
+    <span class="st">"posX"</span>: <span class="nu">0.5</span>,
+    <span class="st">"posY"</span>: <span class="nu">0.85</span>,
+    <span class="st">"scale"</span>: <span class="nu">1.0</span>
+  }
+}</div>
+      <h4>Regles de chargement</h4>
+      <ul>
+        <li>Sauvegarde declenchee automatiquement quand <code>GuiOverlayEditor</code> se ferme et quand <code>saveConfig()</code> est appele manuellement</li>
+        <li>Chargement au <code>FMLInitializationEvent</code> cote client, apres que tous les mods ont appele <code>register()</code></li>
+        <li>Si un mod enregistre n'a pas d'entree dans le JSON : les valeurs par defaut definies dans son constructeur sont utilisees</li>
+        <li>Si le fichier JSON n'existe pas : il est cree avec les valeurs par defaut de tous les mods</li>
+        <li>Les positions etant en %, elles survivent aux changements de resolution</li>
+      </ul>
+
+      <!-- MOD SETTINGS -->
+      <h3 id="mod-settings">3.7 — ModSettings (options configurables par mod)</h3>
+      <p>Chaque <code>OverlayMod</code> peut declarer des options configurables via la methode <code>buildSettings(ModSettings)</code>. EriAPI genere automatiquement un GUI de settings en style Liquid Glass a partir de ces declarations. Le developpeur ne code aucun GUI de settings — il declare ses options et EriAPI fait le reste.</p>
+
+      <div class="callout callout-cyan callout-info">
+        <div class="callout-icon">&#9881;</div>
+        <div class="callout-body">
+          <div class="callout-title">Zero boilerplate</div>
+          <div class="callout-text">Declarer <code>buildSettings()</code> suffit. EriAPI cree automatiquement le bouton "Options" dans le GUI Manager, le GUI <code>GuiModSettings</code> avec tous les composants adequats, la persistance JSON et les callbacks en temps reel.</div>
+        </div>
+      </div>
+
+      <h4>Methodes a surcharger dans OverlayMod</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Obligatoire</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>protected void buildSettings(ModSettings settings)</code></td><td>Non</td><td>A surcharger pour declarer les options. Appelee une seule fois a l'initialisation.</td></tr>
+            <tr><td><code>protected void onSettingChanged(String key, Object value)</code></td><td>Non</td><td>Callback appele immediatement quand le joueur modifie une option dans le GUI.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>API de lecture dans OverlayMod</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>public &lt;T&gt; T getSetting(String key, Class&lt;T&gt; type)</code></td><td>Lit la valeur actuelle d'une option par sa cle et son type.</td></tr>
+            <tr><td><code>public &lt;T&gt; T getSetting(String key, T defaultValue)</code></td><td>Lit la valeur actuelle avec une valeur de fallback si la cle est absente.</td></tr>
+            <tr><td><code>public boolean hasSettings()</code></td><td>Retourne <code>true</code> si le mod a au moins une option declaree (hors separateurs et infos).</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Classe ModSettings — types d'options disponibles</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Composant genere</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>toggle(key, label, defaultValue)</code></td><td><code>ToggleSwitch</code></td><td>Option booleenne on/off</td></tr>
+            <tr><td><code>slider(key, label, min, max, defaultValue)</code></td><td><code>Slider</code> (float)</td><td>Valeur decimale entre min et max</td></tr>
+            <tr><td><code>sliderInt(key, label, min, max, defaultValue)</code></td><td><code>Slider</code> (entier)</td><td>Valeur entiere entre min et max</td></tr>
+            <tr><td><code>dropdown(key, label, defaultValue, options...)</code></td><td><code>Dropdown</code></td><td>Selection parmi une liste de valeurs texte</td></tr>
+            <tr><td><code>colorPicker(key, label, defaultColor)</code></td><td><code>ColorPicker</code></td><td>Selecteur de couleur ARGB</td></tr>
+            <tr><td><code>textField(key, label, defaultValue)</code></td><td><code>TextField</code></td><td>Champ texte libre</td></tr>
+            <tr><td><code>textField(key, label, defaultValue, maxLength)</code></td><td><code>TextField</code></td><td>Champ texte avec limite de caracteres</td></tr>
+            <tr><td><code>keybind(key, label, defaultKey)</code></td><td>Selecteur de touche</td><td>Capture une touche clavier (int Keyboard.KEY_*)</td></tr>
+            <tr><td><code>separator(title)</code></td><td>Diviseur visuel</td><td>Titre de section (non interactif, organise les options)</td></tr>
+            <tr><td><code>info(text)</code></td><td>Texte gris</td><td>Description ou aide contextuelle (non interactif)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Mockup du GUI ModSettings</h4>
+      <div class="mockup"><span class="m-slate">┌─────────────────────────────────────────────┐
+│</span>  <span class="m-slate">← Retour</span>     <span class="m-title">Barre de Mana — Options</span>       <span class="m-slate">│
+├─────────────────────────────────────────────┤
+│                                             │
+│</span>  <span class="m-cyan">── Affichage ──────────────────────────</span>    <span class="m-slate">│
+│                                             │
+│</span>  <span class="m-slate">Afficher le texte              </span><span class="m-cyan">[===●]</span>  <span class="m-green">ON</span>  <span class="m-slate">│
+│  Afficher le pourcentage        </span><span class="m-slate">[●===]  OFF │
+│                                             │</span>
+  <span class="m-cyan">── Style ────────────────────────────────</span>    <span class="m-slate">│
+│                                             │
+│</span>  <span class="m-slate">Opacite          ────●──────── 0.80        │
+│  Style             </span><span class="m-slate">[▼ Horizontal      ]</span>     <span class="m-slate">│
+│  Couleur           </span><span class="m-cyan">[■ #00A5FF]</span>  <span class="m-slate">[Choisir]   │
+│                                             │</span>
+  <span class="m-cyan">── Avance ───────────────────────────────</span>    <span class="m-slate">│
+│                                             │
+│</span>  <span class="m-slate">Frequence MAJ    ──────●────── 5 ticks     │
+│</span>  <span class="m-slate">ℹ Une frequence basse ameliore les         │
+│    performances mais reduit la reactivite.  │
+│                                             │
+│         </span><span class="m-slate">[ Reinitialiser par defaut ]</span>        <span class="m-slate">│
+└─────────────────────────────────────────────┘</span></div>
+
+      <h4>Comportement du GUI ModSettings</h4>
+      <ul>
+        <li><strong>Acces</strong> : bouton <strong>"Options"</strong> sur chaque carte du GUI Manager, visible uniquement si <code>hasSettings()</code> retourne <code>true</code></li>
+        <li><strong>Style</strong> : Liquid Glass identique aux autres GUI EriAPI (fond translucide, blur simule, coins arrondis, bordures subtiles)</li>
+        <li><strong>Titre</strong> : nom du mod + " — Options"</li>
+        <li><strong>Contenu</strong> : les options sont listees verticalement dans un <code>ScrollPanel</code> — adapte aux listes longues</li>
+        <li><strong>Separateurs</strong> : <code>separator(title)</code> genere un titre de section avec une ligne decorative cyan</li>
+        <li><strong>Infos</strong> : <code>info(text)</code> genere du texte en <code>var(--slate)</code> (gris), italique, legende contextuelle</li>
+        <li><strong>Temps reel</strong> : les changements sont appliques immediatement — <code>onSettingChanged(key, value)</code> est appele a chaque modification sans attendre la fermeture</li>
+        <li><strong>Reinitialisation</strong> : bouton "Reinitialiser par defaut" en bas — remet toutes les options aux valeurs declarees dans <code>buildSettings()</code></li>
+        <li><strong>Navigation</strong> : bouton "Retour" → retourne au GUI Manager sans perte de donnees</li>
+        <li><strong>Sauvegarde</strong> : automatique a la fermeture du GUI (appelle <code>OverlayModManager.saveConfig()</code>)</li>
+      </ul>
+
+      <h4>Persistance JSON des settings</h4>
+      <p>Les settings sont sauvegardees dans le meme fichier JSON que les positions (<code>.minecraft/config/eriapi/overlay_mods.json</code>), dans une cle <code>"settings"</code> imbriquee :</p>
+      <div class="code-block">{
+  <span class="st">"eriniumfaction:mana_bar"</span>: {
+    <span class="st">"enabled"</span>: <span class="kw">true</span>,
+    <span class="st">"posX"</span>: <span class="nu">0.5</span>,
+    <span class="st">"posY"</span>: <span class="nu">0.95</span>,
+    <span class="st">"scale"</span>: <span class="nu">1.0</span>,
+    <span class="st">"settings"</span>: {
+      <span class="st">"show_label"</span>: <span class="kw">true</span>,
+      <span class="st">"opacity"</span>: <span class="nu">0.8</span>,
+      <span class="st">"style"</span>: <span class="st">"horizontal"</span>,
+      <span class="st">"bar_color"</span>: <span class="nu">10790143</span>
+    }
+  }
+}</div>
+
+      <h4>Exemple complet — FactionHudMod avec settings</h4>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">FactionHudMod</span> <span class="kw">extends</span> <span class="ty">OverlayMod</span> {
+
+    <span class="kw">private</span> <span class="ty">Label</span>               factionName;
+    <span class="kw">private</span> <span class="ty">ProgressBarEnhanced</span> powerBar;
+    <span class="kw">private</span> <span class="ty">Label</span>               memberCount;
+
+    <span class="kw">public</span> <span class="fn">FactionHudMod</span>() {
+        <span class="kw">super</span>(<span class="st">"eriniumfaction:faction_hud"</span>, <span class="st">"HUD Faction"</span>, <span class="nu">300</span>, <span class="nu">100</span>);
+        <span class="fn">setCategory</span>(<span class="st">"Faction"</span>);
+        <span class="fn">setDescription</span>(<span class="st">"Affiche les infos de votre faction"</span>);
+        <span class="fn">setDefaultPosition</span>(<span class="nu">0.02f</span>, <span class="nu">0.02f</span>);
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">protected void</span> <span class="fn">buildSettings</span>(<span class="ty">ModSettings</span> settings) {
+        settings.<span class="fn">separator</span>(<span class="st">"Affichage"</span>);
+        settings.<span class="fn">toggle</span>(<span class="st">"show_power"</span>,   <span class="st">"Afficher la barre de power"</span>,         <span class="kw">true</span>);
+        settings.<span class="fn">toggle</span>(<span class="st">"show_members"</span>, <span class="st">"Afficher le nombre de membres"</span>,       <span class="kw">true</span>);
+        settings.<span class="fn">toggle</span>(<span class="st">"show_name"</span>,    <span class="st">"Afficher le nom de faction"</span>,          <span class="kw">true</span>);
+
+        settings.<span class="fn">separator</span>(<span class="st">"Style"</span>);
+        settings.<span class="fn">colorPicker</span>(<span class="st">"bg_color"</span>,     <span class="st">"Couleur de fond"</span>,      <span class="nu">0x80000000</span>);
+        settings.<span class="fn">colorPicker</span>(<span class="st">"accent_color"</span>, <span class="st">"Couleur d'accent"</span>,     <span class="nu">0xFFFFD700</span>);
+        settings.<span class="fn">slider</span>(<span class="st">"bg_opacity"</span>, <span class="st">"Opacite du fond"</span>, <span class="nu">0.0f</span>, <span class="nu">1.0f</span>, <span class="nu">0.5f</span>);
+        settings.<span class="fn">dropdown</span>(<span class="st">"power_style"</span>, <span class="st">"Style barre de power"</span>,
+            <span class="st">"horizontal"</span>, <span class="st">"horizontal"</span>, <span class="st">"circular"</span>, <span class="st">"pie"</span>);
+
+        settings.<span class="fn">separator</span>(<span class="st">"Avance"</span>);
+        settings.<span class="fn">sliderInt</span>(<span class="st">"update_rate"</span>, <span class="st">"Frequence de mise a jour (ticks)"</span>, <span class="nu">1</span>, <span class="nu">40</span>, <span class="nu">5</span>);
+        settings.<span class="fn">info</span>(<span class="st">"Une frequence basse ameliore les performances mais reduit la reactivite."</span>);
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">protected void</span> <span class="fn">buildOverlay</span>() {
+        <span class="kw">int</span> bgColor <span class="op">=</span> <span class="fn">getSetting</span>(<span class="st">"bg_color"</span>, <span class="nu">0x80000000</span>);
+        <span class="fn">getRoot</span>().<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">Rectangle</span>(<span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">300</span>, <span class="nu">100</span>).<span class="fn">fillColor</span>(bgColor).<span class="fn">cornerRadius</span>(<span class="nu">8</span>));
+
+        <span class="kw">if</span> (<span class="fn">getSetting</span>(<span class="st">"show_name"</span>, <span class="kw">true</span>)) {
+            factionName <span class="op">=</span> <span class="kw">new</span> <span class="ty">Label</span>(<span class="nu">10</span>, <span class="nu">8</span>, <span class="nu">280</span>, <span class="nu">20</span>, <span class="st">"Ma Faction"</span>)
+                .<span class="fn">color</span>(<span class="fn">getSetting</span>(<span class="st">"accent_color"</span>, <span class="nu">0xFFFFD700</span>)).<span class="fn">scale</span>(<span class="nu">1.2f</span>);
+            <span class="fn">getRoot</span>().<span class="fn">add</span>(factionName);
+        }
+
+        <span class="kw">if</span> (<span class="fn">getSetting</span>(<span class="st">"show_power"</span>, <span class="kw">true</span>)) {
+            powerBar <span class="op">=</span> <span class="kw">new</span> <span class="ty">ProgressBarEnhanced</span>(<span class="nu">10</span>, <span class="nu">35</span>, <span class="nu">280</span>, <span class="nu">15</span>)
+                .<span class="fn">shape</span>(<span class="ty">Shape</span>.<span class="fn">valueOf</span>(<span class="fn">getSetting</span>(<span class="st">"power_style"</span>, <span class="st">"horizontal"</span>).<span class="fn">toUpperCase</span>()))
+                .<span class="fn">fillColor</span>(<span class="nu">0xFF2ECC71</span>).<span class="fn">backgroundColor</span>(<span class="nu">0x40FFFFFF</span>).<span class="fn">cornerRadius</span>(<span class="nu">4</span>);
+            <span class="fn">getRoot</span>().<span class="fn">add</span>(powerBar);
+        }
+
+        <span class="kw">if</span> (<span class="fn">getSetting</span>(<span class="st">"show_members"</span>, <span class="kw">true</span>)) {
+            memberCount <span class="op">=</span> <span class="kw">new</span> <span class="ty">Label</span>(<span class="nu">10</span>, <span class="nu">60</span>, <span class="nu">280</span>, <span class="nu">20</span>, <span class="st">"Membres : 15/20"</span>)
+                .<span class="fn">color</span>(<span class="nu">0xFFF0F2FF</span>).<span class="fn">scale</span>(<span class="nu">0.9f</span>);
+            <span class="fn">getRoot</span>().<span class="fn">add</span>(memberCount);
+        }
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">protected void</span> <span class="fn">onSettingChanged</span>(<span class="ty">String</span> key, <span class="ty">Object</span> value) {
+        <span class="fn">rebuild</span>(); <span class="cm">// Reconstruit l'overlay avec les nouvelles options</span>
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">protected void</span> <span class="fn">onTick</span>() {
+        <span class="kw">int</span> rate <span class="op">=</span> <span class="fn">getSetting</span>(<span class="st">"update_rate"</span>, <span class="nu">5</span>);
+        <span class="cm">// ... logique de mise a jour toutes les N ticks</span>
+    }
+}</div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         04 — PROGRESSBAR ENHANCED
+    ═══════════════════════════════════════ -->
+    <div class="section-card" id="progressbar">
+      <h2><span class="s-num gold-num">04</span>ProgressBar Enhanced</h2>
+      <p>Composant de barre de progression polyvalent avec 9 formes geometriques. Concu pour les overlays mais utilisable egalement dans les <code>EriGuiScreen</code>. Package : <code>fr.eri.eriapi.gui.components.ProgressBarEnhanced</code>.</p>
+
+      <h3 class="first">Les 9 formes</h3>
+      <div class="shape-grid">
+        <div class="shape-card"><div class="shape-icon">&#9644;</div><div class="shape-name">HORIZONTAL</div><div class="shape-desc">Barre classique gauche vers droite</div></div>
+        <div class="shape-card"><div class="shape-icon">&#9645;</div><div class="shape-name">VERTICAL</div><div class="shape-desc">Barre bas vers haut</div></div>
+        <div class="shape-card"><div class="shape-icon">&#9711;</div><div class="shape-name">CIRCULAR</div><div class="shape-desc">Arc de cercle (anneau)</div></div>
+        <div class="shape-card"><div class="shape-icon">&#9685;</div><div class="shape-name">PIE</div><div class="shape-desc">Secteur plein (camembert)</div></div>
+        <div class="shape-card"><div class="shape-icon">&#9670;</div><div class="shape-name">DIAMOND</div><div class="shape-desc">Losange clipe</div></div>
+        <div class="shape-card"><div class="shape-icon">&#11042;</div><div class="shape-name">HEXAGON</div><div class="shape-desc">Hexagone clipe</div></div>
+        <div class="shape-card"><div class="shape-icon">&#11044;</div><div class="shape-name">OCTAGON</div><div class="shape-desc">Octogone clipe</div></div>
+        <div class="shape-card"><div class="shape-icon">&#11039;</div><div class="shape-name">PENTAGON</div><div class="shape-desc">Pentagone clipe</div></div>
+        <div class="shape-card"><div class="shape-icon">&#9635;</div><div class="shape-name">SQUARE</div><div class="shape-desc">Carre avec coins arrondis</div></div>
+      </div>
+
+      <h3>Constructeur</h3>
+      <div class="code-block"><span class="kw">new</span> <span class="ty">ProgressBarEnhanced</span>(<span class="kw">int</span> x, <span class="kw">int</span> y, <span class="kw">int</span> width, <span class="kw">int</span> height)</div>
+
+      <h3>API complete</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>shape(shape)</code></td><td><code>Shape</code> (enum)</td><td>Forme de la barre (HORIZONTAL par defaut)</td></tr>
+            <tr><td><code>value(v)</code></td><td><code>float</code> 0.0-1.0</td><td>Valeur actuelle normalisee</td></tr>
+            <tr><td><code>fillColor(argb)</code></td><td><code>int</code></td><td>Couleur de remplissage</td></tr>
+            <tr><td><code>backgroundColor(argb)</code></td><td><code>int</code></td><td>Couleur du fond non rempli</td></tr>
+            <tr><td><code>barWidth(px)</code></td><td><code>int</code></td><td>Epaisseur de la barre pour CIRCULAR, PIE, et formes geometriques. Noop pour HORIZONTAL/VERTICAL.</td></tr>
+            <tr><td><code>gradientFill(startColor, endColor)</code></td><td><code>int, int</code></td><td>Degrade de couleur sur la partie remplie (remplace fillColor)</td></tr>
+            <tr><td><code>segments(n)</code></td><td><code>int</code></td><td>Nombre de segments visuels (avec espaces entre eux)</td></tr>
+            <tr><td><code>segmentGap(px)</code></td><td><code>int</code></td><td>Largeur de l'espace entre les segments (defaut 2)</td></tr>
+            <tr><td><code>animate(enabled)</code></td><td><code>boolean</code></td><td>Anime le remplissage quand la valeur change (ease out)</td></tr>
+            <tr><td><code>direction(dir)</code></td><td><code>Direction</code> (LEFT, RIGHT, UP, DOWN)</td><td>Direction de remplissage pour HORIZONTAL et VERTICAL</td></tr>
+            <tr><td><code>label(text)</code></td><td><code>String</code></td><td>Texte centre sur la barre</td></tr>
+            <tr><td><code>showPercentage(enabled)</code></td><td><code>boolean</code></td><td>Affiche "XX%" au centre de la barre</td></tr>
+            <tr><td><code>cornerRadius(px)</code></td><td><code>int</code></td><td>Rayon des coins pour HORIZONTAL, VERTICAL, SQUARE</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Techniques de rendu par forme</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Forme</th><th>Technique OpenGL</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>HORIZONTAL / VERTICAL / SQUARE</td><td>GL_QUADS + stencil scissor</td><td>Rendu direct, coins via triangles fan</td></tr>
+            <tr><td>CIRCULAR / PIE</td><td>GL_TRIANGLE_FAN</td><td>Angles en radians, segments calcules selon barWidth</td></tr>
+            <tr><td>DIAMOND</td><td>GL_TRIANGLE_FAN (4 points)</td><td>Clip par stencil en forme de losange</td></tr>
+            <tr><td>HEXAGON / OCTAGON / PENTAGON</td><td>GL_TRIANGLE_FAN (N points)</td><td>Polygone regulier calcule, clip par stencil</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Exemples</h3>
+      <div class="code-block"><span class="cm">// Arc de cercle pour la mana (anneau)</span>
+<span class="kw">new</span> <span class="ty">ProgressBarEnhanced</span>(<span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">80</span>, <span class="nu">80</span>)
+    .<span class="fn">shape</span>(<span class="ty">Shape</span>.CIRCULAR)
+    .<span class="fn">barWidth</span>(<span class="nu">8</span>)
+    .<span class="fn">gradientFill</span>(<span class="nu">0xFF0050FF</span>, <span class="nu">0xFF00E5FF</span>)
+    .<span class="fn">backgroundColor</span>(<span class="nu">0x30FFFFFF</span>)
+    .<span class="fn">showPercentage</span>(<span class="kw">true</span>)
+    .<span class="fn">animate</span>(<span class="kw">true</span>)
+    .<span class="fn">value</span>(<span class="nu">0.74f</span>);
+
+<span class="cm">// Hexagone segmente pour la vie en 10 segments</span>
+<span class="kw">new</span> <span class="ty">ProgressBarEnhanced</span>(<span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">60</span>, <span class="nu">60</span>)
+    .<span class="fn">shape</span>(<span class="ty">Shape</span>.HEXAGON)
+    .<span class="fn">barWidth</span>(<span class="nu">6</span>)
+    .<span class="fn">fillColor</span>(<span class="nu">0xFF2ECC71</span>)
+    .<span class="fn">segments</span>(<span class="nu">10</span>)
+    .<span class="fn">segmentGap</span>(<span class="nu">2</span>)
+    .<span class="fn">animate</span>(<span class="kw">true</span>)
+    .<span class="fn">value</span>(<span class="nu">0.6f</span>);
+
+<span class="cm">// Pie chart pour le cooldown d'un sort</span>
+<span class="kw">new</span> <span class="ty">ProgressBarEnhanced</span>(<span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">40</span>, <span class="nu">40</span>)
+    .<span class="fn">shape</span>(<span class="ty">Shape</span>.PIE)
+    .<span class="fn">fillColor</span>(<span class="nu">0x80FFFFFF</span>) <span class="cm">// blanc semi-transparent = masque de cooldown</span>
+    .<span class="fn">backgroundColor</span>(<span class="nu">0x00000000</span>)
+    .<span class="fn">value</span>(remainingTicks <span class="op">/</span> (<span class="kw">float</span>) totalCooldown);
+
+<span class="cm">// Barre horizontale avec degrade et segments</span>
+<span class="kw">new</span> <span class="ty">ProgressBarEnhanced</span>(<span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">200</span>, <span class="nu">14</span>)
+    .<span class="fn">shape</span>(<span class="ty">Shape</span>.HORIZONTAL)
+    .<span class="fn">gradientFill</span>(<span class="nu">0xFF6B2FA0</span>, <span class="nu">0xFF00E5FF</span>)
+    .<span class="fn">cornerRadius</span>(<span class="nu">7</span>)
+    .<span class="fn">label</span>(<span class="st">"XP"</span>)
+    .<span class="fn">animate</span>(<span class="kw">true</span>)
+    .<span class="fn">value</span>(<span class="nu">0.38f</span>);</div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         05 — COMPOSANTS OVERLAY
+    ═══════════════════════════════════════ -->
+    <div class="section-card" id="overlay-composants">
+      <h2><span class="s-num orange-num">05</span>Composants Overlay (6)</h2>
+      <p>Composants legers optimises pour le rendu en jeu, utilises dans les <code>OverlayMod</code>. Package : <code>fr.eri.eriapi.overlay.components</code>.</p>
+
+      <!-- FLOATINGTEXT -->
+      <h3 class="first" id="floatingtext">FloatingText</h3>
+      <p>Texte qui apparait a un point de l'ecran, flotte vers le haut et disparait progressivement. Typiquement utilise pour afficher du damage, des gains XP, etc.</p>
+      <h4>API</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>FloatingText.spawn(root, x, y, text)</code></td><td><code>ContainerComponent, int, int, String</code></td><td>Cree et ajoute un floating text au conteneur</td></tr>
+            <tr><td><code>.color(argb)</code></td><td><code>int</code></td><td>Couleur du texte</td></tr>
+            <tr><td><code>.scale(factor)</code></td><td><code>float</code></td><td>Taille du texte</td></tr>
+            <tr><td><code>.duration(ticks)</code></td><td><code>int</code></td><td>Duree totale avant disparition (defaut 30)</td></tr>
+            <tr><td><code>.floatDistance(px)</code></td><td><code>int</code></td><td>Distance montee en pixels design (defaut 40)</td></tr>
+            <tr><td><code>.fadeIn(ticks)</code></td><td><code>int</code></td><td>Duree du fade in au debut</td></tr>
+            <tr><td><code>.fadeOut(ticks)</code></td><td><code>int</code></td><td>Duree du fade out a la fin</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Exemple</h4>
+      <div class="code-block"><span class="cm">// Afficher "+150 XP" en vert qui monte depuis la position</span>
+<span class="ty">FloatingText</span>.<span class="fn">spawn</span>(<span class="fn">getRoot</span>(), <span class="nu">100</span>, <span class="nu">80</span>, <span class="st">"+150 XP"</span>)
+    .<span class="fn">color</span>(<span class="nu">0xFF2ECC71</span>)
+    .<span class="fn">scale</span>(<span class="nu">1.2f</span>)
+    .<span class="fn">duration</span>(<span class="nu">40</span>)
+    .<span class="fn">floatDistance</span>(<span class="nu">60</span>)
+    .<span class="fn">fadeIn</span>(<span class="nu">5</span>)
+    .<span class="fn">fadeOut</span>(<span class="nu">15</span>);</div>
+
+      <!-- ICONBAR -->
+      <h3 id="iconbar">IconBar</h3>
+      <p>Rangee d'icones pour afficher des buffs, debuffs ou statuts. Chaque icone peut avoir un tooltip, un compteur et une duree (barre de progression sous l'icone).</p>
+      <h4>Constructeur</h4>
+      <div class="code-block"><span class="kw">new</span> <span class="ty">IconBar</span>(<span class="kw">int</span> x, <span class="kw">int</span> y)</div>
+      <h4>API</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>addIcon(texture, tooltip)</code></td><td><code>ResourceLocation, String</code></td><td>Ajoute une icone et retourne son index</td></tr>
+            <tr><td><code>setDuration(index, maxTicks, remainingTicks)</code></td><td><code>int, int, int</code></td><td>Affiche une barre de progression sous l'icone</td></tr>
+            <tr><td><code>setCount(index, count)</code></td><td><code>int, int</code></td><td>Affiche un nombre en superposition (0 = masque)</td></tr>
+            <tr><td><code>setVisible(index, visible)</code></td><td><code>int, boolean</code></td><td>Masque ou affiche une icone</td></tr>
+            <tr><td><code>spacing(px)</code></td><td><code>int</code></td><td>Espacement entre les icones (defaut 4)</td></tr>
+            <tr><td><code>iconSize(px)</code></td><td><code>int</code></td><td>Taille de chaque icone en design pixels (defaut 24)</td></tr>
+            <tr><td><code>direction(dir)</code></td><td><code>Direction</code> (LEFT, RIGHT)</td><td>Sens d'ajout des icones</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Exemple</h4>
+      <div class="code-block"><span class="ty">IconBar</span> buffs <span class="op">=</span> <span class="kw">new</span> <span class="ty">IconBar</span>(<span class="nu">0</span>, <span class="nu">0</span>).<span class="fn">spacing</span>(<span class="nu">4</span>).<span class="fn">iconSize</span>(<span class="nu">24</span>);
+<span class="kw">int</span> strengthIdx <span class="op">=</span> buffs.<span class="fn">addIcon</span>(STRENGTH_ICON, <span class="st">"Force II"</span>);
+<span class="kw">int</span> speedIdx    <span class="op">=</span> buffs.<span class="fn">addIcon</span>(SPEED_ICON,    <span class="st">"Vitesse I"</span>);
+<span class="fn">getRoot</span>().<span class="fn">add</span>(buffs);
+
+<span class="cm">// Dans onTick() :</span>
+buffs.<span class="fn">setDuration</span>(strengthIdx, <span class="nu">200</span>, remainingStrengthTicks);
+buffs.<span class="fn">setVisible</span>(speedIdx, player.<span class="fn">isPotionActive</span>(<span class="ty">MobEffects</span>.SPEED));</div>
+
+      <!-- OVERLAY PROGRESSBAR -->
+      <h3 id="overlay-progressbar">OverlayProgressBar</h3>
+      <p>Version allégée de ProgressBarEnhanced sans interaction utilisateur ni animations complexes. Optimisee pour les mises a jour frequentes dans les overlays.</p>
+      <h4>Constructeur</h4>
+      <div class="code-block"><span class="kw">new</span> <span class="ty">OverlayProgressBar</span>(<span class="kw">int</span> x, <span class="kw">int</span> y, <span class="kw">int</span> width, <span class="kw">int</span> height)</div>
+      <h4>API</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>value(v)</code></td><td><code>float</code> 0.0-1.0</td><td>Valeur normalisee (mise a jour directe, sans animation)</td></tr>
+            <tr><td><code>fillColor(argb)</code></td><td><code>int</code></td><td>Couleur de remplissage</td></tr>
+            <tr><td><code>backgroundColor(argb)</code></td><td><code>int</code></td><td>Couleur du fond</td></tr>
+            <tr><td><code>label(text)</code></td><td><code>String</code></td><td>Texte centre sur la barre</td></tr>
+            <tr><td><code>cornerRadius(px)</code></td><td><code>int</code></td><td>Rayon des coins</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ANCHOREDGROUP -->
+      <h3 id="anchoredgroup">AnchoredGroup</h3>
+      <p>Conteneur qui empile automatiquement ses enfants en colonne (ou en ligne) avec un espacement uniforme. Utile pour construire des HUD avec plusieurs lignes d'information.</p>
+      <h4>Constructeur</h4>
+      <div class="code-block"><span class="kw">new</span> <span class="ty">AnchoredGroup</span>(<span class="kw">int</span> x, <span class="kw">int</span> y)</div>
+      <h4>API</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>direction(dir)</code></td><td><code>Direction</code> (DOWN, UP, RIGHT, LEFT)</td><td>Sens d'empilement (defaut DOWN)</td></tr>
+            <tr><td><code>spacing(px)</code></td><td><code>int</code></td><td>Espace entre les enfants (defaut 4)</td></tr>
+            <tr><td><code>padding(px)</code></td><td><code>int</code></td><td>Marge interieure sur les 4 cotes</td></tr>
+            <tr><td><code>addChild(component)</code></td><td><code>Component</code></td><td>Ajoute un enfant et recalcule les positions</td></tr>
+            <tr><td><code>removeChild(index)</code></td><td><code>int</code></td><td>Retire un enfant par index</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Exemple</h4>
+      <div class="code-block"><span class="ty">AnchoredGroup</span> hud <span class="op">=</span> <span class="kw">new</span> <span class="ty">AnchoredGroup</span>(<span class="nu">0</span>, <span class="nu">0</span>)
+    .<span class="fn">direction</span>(<span class="ty">Direction</span>.DOWN)
+    .<span class="fn">spacing</span>(<span class="nu">6</span>)
+    .<span class="fn">padding</span>(<span class="nu">8</span>);
+
+hud.<span class="fn">addChild</span>(<span class="kw">new</span> <span class="ty">Label</span>(<span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">180</span>, <span class="nu">16</span>, <span class="st">"Faction : DragonForge"</span>));
+hud.<span class="fn">addChild</span>(<span class="kw">new</span> <span class="ty">Label</span>(<span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">180</span>, <span class="nu">16</span>, <span class="st">"Power : 120 / 200"</span>));
+hud.<span class="fn">addChild</span>(manaBar);
+<span class="fn">getRoot</span>().<span class="fn">add</span>(hud);</div>
+
+      <!-- BLINKINGINDICATOR -->
+      <h3 id="blinkingindicator">BlinkingIndicator</h3>
+      <p>Point ou icone clignotant pour attirer l'attention du joueur. Plusieurs modes de clignotement disponibles.</p>
+      <h4>Constructeur</h4>
+      <div class="code-block"><span class="kw">new</span> <span class="ty">BlinkingIndicator</span>(<span class="kw">int</span> x, <span class="kw">int</span> y, <span class="kw">int</span> size)</div>
+      <h4>API</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>color(argb)</code></td><td><code>int</code></td><td>Couleur du point (defaut rouge)</td></tr>
+            <tr><td><code>interval(ticks)</code></td><td><code>int</code></td><td>Periode de clignotement en ticks (defaut 10)</td></tr>
+            <tr><td><code>texture(texture)</code></td><td><code>ResourceLocation</code></td><td>Icone a la place du point (optionnel)</td></tr>
+            <tr><td><code>onDuration(ticks)</code></td><td><code>int</code></td><td>Duree visible par cycle (defaut : interval / 2)</td></tr>
+            <tr><td><code>pulseMode(enabled)</code></td><td><code>boolean</code></td><td>Mode pulse (scale + opacity animate) au lieu de on/off binaire</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Exemple</h4>
+      <div class="code-block"><span class="cm">// Point rouge clignotant en mode pulse pour indiquer une zone de guerre</span>
+<span class="ty">BlinkingIndicator</span> warIndicator <span class="op">=</span> <span class="kw">new</span> <span class="ty">BlinkingIndicator</span>(<span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">12</span>)
+    .<span class="fn">color</span>(<span class="nu">0xFFE74C3C</span>)
+    .<span class="fn">interval</span>(<span class="nu">20</span>)
+    .<span class="fn">pulseMode</span>(<span class="kw">true</span>);
+<span class="fn">getRoot</span>().<span class="fn">add</span>(warIndicator);</div>
+
+      <!-- OVERLAYTOAST -->
+      <h3 id="overlaytoast">OverlayToast</h3>
+      <p>Systeme de notifications toast pour les overlays. Independant du systeme <code>NotificationManager</code> des GUI (qui n'est visible qu'en GUI). Les toasts overlay s'affichent directement en jeu, a la position configuree par le joueur.</p>
+
+      <div class="callout callout-violet">
+        <div class="callout-icon">&#9432;</div>
+        <div class="callout-body">
+          <div class="callout-title">OverlayToast vs NotificationManager</div>
+          <div class="callout-text"><code>NotificationManager</code> (EriAPI GUI) affiche des toasts uniquement quand un <code>EriGuiScreen</code> est ouvert. <code>OverlayToast</code> affiche des notifications directement en jeu, en tout temps, via le systeme d'overlay modulaire.</div>
+        </div>
+      </div>
+
+      <h4>API statique</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Parametre(s)</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>OverlayToast.show(title, message, type, durationTicks)</code></td><td><code>String, String, ToastType, int</code></td><td>Affiche un toast. Ajoute a la queue si 3 deja visibles.</td></tr>
+            <tr><td><code>OverlayToast.show(title, message, type)</code></td><td><code>String, String, ToastType</code></td><td>Duree par defaut (80 ticks = 4 sec)</td></tr>
+            <tr><td><code>OverlayToast.configure()</code></td><td>—</td><td>Retourne un builder de configuration</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Types de toast (enum ToastType)</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Couleur</th><th>Icone</th></tr></thead>
+          <tbody>
+            <tr><td><code>SUCCESS</code></td><td>Vert <code>#2ECC71</code></td><td>&#10003; Coche</td></tr>
+            <tr><td><code>ERROR</code></td><td>Rouge <code>#E74C3C</code></td><td>&#10007; Croix</td></tr>
+            <tr><td><code>INFO</code></td><td>Cyan <code>#00E5FF</code></td><td>&#9432; Info</td></tr>
+            <tr><td><code>WARNING</code></td><td>Orange <code>#E67E22</code></td><td>&#9888; Attention</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Configuration</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Option</th><th>Description</th><th>Defaut</th></tr></thead>
+          <tbody>
+            <tr><td><code>position(pos)</code></td><td>Position des toasts : TOP_RIGHT, TOP_LEFT, BOTTOM_RIGHT, BOTTOM_LEFT</td><td>TOP_RIGHT</td></tr>
+            <tr><td><code>defaultDuration(ticks)</code></td><td>Duree par defaut quand non specifiee</td><td>80 ticks</td></tr>
+            <tr><td><code>maxVisible(n)</code></td><td>Nombre max de toasts visibles simultanement</td><td>3</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Comportement</h4>
+      <ul>
+        <li>Animation d'entree : slide in depuis le bord de l'ecran (direction selon la position) + fade in</li>
+        <li>Animation de sortie : fade out progressif sur les 15 derniers ticks</li>
+        <li>Si 3 toasts sont deja affichés, les nouveaux sont mis en queue et apparaissent quand une place se libere</li>
+        <li>Style liquid glass : fond <code>rgba(14,14,22,0.88)</code>, bordure <code>rgba(255,255,255,0.12)</code> + bande de couleur a gauche selon le type, coins arrondis 8px</li>
+        <li>La position est configurable par le joueur via le GUI Manager (OverlayToast est enregistre comme un OverlayMod interne)</li>
+      </ul>
+
+      <h4>Exemple</h4>
+      <div class="code-block"><span class="cm">// Notification de success quand le joueur rejoint une faction</span>
+<span class="ty">OverlayToast</span>.<span class="fn">show</span>(
+    <span class="st">"Faction rejointe"</span>,
+    <span class="st">"Vous avez rejoint DragonForge !"</span>,
+    <span class="ty">ToastType</span>.SUCCESS
+);
+
+<span class="cm">// Avertissement de zone de guerre</span>
+<span class="ty">OverlayToast</span>.<span class="fn">show</span>(
+    <span class="st">"Zone de guerre"</span>,
+    <span class="st">"Vous entrez en territoire ennemi. PvP actif."</span>,
+    <span class="ty">ToastType</span>.WARNING,
+    <span class="nu">120</span> <span class="cm">// 6 secondes</span>
+);
+
+<span class="cm">// Configuration globale (dans ClientProxy.init())</span>
+<span class="ty">OverlayToast</span>.<span class="fn">configure</span>()
+    .<span class="fn">position</span>(<span class="ty">ToastPosition</span>.TOP_RIGHT)
+    .<span class="fn">defaultDuration</span>(<span class="nu">80</span>)
+    .<span class="fn">maxVisible</span>(<span class="nu">3</span>);</div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         06 — ARCHITECTURE
+    ═══════════════════════════════════════ -->
+    <div class="section-card" id="architecture">
+      <h2><span class="s-num green-num">06</span>Architecture technique</h2>
+
+      <h3 class="first">Packages</h3>
+      <div class="code-block"><span class="cm">// Composants GUI</span>
+fr.eri.eriapi.gui.components/
+├── <span class="ty">Dropdown</span>.java
+├── <span class="ty">ToggleSwitch</span>.java
+├── <span class="ty">Modal</span>.java
+├── <span class="ty">PlayerHead</span>.java
+├── <span class="ty">ItemStackRenderer</span>.java
+├── <span class="ty">Divider</span>.java
+├── <span class="ty">Badge</span>.java
+├── <span class="ty">Accordion</span>.java
+├── <span class="ty">Carousel</span>.java
+├── <span class="ty">ProgressBarEnhanced</span>.java
+└── <span class="ty">Shape</span>.java (enum : HORIZONTAL, VERTICAL, CIRCULAR, PIE, DIAMOND, HEXAGON, OCTAGON, PENTAGON, SQUARE)
+
+<span class="cm">// Overlay modulaire</span>
+fr.eri.eriapi.overlay/
+├── <span class="ty">OverlayMod</span>.java              <span class="cm">← Classe de base abstraite</span>
+├── <span class="ty">OverlayModManager</span>.java       <span class="cm">← Singleton (remplace OverlayManager)</span>
+├── <span class="ty">OverlayModEventHandler</span>.java  <span class="cm">← @Mod.EventBusSubscriber client-only</span>
+├── <span class="ty">OverlayModConfig</span>.java        <span class="cm">← Persistance Gson → JSON</span>
+├── components/
+│   ├── <span class="ty">FloatingText</span>.java
+│   ├── <span class="ty">IconBar</span>.java
+│   ├── <span class="ty">OverlayProgressBar</span>.java
+│   ├── <span class="ty">AnchoredGroup</span>.java
+│   ├── <span class="ty">BlinkingIndicator</span>.java
+│   └── <span class="ty">OverlayToast</span>.java
+├── settings/
+│   ├── <span class="ty">ModSettings</span>.java          <span class="cm">← Builder de declaration d'options</span>
+│   ├── <span class="ty">SettingEntry</span>.java         <span class="cm">← Entree d'option (key, label, type, value, default)</span>
+│   └── <span class="ty">SettingType</span>.java          <span class="cm">← Enum (TOGGLE, SLIDER, SLIDER_INT, DROPDOWN, COLOR_PICKER, TEXT_FIELD, KEYBIND, SEPARATOR, INFO)</span>
+└── editor/
+    ├── <span class="ty">GuiOverlayManager</span>.java     <span class="cm">← GUI activation/desactivation</span>
+    ├── <span class="ty">GuiOverlayEditor</span>.java      <span class="cm">← GUI drag &amp; drop</span>
+    └── <span class="ty">GuiModSettings</span>.java        <span class="cm">← GUI settings genere automatiquement (liquid glass)</span>
+
+<span class="cm">// Deprecated (retro-compatibilite)</span>
+fr.eri.eriapi.overlay/
+├── <span class="an">@Deprecated</span> <span class="ty">EriOverlay</span>.java
+├── <span class="an">@Deprecated</span> <span class="ty">OverlayManager</span>.java
+├── <span class="an">@Deprecated</span> <span class="ty">Anchor</span>.java
+├── <span class="an">@Deprecated</span> <span class="ty">OverlayLayer</span>.java
+└── <span class="an">@Deprecated</span> <span class="ty">OverlayEventHandler</span>.java</div>
+
+      <h3>Relations et heritage</h3>
+      <ul>
+        <li><strong><code>OverlayMod</code></strong> contient un <code>ContainerComponent</code> par composition (pas d'heritage GUI)</li>
+        <li>Tous les composants GUI (<code>Label</code>, <code>ProgressBarEnhanced</code>, etc.) sont utilisables dans <code>OverlayMod.getRoot().add(...)</code></li>
+        <li><strong><code>GuiOverlayManager</code></strong> et <strong><code>GuiOverlayEditor</code></strong> etendent <code>EriGuiScreen</code></li>
+        <li><strong><code>OverlayModConfig</code></strong> utilise Gson (deja disponible dans le classpath Minecraft Forge) pour la serialisation JSON</li>
+        <li><strong><code>OverlayModEventHandler</code></strong> ecoute <code>RenderGameOverlayEvent.Post</code> et <code>ClientTickEvent</code> — uniquement cote client</li>
+        <li><code>OverlayToast</code> est enregistre automatiquement comme un <code>OverlayMod</code> special par EriAPI au chargement, permettant au joueur de positionner la zone de toasts via le GUI Editeur</li>
+      </ul>
+
+      <h3>Flux de rendu</h3>
+      <div class="code-block"><span class="cm">// Chaque frame (RenderGameOverlayEvent.Post, ElementType.ALL)</span>
+<span class="ty">OverlayModEventHandler</span>.<span class="fn">onRender</span>(event) {
+    <span class="kw">if</span> (gameSettings.hideGUI) <span class="kw">return</span>;
+    <span class="kw">if</span> (currentGui <span class="kw">instanceof</span> <span class="ty">GuiOverlayEditor</span>) <span class="kw">return</span>;
+    <span class="ty">OverlayModManager</span>.<span class="fn">getInstance</span>().<span class="fn">renderAll</span>(event.getPartialTicks());
+}
+
+<span class="cm">// renderAll() pour chaque OverlayMod enabled :</span>
+<span class="kw">for</span> (<span class="ty">OverlayMod</span> mod : enabledMods) {
+    <span class="kw">if</span> (!mod.built) { mod.<span class="fn">buildOverlay</span>(); mod.built <span class="op">=</span> <span class="kw">true</span>; }
+    <span class="kw">float</span> screenX <span class="op">=</span> mod.posXPercent <span class="op">*</span> screenWidth;
+    <span class="kw">float</span> screenY <span class="op">=</span> mod.posYPercent <span class="op">*</span> screenHeight;
+    <span class="cm">// Appliquer scale + translation + rendre le ContainerComponent</span>
+    <span class="ty">ScaleManager</span>.<span class="fn">renderAt</span>(mod.<span class="fn">getRoot</span>(), screenX, screenY, mod.scale, partialTicks);
+}</div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         07 — PLAN D'IMPLÉMENTATION
+    ═══════════════════════════════════════ -->
+    <div class="section-card" id="implementation">
+      <h2><span class="s-num">07</span>Plan d'implementation</h2>
+      <div class="phase-list">
+        <div class="phase-item">
+          <div class="phase-dot">1</div>
+          <div class="phase-content">
+            <div class="phase-title">Composants GUI simples</div>
+            <div class="phase-tasks">Divider, Badge, ToggleSwitch, Dropdown — composants sans dependances complexes a implementer en premier</div>
+          </div>
+        </div>
+        <div class="phase-item">
+          <div class="phase-dot">2</div>
+          <div class="phase-content">
+            <div class="phase-title">Composants GUI complexes</div>
+            <div class="phase-tasks">Modal, Accordion, Carousel, PlayerHead, ItemStackRenderer — necessite la gestion des interactions et du rendu 3D</div>
+          </div>
+        </div>
+        <div class="phase-item">
+          <div class="phase-dot">3</div>
+          <div class="phase-content">
+            <div class="phase-title">ProgressBar Enhanced (9 formes)</div>
+            <div class="phase-tasks">Toutes les formes geometriques avec leur rendu OpenGL. Commencer par HORIZONTAL/VERTICAL, puis CIRCULAR/PIE, puis les formes clippees (DIAMOND, HEXAGON, OCTAGON, PENTAGON, SQUARE)</div>
+          </div>
+        </div>
+        <div class="phase-item">
+          <div class="phase-dot">4</div>
+          <div class="phase-content">
+            <div class="phase-title">Systeme overlay modulaire (core)</div>
+            <div class="phase-tasks">OverlayMod, OverlayModManager (singleton), OverlayModEventHandler, OverlayModConfig (persistance JSON), deprecation des anciennes classes</div>
+          </div>
+        </div>
+        <div class="phase-item">
+          <div class="phase-dot">5</div>
+          <div class="phase-content">
+            <div class="phase-title">GUI Manager + GUI Editeur</div>
+            <div class="phase-tasks">GuiOverlayManager (liquid glass, grille, filtres), GuiOverlayEditor (drag &amp; drop, handles de resize, snap to grid, snap to center, menu contextuel)</div>
+          </div>
+        </div>
+        <div class="phase-item">
+          <div class="phase-dot">6</div>
+          <div class="phase-content">
+            <div class="phase-title">Composants overlay</div>
+            <div class="phase-tasks">FloatingText, IconBar, OverlayProgressBar (allégée), AnchoredGroup, BlinkingIndicator, OverlayToast avec systeme de queue</div>
+          </div>
+        </div>
+        <div class="phase-item">
+          <div class="phase-dot">7</div>
+          <div class="phase-content">
+            <div class="phase-title">Documentation + Build + Tests</div>
+            <div class="phase-tasks">Mise a jour des pages HTML EriAPI (gui.html et overlay.html), build du jar EriAPI, import dans EriniumFaction, tests en jeu avec des OverlayMod concrets</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         08 — TESTS
+    ═══════════════════════════════════════ -->
+    <div class="section-card" id="tests">
+      <h2><span class="s-num">08</span>Tests</h2>
+
+      <h3 class="first">Tests composants GUI</h3>
+      <div class="checklist">
+        <div class="check-item"><strong>Dropdown</strong> — ouverture/fermeture, navigation clavier, recherche filtrante, scroll avec + de 6 items, callback onChange</div>
+        <div class="check-item"><strong>ToggleSwitch</strong> — animation slide, callback onToggle, couleurs activeColor/inactiveColor</div>
+        <div class="check-item"><strong>Modal</strong> — confirm avec deux callbacks, alert, ESC ferme, interactions bloquees sous la modal, fade in</div>
+        <div class="check-item"><strong>PlayerHead</strong> — rendu 3D du skin, chargement asynchrone UUID, rotation yaw/pitch, chapeau</div>
+        <div class="check-item"><strong>ItemStackRenderer</strong> — rendu item, tooltip au hover, count visible/masque, scale</div>
+        <div class="check-item"><strong>Divider</strong> — horizontal/vertical, degrade, epaisseur, marge</div>
+        <div class="check-item"><strong>Badge</strong> — taille auto, mode outline, icone, couleurs</div>
+        <div class="check-item"><strong>Accordion</strong> — animation de hauteur, singleMode, expandAll/collapseAll</div>
+        <div class="check-item"><strong>Carousel</strong> — navigation par fleches, autoScroll, points indicateurs, setVisibleCount(3)</div>
+      </div>
+
+      <h3>Tests ProgressBar Enhanced</h3>
+      <div class="checklist">
+        <div class="check-item">Toutes les 9 formes s'affichent correctement a differentes tailles (20px, 60px, 120px)</div>
+        <div class="check-item">barWidth configurable sur CIRCULAR et les formes geometriques</div>
+        <div class="check-item">gradientFill s'applique dans le bon sens selon la forme</div>
+        <div class="check-item">segments et segmentGap divise correctement la barre</div>
+        <div class="check-item">animate interpole fluide quand value() est appele en onTick()</div>
+        <div class="check-item">showPercentage affiche le bon pourcentage centre</div>
+      </div>
+
+      <h3>Tests systeme overlay modulaire</h3>
+      <div class="checklist">
+        <div class="check-item">Drag &amp; drop dans l'editeur repositionne correctement le mod a la release</div>
+        <div class="check-item">Positions sauvegardees dans le JSON a la fermeture du GUI Editeur</div>
+        <div class="check-item">Rechargement du JSON au demarrage restaure les positions exactes</div>
+        <div class="check-item">Changement de resolution : les positions en % restent coherentes</div>
+        <div class="check-item">Toggle on/off fonctionne depuis le GUI Manager et depuis le code</div>
+        <div class="check-item">Scale min/max est respectee lors du resize</div>
+        <div class="check-item">Les mods ne sortent pas de l'ecran (clamping)</div>
+        <div class="check-item">F1 masque tous les overlays</div>
+        <div class="check-item">Ouverture d'un EriGuiScreen n'affiche pas les overlays (sauf en mode editeur)</div>
+        <div class="check-item">Plusieurs mods de differents mods Forge coexistent sans conflit d'id</div>
+        <div class="check-item">Un mod sans entree JSON utilise ses valeurs par defaut</div>
+        <div class="check-item">Snap to grid et snap to center guident correctement l'alignement</div>
+      </div>
+
+      <h3>Tests composants overlay</h3>
+      <div class="checklist">
+        <div class="check-item"><strong>FloatingText</strong> — apparait, monte, disparait avec les durees fadeIn/fadeOut correctes</div>
+        <div class="check-item"><strong>IconBar</strong> — icones visibles/masquees, barre de duree s'ecoule, count affiche</div>
+        <div class="check-item"><strong>OverlayProgressBar</strong> — mise a jour instantanee depuis onTick() sans lag</div>
+        <div class="check-item"><strong>AnchoredGroup</strong> — empilement correct dans les 4 directions, padding respecte</div>
+        <div class="check-item"><strong>BlinkingIndicator</strong> — clignotement regulier, pulseMode anime en douceur</div>
+        <div class="check-item"><strong>OverlayToast</strong> — 4 types s'affichent, queue respectee si 3+ toasts, slide in/out depuis le bon bord, position configurable par le joueur</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

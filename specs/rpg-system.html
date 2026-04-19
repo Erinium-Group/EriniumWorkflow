@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Systeme RPG | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 50% 90%, rgba(241,196,15,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 12px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+
+  /* =========================================================
+     SECTION CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr { background: rgba(107,47,160,0.18); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .tag-opt { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(241,196,15,0.10); color: var(--gold); border: 1px solid rgba(241,196,15,0.25); letter-spacing: 0.05em; }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .cl  { color: #FFCB6B; }
+
+  /* =========================================================
+     INFO BOXES
+  ========================================================= */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2);   }
+
+  /* =========================================================
+     STAT GRID
+  ========================================================= */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 20px 0;
+  }
+
+  .stat-card {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 18px 16px;
+  }
+
+  .stat-card-name {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .stat-card-bonus {
+    font-size: 11px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  .stat-card-bonus strong { color: var(--text); }
+
+  .stat-card.vigueur    { border-top: 3px solid #E74C3C; }
+  .stat-card.force      { border-top: 3px solid var(--orange); }
+  .stat-card.resistance { border-top: 3px solid #5B9BD5; }
+  .stat-card.agilite    { border-top: 3px solid var(--green); }
+  .stat-card.fortune    { border-top: 3px solid var(--gold); }
+  .stat-card.arcane     { border-top: 3px solid var(--violet-l); }
+
+  .stat-card.vigueur    .stat-card-name { color: #E74C3C; }
+  .stat-card.force      .stat-card-name { color: var(--orange); }
+  .stat-card.resistance .stat-card-name { color: #5B9BD5; }
+  .stat-card.agilite    .stat-card-name { color: var(--green); }
+  .stat-card.fortune    .stat-card-name { color: var(--gold); }
+  .stat-card.arcane     .stat-card-name { color: var(--violet-l); }
+
+  /* =========================================================
+     PERK GRID
+  ========================================================= */
+  .perk-tier {
+    margin: 20px 0;
+  }
+
+  .perk-tier-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .perk-tier-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--card-bdr);
+  }
+
+  .perk-tier-label .lvl-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: rgba(107,47,160,0.2);
+    color: var(--violet-l);
+    border: 1px solid rgba(107,47,160,0.3);
+  }
+
+  .perk-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .perk-card {
+    background: rgba(5,5,10,0.45);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    transition: border-color .2s, background .2s;
+  }
+
+  .perk-card:hover {
+    border-color: rgba(107,47,160,0.3);
+    background: rgba(107,47,160,0.06);
+  }
+
+  .perk-card-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .perk-card-desc {
+    font-size: 12px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  /* =========================================================
+     BUILD GRID
+  ========================================================= */
+  .build-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin: 20px 0;
+  }
+
+  .build-card {
+    background: rgba(5,5,10,0.45);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+  }
+
+  .build-card-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cyan);
+    margin-bottom: 8px;
+  }
+
+  .build-card-stats {
+    font-size: 12px;
+    color: var(--slate);
+    line-height: 1.6;
+  }
+
+  .build-card-stats strong { color: var(--text); }
+
+  /* =========================================================
+     XP CURVE
+  ========================================================= */
+  .xp-curve {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  .xp-phase {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    text-align: center;
+  }
+
+  .xp-phase-range {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .xp-phase-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin-bottom: 10px;
+  }
+
+  .xp-phase-time {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+
+  .xp-phase-desc {
+    font-size: 11px;
+    color: var(--slate);
+  }
+
+  /* =========================================================
+     ANIMATIONS + DIVIDER
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-bdr), transparent);
+    margin: 24px 0;
+  }
+
+  /* =========================================================
+     MOBILE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,47,160,0.4);
+    transition: transform .2s;
+  }
+
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 50;
+      width: 260px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .perk-grid { grid-template-columns: 1fr; }
+    .build-grid { grid-template-columns: 1fr; }
+    .xp-curve { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 600px) {
+    .section-card { padding: 24px 18px; }
+    .page-header h1 { font-size: 26px; }
+    .stat-grid { grid-template-columns: 1fr; }
+    .xp-curve { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+
+    <span class="sidebar-title">Sommaire</span>
+
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Level &amp; XP</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Sources d'XP</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Anti-grind</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Defis journaliers</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Stats RPG</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Builds typiques</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Perks</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Prestige</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> HUD</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> GUI Menu RPG</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Architecture technique</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Plan de tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">CAHIER DES CHARGES</div>
+      <h1>Systeme RPG</h1>
+      <p>Un seul niveau global, des stats reactives, des perks par paliers et un systeme de prestige : la progression verticale d'EriniumFaction, centree sur le PvP actif.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Minecraft 1.12.2</span>
+        <span class="badge badge-cyan">EriAPI</span>
+        <span class="badge badge-violet">Forge Mod</span>
+        <span class="badge badge-orange">PvP / Progression</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <div class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <p>EriniumFaction est un serveur PvP/Faction ou chaque joueur doit sentir qu'il progresse a chaque session. Le systeme RPG est le moteur de cette progression : il recompense le jeu actif sans punir les debutants ni avantager excessivement les veterans.</p>
+
+      <h3 class="first">Philosophie</h3>
+      <ul>
+        <li><strong>Un seul niveau global</strong> — pas de systeme de metiers separes. Tout contribue au meme niveau, la diversite vient des choix de stats et de perks.</li>
+        <li><strong>Jouer, pas farmer</strong> — l'XP vient en priorite du PvP et du contenu actif (events, PDC, defis). Le farm passif existe mais est soumis a des rendements decroissants agressifs.</li>
+        <li><strong>Choix significatifs</strong> — les 49 points de stats et les 5 perks crees des builds distincts avec de vraies differences en combat. Le respec est possible mais couteux.</li>
+        <li><strong>Pas de punition a la mort</strong> — aucune XP perdue a la mort. Le PvP est encourage, pas sanctionne.</li>
+        <li><strong>Progression lisible</strong> — le joueur voit en permanence son avancement (barre d'XP, gains flottants, notifications de level-up).</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Scope</strong> — Ce cahier couvre le systeme de niveau, les sources d'XP, la saturation anti-grind, les 6 stats, les perks par paliers, le prestige, le HUD et le GUI dedie. L'integration avec les factions (buff de guilde, etc.) est traitee dans un spec separe.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S2 — LEVEL & XP ═══ -->
+    <div class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Level &amp; XP</h2>
+
+      <h3 class="first">Parametres globaux</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Parametre</th>
+              <th>Valeur</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Level maximum</td>
+              <td>50</td>
+              <td>Au-dela : prestige disponible</td>
+            </tr>
+            <tr>
+              <td>XP perdue a la mort</td>
+              <td>Aucune</td>
+              <td>Le PvP ne doit jamais punir</td>
+            </tr>
+            <tr>
+              <td>Courbe</td>
+              <td>Logarithmique</td>
+              <td>Debutts rapides, fin de progression exigeante</td>
+            </tr>
+            <tr>
+              <td>Temps estime (max)</td>
+              <td>100 – 130h de jeu actif</td>
+              <td>Equivalent a 4-6 semaines a 2-3h/jour</td>
+            </tr>
+            <tr>
+              <td>Points de stat gagnes</td>
+              <td>1 par level (level 2 → 50)</td>
+              <td>Total 49 points disponibles</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Courbe de progression detaillee</h3>
+
+      <div class="xp-curve">
+        <div class="xp-phase">
+          <div class="xp-phase-range">1 – 10</div>
+          <div class="xp-phase-label">Phase Decouverte</div>
+          <div class="xp-phase-time">~5 – 8h</div>
+          <div class="xp-phase-desc">Rapide. Le joueur decouvre le serveur et voit sa progression avancer vite.</div>
+        </div>
+        <div class="xp-phase">
+          <div class="xp-phase-range">11 – 25</div>
+          <div class="xp-phase-label">Phase Construction</div>
+          <div class="xp-phase-time">~20 – 30h</div>
+          <div class="xp-phase-desc">Moderee. La routine PvP et les defis journaliers deviennent le moteur principal.</div>
+        </div>
+        <div class="xp-phase">
+          <div class="xp-phase-range">26 – 40</div>
+          <div class="xp-phase-label">Phase Maitrise</div>
+          <div class="xp-phase-time">~40 – 50h</div>
+          <div class="xp-phase-desc">Soutenue. Necessite du PvP actif et la participation aux events mondiaux.</div>
+        </div>
+        <div class="xp-phase">
+          <div class="xp-phase-range">41 – 50</div>
+          <div class="xp-phase-label">Phase Elite</div>
+          <div class="xp-phase-time">~30 – 40h</div>
+          <div class="xp-phase-desc">Ambitieuse. Reserve aux joueurs les plus investis. Deblocage du prestige a l'horizon.</div>
+        </div>
+      </div>
+
+      <h3>Formule XP requise par level</h3>
+      <p>La quantite d'XP necessaire pour passer du level N au level N+1 suit une courbe logarithmique aplanie :</p>
+      <div class="code-block"><span class="cm">// XP requise pour le level N (N de 1 a 50)</span>
+<span class="ty">long</span> <span class="fn">xpRequiredForLevel</span>(<span class="ty">int</span> level) {
+    <span class="cm">// Base 1000 XP au level 1, courbe logarithmique</span>
+    <span class="kw">return</span> (<span class="ty">long</span>) (<span class="nu">1000</span> * Math.<span class="fn">pow</span>(level, <span class="nu">1.65</span>));
+}
+<span class="cm">// Ex: level 1 → 1000 XP | level 10 → ~44k XP | level 25 → ~215k XP | level 50 → ~970k XP</span></div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>XP en prestige</strong> — Un joueur en prestige gagne +20% d'XP sur toutes les sources. La courbe reste identique mais la vitesse de relevel est recompensee.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S3 — SOURCES D'XP ═══ -->
+    <div class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Sources d'XP</h2>
+
+      <p>L'XP est gagnee via de nombreuses actions, regroupees par categorie pour le systeme de saturation. Les valeurs hautes du tableau correspondent a des cibles de haut level, des actions particulierement performees ou des events de difficulte elevee.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>XP par action</th>
+              <th>Categorie</th>
+              <th>Saturable</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Tuer un joueur</td>
+              <td>150 – 400 XP <span style="color:var(--slate);font-size:11px">(selon le level)</span></td>
+              <td>PvP</td>
+              <td><span class="tag-opt">Partiel</span></td>
+            </tr>
+            <tr>
+              <td>Assist sur un kill</td>
+              <td>75 – 200 XP</td>
+              <td>PvP</td>
+              <td><span class="tag-opt">Partiel</span></td>
+            </tr>
+            <tr>
+              <td>Capturer un PDC</td>
+              <td>300 XP</td>
+              <td>PvP / Objectif</td>
+              <td><span class="tag-no">Non</span></td>
+            </tr>
+            <tr>
+              <td>Participer a un event mondial</td>
+              <td>200 – 800 XP</td>
+              <td>Event</td>
+              <td><span class="tag-no">Non</span></td>
+            </tr>
+            <tr>
+              <td>Tuer un boss d'Erinium</td>
+              <td>500 – 1000 XP</td>
+              <td>PvE / Event</td>
+              <td><span class="tag-no">Non</span></td>
+            </tr>
+            <tr>
+              <td>Tuer un mob</td>
+              <td>5 – 25 XP</td>
+              <td>PvE</td>
+              <td><span class="tag-yes">Oui</span></td>
+            </tr>
+            <tr>
+              <td>Miner un minerai</td>
+              <td>2 – 15 XP</td>
+              <td>Recolte</td>
+              <td><span class="tag-yes">Oui</span></td>
+            </tr>
+            <tr>
+              <td>Crafter un item d'Erinium</td>
+              <td>50 – 150 XP</td>
+              <td>Craft</td>
+              <td><span class="tag-yes">Oui</span></td>
+            </tr>
+            <tr>
+              <td>Completer un defi journalier</td>
+              <td>100 – 300 XP</td>
+              <td>Defi</td>
+              <td><span class="tag-no">Non</span></td>
+            </tr>
+            <tr>
+              <td>Premier kill du jour</td>
+              <td>+200 XP bonus</td>
+              <td>Bonus connexion</td>
+              <td><span class="tag-no">Non</span></td>
+            </tr>
+            <tr>
+              <td>Premier event du jour</td>
+              <td>+200 XP bonus</td>
+              <td>Bonus connexion</td>
+              <td><span class="tag-no">Non</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>XP scalee au level de la cible (PvP)</h3>
+      <p>Pour les kills PvP, l'XP est proporionnelle a l'ecart de level entre le tueur et la cible :</p>
+      <ul>
+        <li><strong>Cible level egal ou superieur</strong> — XP pleine (150 – 400 selon son level absolu)</li>
+        <li><strong>Cible level inferieur de 1-5</strong> — XP reduite de 25%</li>
+        <li><strong>Cible level inferieur de 6-10</strong> — XP reduite de 50%</li>
+        <li><strong>Cible level inferieur de 11+</strong> — XP minimale fixe (50 XP)</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Kill repetitif sur le meme joueur</strong> — Voir section Anti-grind. Des kills repetes sur une meme cible dans la meme periode declenchent une saturation agressive pour decourager le farming de joueurs passifs ou consentants.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S4 — ANTI-GRIND ═══ -->
+    <div class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Anti-grind : rendements decroissants</h2>
+
+      <p>Chaque categorie de source d'XP possede un compteur de saturation independant. Quand un joueur repete la meme action trop souvent dans la meme journee, le multiplicateur d'XP chute progressivement.</p>
+
+      <h3 class="first">Paliers de saturation par categorie</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Actions (cumulees dans la journee)</th>
+              <th>Multiplicateur XP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1 – 20</td><td>100% (plein)</td></tr>
+            <tr><td>21 – 50</td><td>75%</td></tr>
+            <tr><td>51 – 100</td><td>50%</td></tr>
+            <tr><td>101 – 200</td><td>25%</td></tr>
+            <tr><td>201+</td><td>10% (plancher)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Regles de reset et d'exception</h3>
+      <ul>
+        <li><strong>Reset</strong> — Les compteurs se remettent a zero toutes les 24h (minuit UTC, ou minuit heure serveur configurable via EriScheduler).</li>
+        <li><strong>Exception PvP — kills sur joueurs differents</strong> — Pas de saturation. Chaque joueur unique tue compte separement. Le PvP diversifie est toujours recompense a plein.</li>
+        <li><strong>Exception PvP — kills sur le meme joueur</strong> — Saturation ultra-agressive : 1er kill = 100%, 2e = 50%, 3e = 25%, 4e+ = 5%. Reset si le meme joueur n'a pas ete tue depuis 2h.</li>
+        <li><strong>Categories hors saturation</strong> — PDC, Events mondiaux, Bosses, Defis journaliers, Bonus de connexion ne sont jamais satures.</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Implementation</strong> — Un <code>Map&lt;String, Map&lt;XpCategory, Integer&gt;&gt;</code> par UUID joueur stocke les compteurs du jour. Utiliser <code>@EriData(scope = DataScope.PLAYER)</code> avec un champ <code>lastResetTimestamp</code> pour detecter le reset 24h au login et via <code>EriScheduler.repeat()</code> cote serveur.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S5 — DEFIS JOURNALIERS ═══ -->
+    <div class="section-card" id="s5">
+      <h2><span class="s-num orange-num">05</span> Defis journaliers</h2>
+
+      <p>Chaque jour, 3 defis sont attribues aleatoirement a chaque joueur. Ils sont optionnels, courts (10-30 min max), et constituent un excellent complement d'XP pour les joueurs qui ne font pas de PvP intensif ce jour-la.</p>
+
+      <h3 class="first">Parametres</h3>
+      <ul>
+        <li><strong>Nombre par jour</strong> — 3 defis, piches aleatoirement dans la liste globale</li>
+        <li><strong>Duree estimee</strong> — 10 a 30 minutes chacun</li>
+        <li><strong>Caractere</strong> — Entierement optionnels, aucune penalite si non completes</li>
+        <li><strong>Reset</strong> — Chaque jour a minuit heure serveur, nouveaux defis attribues</li>
+        <li><strong>Progression</strong> — Les defis non completes le jour J disparaissent a J+1</li>
+      </ul>
+
+      <h3>Liste des defis disponibles (exemples)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Defi</th>
+              <th>Condition</th>
+              <th>XP</th>
+              <th>Categorie</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Chasseur</td>
+              <td>Tuer 3 joueurs en Warzone</td>
+              <td>300 XP</td>
+              <td>PvP</td>
+            </tr>
+            <tr>
+              <td>Conquerant</td>
+              <td>Capturer un PDC</td>
+              <td>250 XP</td>
+              <td>Objectif</td>
+            </tr>
+            <tr>
+              <td>Exterminateur</td>
+              <td>Tuer 50 mobs en 30 min</td>
+              <td>150 XP</td>
+              <td>PvE</td>
+            </tr>
+            <tr>
+              <td>Mineur</td>
+              <td>Miner 30 minerais rares</td>
+              <td>120 XP</td>
+              <td>Recolte</td>
+            </tr>
+            <tr>
+              <td>Artisan</td>
+              <td>Crafter 5 items d'Erinium</td>
+              <td>200 XP</td>
+              <td>Craft</td>
+            </tr>
+            <tr>
+              <td>Survivant</td>
+              <td>Rester en Warzone 10 min sans mourir</td>
+              <td>180 XP</td>
+              <td>PvP</td>
+            </tr>
+            <tr>
+              <td>Assist master</td>
+              <td>Realiser 5 assists de kill</td>
+              <td>200 XP</td>
+              <td>PvP</td>
+            </tr>
+            <tr>
+              <td>Participant</td>
+              <td>Participer a un event mondial</td>
+              <td>300 XP</td>
+              <td>Event</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Implementation</strong> — Les defis sont des objets <code>DailyChallenge</code> avec un <code>ChallengeType</code> enum, une condition numerique et une XP de recompense. Assigns via <code>EriScheduler</code> au reset quotidien. Progression trackee dans le <code>@EriData</code> joueur.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S6 — STATS RPG ═══ -->
+    <div class="section-card" id="s6">
+      <h2><span class="s-num">06</span> Stats RPG — Les 6 stats</h2>
+
+      <p>A chaque level gagne (de 2 a 50), le joueur recoit <strong>1 point de stat</strong> a repartir librement entre les 6 stats. Chaque stat est cappee a <strong>25 points</strong>. Total disponible : 49 points — il est impossible de tout maxer, les choix sont structurants.</p>
+
+      <div class="stat-grid">
+        <div class="stat-card vigueur">
+          <div class="stat-card-name">Vigueur</div>
+          <div class="stat-card-bonus">
+            <strong>+2% PV max</strong> par point<br>
+            Max : +50% (10 → 15 coeurs)<br>
+            <span style="color:var(--violet-l)">+0,5 Mana max par point (bonus secondaire, max +12,5 Mana)</span><br>
+            <span style="color:var(--slate)">Cap a 25 points</span>
+          </div>
+        </div>
+        <div class="stat-card force">
+          <div class="stat-card-name">Force</div>
+          <div class="stat-card-bonus">
+            <strong>+1.5% degats melee</strong> par point<br>
+            Max : +37.5% degats<br>
+            <span style="color:var(--violet-l)">+1,5% degats des sorts physiques par point (Toucher corrompu, Frappe sismique — max +37,5%)</span><br>
+            <span style="color:var(--slate)">Cap a 25 points</span>
+          </div>
+        </div>
+        <div class="stat-card resistance">
+          <div class="stat-card-name">Resistance</div>
+          <div class="stat-card-bonus">
+            <strong>+1.2% reduction degats</strong> par point<br>
+            Max : +30% reduction<br>
+            <span style="color:var(--violet-l)">-1% degats magiques recus par point (max -25%, bouclier anti-magie passif)</span><br>
+            <span style="color:var(--slate)">Cap a 25 points</span>
+          </div>
+        </div>
+        <div class="stat-card agilite">
+          <div class="stat-card-name">Agilite</div>
+          <div class="stat-card-bonus">
+            <strong>+1.3% vitesse de deplacement</strong> par point<br>
+            Max : +32.5% vitesse<br>
+            <span style="color:var(--violet-l)">-1% temps de canalisation des sorts par point (max -25%)</span><br>
+            <span style="color:var(--slate)">Cap a 25 points</span>
+          </div>
+        </div>
+        <div class="stat-card fortune">
+          <div class="stat-card-name">Fortune</div>
+          <div class="stat-card-bonus">
+            <strong>+1.5% loot rare</strong> + <strong>+1% $ bonus</strong> par point<br>
+            Max : +37.5% loot, +25% bonus monetaire<br>
+            <span style="color:var(--slate)">Cap a 25 points</span>
+          </div>
+        </div>
+        <div class="stat-card arcane">
+          <div class="stat-card-name">Arcane</div>
+          <div class="stat-card-bonus">
+            <strong>+2 Mana max</strong> par point (max +50 Mana, total 150 a 25 pts)<br>
+            <strong>+1% puissance des sorts</strong> par point (max +25% degats/heal)<br>
+            Seuil 15+ : +0,5 mana/s regeneration hors combat<br>
+            <span style="color:var(--slate)">Cap a 25 points</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>Tableau de synthese</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Stat</th>
+              <th>Bonus par point</th>
+              <th>Bonus a 25 pts</th>
+              <th>Role principal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color:#E74C3C;font-weight:700;">Vigueur</td>
+              <td>+2% PV max</td>
+              <td>+50% PV (10 → 15 coeurs)</td>
+              <td>Survie / Tank</td>
+            </tr>
+            <tr>
+              <td style="color:var(--orange);font-weight:700;">Force</td>
+              <td>+1.5% degats melee</td>
+              <td>+37.5% degats</td>
+              <td>DPS melee</td>
+            </tr>
+            <tr>
+              <td style="color:#5B9BD5;font-weight:700;">Resistance</td>
+              <td>+1.2% reduction degats</td>
+              <td>+30% reduction</td>
+              <td>Mitigation</td>
+            </tr>
+            <tr>
+              <td style="color:var(--green);font-weight:700;">Agilite</td>
+              <td>+1.3% vitesse de deplacement</td>
+              <td>+32.5% vitesse</td>
+              <td>Mobilite / Burst</td>
+            </tr>
+            <tr>
+              <td style="color:var(--gold);font-weight:700;">Fortune</td>
+              <td>+1.5% loot / +1% $</td>
+              <td>+37.5% loot / +25% $</td>
+              <td>Economie / PvE</td>
+            </tr>
+            <tr>
+              <td style="color:var(--violet-l);font-weight:700;">Arcane</td>
+              <td>+2 Mana / +1% puiss. sorts — seuil 15+ : +0,5 mana/s hors combat</td>
+              <td>+50 Mana (total 150) / +25% puiss. / regen 2,5/s hors combat</td>
+              <td>Magie / Buffs</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Respec</h3>
+      <ul>
+        <li><strong>Cout</strong> — Un montant en $ (monnaie du serveur) a definir selon l'economie globale. Propose un cout progressif : premier respec pas cher, suivants de plus en plus couteux.</li>
+        <li><strong>Ce qui est reset</strong> — Tous les points de stats sont restitues et peuvent etre redistribues librement.</li>
+        <li><strong>Ce qui est conserve</strong> — Le level, l'XP, les perks choisis (non affectes par le respec de stats).</li>
+        <li><strong>Interface</strong> — Accessible depuis le GUI Menu RPG, confirmation requise avec affichage du cout.</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S7 — BUILDS TYPIQUES ═══ -->
+    <div class="section-card" id="s7">
+      <h2><span class="s-num cyan-num">07</span> Builds typiques</h2>
+
+      <p>Les 49 points disponibles avec un cap de 25 par stat permettent une large variete de builds. Voici les archétypes attendus pour guider l'equilibrage :</p>
+
+      <div class="build-grid">
+        <div class="build-card">
+          <div class="build-card-name">Berserker</div>
+          <div class="build-card-stats">
+            <strong>Force 25</strong> / Agilite 15 / Vigueur 9<br>
+            Degats massifs, un peu de mobilite, vie correcte. Joue tres agressif, frappe fort, meurt vite si mal joue.
+          </div>
+        </div>
+        <div class="build-card">
+          <div class="build-card-name">Tank</div>
+          <div class="build-card-stats">
+            <strong>Vigueur 25</strong> / Resistance 24<br>
+            Quasi-invincible a courte duree mais aucun degats bonus. Role de sponge pour la faction.
+          </div>
+        </div>
+        <div class="build-card">
+          <div class="build-card-name">Assassin</div>
+          <div class="build-card-stats">
+            <strong>Agilite 25</strong> / Force 24<br>
+            Mobilite maximale + degats eleves. Burst one-shot possible, aucune survie en cas d'echange prolonge.
+          </div>
+        </div>
+        <div class="build-card">
+          <div class="build-card-name">Bruiser</div>
+          <div class="build-card-stats">
+            <strong>Force 18</strong> / Vigueur 18 / Resistance 13<br>
+            Build equilibre. Bon en duel, solide en faction-fight. Le build "safe" par excellence.
+          </div>
+        </div>
+        <div class="build-card">
+          <div class="build-card-name">Mage pur</div>
+          <div class="build-card-stats">
+            <strong>Arcane 25</strong> / Vigueur 24<br>
+            Mana et puissance magique maximales avec une bonne vie. Dependant des capacites magiques disponibles.
+          </div>
+        </div>
+        <div class="build-card">
+          <div class="build-card-name">Battlemage</div>
+          <div class="build-card-stats">
+            <strong>Arcane 20</strong> / Force 15 / Vigueur 14<br>
+            Hybride melee / magie. Polyvalent mais pas optimal dans une seule categorie.
+          </div>
+        </div>
+        <div class="build-card">
+          <div class="build-card-name">Farmer</div>
+          <div class="build-card-stats">
+            <strong>Fortune 25</strong> / Arcane 24<br>
+            Oriente PvE et economie. Gains monetaires et loot maximaux. Vulnerable en PvP sans investissement defensive.
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Equilibrage PvP</strong> — Un joueur level 1 (aucun bonus) face a un level 50 Berserker plein (Force 25 = +37.5% degats, Vigueur 9 = +18% PV) doit toujours avoir une chance de victoire avec le skill. Le delta de stats doit etre senti sans etre ecrasant. Voir Plan de tests section 13.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S8 — PERKS ═══ -->
+    <div class="section-card" id="s8">
+      <h2><span class="s-num green-num">08</span> Perks — Paliers tous les 10 niveaux</h2>
+
+      <p>Tous les 10 levels, le joueur choisit un perk parmi 3 options. Le choix est <strong>definitif</strong> sauf respec complete. Les 5 perks choisis (levels 10, 20, 30, 40, 50) definissent le style de jeu de maniere significative.</p>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Respec complete</strong> — Permet de choisir a nouveau les perks ET les stats. Plus couteux qu'un respec de stats seul. Le cout doit etre suffisamment dissuasif pour que les choix de perks soient pris au serieux.</div>
+      </div>
+
+      <div class="perk-tier">
+        <div class="perk-tier-label"><span class="lvl-badge">Level 10</span></div>
+        <div class="perk-grid">
+          <div class="perk-card">
+            <div class="perk-card-name">Instinct du chasseur</div>
+            <div class="perk-card-desc">Revele la direction des joueurs ennemis a moins de 50 blocs via une particule directionnelle subtile. Passif permanent.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-card-name">Second souffle</div>
+            <div class="perk-card-desc">Quand tu passes sous 20% de PV, regagne 3 coeurs instantanement. Cooldown 5 minutes. Declenche une fois par vie.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-card-name">Pas legers</div>
+            <div class="perk-card-desc">Tes deplacements ne creent aucun son de pas. Tu ne peux pas etre detecte par la proximity du bruit vanilla. Passif permanent.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="perk-tier">
+        <div class="perk-tier-label"><span class="lvl-badge">Level 20</span></div>
+        <div class="perk-grid">
+          <div class="perk-card">
+            <div class="perk-card-name">Furie d'Erinium</div>
+            <div class="perk-card-desc">Chaque kill PvP active Furie 10 secondes : +15% degats melee et +10% vitesse de deplacement. Stackable jusqu'a 3 kills (45 sec max).</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-card-name">Bastion</div>
+            <div class="perk-card-desc">Quand tu restes immobile plus de 2 secondes, tu gagnes +15% de reduction de degats. L'effet disparait 0.5s apres tout mouvement.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-card-name">Pillard</div>
+            <div class="perk-card-desc">Chaque kill PvP te donne 10% du $ de la victime (si elle en avait). Bonus : +25% XP sur les defis journaliers de type "kill".</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="perk-tier">
+        <div class="perk-tier-label"><span class="lvl-badge">Level 30</span></div>
+        <div class="perk-grid">
+          <div class="perk-card">
+            <div class="perk-card-name">Execution</div>
+            <div class="perk-card-desc">Tes attaques sur des cibles en dessous de 25% de PV infligent +35% de degats. L'effet de finition encourage le kill rapide.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-card-name">Mur d'acier</div>
+            <div class="perk-card-desc">Absorbe les 3 premiers points de degats de toute attaque (flat reduction). Tres efficace contre les burst courts, moins contre les degats soutenus.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-card-name">Vampirisme</div>
+            <div class="perk-card-desc">Chaque attaque melee te soigne de 8% des degats infliges. Le soin n'est pas plafonee mais ne peut pas depasser 2 coeurs par frappe.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="perk-tier">
+        <div class="perk-tier-label"><span class="lvl-badge">Level 40</span></div>
+        <div class="perk-grid">
+          <div class="perk-card">
+            <div class="perk-card-name">Frappe d'Erinium</div>
+            <div class="perk-card-desc">Une fois toutes les 30 secondes, ta prochaine attaque melee inflige x2.5 les degats normaux et provoque un recul amplifie. Indicateur visuel sur l'arme.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-card-name">Resurgence</div>
+            <div class="perk-card-desc">A ta mort, tu ressuscites avec 3 coeurs et 3 secondes d'invincibilite. Cooldown 15 minutes. Une seule activation par vie.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-card-name">Lien cristallin</div>
+            <div class="perk-card-desc">Tes coequipiers de faction a moins de 20 blocs recoivent +5% de tes soins et +5% de reduction de degats. Aura passive, afichage visible pour l'equipe.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="perk-tier">
+        <div class="perk-tier-label"><span class="lvl-badge">Level 50</span></div>
+        <div class="perk-grid">
+          <div class="perk-card">
+            <div class="perk-card-name">Echo du Noyau</div>
+            <div class="perk-card-desc">Chaque kill PvP libere une onde d'energie infligeant 3 coeurs aux ennemis a moins de 5 blocs. Transformation du jeu en PvP groupe.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-card-name">Forme cristalline</div>
+            <div class="perk-card-desc">Actif 30 secondes (cooldown 3 min) : deviens translucide (semi-invisible), +25% vitesse, immunite aux poisons et aux ralentissements.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-card-name">Omniscience</div>
+            <div class="perk-card-desc">Tu vois en permanence le niveau, les HP et la faction de tous les joueurs en LOS (line-of-sight) a moins de 80 blocs. Information stratégique superieure.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ S9 — PRESTIGE ═══ -->
+    <div class="section-card" id="s9">
+      <h2><span class="s-num gold-num">09</span> Prestige</h2>
+
+      <p>Le prestige est entierement optionnel et s'adresse aux joueurs ayant atteint le level 50 et souhaitant continuer a progresser avec des recompenses cosmétiques et un leger avantage permanent.</p>
+
+      <h3 class="first">Mecanisme</h3>
+      <ul>
+        <li><strong>Disponible a</strong> — Level 50 uniquement</li>
+        <li><strong>Maximum</strong> — 5 prestiges (&#9733; a &#9733;&#9733;&#9733;&#9733;&#9733;)</li>
+        <li><strong>Declenchement</strong> — Volontaire, via commande <code>/rpg prestige</code> avec confirmation GUI</li>
+      </ul>
+
+      <h3>Ce qui est reset au prestige</h3>
+      <ul>
+        <li>Level (retour au level 1)</li>
+        <li>Points de stats (remis a zero, redistribuables en relevant)</li>
+      </ul>
+
+      <h3>Ce qui est conserve au prestige</h3>
+      <ul>
+        <li>Tous les perks precedemment choisis (ils restent actifs meme a level 1)</li>
+        <li>L'historique des prestiges precedents</li>
+        <li>Les recompenses cosmetiques acquises</li>
+      </ul>
+
+      <div class="divider"></div>
+
+      <h3>Bonus permanents par prestige</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Prestige</th>
+              <th>Cosmétique</th>
+              <th>Bonus permanent</th>
+              <th>Bonus XP relevel</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>&#9733; I</td>
+              <td>1 etoile dorée devant le pseudo</td>
+              <td>+2% a toutes les stats</td>
+              <td>+20% XP</td>
+            </tr>
+            <tr>
+              <td>&#9733;&#9733; II</td>
+              <td>2 etoiles argentées</td>
+              <td>+4% a toutes les stats (cumulatif)</td>
+              <td>+20% XP</td>
+            </tr>
+            <tr>
+              <td>&#9733;&#9733;&#9733; III</td>
+              <td>3 etoiles cyan</td>
+              <td>+6% a toutes les stats (cumulatif)</td>
+              <td>+20% XP</td>
+            </tr>
+            <tr>
+              <td>&#9733;&#9733;&#9733;&#9733; IV</td>
+              <td>4 etoiles violettes</td>
+              <td>+8% a toutes les stats (cumulatif)</td>
+              <td>+20% XP</td>
+            </tr>
+            <tr>
+              <td>&#9733;&#9733;&#9733;&#9733;&#9733; V</td>
+              <td>5 etoiles arc-en-ciel animées</td>
+              <td>+10% a toutes les stats (cumulatif)</td>
+              <td>+20% XP</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Equilibrage prestige</strong> — Le +10% maximal au prestige 5 est un bonus doux, pas un avantage decisif. Un joueur level 50 prestige 0 reste competitif face a un prestige 5 du meme level. Le prestige recompense la longevite, pas la puissance brute.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S10 — HUD ═══ -->
+    <div class="section-card" id="s10">
+      <h2><span class="s-num cyan-num">10</span> HUD</h2>
+
+      <p>Le HUD RPG s'integre de maniere non intrusive dans l'interface Minecraft. Il utilise les capacites de rendu OpenGL d'EriAPI et respecte la direction artistique Liquid Glass du mod.</p>
+
+      <h3 class="first">Elements permanents</h3>
+      <ul>
+        <li><strong>Barre d'XP</strong> — Affichee en bas de l'ecran (remplace ou complete la barre d'XP vanilla). Affiche le level actuel, l'XP courante / XP requise, et se remplit visuellement.</li>
+        <li><strong>Indicateur de level</strong> — Le niveau est afiche en permanence pres de la barre d'XP, avec les etoiles de prestige si applicable.</li>
+        <li><strong>Stats actives</strong> — Petit panneau discret (coin superieur gauche par defaut) affichant les bonus actifs : PV bonus, degats bonus, reduction de degats.</li>
+      </ul>
+
+      <h3>Elements evenementiels</h3>
+      <ul>
+        <li><strong>Gain d'XP flottant</strong> — A chaque gain d'XP, un texte "+XXX XP" apparait en vert pres de l'indicateur de level, monte doucement et se dissout en 1.5 secondes. La valeur est coloree selon la categorie (or pour PvP, vert pour PvE, cyan pour events).</li>
+        <li><strong>Animation level-up</strong> — Flash visuel lumineux sur tout l'ecran (0.5s), texte "LEVEL UP — X" au centre, animation de particules, son distinct. Notification Chat avec recap des points disponibles.</li>
+        <li><strong>Defi complete</strong> — Notification toast (via <code>NotificationManager</code> d'EriAPI) "+XXX XP — Defi : Nom du defi".</li>
+        <li><strong>Activation de perk</strong> — Icone de perk clignotante dans un coin, duree restante affichee pour les perks temporaires (Furie d'Erinium, Forme cristalline, etc.).</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Implementation HUD</strong> — Utiliser <code>EriEvents.on(RenderGameOverlayEvent.class)</code> pour le rendu custom. Les gains d'XP flottants sont des entites de rendu geres par une liste dans le HUD renderer avec leur timestamp de creation pour l'animation fade-out.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S11 — GUI MENU RPG ═══ -->
+    <div class="section-card" id="s11">
+      <h2><span class="s-num green-num">11</span> GUI Menu RPG</h2>
+
+      <p>L'interface complete du systeme RPG, ouverte par commande <code>/rpg stats</code> ou par keybinding configurable. Style Liquid Glass, fond translucide, animations fluides.</p>
+
+      <h3 class="first">Onglets du GUI (TabView)</h3>
+      <ul>
+        <li><strong>Stats</strong> — Les 6 stats actuelles avec les points investis, les bonus calcules (affichage "+X%" clair), et les points disponibles a repartir. Boutons +/- pour modifier. Preview en temps reel : survol d'un bouton + affiche "Avant/Apres" en comparaison.</li>
+        <li><strong>Perks</strong> — Les 5 paliers de perks. Pour les paliers debloques : affiche le perk choisi avec son icone et sa description. Pour les paliers futurs : affiche les 3 options en version grisee, avec le level requis. Pour le prochain palier : les 3 options sont previsualisables au hover.</li>
+        <li><strong>Progression</strong> — Barre d'XP detaillee : XP courante, XP requise, % de completion, temps estime au prochain level (base sur la moyenne des 30 dernieres minutes). Historique des 5 dernieres sources d'XP avec leur valeur.</li>
+        <li><strong>Prestige</strong> — Prestige actuel (etoiles animées), bonus actifs, bouton "Entrer en Prestige" avec confirmation et recap de ce qui sera perdu/conserve. Preview des recompenses du prochain palier de prestige.</li>
+      </ul>
+
+      <h3>Actions disponibles dans le GUI</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Disponible si</th>
+              <th>Confirmation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Repartir un point de stat</td>
+              <td>Points disponibles &gt; 0</td>
+              <td><span class="tag-no">Non</span></td>
+            </tr>
+            <tr>
+              <td>Respec stats</td>
+              <td>$ suffisant</td>
+              <td><span class="tag-yes">Oui</span></td>
+            </tr>
+            <tr>
+              <td>Respec complet (stats + perks)</td>
+              <td>$ suffisant (cout superieur)</td>
+              <td><span class="tag-yes">Oui</span></td>
+            </tr>
+            <tr>
+              <td>Entrer en prestige</td>
+              <td>Level 50 et prestige actuel &lt; 5</td>
+              <td><span class="tag-yes">Oui (double)</span></td>
+            </tr>
+            <tr>
+              <td>Voir ses defis journaliers</td>
+              <td>Toujours</td>
+              <td><span class="tag-no">Non</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Direction artistique</strong> — Le GUI adopte le style Liquid Glass : fond <code>0xCC1A1A2E</code> avec flou, bordures subtiles, transitions fluides entre onglets via <code>AnimationManager</code>. Les barres d'XP et les stat bars utilisent des animations de remplissage avec <code>Easing.EASE_OUT_CUBIC</code>. Les etoiles de prestige ont une animation de scintillement via <code>Animation.createColor()</code> en pingPong.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S12 — ARCHITECTURE TECHNIQUE ═══ -->
+    <div class="section-card" id="s12">
+      <h2><span class="s-num orange-num">12</span> Architecture technique</h2>
+
+      <h3 class="first">Donnees joueur — EriAPI Data</h3>
+      <div class="code-block"><span class="an">@EriData</span>(modId = <span class="st">"eriniumfaction"</span>, scope = DataScope.PLAYER, persistOnDeath = <span class="kw">true</span>)
+<span class="kw">public class</span> <span class="cl">RpgPlayerData</span> {
+    <span class="cm">// Level & XP</span>
+    <span class="an">@Sync</span> <span class="kw">public</span> <span class="ty">int</span>  level    = <span class="nu">1</span>;
+    <span class="an">@Sync</span> <span class="kw">public</span> <span class="ty">long</span> xp       = <span class="nu">0</span>;
+    <span class="an">@Sync</span> <span class="kw">public</span> <span class="ty">int</span>  prestige = <span class="nu">0</span>;
+    <span class="an">@Sync</span> <span class="kw">public</span> <span class="ty">int</span>  statPoints = <span class="nu">0</span>; <span class="cm">// Points non distribues</span>
+
+    <span class="cm">// Stats investies (0-25 par stat)</span>
+    <span class="an">@Sync</span> <span class="kw">public</span> <span class="ty">int</span> statVigueur    = <span class="nu">0</span>;
+    <span class="an">@Sync</span> <span class="kw">public</span> <span class="ty">int</span> statForce      = <span class="nu">0</span>;
+    <span class="an">@Sync</span> <span class="kw">public</span> <span class="ty">int</span> statResistance = <span class="nu">0</span>;
+    <span class="an">@Sync</span> <span class="kw">public</span> <span class="ty">int</span> statAgilite    = <span class="nu">0</span>;
+    <span class="an">@Sync</span> <span class="kw">public</span> <span class="ty">int</span> statFortune    = <span class="nu">0</span>;
+    <span class="an">@Sync</span> <span class="kw">public</span> <span class="ty">int</span> statArcane     = <span class="nu">0</span>;
+
+    <span class="cm">// Perks choisis (index du perk parmi 0,1,2 — -1 = non choisi)</span>
+    <span class="kw">public</span> <span class="ty">int</span> perk10 = -<span class="nu">1</span>;
+    <span class="kw">public</span> <span class="ty">int</span> perk20 = -<span class="nu">1</span>;
+    <span class="kw">public</span> <span class="ty">int</span> perk30 = -<span class="nu">1</span>;
+    <span class="kw">public</span> <span class="ty">int</span> perk40 = -<span class="nu">1</span>;
+    <span class="kw">public</span> <span class="ty">int</span> perk50 = -<span class="nu">1</span>;
+
+    <span class="cm">// Anti-grind : compteurs de saturation par categorie (reset 24h)</span>
+    <span class="kw">public</span> <span class="ty">long</span> lastResetTimestamp = <span class="nu">0L</span>;
+    <span class="kw">public</span> Map&lt;<span class="ty">String</span>, <span class="ty">Integer</span>&gt; saturationCounters = <span class="kw">new</span> HashMap&lt;&gt;();
+
+    <span class="cm">// Defis journaliers</span>
+    <span class="kw">public</span> List&lt;<span class="ty">String</span>&gt; dailyChallengeIds  = <span class="kw">new</span> ArrayList&lt;&gt;();
+    <span class="kw">public</span> List&lt;<span class="ty">String</span>&gt; completedChallenges = <span class="kw">new</span> ArrayList&lt;&gt;();
+    <span class="kw">public</span> Map&lt;<span class="ty">String</span>, <span class="ty">String</span>&gt; challengeProgress = <span class="kw">new</span> HashMap&lt;&gt;();
+
+    <span class="cm">// Tracking XP par cible PvP (clé = UUID cible, valeur = nb de kills)</span>
+    <span class="kw">public</span> Map&lt;<span class="ty">String</span>, <span class="ty">String</span>&gt; pvpKillsOnPlayer = <span class="kw">new</span> HashMap&lt;&gt;();
+}</div>
+
+      <h3>Sources d'XP — EriEvents</h3>
+      <div class="code-block"><span class="cm">// Kill PvP</span>
+EriEvents.<span class="fn">on</span>(LivingDeathEvent.<span class="kw">class</span>)
+    .<span class="fn">filter</span>(e -&gt; e.getSource().getTrueSource() <span class="kw">instanceof</span> EntityPlayerMP)
+    .<span class="fn">handle</span>(e -&gt; RpgManager.<span class="fn">getInstance</span>().<span class="fn">onPvpKill</span>(e));
+
+<span class="cm">// Minage</span>
+EriEvents.<span class="fn">on</span>(BlockEvent.BreakEvent.<span class="kw">class</span>)
+    .<span class="fn">filter</span>(e -&gt; e.getPlayer() != <span class="kw">null</span>)
+    .<span class="fn">handle</span>(e -&gt; RpgManager.<span class="fn">getInstance</span>().<span class="fn">onBlockBreak</span>(e));
+
+<span class="cm">// Craft</span>
+EriEvents.<span class="fn">on</span>(PlayerEvent.ItemCraftedEvent.<span class="kw">class</span>)
+    .<span class="fn">handle</span>(e -&gt; RpgManager.<span class="fn">getInstance</span>().<span class="fn">onItemCrafted</span>(e));</div>
+
+      <h3>Reset saturation — EriScheduler</h3>
+      <div class="code-block"><span class="cm">// Reset quotidien des compteurs de saturation (toutes les 24h)</span>
+EriScheduler.<span class="fn">repeat</span>(<span class="nu">20</span> * <span class="nu">60</span> * <span class="nu">60</span>, () -&gt; {
+    <span class="kw">for</span> (EntityPlayerMP player : server.<span class="fn">getPlayerList</span>().<span class="fn">getPlayers</span>()) {
+        RpgPlayerData data = DataManager.<span class="fn">get</span>(player, RpgPlayerData.<span class="kw">class</span>);
+        data.saturationCounters.<span class="fn">clear</span>();
+        data.pvpKillsOnPlayer.<span class="fn">clear</span>();
+        data.dailyChallengeIds = ChallengeManager.<span class="fn">pickDaily</span>(player);
+        data.completedChallenges.<span class="fn">clear</span>();
+        data.challengeProgress.<span class="fn">clear</span>();
+        DataManager.<span class="fn">save</span>(player, RpgPlayerData.<span class="kw">class</span>);
+    }
+});</div>
+
+      <h3>Application des stats — Attributs Minecraft</h3>
+      <div class="code-block"><span class="cm">// Appliquer les stats au joueur via les attributs Forge</span>
+<span class="kw">public static void</span> <span class="fn">applyStats</span>(EntityPlayerMP player, RpgPlayerData data) {
+    IAttributeInstance maxHealth = player.<span class="fn">getEntityAttribute</span>(SharedMonsterAttributes.MAX_HEALTH);
+    <span class="cm">// +2% PV par point de Vigueur</span>
+    <span class="ty">double</span> vigBonus = data.statVigueur * <span class="nu">0.02</span>;
+    maxHealth.<span class="fn">removeModifier</span>(RPG_VIGUEUR_MOD);
+    maxHealth.<span class="fn">applyModifier</span>(<span class="kw">new</span> AttributeModifier(RPG_VIGUEUR_MOD, <span class="st">"rpg_vigueur"</span>,
+        vigBonus, <span class="nu">1</span>)); <span class="cm">// mode 1 = multiplicatif</span>
+
+    <span class="cm">// Meme pattern pour Force (attack_damage), Agilite (movement_speed)...</span>
+}</div>
+
+      <h3>Commandes — package command/</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Commande</th>
+              <th>Description</th>
+              <th>Permission</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/rpg stats</code></td>
+              <td>Ouvre le GUI Menu RPG sur l'onglet Stats</td>
+              <td>Tous les joueurs</td>
+            </tr>
+            <tr>
+              <td><code>/rpg perks</code></td>
+              <td>Ouvre le GUI Menu RPG sur l'onglet Perks</td>
+              <td>Tous les joueurs</td>
+            </tr>
+            <tr>
+              <td><code>/rpg respec</code></td>
+              <td>Lance la procedure de respec avec confirmation GUI</td>
+              <td>Tous les joueurs</td>
+            </tr>
+            <tr>
+              <td><code>/rpg prestige</code></td>
+              <td>Lance la procedure de prestige avec double confirmation</td>
+              <td>Tous les joueurs (level 50)</td>
+            </tr>
+            <tr>
+              <td><code>/rpg challenges</code></td>
+              <td>Affiche les defis journaliers du joueur en chat</td>
+              <td>Tous les joueurs</td>
+            </tr>
+            <tr>
+              <td><code>/rpg admin setlevel &lt;joueur&gt; &lt;level&gt;</code></td>
+              <td>Force le level d'un joueur (debug / admin)</td>
+              <td>eriniumfaction.admin.rpg</td>
+            </tr>
+            <tr>
+              <td><code>/rpg admin givexp &lt;joueur&gt; &lt;montant&gt;</code></td>
+              <td>Donne de l'XP a un joueur</td>
+              <td>eriniumfaction.admin.rpg</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Auto-completion obligatoire</strong> — Tous les arguments de commande doivent implementer l'auto-completion. Les noms de joueurs utilisent <code>PlayerArg.of("name")</code>. Les valeurs numeriques utilisent <code>.suggests()</code> avec des valeurs exemples (1, 10, 25, 50 pour les levels).</div>
+      </div>
+    </div>
+
+    <!-- ═══ S13 — PLAN DE TESTS ═══ -->
+    <div class="section-card" id="s13">
+      <h2><span class="s-num">13</span> Plan de tests</h2>
+
+      <h3 class="first">Tests de progression XP</h3>
+      <ul>
+        <li>Verifier que tuer un joueur de level egal ou superieur donne bien 150-400 XP selon son level</li>
+        <li>Verifier la reduction d'XP quand la cible est de niveau inferieur (paliers de -25%, -50%, XP minimale)</li>
+        <li>Verifier que l'XP requise par level correspond a la formule (<code>1000 * N^1.65</code>)</li>
+        <li>Verifier que le passage de level 1 a 50 prend bien 100-130h en jouant normalement</li>
+        <li>Verifier qu'aucune XP n'est perdue a la mort</li>
+        <li>Verifier que le bonus de prestige (+20% XP) est bien applique sur toutes les sources</li>
+      </ul>
+
+      <h3>Tests de saturation</h3>
+      <ul>
+        <li>Tuer 25 mobs consecutifs et verifier que les multiplicateurs chutent apres le 20e (100% → 75%)</li>
+        <li>Verifier la saturation agressive sur kills repetitifs sur le meme joueur (100%, 50%, 25%, 5%)</li>
+        <li>Verifier que tuer des joueurs differents ne declenche PAS la saturation PvP</li>
+        <li>Simuler un reset 24h et verifier que les compteurs sont bien remis a zero</li>
+        <li>Verifier que les PDC, events et bosses ne sont jamais satures</li>
+      </ul>
+
+      <h3>Tests des stats</h3>
+      <ul>
+        <li>Investir 25 pts en Vigueur et verifier que les PV max passent bien de 20 a 30 (10 → 15 coeurs)</li>
+        <li>Investir 25 pts en Force et verifier l'augmentation des degats via un ennemi de reference</li>
+        <li>Investir 25 pts en Resistance et mesurer la reduction effective des degats recus</li>
+        <li>Verifier qu'aucune stat ne depasse le cap de 25 points via le GUI (bouton + desactive)</li>
+        <li>Verifier que le respec restitue bien tous les points investis</li>
+        <li>Verifier que les attributs Minecraft sont correctement mis a jour apres chaque investissement</li>
+      </ul>
+
+      <h3>Tests des perks</h3>
+      <ul>
+        <li>Level 10 — Pas legers : verifier qu'aucun son de pas n'est emis</li>
+        <li>Level 20 — Furie d'Erinium : tuer 3 joueurs et verifier le stack de buff et la duree (45s)</li>
+        <li>Level 30 — Vampirisme : verifier le soin de 8% des degats infliges et le cap de 2 coeurs par frappe</li>
+        <li>Level 40 — Resurgence : mourir et verifier le revive avec 3 coeurs + 3s d'invincibilite, puis verifier le cooldown 15min</li>
+        <li>Level 50 — Forme cristalline : activer et verifier la semi-invisibilite + vitesse + immunites</li>
+        <li>Verifier qu'un perk actif reste actif apres un respec de stats (perks non affectes par respec stats seul)</li>
+      </ul>
+
+      <h3>Tests de prestige</h3>
+      <ul>
+        <li>Atteindre le level 50 et verifier que le bouton "Entrer en Prestige" devient accessible</li>
+        <li>Confirmer le prestige et verifier le reset du level (retour a 1) et des points de stats</li>
+        <li>Verifier que les perks precedemment choisis restent actifs a level 1 post-prestige</li>
+        <li>Verifier que le bonus +2% par prestige est bien applique sur toutes les stats</li>
+        <li>Verifier l'affichage correct de l'etoile de prestige dans le HUD et le pseudo</li>
+        <li>Atteindre le prestige 5 et verifier que le bouton de prestige disparait</li>
+      </ul>
+
+      <h3>Tests d'equilibre PvP</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>Attendu</th>
+              <th>Critere de reussite</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Level 1 vs Level 50 Berserker</td>
+              <td>L1 desavantage mais viable</td>
+              <td>L1 peut tuer L50 avec skill superieur</td>
+            </tr>
+            <tr>
+              <td>Level 50 Tank vs Level 50 Berserker</td>
+              <td>Builds distincts, echange long</td>
+              <td>Tank survit plus longtemps, Berserker tue plus vite</td>
+            </tr>
+            <tr>
+              <td>Prestige 5 vs Prestige 0 (meme level)</td>
+              <td>Avantage leger prestige 5</td>
+              <td>+10% de stats ne cree pas d'ecart decisif</td>
+            </tr>
+            <tr>
+              <td>Assassin (Agilite+Force) vs Tank</td>
+              <td>Matchup differencie</td>
+              <td>Assassin peut kite, Tank peut sustain — skill decide</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Methodologie d'equilibrage</strong> — Les tests d'equilibre PvP doivent etre effectues avec deux instances de jeu separees en LAN ou via client de test, avec des joueurs de skill comparable. Ajuster les multiplicateurs de stats si un delta depasse 30% de victoires non explicables par le skill.</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Mobile nav toggle -->
+<button class="mobile-nav-toggle" id="navToggle" aria-label="Menu navigation">&#9776;</button>
+
+<script>
+  const toggle = document.getElementById('navToggle');
+  const sidebar = document.getElementById('sidebar');
+  toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+
+  // Active nav link on scroll
+  const sections = document.querySelectorAll('.section-card[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id);
+        });
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

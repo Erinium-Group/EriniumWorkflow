@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Eris (Monnaie Premium) | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --pink:      #E91E8C;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.16) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(241,196,15,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 60% 10%, rgba(0,229,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet-l) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet-l); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--gold); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 4px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--gold);
+    background: rgba(241,196,15,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(241,196,15,0.08);
+    border-color: rgba(241,196,15,0.2);
+  }
+
+  .sidebar-sep { height: 1px; background: var(--card-bdr); margin: 10px 0 4px; }
+
+  /* MAIN */
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* PAGE HEADER */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--gold) 50%, var(--orange) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 680px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet { color: var(--violet-l); border-color: rgba(107,47,160,0.4);  background: rgba(107,47,160,0.1); }
+  .badge-cyan   { color: var(--cyan);     border-color: rgba(0,229,255,0.3);    background: rgba(0,229,255,0.07); }
+  .badge-green  { color: var(--green);    border-color: rgba(46,204,113,0.3);   background: rgba(46,204,113,0.07); }
+  .badge-red    { color: var(--red);      border-color: rgba(231,76,60,0.35);   background: rgba(231,76,60,0.08); }
+  .badge-gold   { color: var(--gold);     border-color: rgba(241,196,15,0.3);   background: rgba(241,196,15,0.07); }
+  .badge-pink   { color: var(--pink);     border-color: rgba(233,30,140,0.35);  background: rgba(233,30,140,0.08); }
+  .badge-orange { color: var(--orange);   border-color: rgba(230,126,34,0.35);  background: rgba(230,126,34,0.08); }
+
+  /* SECTION CARDS */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+  .section-card:nth-child(14) { animation-delay: .70s; }
+  .section-card:nth-child(15) { animation-delay: .75s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: #0A0A0F;
+    background: linear-gradient(135deg, #c0960a 0%, var(--gold) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.violet-num { background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); color: #fff; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a7a40 0%, var(--green) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #c0342a 0%, var(--red) 100%); color: #fff; }
+  .section-card h2 .s-num.pink-num   { background: linear-gradient(135deg, #a01060 0%, var(--pink) 100%); color: #fff; }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #b05a10 0%, var(--orange) 100%); color: #0A0A0F; }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* TABLES */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(241,196,15,0.10); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(241,196,15,0.2);
+  }
+
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(241,196,15,0.05); }
+
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-crit   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(231,76,60,0.15); color:#E74C3C; border:1px solid rgba(231,76,60,0.3); letter-spacing:.05em; }
+  .tag-high   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(230,126,34,0.15); color:var(--orange); border:1px solid rgba(230,126,34,0.3); letter-spacing:.05em; }
+  .tag-med    { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(241,196,15,0.12); color:var(--gold); border:1px solid rgba(241,196,15,0.3); letter-spacing:.05em; }
+  .tag-low    { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(136,146,164,0.12); color:var(--slate); border:1px solid rgba(136,146,164,0.25); letter-spacing:.05em; }
+  .tag-yes    { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(46,204,113,0.12); color:var(--green); border:1px solid rgba(46,204,113,0.3); letter-spacing:.05em; }
+  .tag-no     { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(231,76,60,0.10); color:#E74C3C; border:1px solid rgba(231,76,60,0.25); letter-spacing:.05em; }
+  .tag-violet { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(107,47,160,0.15); color:var(--violet-l); border:1px solid rgba(107,47,160,0.3); letter-spacing:.05em; }
+  .tag-cyan   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(0,229,255,0.10); color:var(--cyan); border:1px solid rgba(0,229,255,0.25); letter-spacing:.05em; }
+  .tag-gold   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(241,196,15,0.12); color:var(--gold); border:1px solid rgba(241,196,15,0.3); letter-spacing:.05em; }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(241,196,15,0.15);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(241,196,15,0.3) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(241,196,15,0.3); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .gd  { color: #F1C40F; }
+
+  /* INFO BOXES */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.07);  border: 1px solid rgba(231,76,60,0.22);  }
+  .info-box.gold   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.25); }
+
+  /* ARCH GRID */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+  }
+
+  .arch-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+  }
+
+  .arch-card.gold-border { border-color: rgba(241,196,15,0.2); }
+
+  .arch-card-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    margin-bottom: 6px;
+  }
+
+  .arch-card-desc {
+    font-size: 12px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  /* CHECKLIST */
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 14px 0;
+  }
+
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  .checklist-item::before {
+    content: '□';
+    color: var(--gold);
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .checklist-item strong { color: var(--text); }
+
+  /* COMMAND CARDS */
+  .cmd-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin: 18px 0;
+  }
+
+  .cmd-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 20px 22px;
+  }
+
+  .cmd-card.player-cmd  { border-left: 3px solid var(--gold); }
+  .cmd-card.admin-cmd   { border-left: 3px solid var(--red); }
+  .cmd-card.info-cmd    { border-left: 3px solid var(--cyan); }
+
+  .cmd-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    margin-bottom: 6px;
+  }
+
+  .cmd-perm {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gold);
+    background: rgba(241,196,15,0.10);
+    border: 1px solid rgba(241,196,15,0.25);
+    border-radius: 4px;
+    padding: 2px 8px;
+    display: inline-block;
+    margin-bottom: 10px;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+  }
+
+  .cmd-desc {
+    font-size: 13px;
+    color: var(--slate);
+    line-height: 1.6;
+  }
+
+  .cmd-desc ul {
+    margin-top: 8px;
+    gap: 4px;
+  }
+
+  /* TWO-ECONOMY COMPARISON */
+  .economy-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 18px 0;
+  }
+
+  .economy-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+  }
+
+  .economy-card.dollars { border-top: 3px solid var(--cyan); }
+  .economy-card.eris    { border-top: 3px solid var(--gold); }
+
+  .economy-card-title {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+
+  .economy-card.dollars .economy-card-title { color: var(--cyan); }
+  .economy-card.eris    .economy-card-title { color: var(--gold); }
+
+  .economy-card-sub {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin-bottom: 16px;
+  }
+
+  .economy-card ul { gap: 8px; }
+  .economy-card ul li { font-size: 13px; color: var(--slate); padding-left: 14px; position: relative; }
+  .economy-card.dollars ul li::before { content: '›'; position: absolute; left: 0; color: var(--cyan); font-weight: 700; }
+  .economy-card.eris    ul li::before { content: '›'; position: absolute; left: 0; color: var(--gold); font-weight: 700; }
+  .economy-card ul li strong { color: var(--text); }
+
+  /* FLOW DIAGRAM */
+  .flow-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 18px 0;
+  }
+
+  .flow-step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    position: relative;
+  }
+
+  .flow-step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 34px;
+    width: 2px;
+    height: calc(100% - 10px);
+    background: rgba(241,196,15,0.2);
+  }
+
+  .flow-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(241,196,15,0.12);
+    border: 1px solid rgba(241,196,15,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gold);
+    flex-shrink: 0;
+    margin-bottom: 20px;
+  }
+
+  .flow-content {
+    padding-top: 6px;
+    flex: 1;
+  }
+
+  .flow-content strong { color: var(--text); font-size: 14px; }
+  .flow-content p { color: var(--slate); font-size: 13px; margin-top: 4px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 32px 24px 60px; }
+    .arch-grid { grid-template-columns: 1fr 1fr; }
+    .economy-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a href="../roadmap.html" class="sidebar-back">&#8592; Roadmap</a>
+
+    <div class="sidebar-title">Sections</div>
+    <a href="#contexte"       class="nav-link"><span class="num">01</span>Contexte &amp; Objectifs</a>
+    <a href="#stockage"       class="nav-link"><span class="num">02</span>Stockage &amp; Persistance</a>
+    <a href="#obtention"      class="nav-link"><span class="num">03</span>Obtention des Eris</a>
+    <a href="#commandes"      class="nav-link"><span class="num">04</span>Commandes</a>
+    <a href="#gui"            class="nav-link"><span class="num">05</span>Integration GUI</a>
+    <a href="#chat"           class="nav-link"><span class="num">06</span>Integration Chat</a>
+    <a href="#trading"        class="nav-link"><span class="num">07</span>Systeme de Trading</a>
+    <a href="#transactions"   class="nav-link"><span class="num">08</span>Journal de Transactions</a>
+    <a href="#webapi"         class="nav-link"><span class="num">09</span>API Web</a>
+    <a href="#antiexploit"    class="nav-link"><span class="num">10</span>Anti-Exploit</a>
+    <a href="#futur"          class="nav-link"><span class="num">11</span>Integrations Futures</a>
+    <a href="#config"         class="nav-link"><span class="num">12</span>Configuration</a>
+    <a href="#architecture"   class="nav-link"><span class="num">13</span>Architecture Technique</a>
+    <a href="#assets"         class="nav-link"><span class="num">14</span>Assets &amp; Lang</a>
+    <a href="#tests"          class="nav-link"><span class="num">15</span>Plan de Tests</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="eyebrow">EriniumFaction &middot; Cahier des charges</div>
+      <h1>Eris &#10022; — Monnaie Premium</h1>
+      <p>Systeme de monnaie premium adosse a de l'argent reel, persistant entre les resets de saison, destine a la monetisation non-pay-to-win du serveur. Complemente le Dollar ($) virtuel saisonnier.</p>
+      <div class="header-badges">
+        <span class="badge badge-gold">Persistant hors-monde</span>
+        <span class="badge badge-cyan">JSON config/</span>
+        <span class="badge badge-violet">Serveur-side</span>
+        <span class="badge badge-green">Non-pay-to-win</span>
+        <span class="badge badge-orange">Monetisation</span>
+        <span class="badge badge-pink">Planifie</span>
+      </div>
+    </div>
+
+    <!-- 01. CONTEXTE -->
+    <div class="section-card" id="contexte">
+      <h2><span class="s-num">01</span>Contexte &amp; Objectifs</h2>
+      <h3 class="first">Philosophie de la double economie</h3>
+      <p>EriniumFaction repose sur deux economies distinctes et complementaires, chacune avec son propre cycle de vie, sa propre semantique et ses propres usages :</p>
+
+      <div class="economy-grid">
+        <div class="economy-card dollars">
+          <div class="economy-card-title">Dollar ($)</div>
+          <div class="economy-card-sub">Monnaie virtuelle saisonniere</div>
+          <ul>
+            <li><strong>Stockage :</strong> EriData / WorldSavedData (dans le monde)</li>
+            <li><strong>Cycle :</strong> Reset complet a chaque wipe de map/saison</li>
+            <li><strong>Obtention :</strong> Quetes, votes, recompenses quotidiennes, commerce entre joueurs, activites en jeu</li>
+            <li><strong>Usages :</strong> Banque faction, boutiques en jeu, upgrades temporaires, marches aux joueurs</li>
+            <li><strong>Valeur :</strong> Symbolique et contextuelle — sa valeur depend de l'ecosysteme de la saison</li>
+          </ul>
+        </div>
+        <div class="economy-card eris">
+          <div class="economy-card-title">Eris (&#10022;)</div>
+          <div class="economy-card-sub">Monnaie premium permanente</div>
+          <ul>
+            <li><strong>Stockage :</strong> JSON dans config/ (hors du monde)</li>
+            <li><strong>Cycle :</strong> Jamais remis a zero — survit aux resets, aux wipes, aux changements de map</li>
+            <li><strong>Obtention :</strong> Achat sur le site officiel, ou echange entre joueurs via /eris pay</li>
+            <li><strong>Usages :</strong> Cosmetiques, commodites, contenu exclusif non-combat, futures extensions</li>
+            <li><strong>Valeur :</strong> Reelle — adossee a une transaction financiere reelle</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Pourquoi l'Eris existe</h3>
+      <ul>
+        <li><strong>Monetisation viable :</strong> Le serveur necessite un financement pour maintenir 500-1000 joueurs simultanes. L'Eris offre un canal de monetisation transparent et equitable.</li>
+        <li><strong>Investissement joueur :</strong> Un joueur qui achete des Eris est un joueur qui croit dans le serveur sur le long terme. La persistance inter-saisons renforce cet engagement.</li>
+        <li><strong>Contenu exclusif :</strong> Certains cosmetiques, titres, effets visuels et commodites ne sont accessibles que par l'Eris, creant une distinction visuelle valorisante sans impact sur le PvP.</li>
+        <li><strong>Economie joueur :</strong> Le trading entre joueurs (via /eris pay) permet une economie secondaire ou des joueurs aisants peuvent "vendre" des services contre des Eris.</li>
+      </ul>
+
+      <h3>Engagement fair play — aucun avantage PvP</h3>
+      <p>L'Eris est concu selon un principe fondamental : <strong>aucun avantage en combat ne peut etre achete</strong>. Sur un serveur PvP 1.8 avec 500-1000 joueurs, la competitivite doit reposer uniquement sur le skill, la strategie de faction et l'investissement en temps.</p>
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Autorise avec les Eris :</strong> cosmetiques (capes, particules, auras), titres decoratifs, emotes, effets visuels personnalises, commodites d'interface (slots /home supplementaires, raccourcis), contenu HDV et boutique cosmetique.</div>
+      </div>
+      <div class="info-box danger">
+        <span class="icon">&#8856;</span>
+        <div class="content"><strong>Interdit avec les Eris :</strong> boost de degats, resistance aux degats, vitesse de deplacement superieure, equipement plus puissant, regeneration acceleree, ou tout effet qui impacte directement le rapport de force en PvP. Ces avantages seraient du pay-to-win et violeraient l'equilibre du serveur.</div>
+      </div>
+
+      <h3>HDV et P2W — une distinction essentielle</h3>
+      <p>L'Hotel des Ventes (HDV) permet d'acheter des items poses par d'autres joueurs en echange d'Eris. Cette mecanique est <strong>fondamentalement differente du pay-to-win</strong> et voici pourquoi :</p>
+      <ul>
+        <li><strong>Les items viennent de vrais joueurs :</strong> Chaque item vendu sur le HDV a ete farme ou craft par un joueur — rien n'est cree depuis le neant. L'item existait deja dans l'economie du serveur.</li>
+        <li><strong>Le vendeur est recompense pour son temps :</strong> Le joueur qui a farme l'item recoit des Eris en contrepartie de son investissement en temps et en effort. C'est une transaction equitable.</li>
+        <li><strong>L'acheteur gagne du temps, pas un avantage exclusif :</strong> Un joueur qui achete un item au HDV aurait pu l'obtenir lui-meme en jouant. Il paie pour eviter le grinding — pas pour acceder a quelque chose d'inaccessible autrement.</li>
+        <li><strong>Modele identique a WoW Token / EVE PLEX :</strong> Ce systeme est le standard dans les MMOs serieux depuis des annees. Il est reconnu comme non-P2W par la communaute car il ne cree pas d'avantage impossible a obtenir en jouant.</li>
+      </ul>
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>La seule vraie regle anti-P2W :</strong> aucun item conferant un avantage de combat ne doit etre vendu <em>exclusivement</em> contre des Eris dans un shop. Une epee +50 degats achetable uniquement avec de l'argent reel = P2W. Un item farme par un joueur et revendu sur le HDV contre des Eris = economie saine. La difference est que le premier cree de la valeur depuis le neant, le second redistribue de la valeur deja present dans le jeu.</div>
+      </div>
+
+      <h3>Etymologie — pourquoi "Eris"</h3>
+      <p>Le nom "Eris" est derive directement d'"Erinium", l'identite du serveur et du groupe de developpement (EriniumGroup). C'est la denomination courte et sonore qui symbolise la valeur propre au projet — une monnaie qui porte la marque du serveur lui-meme. Le symbole <strong>&#10022;</strong> (etoile a 4 branches) est choisi pour sa lisibilite en police monospace et sa distinction visuelle par rapport au $ du Dollar.</p>
+    </div>
+
+    <!-- 02. STOCKAGE -->
+    <div class="section-card" id="stockage">
+      <h2><span class="s-num">02</span>Stockage &amp; Persistance</h2>
+      <h3 class="first">Pourquoi pas @EriData ?</h3>
+      <p>Le systeme <code>@EriData</code> d'EriAPI stocke les donnees dans le monde Minecraft (NBT des joueurs via la capability de l'entite). Cela signifie qu'un reset de map efface les donnees. L'Eris doit survivre a ces resets — il necessite donc un stockage independant du monde, dans le dossier <code>config/</code> qui n'est jamais efface.</p>
+
+      <h3>Structure des fichiers</h3>
+      <p>Un fichier JSON par joueur, nomme par UUID. Localisation : <code>config/EriniumFaction/eris/{uuid}.json</code></p>
+
+      <div class="code-block"><span class="cm">// config/EriniumFaction/eris/550e8400-e29b-41d4-a716-446655440000.json</span>
+{
+  <span class="st">"uuid"</span>: <span class="st">"550e8400-e29b-41d4-a716-446655440000"</span>,
+  <span class="st">"name"</span>: <span class="st">"PlayerName"</span>,              <span class="cm">// Nom au dernier login — cache uniquement</span>
+  <span class="st">"balance"</span>: <span class="nu">150</span>,                      <span class="cm">// Entier, jamais negatif</span>
+  <span class="st">"transactions"</span>: [              <span class="cm">// Circulaire — max 200 entrees, oldest removed</span>
+    {
+      <span class="st">"type"</span>: <span class="st">"PURCHASE"</span>,
+      <span class="st">"amount"</span>: <span class="nu">100</span>,
+      <span class="st">"from_to"</span>: <span class="st">"website"</span>,
+      <span class="st">"timestamp"</span>: <span class="nu">1711152000000</span>,
+      <span class="st">"reason"</span>: <span class="st">"Website purchase — Pack Starter"</span>
+    },
+    {
+      <span class="st">"type"</span>: <span class="st">"SEND"</span>,
+      <span class="st">"amount"</span>: <span class="nu">25</span>,
+      <span class="st">"from_to"</span>: <span class="st">"OtherPlayer"</span>,
+      <span class="st">"timestamp"</span>: <span class="nu">1711155600000</span>,
+      <span class="st">"reason"</span>: <span class="st">"Player transfer"</span>
+    }
+  ]
+}</div>
+
+      <h3>Cache memoire</h3>
+      <p>Pour les performances (500-1000 joueurs), les balances ne sont PAS relues depuis le disque a chaque operation. Le cycle est :</p>
+      <div class="flow-list">
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div class="flow-content">
+            <strong>Login joueur</strong>
+            <p>ErisManager.onPlayerLogin() charge le fichier JSON du joueur dans un <code>Map&lt;UUID, ErisData&gt; cache</code> en memoire.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div class="flow-content">
+            <strong>Operations en jeu</strong>
+            <p>Toutes les lectures et ecritures de balance passent par le cache en memoire — O(1), aucune I/O disque.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <div class="flow-content">
+            <strong>Modification</strong>
+            <p>A chaque modification de balance ou ajout de transaction, le fichier JSON est ecrit sur le disque (peut etre fait en async via EriScheduler.async()).</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">4</div>
+          <div class="flow-content">
+            <strong>Logout joueur</strong>
+            <p>ErisManager.onPlayerLogout() sauvegarde le fichier JSON si necessaire, puis retire l'entree du cache.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Commandes admin (/eris give hors ligne) :</strong> Si le joueur cible n'est pas en ligne, le fichier JSON est relu du disque, modifie, et recrit. Pas de cache pour les joueurs hors ligne — operation rare et acceptable en synchrone.</div>
+      </div>
+
+      <h3>Garanties de persistance</h3>
+      <ul>
+        <li><strong>Reset de map :</strong> Le dossier <code>config/</code> n'est jamais efface lors d'un wipe — les balances survivent.</li>
+        <li><strong>Changement de saison :</strong> Meme garantie — le Dollar repart a zero, l'Eris reste intact.</li>
+        <li><strong>Redemarrage serveur :</strong> Le cache est recharge a la connexion de chaque joueur — aucune perte.</li>
+        <li><strong>Crash serveur :</strong> Les fichiers sont ecrits a chaque modification, pas seulement au logout — risque minimal.</li>
+      </ul>
+    </div>
+
+    <!-- 03. OBTENTION -->
+    <div class="section-card" id="obtention">
+      <h2><span class="s-num orange-num">03</span>Obtention des Eris</h2>
+      <h3 class="first">Canal principal — achat sur le site web</h3>
+      <p>Le circuit complet d'un achat d'Eris depuis le site officiel :</p>
+      <div class="flow-list">
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div class="flow-content">
+            <strong>Joueur achete sur le site</strong>
+            <p>Le joueur se connecte sur le site officiel, choisit un pack d'Eris et paye via Stripe (integration Cloudflare).</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div class="flow-content">
+            <strong>Stripe envoie un webhook</strong>
+            <p>Apres confirmation du paiement, Stripe envoie un evenement <code>payment_intent.succeeded</code> au backend du site (Cloudflare Worker ou serveur Node).</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <div class="flow-content">
+            <strong>Appel API vers le serveur Minecraft</strong>
+            <p>Le backend appelle <code>POST /api/admin/eris/give</code> sur le serveur API Minecraft (port 8081) avec le UUID du joueur, le montant et une cle API secrete.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">4</div>
+          <div class="flow-content">
+            <strong>ErisManager credite le compte</strong>
+            <p>L'AdminRequestHandler traite l'appel, appelle <code>ErisManager.getInstance().give(uuid, amount, "Website purchase")</code>, qui met a jour le cache (si en ligne) ou le fichier JSON (si hors ligne).</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">5</div>
+          <div class="flow-content">
+            <strong>Notification en jeu</strong>
+            <p>Si le joueur est en ligne, il recoit un message dore : <code>[&#10022;] Vous avez recu 100 Eris ! (Achat website)</code></p>
+          </div>
+        </div>
+      </div>
+
+      <h3>Canal secondaire — trading entre joueurs</h3>
+      <p>Les joueurs peuvent s'echanger des Eris directement en jeu via la commande <code>/eris pay &lt;joueur&gt; &lt;montant&gt;</code>. Ce canal est soumis a des regles anti-abus (rate limit, confirmation, minimum). Voir section 07 — Systeme de Trading.</p>
+
+      <h3>Ce qui NE donne PAS d'Eris</h3>
+      <div class="info-box danger">
+        <span class="icon">&#8856;</span>
+        <div class="content"><strong>Aucune activite en jeu ne genere des Eris.</strong> Les recompenses de vote, quetes, kills PvP, participation a des evenements, et recompenses de connexion quotidienne donnent des <strong>Dollars ($)</strong>, jamais des Eris. Cette separation est deliberee pour garantir que les Eris ont une valeur reelle stable et ne sont pas inflationnaires.</div>
+      </div>
+    </div>
+
+    <!-- 04. COMMANDES -->
+    <div class="section-card" id="commandes">
+      <h2><span class="s-num cyan-num">04</span>Commandes</h2>
+      <p>Toutes les commandes utilisent le systeme EriCommand d'EriAPI avec auto-completion sur tous les arguments de type joueur.</p>
+
+      <div class="cmd-grid">
+
+        <div class="cmd-card info-cmd">
+          <div class="cmd-title">/eris</div>
+          <div class="cmd-perm">tous les joueurs</div>
+          <div class="cmd-desc">Alias de <code>/eris balance</code>. Affiche le solde Eris du joueur en or dans le chat : <code>[&#10022;] Votre solde : 150 Eris</code>. Affiche aussi la date de la derniere transaction.</div>
+        </div>
+
+        <div class="cmd-card info-cmd">
+          <div class="cmd-title">/eris balance [joueur]</div>
+          <div class="cmd-perm">tous les joueurs / eriniumfaction.eris.balance.other</div>
+          <div class="cmd-desc">
+            Sans argument : affiche votre solde Eris.<br>
+            Avec un nom de joueur : affiche le solde d'un autre joueur (si en ligne). Le joueur cible doit etre connecte pour les joueurs normaux ; les admins peuvent voir n'importe qui.
+            <ul>
+              <li>Auto-complete sur les joueurs en ligne</li>
+              <li>Erreur propre si le joueur est hors ligne et l'appelant n'est pas admin</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="cmd-card player-cmd">
+          <div class="cmd-title">/eris pay &lt;joueur&gt; &lt;montant&gt;</div>
+          <div class="cmd-perm">tous les joueurs</div>
+          <div class="cmd-desc">
+            Envoie des Eris a un autre joueur en ligne. Necessite une confirmation cliquable avant execution.
+            <ul>
+              <li>Argument <code>joueur</code> : auto-complete sur les joueurs en ligne</li>
+              <li>Argument <code>montant</code> : entier positif, minimum 1, pas de decimales</li>
+              <li>Joueur cible doit etre en ligne</li>
+              <li>Confirmation via boutons [CONFIRMER] / [ANNULER] en chat (EriChat cliquable)</li>
+              <li>Soumis au rate limit (max 10 transferts/heure)</li>
+              <li>Transaction loggee pour les deux joueurs</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="cmd-card info-cmd">
+          <div class="cmd-title">/eris top</div>
+          <div class="cmd-perm">tous les joueurs</div>
+          <div class="cmd-desc">
+            Affiche le leaderboard des 20 plus riches en Eris sous forme de liste paginee (EriChat ChatPaginator). Inclut le rang, le pseudo, et le solde. La liste est precalculee et mise en cache toutes les 5 minutes pour eviter de parcourir tous les fichiers JSON a chaque appel.
+            <ul>
+              <li>Format : <code>#1 PlayerName — 4 500 &#10022;</code></li>
+              <li>Rang du joueur appelant affiche en bas meme s'il n'est pas dans le top 20</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="cmd-card info-cmd">
+          <div class="cmd-title">/eris history [page]</div>
+          <div class="cmd-perm">tous les joueurs</div>
+          <div class="cmd-desc">
+            Affiche les 20 dernieres transactions du joueur (paginee, 10 entrees par page). Chaque entree indique le type (RECU / ENVOYE / ACHAT / ADMIN), le montant, la contrepartie (nom joueur ou "website"), et la date formatee.
+            <ul>
+              <li>Paginator EriChat avec boutons &lt;&lt; Prev / Next &gt;&gt;</li>
+              <li>Format date : <code>22/03/2026 14:32</code></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="cmd-card admin-cmd">
+          <div class="cmd-title">/eris give &lt;joueur&gt; &lt;montant&gt;</div>
+          <div class="cmd-perm">eriniumfaction.admin.eris</div>
+          <div class="cmd-desc">
+            Ajoute des Eris au compte d'un joueur (en ligne ou hors ligne). Utilise principalement par le webhook du site apres un achat.
+            <ul>
+              <li>Auto-complete sur les joueurs (en ligne en priorite)</li>
+              <li>Fonctionne pour les joueurs hors ligne (ecrit directement le fichier JSON)</li>
+              <li>Loggue dans le journal de transactions avec type ADMIN_GIVE</li>
+              <li>Si joueur en ligne : notification immediate en chat</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="cmd-card admin-cmd">
+          <div class="cmd-title">/eris take &lt;joueur&gt; &lt;montant&gt;</div>
+          <div class="cmd-perm">eriniumfaction.admin.eris</div>
+          <div class="cmd-desc">
+            Retire des Eris du compte d'un joueur. La balance ne peut jamais passer en dessous de 0 — si le montant demande depasse la balance, la balance est simplement mise a 0 et un avertissement est affiche a l'admin.
+            <ul>
+              <li>Loggue avec type ADMIN_TAKE</li>
+              <li>Notification au joueur si en ligne</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="cmd-card admin-cmd">
+          <div class="cmd-title">/eris set &lt;joueur&gt; &lt;montant&gt;</div>
+          <div class="cmd-perm">eriniumfaction.admin.eris</div>
+          <div class="cmd-desc">
+            Definit exactement la balance d'un joueur a la valeur specifiee. Utile pour les corrections manuelles. Loggue avec type ADMIN_SET. Necessite une confirmation pour les montants superieurs a 10 000.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Auto-completion obligatoire :</strong> Conformement aux conventions du projet, tous les arguments <code>&lt;joueur&gt;</code> utilisent <code>PlayerArg.of("name")</code> pour l'auto-complete. Les arguments <code>&lt;montant&gt;</code> n'ont pas de suggestions (saisie libre).</div>
+      </div>
+    </div>
+
+    <!-- 05. GUI -->
+    <div class="section-card" id="gui">
+      <h2><span class="s-num">05</span>Integration GUI</h2>
+      <h3 class="first">Affichage du solde dans les menus faction</h3>
+      <p>Partout ou le solde Dollar est affiche dans les GUIs du mod, le solde Eris est affiche a cote, sur la meme ligne ou le meme composant. Le format standard est :</p>
+      <div class="code-block"><span class="st">"1 234$ | 56&#10022;"</span>
+<span class="cm">// Dollar (cyan) | Eris (or)</span>
+<span class="cm">// Utiliser des Label separes ou un seul avec formattage couleur</span></div>
+
+      <h3>Couleur et symbole</h3>
+      <ul>
+        <li><strong>Couleur :</strong> <code>#FFD700</code> — or pur, distinctif du Dollar qui est en cyan</li>
+        <li><strong>Symbole :</strong> <code>&#10022;</code> (U+2726, BLACK FOUR POINTED STAR) — lisible en Minecraft, distinctif</li>
+        <li><strong>Format nombre :</strong> Separateur de milliers pour la lisibilite (<code>1 500 &#10022;</code>)</li>
+      </ul>
+
+      <h3>Menus concernes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>GUI</th><th>Localisation de l'affichage</th><th>Priorite</th></tr></thead>
+          <tbody>
+            <tr><td>GuiFactionMain</td><td>En-tete / zone infos joueur, a cote du $ faction</td><td><span class="tag-crit">Critique</span></td></tr>
+            <tr><td>GuiFactionBank</td><td>Section "Votre solde personnel"</td><td><span class="tag-high">Haute</span></td></tr>
+            <tr><td>FactionPageHome</td><td>Stats joueur en bas de page</td><td><span class="tag-med">Normale</span></td></tr>
+            <tr><td>Boutique cosmetique (future)</td><td>En-tete de la boutique</td><td><span class="tag-low">Future</span></td></tr>
+            <tr><td>HDV / Auction House (future)</td><td>Filtres de recherche et listings Eris</td><td><span class="tag-low">Future</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Acces aux donnees cote client</h3>
+      <p>La balance Eris est une donnee serveur. Pour l'afficher dans les GUIs clients, deux approches :</p>
+      <ul>
+        <li><strong>Ouverture de GUI :</strong> Lors du <code>GuiNetworkHandler.openGui(player, "faction_menu", nbtData)</code>, inclure le solde Eris dans les <code>nbtData</code> envoyes.</li>
+        <li><strong>Mise a jour en temps reel :</strong> Apres un <code>/eris pay</code> ou une reception d'Eris, envoyer un packet <code>GuiNetworkHandler.sendData(player, "eris_balance_update", nbt)</code> si un GUI est ouvert.</li>
+      </ul>
+    </div>
+
+    <!-- 06. CHAT -->
+    <div class="section-card" id="chat">
+      <h2><span class="s-num gold-num">06</span>Integration Chat</h2>
+      <h3 class="first">Messages de notification</h3>
+      <p>Tous les messages relatifs aux Eris sont en or, avec le prefixe <code>[&#10022;]</code> en gras. Ils utilisent <code>EriChat</code> d'EriAPI.</p>
+
+      <div class="code-block"><span class="cm">// Reception d'Eris (achat website)</span>
+<span class="ty">EriChat</span>.<span class="fn">create</span>()
+    .<span class="fn">text</span>(<span class="st">"[&#10022;] "</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.GOLD).<span class="fn">bold</span>()
+    .<span class="fn">text</span>(<span class="st">"Vous avez recu "</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.YELLOW)
+    .<span class="fn">text</span>(<span class="st">"50 Eris"</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.GOLD).<span class="fn">bold</span>()
+    .<span class="fn">text</span>(<span class="st">" ! (Achat website)"</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.GRAY)
+    .<span class="fn">to</span>(player);
+
+<span class="cm">// Reception d'Eris (transfert joueur)</span>
+<span class="ty">EriChat</span>.<span class="fn">create</span>()
+    .<span class="fn">text</span>(<span class="st">"[&#10022;] "</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.GOLD).<span class="fn">bold</span>()
+    .<span class="fn">text</span>(<span class="st">"Vous avez recu "</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.YELLOW)
+    .<span class="fn">text</span>(amount + <span class="st">" Eris"</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.GOLD).<span class="fn">bold</span>()
+    .<span class="fn">text</span>(<span class="st">" de la part de "</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.YELLOW)
+    .<span class="fn">text</span>(senderName).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.WHITE).<span class="fn">bold</span>()
+    .<span class="fn">text</span>(<span class="st">"."</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.YELLOW)
+    .<span class="fn">to</span>(receiver);
+
+<span class="cm">// Envoi d'Eris (confirmé)</span>
+<span class="ty">EriChat</span>.<span class="fn">create</span>()
+    .<span class="fn">text</span>(<span class="st">"[&#10022;] "</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.GOLD).<span class="fn">bold</span>()
+    .<span class="fn">text</span>(<span class="st">"Vous avez envoye "</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.YELLOW)
+    .<span class="fn">text</span>(amount + <span class="st">" Eris"</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.GOLD).<span class="fn">bold</span>()
+    .<span class="fn">text</span>(<span class="st">" a "</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.YELLOW)
+    .<span class="fn">text</span>(targetName).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.WHITE).<span class="fn">bold</span>()
+    .<span class="fn">text</span>(<span class="st">"."</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.YELLOW)
+    .<span class="fn">to</span>(sender);</div>
+
+      <h3>Messages d'erreur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Situation</th><th>Message (rouge)</th></tr></thead>
+          <tbody>
+            <tr><td>Solde insuffisant</td><td>[&#10022;] Solde insuffisant. Vous avez X Eris, tentative de X.</td></tr>
+            <tr><td>Joueur hors ligne</td><td>[&#10022;] Ce joueur n'est pas connecte.</td></tr>
+            <tr><td>Montant invalide</td><td>[&#10022;] Le montant doit etre un entier positif (minimum 1).</td></tr>
+            <tr><td>Transfert vers soi</td><td>[&#10022;] Vous ne pouvez pas vous envoyer des Eris.</td></tr>
+            <tr><td>Rate limit atteint</td><td>[&#10022;] Trop de transferts. Reessayez dans X minutes.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 07. TRADING -->
+    <div class="section-card" id="trading">
+      <h2><span class="s-num">07</span>Systeme de Trading</h2>
+      <h3 class="first">Flux de confirmation /eris pay</h3>
+      <p>Pour eviter les accidents, chaque transfert d'Eris entre joueurs requiert une confirmation explicite via des boutons cliquables dans le chat :</p>
+
+      <div class="code-block"><span class="cm">// Etape 1 : joueur tape /eris pay PlayerB 25</span>
+<span class="cm">// Le systeme affiche une demande de confirmation :</span>
+
+[<span class="gd">&#10022;</span>] Confirmer l'envoi de <span class="gd">25 Eris</span> a <span class="ty">PlayerB</span> ?
+<span class="cm">// Boutons cliquables EriChat :</span>
+[<span class="an">CONFIRMER</span>]  <span class="cm">// cliquable, execute /eris pay_confirm &lt;token&gt;</span>
+[<span class="st">ANNULER</span>]    <span class="cm">// cliquable, execute /eris pay_cancel &lt;token&gt;</span>
+
+<span class="cm">// Si CONFIRMER dans les 30 secondes :</span>
+<span class="cm">// → balance sender  -25, transaction loggee SEND</span>
+<span class="cm">// → balance receiver +25, transaction loggee RECEIVE</span>
+<span class="cm">// → messages de confirmation aux deux joueurs</span>
+
+<span class="cm">// Si ANNULER ou timeout 30s :</span>
+<span class="cm">// → aucun changement de balance, message d'annulation</span></div>
+
+      <h3>Token de confirmation</h3>
+      <p>Un UUID unique est genere pour chaque demande de confirmation. Il est stocke en memoire dans un <code>Map&lt;UUID, PendingTransfer&gt;</code> avec expiration. Cela evite qu'un joueur rejoue ou manipule la confirmation.</p>
+      <div class="code-block"><span class="kw">private static class</span> <span class="ty">PendingTransfer</span> {
+    <span class="ty">UUID</span> senderUuid;
+    <span class="ty">UUID</span> receiverUuid;
+    <span class="kw">int</span> amount;
+    <span class="kw">long</span> expiresAt; <span class="cm">// System.currentTimeMillis() + 30_000</span>
+}</div>
+
+      <h3>Regles du trading</h3>
+      <ul>
+        <li><strong>Minimum 1 Eris</strong> par transfert — pas de demi-Eris ni de 0</li>
+        <li><strong>Entiers uniquement</strong> — pas de decimales, simplifie la comptabilite et evite les problemes d'arrondi</li>
+        <li><strong>Les deux joueurs en ligne</strong> — impossible d'envoyer des Eris a un joueur hors ligne via /eris pay</li>
+        <li><strong>Rate limit</strong> : maximum 10 transferts par heure par joueur (expediteur). Configurable via <code>ErisConfig.maxTransfersPerHour</code>. Le rate limit est stocke en memoire (<code>Map&lt;UUID, List&lt;Long&gt;&gt;</code> des timestamps) et ne persiste pas entre les redemarrages.</li>
+        <li><strong>Pas d'auto-envoi</strong> — impossible d'envoyer des Eris a soi-meme</li>
+        <li><strong>Transaction loggee</strong> — chaque transfert genere une entree de type SEND chez l'expediteur et RECEIVE chez le recepteur</li>
+      </ul>
+
+      <h3>Implementation du rate limit</h3>
+      <div class="code-block"><span class="cm">// En memoire dans ErisManager — ne persiste pas entre redemarrages</span>
+<span class="kw">private final</span> Map&lt;<span class="ty">UUID</span>, List&lt;<span class="ty">Long</span>&gt;&gt; transferTimestamps <span class="op">=</span> <span class="kw">new</span> HashMap&lt;&gt;();
+
+<span class="kw">public boolean</span> <span class="fn">checkRateLimit</span>(<span class="ty">UUID</span> sender) {
+    <span class="kw">long</span> now <span class="op">=</span> System.<span class="fn">currentTimeMillis</span>();
+    <span class="kw">long</span> hourAgo <span class="op">=</span> now <span class="op">-</span> <span class="nu">3_600_000L</span>;
+    List&lt;<span class="ty">Long</span>&gt; times <span class="op">=</span> transferTimestamps.<span class="fn">computeIfAbsent</span>(sender, k <span class="op">-&gt;</span> <span class="kw">new</span> ArrayList&lt;&gt;());
+    times.<span class="fn">removeIf</span>(t <span class="op">-&gt;</span> t <span class="op">&lt;</span> hourAgo); <span class="cm">// Purge les timestamps expires</span>
+    <span class="kw">return</span> times.<span class="fn">size</span>() <span class="op">&lt;</span> ErisConfig.maxTransfersPerHour;
+}
+
+<span class="kw">public void</span> <span class="fn">recordTransfer</span>(<span class="ty">UUID</span> sender) {
+    transferTimestamps.<span class="fn">computeIfAbsent</span>(sender, k <span class="op">-&gt;</span> <span class="kw">new</span> ArrayList&lt;&gt;()).<span class="fn">add</span>(System.<span class="fn">currentTimeMillis</span>());
+}</div>
+    </div>
+
+    <!-- 08. TRANSACTIONS -->
+    <div class="section-card" id="transactions">
+      <h2><span class="s-num violet-num">08</span>Journal de Transactions</h2>
+      <h3 class="first">Structure d'une entree</h3>
+      <div class="code-block">{
+  <span class="st">"type"</span>: <span class="st">"RECEIVE"</span>,    <span class="cm">// RECEIVE | SEND | ADMIN_GIVE | ADMIN_TAKE | ADMIN_SET | PURCHASE</span>
+  <span class="st">"amount"</span>: <span class="nu">50</span>,
+  <span class="st">"from_to"</span>: <span class="st">"PlayerName"</span>, <span class="cm">// Nom du joueur, ou "website" pour les achats, ou "admin:NomAdmin"</span>
+  <span class="st">"timestamp"</span>: <span class="nu">1711152000000</span>, <span class="cm">// Epoch millis</span>
+  <span class="st">"reason"</span>: <span class="st">"Player transfer"</span>  <span class="cm">// Description libre, affichee dans /eris history</span>
+}</div>
+
+      <h3>Types de transaction</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Emetteur</th><th>Description</th><th>Couleur dans /history</th></tr></thead>
+          <tbody>
+            <tr><td>PURCHASE</td><td>website</td><td>Achat via le site officiel (webhook)</td><td>Or</td></tr>
+            <tr><td>RECEIVE</td><td>NomJoueur</td><td>Eris recu d'un autre joueur</td><td>Vert</td></tr>
+            <tr><td>SEND</td><td>NomJoueur</td><td>Eris envoye a un autre joueur</td><td>Rouge</td></tr>
+            <tr><td>ADMIN_GIVE</td><td>admin:NomAdmin</td><td>Don admin (correction, concours, etc.)</td><td>Jaune</td></tr>
+            <tr><td>ADMIN_TAKE</td><td>admin:NomAdmin</td><td>Retrait admin (sanction, correction)</td><td>Orange</td></tr>
+            <tr><td>ADMIN_SET</td><td>admin:NomAdmin</td><td>Modification directe de balance</td><td>Violet</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Politique de retention</h3>
+      <ul>
+        <li><strong>Maximum 200 entrees par joueur</strong> — la liste est circulaire. Quand elle atteint 200 entrees, la plus ancienne est retiree avant d'ajouter la nouvelle.</li>
+        <li><strong>Aucune purge automatique</strong> par age — les entrees ne sont jamais supprimees automatiquement sauf par rotation circulaire.</li>
+        <li><strong>Disponibles via /eris history</strong> paginee (10 entrees par page) et via l'API web.</li>
+      </ul>
+
+      <h3>Implementation</h3>
+      <div class="code-block"><span class="kw">public void</span> <span class="fn">addTransaction</span>(<span class="ty">ErisData</span> data, <span class="ty">ErisTransaction</span> tx) {
+    data.transactions.<span class="fn">add</span>(<span class="nu">0</span>, tx); <span class="cm">// Plus recent en premier</span>
+    <span class="kw">if</span> (data.transactions.<span class="fn">size</span>() <span class="op">&gt;</span> <span class="nu">200</span>) {
+        data.transactions.<span class="fn">remove</span>(data.transactions.<span class="fn">size</span>() <span class="op">-</span> <span class="nu">1</span>); <span class="cm">// Retire le plus ancien</span>
+    }
+    <span class="fn">saveAsync</span>(data);
+}</div>
+    </div>
+
+    <!-- 09. WEB API -->
+    <div class="section-card" id="webapi">
+      <h2><span class="s-num cyan-num">09</span>API Web</h2>
+      <h3 class="first">Endpoints a ajouter dans AdminRequestHandler</h3>
+      <p>Ces endpoints sont servis par le serveur HTTP integre du mod (port 8081). Ils sont accessibles depuis le site web, le panel d'administration, et les webhooks Stripe.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="tag-cyan">GET</span></td>
+              <td>/api/eris/{uuid}</td>
+              <td><span class="tag-med">API Key</span></td>
+              <td>Balance et 50 dernieres transactions d'un joueur (online ou offline)</td>
+            </tr>
+            <tr>
+              <td><span class="tag-cyan">GET</span></td>
+              <td>/api/eris/top</td>
+              <td><span class="tag-low">Public</span></td>
+              <td>Top 50 joueurs par balance Eris (cache 5 minutes)</td>
+            </tr>
+            <tr>
+              <td><span class="tag-violet">POST</span></td>
+              <td>/api/admin/eris/give</td>
+              <td><span class="tag-crit">Admin Key</span></td>
+              <td>Credite des Eris (utilisé par le webhook Stripe apres achat)</td>
+            </tr>
+            <tr>
+              <td><span class="tag-violet">POST</span></td>
+              <td>/api/admin/eris/take</td>
+              <td><span class="tag-crit">Admin Key</span></td>
+              <td>Debite des Eris (sanction, correction admin)</td>
+            </tr>
+            <tr>
+              <td><span class="tag-violet">POST</span></td>
+              <td>/api/admin/eris/set</td>
+              <td><span class="tag-crit">Admin Key</span></td>
+              <td>Definit exactement la balance d'un joueur</td>
+            </tr>
+            <tr>
+              <td><span class="tag-cyan">GET</span></td>
+              <td>/api/eris/rate</td>
+              <td><span class="tag-low">Public</span></td>
+              <td>Retourne le taux de conversion Eris/Euro configure (utilise par le site web pour calculer les prix en Eris)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Format des requetes et reponses</h3>
+      <div class="code-block"><span class="cm">// POST /api/admin/eris/give — Body JSON</span>
+{
+  <span class="st">"uuid"</span>: <span class="st">"550e8400-e29b-41d4-a716-446655440000"</span>,
+  <span class="st">"amount"</span>: <span class="nu">100</span>,
+  <span class="st">"reason"</span>: <span class="st">"Website purchase — Pack Starter"</span>
+}
+
+<span class="cm">// Reponse succes 200</span>
+{
+  <span class="st">"success"</span>: <span class="nu">true</span>,
+  <span class="st">"new_balance"</span>: <span class="nu">250</span>,
+  <span class="st">"player_online"</span>: <span class="nu">true</span>
+}
+
+<span class="cm">// Reponse erreur 400/403/404</span>
+{
+  <span class="st">"success"</span>: <span class="nu">false</span>,
+  <span class="st">"error"</span>: <span class="st">"UUID not found"</span>
+}
+
+<span class="cm">// GET /api/eris/{uuid} — Reponse 200</span>
+{
+  <span class="st">"uuid"</span>: <span class="st">"550e8400-e29b-41d4-a716-446655440000"</span>,
+  <span class="st">"name"</span>: <span class="st">"PlayerName"</span>,
+  <span class="st">"balance"</span>: <span class="nu">250</span>,
+  <span class="st">"online"</span>: <span class="nu">true</span>,
+  <span class="st">"transactions"</span>: [ ... ] <span class="cm">// 50 dernieres</span>
+}
+
+<span class="cm">// GET /api/eris/rate — Reponse 200 (Public, pas d'auth requise)</span>
+{
+  <span class="st">"eris_per_euro"</span>: <span class="nu">100</span>  <span class="cm">// Configure via erisToEuroRate dans ErisConfig — 100 Eris = 1€</span>
+}
+<span class="cm">// Le site web appelle cet endpoint pour afficher dynamiquement les prix en Eris</span>
+<span class="cm">// Ex : un item a 4.99€ → Math.round(4.99 * 100) = 499 Eris</span></div>
+
+      <h3>Securite des endpoints admin</h3>
+      <ul>
+        <li><strong>Cle API secrete</strong> — transmise dans le header <code>X-Admin-Key</code>. Configuree dans <code>config/EriniumFaction/admin.cfg</code>.</li>
+        <li><strong>Validation des UUIDs</strong> — format UUID valide verifie avant tout traitement.</li>
+        <li><strong>Limites de montant</strong> — un <code>give</code> via API ne peut pas depasser 50 000 Eris en une seule requete (protection contre les erreurs de webhook).</li>
+        <li><strong>Logging</strong> — chaque appel admin API est logue avec timestamp, UUID cible, montant et IP source.</li>
+      </ul>
+    </div>
+
+    <!-- 10. ANTI-EXPLOIT -->
+    <div class="section-card" id="antiexploit">
+      <h2><span class="s-num red-num">10</span>Anti-Exploit</h2>
+      <h3 class="first">Validations cote serveur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Vecteur</th><th>Protection</th><th>Consequence</th></tr></thead>
+          <tbody>
+            <tr><td>Montant negatif</td><td>Validation : montant &gt; 0</td><td>Commande rejetee, message d'erreur</td></tr>
+            <tr><td>Montant = 0</td><td>Validation : montant &gt;= 1</td><td>Commande rejetee</td></tr>
+            <tr><td>Decimales</td><td>Parsing int strict (pas parseDouble)</td><td>Commande rejetee, message "entier requis"</td></tr>
+            <tr><td>Auto-transfert</td><td>sender.getUUID().equals(target.getUUID())</td><td>Commande rejetee</td></tr>
+            <tr><td>Joueur hors ligne</td><td>Check presence dans la liste des joueurs connectes</td><td>Commande rejetee</td></tr>
+            <tr><td>Spam de transferts</td><td>Rate limit 10/h en memoire</td><td>Blocage temporaire, message delai</td></tr>
+            <tr><td>Balance negative</td><td>Impossible architecturalement — Math.max(0, balance - amount)</td><td>Operation refusee si solde insuffisant</td></tr>
+            <tr><td>Overflow entier</td><td>Cap balance a Integer.MAX_VALUE ou 1 000 000 (configurable)</td><td>Give refuse si depasse le cap</td></tr>
+            <tr><td>Replaying API webhook</td><td>Idempotency key optionnel dans le body JSON</td><td>Doublon ignore si meme key deja traitee</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Toutes les operations necessitent une validation complete</h3>
+      <div class="code-block"><span class="kw">public boolean</span> <span class="fn">transfer</span>(<span class="ty">EntityPlayerMP</span> sender, <span class="ty">EntityPlayerMP</span> receiver, <span class="kw">int</span> amount) {
+    <span class="cm">// 1. Validation basique</span>
+    <span class="kw">if</span> (amount <span class="op">&lt;</span> ErisConfig.minTransferAmount) <span class="kw">return false</span>;
+    <span class="kw">if</span> (sender.<span class="fn">getUniqueID</span>().<span class="fn">equals</span>(receiver.<span class="fn">getUniqueID</span>())) <span class="kw">return false</span>;
+
+    <span class="cm">// 2. Rate limit</span>
+    <span class="kw">if</span> (!<span class="fn">checkRateLimit</span>(sender.<span class="fn">getUniqueID</span>())) <span class="kw">return false</span>;
+
+    <span class="cm">// 3. Solde suffisant</span>
+    <span class="ty">ErisData</span> senderData <span class="op">=</span> <span class="fn">get</span>(sender.<span class="fn">getUniqueID</span>());
+    <span class="kw">if</span> (senderData.balance <span class="op">&lt;</span> amount) <span class="kw">return false</span>;
+
+    <span class="cm">// 4. Modification atomique (meme thread serveur, pas de race condition)</span>
+    senderData.balance <span class="op">-=</span> amount;
+    <span class="ty">ErisData</span> receiverData <span class="op">=</span> <span class="fn">get</span>(receiver.<span class="fn">getUniqueID</span>());
+    receiverData.balance <span class="op">+=</span> amount;
+
+    <span class="cm">// 5. Log et sauvegarde</span>
+    <span class="fn">addTransaction</span>(senderData, <span class="kw">new</span> <span class="ty">ErisTransaction</span>(<span class="st">"SEND"</span>, amount, receiver.<span class="fn">getName</span>(), <span class="st">"Player transfer"</span>));
+    <span class="fn">addTransaction</span>(receiverData, <span class="kw">new</span> <span class="ty">ErisTransaction</span>(<span class="st">"RECEIVE"</span>, amount, sender.<span class="fn">getName</span>(), <span class="st">"Player transfer"</span>));
+    <span class="fn">recordTransfer</span>(sender.<span class="fn">getUniqueID</span>());
+
+    <span class="kw">return true</span>;
+}</div>
+    </div>
+
+    <!-- 11. FUTUR -->
+    <div class="section-card" id="futur">
+      <h2><span class="s-num violet-num">11</span>Integrations Futures</h2>
+      <p>L'Eris est concu comme une fondation monetaire reutilisable. Les systemes suivants pourront s'y connecter sans modifier l'architecture de base :</p>
+
+      <div class="arch-grid">
+        <div class="arch-card gold-border">
+          <div class="arch-card-name">HDV — Hotel des Ventes</div>
+          <div class="arch-card-desc">Marche aux encheres entre joueurs ou des items peuvent etre mis en vente pour des Eris. ErisManager.withdraw() sera appele a l'achat.</div>
+        </div>
+        <div class="arch-card gold-border">
+          <div class="arch-card-name">Boutique Cosmetique</div>
+          <div class="arch-card-desc">Acheter des capes, effets de particules, auras, titres decoratifs et emotes pour des Eris. Pas d'impact sur le PvP — pure personnalisation.</div>
+        </div>
+      </div>
+
+      <h3>Boutique du site web — paiement en Eris</h3>
+      <p>La boutique externe (site web officiel) pourra accepter les Eris comme moyen de paiement en plus des euros. Chaque produit du shop affiche deux prix : un prix en euros (paiement Stripe/PayPal/CB) et un prix en Eris calcule automatiquement via le taux <code>erisToEuroRate</code>.</p>
+
+      <p><strong>Exemple :</strong> une cape cosmetique a 4,99€ sera aussi affichee a 499 Eris (avec un taux de 100 Eris = 1€).</p>
+
+      <h4 style="margin-top:20px;margin-bottom:10px;font-size:15px;color:var(--gold);">Pourquoi c'est puissant</h4>
+      <ul>
+        <li><strong>Les grinders peuvent jouer sans payer :</strong> un joueur qui farme des ressources, les vend sur le HDV contre des Eris, peut ensuite utiliser ces Eris pour acheter des items sur la boutique qui auraient coute de l'argent reel. Temps investi = valeur reelle.</li>
+        <li><strong>L'Eris gagne une valeur percue forte :</strong> savoir que les Eris peuvent "acheter" des choses qui coutent de l'argent reel ancre leur valeur dans l'esprit des joueurs.</li>
+        <li><strong>Economie saine :</strong> cela cree un cycle vertueux — joueur A farme → vend au HDV → joueur B achete ses items avec ses Eris d'achat → joueur A utilise ses Eris gagnes pour la boutique. Le temps de jeu se convertit en valeur reelle.</li>
+      </ul>
+
+      <h4 style="margin-top:20px;margin-bottom:10px;font-size:15px;color:var(--cyan);">Flux technique — paiement Eris sur le site web</h4>
+      <ol style="padding-left:20px;display:flex;flex-direction:column;gap:8px;">
+        <li>Le joueur est connecte sur le site web (Discord OAuth → UUID Minecraft lie).</li>
+        <li>Le joueur clique sur "Payer avec des Eris" plutot que "Payer par carte".</li>
+        <li>Le backend du site appelle <code>GET /api/eris/{uuid}</code> pour verifier que le solde est suffisant.</li>
+        <li>Si solde suffisant : le backend appelle <code>POST /api/admin/eris/take</code> pour debiter le montant exact.</li>
+        <li>Le backend marque la commande comme payee et livre l'item (meme pipeline qu'un achat Stripe).</li>
+        <li>Le joueur recoit l'item en jeu avec le message de confirmation habituel.</li>
+      </ol>
+
+      <div class="info-box danger" style="margin-top:20px;">
+        <span class="icon">&#8856;</span>
+        <div class="content"><strong>Non-P2W garanti :</strong> Seuls les cosmetiques, commodites d'interface et contenu non-combat sont disponibles dans la boutique. Aucun item donnant un avantage PvP n'est vendu — ni contre des euros, ni contre des Eris. Les deux canaux de paiement sont soumis aux memes regles fair-play.</div>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Convention d'integration :</strong> Tout systeme qui consomme des Eris doit appeler <code>ErisManager.getInstance().spend(player, amount, reason)</code> qui verifie le solde, debite, log et notifie le joueur. Ne jamais manipuler la balance directement depuis un autre manager.</div>
+      </div>
+    </div>
+
+    <!-- 12. CONFIG -->
+    <div class="section-card" id="config">
+      <h2><span class="s-num">12</span>Configuration</h2>
+      <h3 class="first">ErisConfig.java</h3>
+      <p>Fichier de configuration Forge genere dans <code>config/eriniumfaction_eris.cfg</code>. Utilise <code>@EriConfig</code> d'EriAPI.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Cle</th><th>Type</th><th>Defaut</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>erisSymbol</td><td>String</td><td>&#10022;</td><td>Symbole affiche dans le chat et les GUIs</td></tr>
+            <tr><td>erisColor</td><td>String</td><td>#FFD700</td><td>Couleur hexadecimale or pour l'affichage</td></tr>
+            <tr><td>maxTransfersPerHour</td><td>int</td><td>10</td><td>Nombre max de /eris pay par joueur par heure</td></tr>
+            <tr><td>minTransferAmount</td><td>int</td><td>1</td><td>Montant minimum d'un transfert joueur</td></tr>
+            <tr><td>maxBalanceCap</td><td>int</td><td>1000000</td><td>Balance maximum par joueur (protection overflow)</td></tr>
+            <tr><td>maxApiGivePerCall</td><td>int</td><td>50000</td><td>Montant max d'un /api/admin/eris/give unique</td></tr>
+            <tr><td>confirmationTimeoutSeconds</td><td>int</td><td>30</td><td>Delai avant expiration de la confirmation /eris pay</td></tr>
+            <tr><td>topCacheRefreshMinutes</td><td>int</td><td>5</td><td>Frequence de mise a jour du cache /eris top</td></tr>
+            <tr><td>erisDataPath</td><td>String</td><td>config/EriniumFaction/eris</td><td>Dossier de stockage des fichiers JSON par joueur</td></tr>
+            <tr><td>adminGivePermission</td><td>String</td><td>eriniumfaction.admin.eris</td><td>Permission pour les commandes admin /eris</td></tr>
+            <tr><td>erisToEuroRate</td><td>int</td><td>100</td><td>Taux de conversion : nombre d'Eris equivalents a 1€. Ex : 100 signifie 100 Eris = 1€. Utilise par /api/eris/rate et la boutique du site web.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 13. ARCHITECTURE -->
+    <div class="section-card" id="architecture">
+      <h2><span class="s-num cyan-num">13</span>Architecture Technique</h2>
+      <h3 class="first">Package et classes</h3>
+      <p>Le systeme Eris est entierement isole dans le package <code>fr.eriniumgroup.eriniumfaction.eris</code>. Il ne depend d'aucun systeme faction/RPG, et les autres systemes qui consomment des Eris passent par <code>ErisManager</code>.</p>
+
+      <div class="arch-grid">
+        <div class="arch-card gold-border">
+          <div class="arch-card-name">ErisManager</div>
+          <div class="arch-card-desc">Singleton. Cache memoire (Map UUID→ErisData), load/save JSON, logique metier (give, take, set, transfer, spend). Point d'entree unique pour toutes les operations Eris.</div>
+        </div>
+        <div class="arch-card gold-border">
+          <div class="arch-card-name">ErisData</div>
+          <div class="arch-card-desc">POJO Java. Champs : uuid (String), name (String), balance (int), transactions (List&lt;ErisTransaction&gt;). Serialisation JSON via Gson.</div>
+        </div>
+        <div class="arch-card gold-border">
+          <div class="arch-card-name">ErisTransaction</div>
+          <div class="arch-card-desc">POJO immutable. Champs : type (String), amount (int), from_to (String), timestamp (long), reason (String).</div>
+        </div>
+        <div class="arch-card gold-border">
+          <div class="arch-card-name">ErisCommand</div>
+          <div class="arch-card-desc">Commande principale /eris avec sous-commandes (balance, pay, top, history, give, take, set). Utilise EriCommand d'EriAPI. Enregistrement dans CommonProxy.serverStarting().</div>
+        </div>
+        <div class="arch-card gold-border">
+          <div class="arch-card-name">ErisConfig</div>
+          <div class="arch-card-desc">Configuration @EriConfig. Chargee en preInit. Accessible via ErisConfig.INSTANCE (singleton pattern).</div>
+        </div>
+        <div class="arch-card gold-border">
+          <div class="arch-card-name">ErisWebEndpoints</div>
+          <div class="arch-card-desc">Classe utilitaire contenant les methodes appelees depuis AdminRequestHandler pour les endpoints /api/eris/*. Pas de serveur HTTP propre — reutilise le handler existant.</div>
+        </div>
+      </div>
+
+      <h3>Cycle de vie et evenements Forge</h3>
+      <div class="code-block"><span class="cm">// Dans CommonProxy.java ou un EventHandler dedie :</span>
+
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onPlayerLogin</span>(<span class="ty">PlayerEvent</span>.PlayerLoggedInEvent e) {
+    <span class="kw">if</span> (e.player <span class="kw">instanceof</span> <span class="ty">EntityPlayerMP</span>) {
+        <span class="ty">ErisManager</span>.<span class="fn">getInstance</span>().<span class="fn">onPlayerLogin</span>((<span class="ty">EntityPlayerMP</span>) e.player);
+    }
+}
+
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onPlayerLogout</span>(<span class="ty">PlayerEvent</span>.PlayerLoggedOutEvent e) {
+    <span class="kw">if</span> (e.player <span class="kw">instanceof</span> <span class="ty">EntityPlayerMP</span>) {
+        <span class="ty">ErisManager</span>.<span class="fn">getInstance</span>().<span class="fn">onPlayerLogout</span>((<span class="ty">EntityPlayerMP</span>) e.player);
+    }
+}
+
+<span class="cm">// Initialisation dans FMLPreInitializationEvent :</span>
+<span class="ty">ErisConfig</span>.<span class="fn">load</span>();
+<span class="ty">ErisManager</span>.<span class="fn">getInstance</span>().<span class="fn">init</span>(); <span class="cm">// Cree le dossier si absent</span></div>
+
+      <h3>Absence de dependance aux systemes saisonniers</h3>
+      <ul>
+        <li><strong>Pas de @EriData</strong> — stockage JSON independant du monde</li>
+        <li><strong>Pas de WorldSavedData</strong> — les balances Eris ne sont JAMAIS dans le monde</li>
+        <li><strong>Pas d'EconomyManager</strong> — systeme totalement distinct du Dollar</li>
+        <li><strong>Compatibilite EriAPI</strong> — utilise EriChat, EriCommand, EriScheduler (async save). Pas de dependance aux modules data/capability d'EriAPI.</li>
+      </ul>
+
+      <h3>Performance sur 500-1000 joueurs</h3>
+      <ul>
+        <li><strong>Cache O(1) :</strong> La lecture et ecriture de balance sont des acces HashMap en O(1) — aucun impact sur les ticks.</li>
+        <li><strong>I/O asynchrone :</strong> Les sauvegardes JSON sont effectuees via <code>EriScheduler.async()</code> — jamais sur le main thread.</li>
+        <li><strong>Pas d'iteration globale :</strong> Aucune boucle sur tous les joueurs connectes dans les ServerTickEvent. Le cache est uniquement accede par les evenements player login/logout et les commandes.</li>
+        <li><strong>Cache /eris top :</strong> La generation du leaderboard requiert de lire tous les fichiers JSON — cette operation couteuse est precalculee toutes les N minutes en async et servie depuis le cache.</li>
+      </ul>
+    </div>
+
+    <!-- 14. ASSETS -->
+    <div class="section-card" id="assets">
+      <h2><span class="s-num">14</span>Assets &amp; Traductions</h2>
+      <h3 class="first">Assets requis</h3>
+      <p>L'Eris etant une monnaie virtuelle representee par du texte, aucune texture d'item ou bloc n'est requise pour le systeme de base. La representation visuelle repose entierement sur le symbole Unicode <code>&#10022;</code> et la couleur <code>#FFD700</code> (or).</p>
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Futurs assets :</strong> Quand la boutique cosmetique sera implementee, des icones 16x16 (representant les packs d'Eris) seront ajoutees dans <code>assets/eriniumfaction/textures/gui/eris/</code>. Suivre le workflow SVG → PNG decrit dans <code>docs/ASSETS_WORKFLOW.md</code>.</div>
+      </div>
+
+      <h3>Cles de traduction — FR</h3>
+      <div class="code-block"><span class="cm"># src/main/resources/assets/eriniumfaction/lang/fr_FR.lang</span>
+
+<span class="cm"># Commandes</span>
+eris.balance.self=<span class="gd">&#10022;</span> Votre solde : <span class="gd">%d Eris</span>
+eris.balance.other=<span class="gd">&#10022;</span> Solde de <span class="ty">%s</span> : <span class="gd">%d Eris</span>
+eris.balance.offline=<span class="gd">&#10022;</span> Ce joueur n'est pas connecte.
+
+<span class="cm"># Trading</span>
+eris.pay.confirm=<span class="gd">&#10022;</span> Confirmer l'envoi de <span class="gd">%d Eris</span> a <span class="ty">%s</span> ?
+eris.pay.sent=<span class="gd">&#10022;</span> Vous avez envoye <span class="gd">%d Eris</span> a <span class="ty">%s</span>.
+eris.pay.received=<span class="gd">&#10022;</span> Vous avez recu <span class="gd">%d Eris</span> de <span class="ty">%s</span>.
+eris.pay.cancelled=<span class="gd">&#10022;</span> Transfert annule.
+eris.pay.expired=<span class="gd">&#10022;</span> Confirmation expiree.
+
+<span class="cm"># Achats</span>
+eris.purchase.received=<span class="gd">&#10022;</span> Vous avez recu <span class="gd">%d Eris</span> ! (%s)
+
+<span class="cm"># Erreurs</span>
+eris.error.insufficient=<span class="gd">&#10022;</span> Solde insuffisant. Vous avez <span class="gd">%d Eris</span>.
+eris.error.min_amount=<span class="gd">&#10022;</span> Le montant minimum est <span class="gd">%d Eris</span>.
+eris.error.integer_only=<span class="gd">&#10022;</span> Montant invalide. Entrez un entier positif.
+eris.error.self_transfer=<span class="gd">&#10022;</span> Vous ne pouvez pas vous envoyer des Eris.
+eris.error.rate_limit=<span class="gd">&#10022;</span> Trop de transferts. Reessayez dans %d minutes.
+eris.error.target_offline=<span class="gd">&#10022;</span> Ce joueur n'est pas connecte.
+
+<span class="cm"># Historique</span>
+eris.history.title=<span class="gd">&#10022;</span> Historique de vos transactions (%d au total)
+eris.history.receive=<span class="an">+%d Eris</span> recu de <span class="ty">%s</span> — <span class="cm">%s</span>
+eris.history.send=<span class="st">-%d Eris</span> envoye a <span class="ty">%s</span> — <span class="cm">%s</span>
+eris.history.purchase=<span class="an">+%d Eris</span> (achat website) — <span class="cm">%s</span>
+eris.history.admin_give=<span class="an">+%d Eris</span> (admin: <span class="ty">%s</span>) — <span class="cm">%s</span>
+eris.history.admin_take=<span class="st">-%d Eris</span> (admin: <span class="ty">%s</span>) — <span class="cm">%s</span>
+
+<span class="cm"># Top</span>
+eris.top.title=<span class="gd">&#10022;</span> Top 20 — Richesse en Eris
+eris.top.entry=#<span class="ty">%d</span> <span class="ty">%s</span> — <span class="gd">%d Eris</span>
+
+<span class="cm"># Admin</span>
+eris.admin.give=<span class="gd">&#10022;</span> <span class="an">+%d Eris</span> attribues a <span class="ty">%s</span>. Nouveau solde : <span class="gd">%d</span>.
+eris.admin.take=<span class="gd">&#10022;</span> <span class="st">-%d Eris</span> retires de <span class="ty">%s</span>. Nouveau solde : <span class="gd">%d</span>.
+eris.admin.set=<span class="gd">&#10022;</span> Solde de <span class="ty">%s</span> defini a <span class="gd">%d Eris</span>.</div>
+
+      <h3>Cles de traduction — EN</h3>
+      <div class="code-block"><span class="cm"># src/main/resources/assets/eriniumfaction/lang/en_US.lang</span>
+
+eris.balance.self=<span class="gd">&#10022;</span> Your balance: <span class="gd">%d Eris</span>
+eris.balance.other=<span class="gd">&#10022;</span> Balance of <span class="ty">%s</span>: <span class="gd">%d Eris</span>
+eris.pay.sent=<span class="gd">&#10022;</span> You sent <span class="gd">%d Eris</span> to <span class="ty">%s</span>.
+eris.pay.received=<span class="gd">&#10022;</span> You received <span class="gd">%d Eris</span> from <span class="ty">%s</span>.
+eris.error.insufficient=<span class="gd">&#10022;</span> Insufficient balance. You have <span class="gd">%d Eris</span>.
+eris.error.rate_limit=<span class="gd">&#10022;</span> Too many transfers. Retry in %d minutes.
+<span class="cm"># ... (memes cles, traduction anglaise)</span></div>
+    </div>
+
+    <!-- 15. TESTS -->
+    <div class="section-card" id="tests">
+      <h2><span class="s-num green-num">15</span>Plan de Tests</h2>
+      <div class="checklist">
+        <div class="checklist-item"><strong>Achat website complet :</strong> Simuler un appel POST /api/admin/eris/give avec une API key valide, verifier que la balance du joueur en ligne est creditee et qu'il recoit le message dore.</div>
+        <div class="checklist-item"><strong>Achat joueur hors ligne :</strong> Appeler /api/admin/eris/give pour un joueur hors ligne, verifier que le fichier JSON est ecrit correctement, puis que la balance est correcte a la reconnexion.</div>
+        <div class="checklist-item"><strong>/eris pay entre deux joueurs :</strong> Envoyer des Eris d'un compte a un autre, verifier que les balances des deux joueurs sont correctes, que les transactions sont loggees (SEND + RECEIVE), et que les deux joueurs recoivent le message de confirmation.</div>
+        <div class="checklist-item"><strong>Confirmation /eris pay :</strong> Verifier que le transfert n'est PAS execute avant le clic sur [CONFIRMER], verifier que [ANNULER] annule proprement, verifier que le timeout 30s annule proprement.</div>
+        <div class="checklist-item"><strong>Redemarrage serveur :</strong> Creer une balance, redemarrer le serveur, reconnexion du joueur, verifier que la balance est identique.</div>
+        <div class="checklist-item"><strong>Reset de map :</strong> Simuler un wipe (supprimer le monde, garder config/), verifier que les balances Eris sont intactes apres relancement.</div>
+        <div class="checklist-item"><strong>Balance negative impossible :</strong> Tenter un /eris pay avec un montant superieur a la balance, verifier que la commande est rejetee et que les balances restent inchangees.</div>
+        <div class="checklist-item"><strong>Rate limit :</strong> Effectuer 10 transferts en moins d'une heure, verifier que le 11eme est bloque avec le message de cooldown.</div>
+        <div class="checklist-item"><strong>/eris top :</strong> Verifier que le leaderboard est trie par balance decroissante, que les joueurs hors ligne apparaissent, et que le rang du joueur appelant est affiche en bas.</div>
+        <div class="checklist-item"><strong>/eris history pagination :</strong> Verifier l'affichage correct, les boutons Prev/Next, et les couleurs (vert reception, rouge envoi).</div>
+        <div class="checklist-item"><strong>API key invalide :</strong> Tenter un appel POST /api/admin/eris/give avec une mauvaise key, verifier la reponse 403.</div>
+        <div class="checklist-item"><strong>UUID invalide :</strong> Appeler /api/eris/{uuid} avec un UUID inexistant, verifier la reponse 404 propre.</div>
+        <div class="checklist-item"><strong>Montant decimal :</strong> Tenter /eris pay PlayerB 1.5, verifier le rejet avec message "entier requis".</div>
+        <div class="checklist-item"><strong>Auto-envoi :</strong> Tenter /eris pay [soi-meme] 10, verifier le rejet.</div>
+        <div class="checklist-item"><strong>Joueur cible hors ligne (/eris pay) :</strong> Verifier que la commande echoue avec le message "joueur non connecte".</div>
+        <div class="checklist-item"><strong>Performance :</strong> Avec 500+ joueurs en ligne, verifier que les appels a ErisManager.getBalance() ne generent aucun I/O et n'impactent pas les TPS (lecture cache O(1)).</div>
+        <div class="checklist-item"><strong>Transaction log circulaire :</strong> Generer plus de 200 transactions pour un joueur, verifier que le fichier JSON ne depasse pas 200 entrees et que les plus anciennes ont ete supprimees.</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>

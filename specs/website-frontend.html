@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Site Web Frontend — Cahier des charges</title>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #0a0a12; color: #e8e8f0; padding: 40px; max-width: 1100px; margin: 0 auto; line-height: 1.7; }
+  h1 { font-size: 2rem; background: linear-gradient(135deg, #6B2FA0, #00E5FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  h2 { color: #00E5FF; border-bottom: 1px solid rgba(0,229,255,0.2); padding-bottom: 8px; margin-top: 40px; }
+  h3 { color: #C8A0FF; margin-top: 24px; }
+  h4 { color: #8892A4; margin-top: 16px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-left: 8px; }
+  .tag-page { background: rgba(0,229,255,0.15); color: #00E5FF; border: 1px solid rgba(0,229,255,0.3); }
+  .tag-component { background: rgba(107,47,160,0.2); color: #C8A0FF; border: 1px solid rgba(107,47,160,0.4); }
+  .tag-global { background: rgba(46,204,113,0.15); color: #2ECC71; border: 1px solid rgba(46,204,113,0.3); }
+  .tag-api { background: rgba(241,196,15,0.15); color: #F1C40F; border: 1px solid rgba(241,196,15,0.3); }
+  .tag-seo { background: rgba(231,76,60,0.15); color: #E74C3C; border: 1px solid rgba(231,76,60,0.3); }
+  .tag-auth { background: rgba(255,165,0,0.15); color: #FFA500; border: 1px solid rgba(255,165,0,0.3); }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  th { text-align: left; padding: 10px 14px; background: rgba(255,255,255,0.04); color: #8892A4; font-size: 0.82rem; border-bottom: 2px solid rgba(255,255,255,0.08); }
+  td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); color: #e8e8f0; }
+  .note { background: rgba(0,229,255,0.06); border-left: 3px solid #00E5FF; padding: 16px 20px; border-radius: 8px; margin: 16px 0; }
+  .warning { background: rgba(241,196,15,0.06); border-left: 3px solid #F1C40F; padding: 16px 20px; border-radius: 8px; margin: 16px 0; }
+  .critical { background: rgba(231,76,60,0.08); border-left: 3px solid #E74C3C; padding: 16px 20px; border-radius: 8px; margin: 16px 0; }
+  .solution { background: rgba(46,204,113,0.06); border-left: 3px solid #2ECC71; padding: 16px 20px; border-radius: 8px; margin: 16px 0; }
+  code { background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.88em; }
+  pre { background: rgba(255,255,255,0.03); padding: 20px; border-radius: 8px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #8892A4; }
+  .priority-critical { color: #E74C3C; font-weight: 700; }
+  .priority-high { color: #F1C40F; font-weight: 700; }
+  .priority-medium { color: #00E5FF; font-weight: 700; }
+  .priority-low { color: #2ECC71; font-weight: 700; }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 6px; }
+  .color-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: middle; margin-right: 6px; border: 1px solid rgba(255,255,255,0.1); }
+  .wireframe { background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #6B7280; white-space: pre; line-height: 1.4; }
+  .endpoint { background: rgba(107,47,160,0.1); border: 1px solid rgba(107,47,160,0.2); padding: 12px 16px; border-radius: 6px; margin: 8px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+  .endpoint .method { font-weight: 700; margin-right: 8px; }
+  .endpoint .method-get { color: #2ECC71; }
+  .endpoint .method-post { color: #F1C40F; }
+  .endpoint .method-put { color: #00E5FF; }
+  .endpoint .method-delete { color: #E74C3C; }
+  .endpoint .path { color: #C8A0FF; }
+</style>
+</head>
+<body>
+
+<h1>Site Web Frontend</h1>
+<p style="color:#8892A4;">Cahier des charges — Interface web du serveur EriniumFaction (Next.js / React / TailwindCSS)</p>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>1. Vue d'ensemble</h2>
+
+<p>Le site web EriniumFaction est la vitrine publique du serveur et le portail d'acces pour les joueurs. Il sert trois objectifs :</p>
+<ul>
+  <li><strong>Acquisition</strong> — attirer de nouveaux joueurs via le SEO, le design attractif et les CTA clairs</li>
+  <li><strong>Retention</strong> — donner aux joueurs connectes un tableau de bord riche (stats, achats, votes, securite)</li>
+  <li><strong>Monetisation</strong> — boutique premium et boutique de votes integrees avec paiement multi-methode</li>
+</ul>
+
+<div class="note">
+  <strong>Scope :</strong> Ce cahier des charges couvre UNIQUEMENT le frontend (Next.js). Le backend (API Node.js, base de donnees, paiements) fera l'objet d'un spec separe. Les endpoints API listes ici sont des contrats d'interface que le backend devra implementer.
+</div>
+
+<h3>1.1. Stack technique</h3>
+<table>
+  <tr><th>Technologie</th><th>Version</th><th>Role</th></tr>
+  <tr><td>Next.js</td><td>14+</td><td>Framework React avec App Router, SSR, ISR</td></tr>
+  <tr><td>React</td><td>18+</td><td>Bibliothèque UI (composants, hooks)</td></tr>
+  <tr><td>TypeScript</td><td>5+</td><td>Typage statique, interfaces API</td></tr>
+  <tr><td>TailwindCSS</td><td>3.4+</td><td>Utility-first CSS, theme custom</td></tr>
+  <tr><td>Framer Motion</td><td>11+</td><td>Animations (transitions de pages, hover, scroll reveals)</td></tr>
+  <tr><td>next-intl</td><td>3+</td><td>Internationalisation FR/EN</td></tr>
+  <tr><td>Zustand</td><td>4+</td><td>State management leger (panier, auth state)</td></tr>
+  <tr><td>React Hook Form + Zod</td><td>7+ / 3+</td><td>Formulaires + validation schema</td></tr>
+  <tr><td>next-themes</td><td>0.3+</td><td>Gestion du theme (dark only pour l'instant, extensible)</td></tr>
+  <tr><td>SWR ou TanStack Query</td><td>2+ / 5+</td><td>Data fetching, cache, revalidation</td></tr>
+</table>
+
+<h3>1.2. Hebergement et deploiement</h3>
+<ul>
+  <li><strong>Hebergement</strong> — Vercel (free tier ou Pro selon trafic) ou self-hosted avec Docker + Nginx</li>
+  <li><strong>CDN</strong> — Cloudflare pour les assets statiques, protection DDoS, cache</li>
+  <li><strong>CI/CD</strong> — GitHub Actions : lint, type-check, build, deploy on push to main</li>
+  <li><strong>Domaine</strong> — eriniumfaction.fr (ou .com) — certificat SSL Let's Encrypt via Cloudflare</li>
+</ul>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>2. Direction artistique et design system</h2>
+
+<h3>2.1. Palette de couleurs</h3>
+<table>
+  <tr><th>Nom</th><th>Hex</th><th>Usage</th></tr>
+  <tr><td><span class="color-swatch" style="background:#0A0A12"></span> Background Deep</td><td><code>#0A0A12</code></td><td>Fond principal body</td></tr>
+  <tr><td><span class="color-swatch" style="background:#12101E"></span> Background Elevated</td><td><code>#12101E</code></td><td>Cartes, panneaux, header</td></tr>
+  <tr><td><span class="color-swatch" style="background:#1A1830"></span> Background Surface</td><td><code>#1A1830</code></td><td>Inputs, hover states, sidebar</td></tr>
+  <tr><td><span class="color-swatch" style="background:#6B2FA0"></span> Primary Purple</td><td><code>#6B2FA0</code></td><td>Accent principal, boutons primaires, liens actifs</td></tr>
+  <tr><td><span class="color-swatch" style="background:#C8A0FF"></span> Light Purple</td><td><code>#C8A0FF</code></td><td>Texte accent, titres secondaires, icones</td></tr>
+  <tr><td><span class="color-swatch" style="background:#00E5FF"></span> Cyan</td><td><code>#00E5FF</code></td><td>Accent secondaire, liens, status online, highlights</td></tr>
+  <tr><td><span class="color-swatch" style="background:#e8e8f0"></span> Text Primary</td><td><code>#E8E8F0</code></td><td>Texte principal</td></tr>
+  <tr><td><span class="color-swatch" style="background:#8892A4"></span> Text Secondary</td><td><code>#8892A4</code></td><td>Texte secondaire, labels, placeholders</td></tr>
+  <tr><td><span class="color-swatch" style="background:#2ECC71"></span> Success</td><td><code>#2ECC71</code></td><td>Validations, status OK, online</td></tr>
+  <tr><td><span class="color-swatch" style="background:#E74C3C"></span> Error</td><td><code>#E74C3C</code></td><td>Erreurs, alertes critiques, offline</td></tr>
+  <tr><td><span class="color-swatch" style="background:#F1C40F"></span> Warning</td><td><code>#F1C40F</code></td><td>Avertissements, TPS moyen</td></tr>
+</table>
+
+<h3>2.2. Gradient principal</h3>
+<pre>background: linear-gradient(135deg, #6B2FA0, #00E5FF);</pre>
+<p>Utilise pour : titres h1, boutons CTA primaires, bordures decoratives, progress bars, badges premium.</p>
+
+<h3>2.3. Effet Liquid Glass</h3>
+<p>Les panneaux et cartes utilisent un style "verre depoli" :</p>
+<pre>/* Classe Tailwind custom : glass-panel */
+.glass-panel {
+  background: rgba(18, 16, 30, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(200, 160, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}</pre>
+<p>Variantes : <code>glass-panel-light</code> (plus opaque, pour les formulaires), <code>glass-panel-hover</code> (border plus lumineuse au hover).</p>
+
+<h3>2.4. Typographie</h3>
+<table>
+  <tr><th>Element</th><th>Police</th><th>Taille</th><th>Poids</th></tr>
+  <tr><td>H1 (titres de page)</td><td>Inter</td><td>2.5rem / 40px</td><td>800 (ExtraBold)</td></tr>
+  <tr><td>H2 (sections)</td><td>Inter</td><td>1.75rem / 28px</td><td>700 (Bold)</td></tr>
+  <tr><td>H3 (sous-sections)</td><td>Inter</td><td>1.25rem / 20px</td><td>600 (SemiBold)</td></tr>
+  <tr><td>Body</td><td>Inter</td><td>1rem / 16px</td><td>400 (Regular)</td></tr>
+  <tr><td>Small / Labels</td><td>Inter</td><td>0.875rem / 14px</td><td>500 (Medium)</td></tr>
+  <tr><td>Code / Mono</td><td>JetBrains Mono</td><td>0.875rem / 14px</td><td>400</td></tr>
+</table>
+
+<h3>2.5. Animations et micro-interactions</h3>
+<ul>
+  <li><strong>Page transitions</strong> — fade-in + slide-up subtil (200ms, ease-out) entre les pages via Framer Motion <code>AnimatePresence</code></li>
+  <li><strong>Scroll reveal</strong> — les sections apparaissent en fondu + translate-y en scrollant (intersection observer + Framer Motion <code>whileInView</code>)</li>
+  <li><strong>Hover sur cartes</strong> — scale 1.02 + elevation de l'ombre + border glow subtle (transition 200ms)</li>
+  <li><strong>Boutons</strong> — hover: brightness +10%, press: scale 0.98, focus: ring gradient</li>
+  <li><strong>Gradient anime</strong> — background-position anime en boucle lente (8s) sur le hero et les titres h1</li>
+  <li><strong>Particules decoratives</strong> — canvas ou SVG anime en background du hero : particules etoiles flottantes, opacite faible (0.15-0.3), mouvement lent aleatoire. Desactivees si <code>prefers-reduced-motion</code></li>
+  <li><strong>Loading skeletons</strong> — pulsation grise (<code>animate-pulse</code> Tailwind) sur les zones en chargement. Jamais de spinner rotatif seul</li>
+</ul>
+
+<h3>2.6. Elements decoratifs Minecraft</h3>
+<ul>
+  <li>Textures pixel-art du mod (items, blocs) utilisees comme icones decoratives aux coins des sections</li>
+  <li>Bordures pixelisees optionnelles sur certains encadres (style retro MC)</li>
+  <li>Rendering CSS <code>image-rendering: pixelated</code> pour toutes les textures MC agrandies</li>
+  <li>Pas de surcharge : les elements MC sont subtils, le design reste moderne et clean</li>
+</ul>
+
+<h3>2.7. Responsive breakpoints</h3>
+<table>
+  <tr><th>Breakpoint</th><th>Largeur</th><th>Adaptation</th></tr>
+  <tr><td>Mobile S</td><td>&lt; 375px</td><td>Layout colonne unique, texte reduit</td></tr>
+  <tr><td>Mobile</td><td>375-639px</td><td>Layout colonne unique, hamburger menu, CTA pleine largeur</td></tr>
+  <tr><td>Tablet</td><td>640-1023px</td><td>Grilles 2 colonnes, sidebar collapsible</td></tr>
+  <tr><td>Desktop</td><td>1024-1279px</td><td>Layout complet, sidebar permanente</td></tr>
+  <tr><td>Wide</td><td>1280px+</td><td>Max-width 1280px centre, marges auto</td></tr>
+</table>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>3. Architecture technique</h2>
+
+<h3>3.1. Structure des fichiers (App Router)</h3>
+<pre>
+app/
+├── layout.tsx                 # Root layout (Header, Footer, Providers)
+├── page.tsx                   # Page d'accueil (/)
+├── globals.css                # Tailwind base + customs
+├── (auth)/
+│   ├── callback/page.tsx      # /auth/callback (retour Discord OAuth)
+│   ├── totp/page.tsx          # /auth/totp (saisie code TOTP si A2F active)
+│   ├── logout/page.tsx        # /auth/logout (deconnexion + redirect)
+│   └── layout.tsx             # Layout auth (sans sidebar, fond centre)
+├── (main)/
+│   ├── layout.tsx             # Layout principal (Header + Footer)
+│   ├── shop/
+│   │   ├── page.tsx           # /shop (boutique premium par defaut)
+│   │   ├── premium/page.tsx   # /shop/premium
+│   │   ├── votes/page.tsx     # /shop/votes
+│   │   ├── cart/page.tsx      # /shop/cart
+│   │   └── checkout/page.tsx  # /shop/checkout
+│   ├── vote/page.tsx          # /vote
+│   ├── leaderboard/page.tsx   # /leaderboard
+│   ├── news/
+│   │   ├── page.tsx           # /news (liste)
+│   │   └── [slug]/page.tsx    # /news/[slug] (article)
+│   └── status/page.tsx        # /status
+├── (dashboard)/
+│   ├── layout.tsx             # Layout dashboard (sidebar + contenu)
+│   ├── dashboard/page.tsx     # /dashboard (redirect vers profil)
+│   ├── dashboard/profile/page.tsx
+│   ├── dashboard/security/page.tsx
+│   ├── dashboard/purchases/page.tsx
+│   ├── dashboard/votes/page.tsx
+│   ├── dashboard/discord/page.tsx
+│   └── dashboard/download/page.tsx
+├── legal/
+│   ├── mentions-legales/page.tsx
+│   ├── cgv/page.tsx
+│   └── confidentialite/page.tsx
+└── api/                        # Route handlers (proxy vers backend)
+    └── ...
+
+components/
+├── ui/                         # Composants atomiques (Button, Input, Card, Badge, etc.)
+├── layout/                     # Header, Footer, Sidebar, MobileNav
+├── home/                       # Composants specifiques a la page d'accueil
+├── shop/                       # Composants boutique (ProductCard, Cart, etc.)
+├── dashboard/                  # Composants dashboard
+├── auth/                       # Composants auth (bouton Discord, TOTP input)
+├── leaderboard/                # Tables classement
+└── shared/                     # ServerStatus, ParticleBackground, etc.
+
+lib/
+├── api.ts                      # Client API (fetch wrapper avec auth headers)
+├── auth.ts                     # Helpers auth (getSession, refreshToken, Discord OAuth)
+├── types.ts                    # Interfaces TypeScript globales
+├── constants.ts                # Couleurs, URLs, config
+├── utils.ts                    # Helpers (formatNumber, timeAgo, etc.)
+└── hooks/                      # Custom hooks (useAuth, useCart, useServerStatus)
+
+stores/
+├── auth-store.ts               # Zustand store auth
+├── cart-store.ts               # Zustand store panier
+└── preferences-store.ts        # Zustand store preferences (langue, etc.)
+
+messages/
+├── fr.json                     # Traductions francaises
+└── en.json                     # Traductions anglaises
+</pre>
+
+<h3>3.2. Authentification cote frontend — Discord OAuth + TOTP optionnel</h3>
+
+<div class="note">
+  <strong>Principe :</strong> L'authentification repose exclusivement sur <strong>Discord OAuth2</strong>. Il n'y a pas de systeme email/mot de passe. Le joueur se connecte avec son compte Discord. Une double authentification optionnelle (TOTP) peut etre activee depuis le dashboard pour securiser le compte.
+</div>
+
+<p><strong>Flow de connexion :</strong></p>
+<ol>
+  <li>Le joueur clique sur "Se connecter avec Discord" (bouton dans le header ou sur une page protegee)</li>
+  <li>Redirect vers <code>https://discord.com/oauth2/authorize</code> avec les scopes <code>identify</code> et <code>email</code></li>
+  <li>Le joueur autorise l'application sur Discord et est redirige vers <code>/auth/callback?code=xxx</code></li>
+  <li>Le frontend envoie le code au backend : <code>POST /api/auth/discord/callback</code></li>
+  <li>Le Worker Cloudflare echange le code contre un token Discord, recupere les infos utilisateur (id, username, email, avatar)</li>
+  <li>Le Worker cree ou met a jour l'utilisateur dans D1, genere un JWT session et un refresh token, les stocke dans des cookies <code>httpOnly</code></li>
+  <li><strong>Si l'utilisateur a active le TOTP :</strong> le backend retourne <code>{ requireTotp: true }</code>. Le frontend redirige vers <code>/auth/totp</code> ou le joueur saisit son code TOTP a 6 chiffres</li>
+  <li><strong>Si pas de TOTP :</strong> connexion terminee, redirect vers le dashboard ou la page d'origine</li>
+</ol>
+
+<p><strong>Mecanismes de session :</strong></p>
+<ul>
+  <li><strong>JWT</strong> — stocke dans un cookie <code>httpOnly</code>, <code>secure</code>, <code>sameSite=strict</code>. Jamais dans localStorage (XSS vulnerable). Expire en 15 minutes</li>
+  <li><strong>Refresh token</strong> — cookie separe, rotation a chaque usage. Duree de vie : 7 jours</li>
+  <li><strong>Middleware Next.js</strong> — <code>middleware.ts</code> a la racine. Intercepte les routes protegees (<code>/dashboard/*</code>, <code>/shop/checkout</code>). Redirige vers la page de connexion Discord si pas de session valide</li>
+  <li><strong>Refresh automatique</strong> — le client API intercepte les 401, tente un refresh via <code>POST /api/auth/refresh</code>. Si le refresh echoue, redirect vers Discord OAuth</li>
+  <li><strong>CSRF</strong> — token CSRF dans les headers pour les mutations (POST/PUT/DELETE). Genere par le backend, stocke dans un cookie non-httpOnly lisible par JS</li>
+</ul>
+
+<p><strong>TOTP (double authentification optionnelle) :</strong></p>
+<ul>
+  <li>Activable depuis <code>/dashboard/security</code> (voir section 5.4.2)</li>
+  <li>Utilise un algorithme TOTP standard (RFC 6238), compatible Google Authenticator, Authy, etc.</li>
+  <li>Si active : apres le retour Discord OAuth, une etape supplementaire demande le code TOTP avant d'emettre la session JWT complete</li>
+  <li>Le secret TOTP est stocke chiffre dans D1 (cle de chiffrement dans les variables d'environnement Cloudflare)</li>
+</ul>
+
+<h3>3.3. Data fetching</h3>
+<table>
+  <tr><th>Page</th><th>Rendu</th><th>Raison</th></tr>
+  <tr><td>Accueil</td><td>SSG + ISR (revalidate 60s)</td><td>SEO, performance, contenu semi-statique</td></tr>
+  <tr><td>News / Article</td><td>SSG + ISR (revalidate 300s)</td><td>SEO, contenu mis a jour rarement</td></tr>
+  <tr><td>Leaderboard</td><td>SSR + client cache (SWR 5min)</td><td>SEO pour les top joueurs, donnees dynamiques</td></tr>
+  <tr><td>Boutique</td><td>SSR (prix dynamiques)</td><td>SEO pour les produits, prix temps reel</td></tr>
+  <tr><td>Vote</td><td>SSG + ISR (revalidate 3600s)</td><td>Liens de vote rarement modifies</td></tr>
+  <tr><td>Status</td><td>CSR (polling 15s)</td><td>Donnees temps reel, pas besoin de SEO</td></tr>
+  <tr><td>Dashboard/*</td><td>CSR (SWR)</td><td>Donnees privees, pas de SEO</td></tr>
+  <tr><td>Auth pages</td><td>CSR (callback OAuth, TOTP)</td><td>Traitement du code OAuth cote client, pas de SEO</td></tr>
+  <tr><td>Legal pages</td><td>SSG</td><td>Contenu statique pur</td></tr>
+</table>
+
+<h3>3.4. Internationalisation (i18n)</h3>
+<ul>
+  <li><strong>Langues</strong> — Francais (defaut, <code>/fr/</code>) et Anglais (<code>/en/</code>)</li>
+  <li><strong>Detection</strong> — <code>Accept-Language</code> header pour la premiere visite, puis preference sauvegardee en cookie</li>
+  <li><strong>Routing</strong> — prefixe de langue dans l'URL : <code>/fr/shop</code>, <code>/en/shop</code>. Redirection auto depuis <code>/</code> vers <code>/fr/</code> ou <code>/en/</code></li>
+  <li><strong>Fichiers</strong> — <code>messages/fr.json</code> et <code>messages/en.json</code> structures par page/composant</li>
+  <li><strong>Contenus dynamiques</strong> — les articles (news) et descriptions boutique ont un champ <code>content_fr</code> et <code>content_en</code> en base</li>
+  <li><strong>Toggle</strong> — bouton FR/EN dans le header, icone drapeau</li>
+</ul>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>4. Composants globaux</h2>
+
+<h3>4.1. Header <span class="tag tag-global">GLOBAL</span></h3>
+
+<h4>Layout</h4>
+<div class="wireframe">
+┌─────────────────────────────────────────────────────────────────────┐
+│  [Logo]  Accueil  Boutique  Vote  Classement  Wiki  Actualites     │
+│                                                                     │
+│                    [●12 joueurs] [FR|EN]  [Se connecter avec Discord] │
+└─────────────────────────────────────────────────────────────────────┘
+</div>
+
+<h4>Composants</h4>
+<ul>
+  <li><strong>Logo</strong> — image SVG/PNG du logo EriniumFaction, lien vers <code>/</code>. Taille : 40px hauteur, ratio preserve</li>
+  <li><strong>Navigation</strong> — liens horizontaux. Lien actif : texte <code>#00E5FF</code> + underline gradient anime. Hover : texte <code>#C8A0FF</code>, transition 150ms</li>
+  <li><strong>Wiki</strong> — lien externe (<code>target="_blank"</code>) vers le wiki heberge separement. Icone "external link" a cote</li>
+  <li><strong>Server status mini-widget</strong> — pastille verte/rouge (8px, cercle) + nombre de joueurs en ligne. Polling toutes les 30 secondes via <code>GET /api/server/status</code>. Si offline : pastille rouge + texte "Hors ligne"</li>
+  <li><strong>Selecteur de langue</strong> — bouton avec drapeau (FR/EN), dropdown au clic avec les deux options</li>
+  <li><strong>Bouton auth</strong> :
+    <ul>
+      <li>Non connecte : bouton unique "Se connecter avec Discord" (fond <code>#5865F2</code> Discord blurple, icone Discord SVG a gauche, texte blanc). Au clic : redirect vers Discord OAuth</li>
+      <li>Connecte : avatar Discord 24x24 (depuis l'URL CDN Discord <code>https://cdn.discordapp.com/avatars/{id}/{hash}.png</code>) + username Discord. Clic : dropdown avec "Mon compte", "Deconnexion"</li>
+    </ul>
+  </li>
+  <li><strong>Sticky</strong> — le header reste fixe en haut au scroll. Background passe de transparent a <code>glass-panel</code> apres 50px de scroll (transition smooth)</li>
+  <li><strong>Mobile (&lt; 1024px)</strong> — logo + status widget + hamburger icon. Le hamburger ouvre un menu fullscreen slide-in depuis la droite avec tous les liens + auth</li>
+</ul>
+
+<h4>API requise</h4>
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/server/status</span></div>
+<pre>{
+  "online": true,
+  "players": { "current": 127, "max": 1000 },
+  "tps": 19.8,
+  "uptime": 86400
+}</pre>
+
+<h3>4.2. Footer <span class="tag tag-global">GLOBAL</span></h3>
+
+<h4>Layout</h4>
+<div class="wireframe">
+┌─────────────────────────────────────────────────────────────────────┐
+│  [Logo]                                                             │
+│  EriniumFaction                    Liens rapides    Legal            │
+│  Le serveur Minecraft              Accueil          Mentions legales │
+│  faction ultime.                   Boutique         CGV              │
+│                                    Vote             Confidentialite  │
+│  [Discord] [Twitter]               Classement                       │
+│                                    Wiki             SAV              │
+│                                    Actualites       Ouvrir un ticket │
+│                                                     sur Discord      │
+│─────────────────────────────────────────────────────────────────────│
+│  (c) 2026 EriniumGroup — Tous droits reserves                       │
+└─────────────────────────────────────────────────────────────────────┘
+</div>
+
+<h4>Composants</h4>
+<ul>
+  <li><strong>Colonne gauche</strong> — logo + breve description du serveur (2 lignes max) + icones reseaux sociaux (Discord, Twitter/X). Liens <code>target="_blank"</code></li>
+  <li><strong>Colonne centre</strong> — "Liens rapides" : Accueil, Boutique, Vote, Classement, Wiki, Actualites</li>
+  <li><strong>Colonne droite</strong> — "Legal" :
+    <ul>
+      <li><strong>Mentions Legales</strong> — <code>/legal/mentions-legales</code> — obligatoire loi francaise (LCEN). Contenu : identite de l'editeur (EriniumGroup), hebergeur, directeur de publication, contact</li>
+      <li><strong>CGV</strong> — <code>/legal/cgv</code> — obligatoire car vente en ligne. Contenu : conditions d'achat, droit de retractation (biens numeriques : pas de retractation apres livraison avec consentement), prix, modalites de paiement, livraison (instantanee in-game), reclamations</li>
+      <li><strong>Politique de Confidentialite</strong> — <code>/legal/confidentialite</code> — obligatoire RGPD. Contenu : donnees collectees (email, telephone, HWID, IP, username, historique achats), finalites, duree de conservation, droits (acces, rectification, suppression, portabilite), contact DPO, cookies utilises</li>
+      <li><strong>SAV</strong> — pas une page dediee : texte "Pour toute assistance, ouvrez un ticket sur notre Discord" + lien Discord invite</li>
+    </ul>
+  </li>
+  <li><strong>Barre de copyright</strong> — separee par une ligne fine. Texte : "(c) 2026 EriniumGroup — Tous droits reserves"</li>
+</ul>
+
+<h4>Responsive</h4>
+<ul>
+  <li>Desktop : 3 colonnes</li>
+  <li>Tablet : 2 colonnes (logo + description en pleine largeur au-dessus)</li>
+  <li>Mobile : 1 colonne, sections empilees, liens centres</li>
+</ul>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>5. Pages detaillees</h2>
+
+<!-- ──────────────────────────────────── -->
+<h3>5.1. Page d'accueil (<code>/</code>) <span class="tag tag-page">PAGE</span> <span class="tag tag-seo">SEO</span></h3>
+
+<h4>Objectif</h4>
+<p>Premiere impression. Doit donner envie de telecharger le launcher et rejoindre le serveur en moins de 10 secondes de scroll.</p>
+
+<h4>Rendu</h4>
+<p>SSG + ISR (revalidate: 60 secondes). Le contenu est quasi-statique, seul le widget server status est CSR.</p>
+
+<h4>Sections (ordre de haut en bas)</h4>
+
+<p><strong>A. Hero Section</strong></p>
+<div class="wireframe">
+┌─────────────────────────────────────────────────────────────────────┐
+│                    [Particules animees en fond]                      │
+│                                                                     │
+│              ERINIUMFACTION                                         │
+│              L'experience Minecraft Faction                         │
+│              comme tu ne l'as jamais vecue.                         │
+│                                                                     │
+│         [Telecharger le Launcher]   [Rejoindre le Discord]          │
+│                                                                     │
+│              ● 127 joueurs en ligne — TPS 19.8                      │
+│                                                                     │
+│  [Screenshot/video en background, parallax leger]                   │
+└─────────────────────────────────────────────────────────────────────┘
+</div>
+<ul>
+  <li><strong>Background</strong> — image in-game grand format (ou video MP4 en boucle, autoplay, muted, poster image pour le fallback). Overlay gradient sombre (80% opacite) pour lisibilite. Parallax subtil au scroll (translateY * 0.3)</li>
+  <li><strong>Titre</strong> — "ERINIUMFACTION" en h1 avec gradient text (#6B2FA0 -> #00E5FF), animation shimmer lente (background-position anime)</li>
+  <li><strong>Sous-titre</strong> — tagline accrocheuse en texte blanc, max 2 lignes. Exemples : "L'experience Minecraft Faction comme tu ne l'as jamais vecue." ou "36 biomes uniques. 40 enchantements. Un monde infini de possibilites."</li>
+  <li><strong>CTA primaire</strong> — "Telecharger le Launcher" : bouton large, fond gradient, icone download a gauche. Lien vers la page de telechargement ou direct download</li>
+  <li><strong>CTA secondaire</strong> — "Rejoindre le Discord" : bouton outlined, icone Discord. Lien externe vers le Discord invite</li>
+  <li><strong>Server status inline</strong> — sous les CTA, texte discret : pastille + "X joueurs en ligne" + "TPS XX.X". Polling 30s</li>
+  <li><strong>Particules</strong> — canvas overlay avec particules etoiles (points blancs, tailles variables 1-3px, opacite 0.1-0.3, mouvement flottant lent). Desactivees si <code>prefers-reduced-motion</code></li>
+  <li><strong>Hauteur</strong> — 100vh minimum, le hero occupe tout l'ecran initial</li>
+</ul>
+
+<p><strong>B. Section Features (points forts)</strong></p>
+<div class="wireframe">
+┌─────────────────────────────────────────────────────────────────────┐
+│  Pourquoi EriniumFaction ?                                          │
+│                                                                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐                          │
+│  │ [icone]  │  │ [icone]  │  │ [icone]  │                          │
+│  │ 36 Biomes│  │ 40 Enchts│  │ Systeme  │                          │
+│  │ Uniques  │  │ Exclusifs│  │ RPG      │                          │
+│  │ desc...  │  │ desc...  │  │ desc...  │                          │
+│  └──────────┘  └──────────┘  └──────────┘                          │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐                          │
+│  │ [icone]  │  │ [icone]  │  │ [icone]  │                          │
+│  │ Factions │  │ PvP 1.8  │  │ Artefacts│                          │
+│  │ desc...  │  │ desc...  │  │ desc...  │                          │
+│  └──────────┘  └──────────┘  └──────────┘                          │
+└─────────────────────────────────────────────────────────────────────┘
+</div>
+<ul>
+  <li>6 cartes en grille 3x2 (desktop) / 2x3 (tablet) / 1x6 (mobile)</li>
+  <li>Chaque carte : icone decorative (texture MC du mod ou icone SVG), titre, description courte (2-3 lignes)</li>
+  <li>Cartes en <code>glass-panel</code> avec hover : border glow + scale 1.02</li>
+  <li>Scroll reveal : chaque carte apparait avec un delai sequentiel (stagger 100ms)</li>
+  <li>Contenu des 6 cartes :
+    <ol>
+      <li><strong>36 Biomes Uniques</strong> — "Explorez un monde genere sur mesure avec 36 biomes exclusifs, des forets cristallines aux volcans d'aetherite."</li>
+      <li><strong>40 Enchantements Exclusifs</strong> — "Des enchantements inedits pour vos armes et armures. Frostbite, Thunderstrike, Lifesteal... Decouvrez de nouvelles strategies."</li>
+      <li><strong>Systeme RPG Complet</strong> — "Classes, competences, quetes et challenges. Progressez et debloquez des recompenses uniques."</li>
+      <li><strong>Factions PvP</strong> — "Creez votre faction, recrutez, conquerez des territoires et affrontez vos rivaux dans des guerres epiques."</li>
+      <li><strong>PvP 1.8 Optimise</strong> — "Le vrai PvP Minecraft, sans cooldown. Jitter click, combos, et skill pur. 500+ joueurs simultanes."</li>
+      <li><strong>Artefacts Legendaires</strong> — "Trouvez des artefacts rares avec des pouvoirs uniques. Collectionnez-les tous et dominez le serveur."</li>
+    </ol>
+  </li>
+</ul>
+
+<p><strong>C. Screenshots / Gallery</strong></p>
+<ul>
+  <li>Carrousel horizontal avec 8-12 screenshots in-game (biomes, combats, bases, GUIs)</li>
+  <li>Auto-scroll lent (5s par image), pause au hover</li>
+  <li>Navigation : fleches laterales + dots indicateurs en dessous</li>
+  <li>Click sur une image : modal lightbox fullscreen avec zoom</li>
+  <li>Images optimisees : WebP, plusieurs tailles (srcset), lazy loading</li>
+  <li>Desktop : 3 images visibles a la fois, defilent une par une</li>
+  <li>Mobile : 1 image visible, swipe tactile</li>
+</ul>
+
+<p><strong>D. Section Statistiques (social proof)</strong></p>
+<div class="wireframe">
+┌─────────────────────────────────────────────────────────────────────┐
+│     [500+]           [36]              [40+]          [1000+]       │
+│     Joueurs          Biomes            Enchantements   Heures de    │
+│     simultanes       uniques           exclusifs       developpement│
+└─────────────────────────────────────────────────────────────────────┘
+</div>
+<ul>
+  <li>4 compteurs animes (count-up animation au scroll reveal, de 0 a la valeur cible en 2 secondes)</li>
+  <li>Layout : 4 colonnes (desktop), 2x2 (tablet), 1x4 (mobile)</li>
+  <li>Chiffres en grand (3rem), gradient text. Labels en <code>#8892A4</code></li>
+</ul>
+
+<p><strong>E. Section CTA finale</strong></p>
+<ul>
+  <li>Bandeau gradient (#6B2FA0 -> #00E5FF, opacite 20%) avec texte centre : "Pret a rejoindre l'aventure ?"</li>
+  <li>Memes CTA que le hero (Telecharger + Discord)</li>
+  <li>Positionnee juste avant le footer</li>
+</ul>
+
+<h4>SEO</h4>
+<ul>
+  <li><code>&lt;title&gt;</code> : "EriniumFaction — Serveur Minecraft Faction PvP 1.8 | Biomes, Enchantements, RPG"</li>
+  <li><code>&lt;meta description&gt;</code> : "Rejoins EriniumFaction, le serveur Minecraft faction avec 36 biomes uniques, 40 enchantements exclusifs, un systeme RPG complet et du PvP 1.8. Jusqu'a 1000 joueurs simultanes."</li>
+  <li>Open Graph et Twitter Card avec screenshot du hero</li>
+  <li>Schema.org <code>VideoGame</code> ou <code>WebSite</code> structured data</li>
+</ul>
+
+<h4>Accessibilite</h4>
+<ul>
+  <li>Alt text sur toutes les images (screenshots, icones)</li>
+  <li>Contraste minimum WCAG AA sur tous les textes (rapport 4.5:1 minimum)</li>
+  <li>Particules canvas : pas d'info critique dedans, purement decoratif</li>
+  <li>CTA : role button, aria-label si icone seule</li>
+  <li>Video hero : pas d'audio, sous-titres non necessaires (ambient footage)</li>
+</ul>
+
+<!-- ──────────────────────────────────── -->
+<h3>5.2. Pages d'authentification — Discord OAuth + TOTP <span class="tag tag-page">PAGE</span> <span class="tag tag-auth">AUTH</span></h3>
+
+<div class="note">
+  <strong>Principe :</strong> Il n'y a PAS de formulaire d'inscription ni de formulaire de connexion classique. L'authentification repose entierement sur Discord OAuth2. Le compte utilisateur est cree automatiquement a la premiere connexion Discord. La seule page avec un formulaire est la page TOTP (code a 6 chiffres) pour les utilisateurs ayant active la double authentification.
+</div>
+
+<h4>Layout commun</h4>
+<div class="wireframe">
+┌─────────────────────────────────────────────────────────────────────┐
+│                      [Background sombre + particules]               │
+│                                                                     │
+│                  ┌──────────────────────────┐                       │
+│                  │        [Logo]             │                       │
+│                  │                           │                       │
+│                  │  [Icone Discord]          │                       │
+│                  │  Se connecter avec        │                       │
+│                  │  Discord                  │                       │
+│                  │                           │                       │
+│                  │  [Bouton Discord OAuth]   │                       │
+│                  │                           │                       │
+│                  └──────────────────────────┘                       │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+</div>
+<p>Carte centree verticalement et horizontalement, largeur max 440px, <code>glass-panel</code>. Background : meme fond sombre que le site avec particules. Pas de Header/Footer pour eviter les distractions — juste le logo en haut de la carte comme lien vers l'accueil.</p>
+
+<h4>5.2.1. Bouton de connexion Discord (dans le Header et pages protegees)</h4>
+
+<p>Il n'y a pas de page <code>/login</code> dediee. Quand un utilisateur non connecte tente d'acceder a une page protegee (ou clique sur le bouton du header), il est redirige directement vers Discord OAuth.</p>
+
+<p><strong>Bouton "Se connecter avec Discord" :</strong></p>
+<ul>
+  <li>Fond <code>#5865F2</code> (Discord blurple), coins arrondis 8px, icone SVG Discord a gauche du texte</li>
+  <li>Hover : brightness +10%, transition 150ms</li>
+  <li>Press : scale 0.98</li>
+  <li>Au clic : appel <code>GET /api/auth/discord/authorize</code> qui retourne l'URL de redirection Discord. Le frontend redirige le navigateur vers cette URL</li>
+  <li>Le query param <code>redirect</code> est sauvegarde en <code>sessionStorage</code> avant la redirection vers Discord pour pouvoir y revenir apres connexion (ex: <code>/shop/checkout</code>)</li>
+</ul>
+
+<p><strong>Flow complet :</strong></p>
+<ol>
+  <li>Le joueur clique "Se connecter avec Discord"</li>
+  <li>Redirect vers <code>https://discord.com/oauth2/authorize?client_id=XXX&redirect_uri=SITE/auth/callback&response_type=code&scope=identify+email</code></li>
+  <li>Le joueur autorise l'application sur Discord</li>
+  <li>Discord redirige vers <code>/auth/callback?code=xxx</code></li>
+  <li>La page callback envoie le code au backend : <code>POST /api/auth/discord/callback</code></li>
+  <li>Le backend echange le code contre un token Discord, recupere les infos utilisateur, cree/met a jour le compte dans D1, genere JWT + refresh token en cookies</li>
+  <li><strong>Si TOTP active :</strong> le backend retourne <code>{ requireTotp: true, tempToken: "xxx" }</code>. Le frontend redirige vers <code>/auth/totp</code></li>
+  <li><strong>Si pas de TOTP :</strong> le backend retourne <code>{ success: true }</code> + Set-Cookie. Le frontend redirige vers le dashboard ou la page d'origine sauvegardee dans sessionStorage</li>
+</ol>
+
+<h4>5.2.2. Callback Discord OAuth (<code>/auth/callback</code>)</h4>
+
+<p>Page technique, pas visible longtemps par l'utilisateur. Elle :</p>
+<ol>
+  <li>Recupere le parametre <code>code</code> dans l'URL</li>
+  <li>Affiche un loader : logo + "Connexion en cours..." + spinner</li>
+  <li>Envoie <code>POST /api/auth/discord/callback</code> avec le code</li>
+  <li>Si succes sans TOTP : redirect vers dashboard ou page d'origine</li>
+  <li>Si TOTP requis : redirect vers <code>/auth/totp</code> avec le <code>tempToken</code> en state</li>
+  <li>Si erreur (code invalide, expire, banni) : affiche un message d'erreur avec un bouton "Reessayer" qui relance le flow Discord OAuth</li>
+</ol>
+
+<h4>API requise (callback)</h4>
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/auth/discord/authorize</span></div>
+<pre>Response: { redirectUrl: "https://discord.com/oauth2/authorize?..." }</pre>
+
+<div class="endpoint"><span class="method method-post">POST</span> <span class="path">/api/auth/discord/callback</span></div>
+<pre>Request: { code: "xxx" }
+Response 200: { success: true } + Set-Cookie (JWT + refresh)
+Response 200: { requireTotp: true, tempToken: "xxx" }
+Response 403: { error: "account_banned", reason: "...", until: "2026-06-01T00:00:00Z" }
+Response 400: { error: "invalid_code" | "discord_error" }</pre>
+
+<h4>5.2.3. Verification TOTP (<code>/auth/totp</code>)</h4>
+
+<div class="wireframe">
+┌─────────────────────────────────────────────────────────────────────┐
+│                      [Background sombre + particules]               │
+│                                                                     │
+│                  ┌──────────────────────────┐                       │
+│                  │        [Logo]             │                       │
+│                  │                           │                       │
+│                  │   [Icone cadenas]         │                       │
+│                  │   Double authentification │                       │
+│                  │                           │                       │
+│                  │   Entrez le code a        │                       │
+│                  │   6 chiffres de votre     │                       │
+│                  │   application             │                       │
+│                  │                           │                       │
+│                  │   [ _ ][ _ ][ _ ][ _ ][ _ ][ _ ]  │              │
+│                  │                           │                       │
+│                  │   [Verifier]              │                       │
+│                  │                           │                       │
+│                  │   Code de recuperation ?  │                       │
+│                  └──────────────────────────┘                       │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+</div>
+
+<p><strong>Composants :</strong></p>
+<ul>
+  <li>6 inputs individuels pour le code TOTP (chiffres uniquement). Auto-focus sur le champ suivant a chaque saisie. Backspace revient au champ precedent. Paste supporte (colle les 6 chiffres d'un coup)</li>
+  <li>Bouton "Verifier" — gradient, desactive tant que les 6 chiffres ne sont pas saisis</li>
+  <li>Soumission automatique quand les 6 chiffres sont entres (pas besoin de cliquer le bouton)</li>
+  <li>Lien "Utiliser un code de recuperation" — ouvre un champ texte unique pour saisir un des 8 codes de recuperation</li>
+  <li>Si code TOTP invalide : shake animation sur les inputs + message "Code invalide" en rouge. Les champs sont vides pour une nouvelle tentative</li>
+  <li>Rate limiting : apres 5 tentatives echouees, verrouillage temporaire 5 minutes avec countdown affiche</li>
+</ul>
+
+<p><strong>Securite :</strong> cette page necessite un <code>tempToken</code> (token temporaire emis par le callback Discord). Sans ce token, la page redirige vers la connexion Discord. Le tempToken expire en 5 minutes.</p>
+
+<h4>API requise (TOTP)</h4>
+<div class="endpoint"><span class="method method-post">POST</span> <span class="path">/api/auth/totp/verify</span></div>
+<pre>Request: { tempToken: "xxx", totpCode: "123456" }
+Response 200: { success: true } + Set-Cookie (JWT + refresh)
+Response 401: { error: "invalid_totp" }
+Response 429: { error: "rate_limit", retryAfter: 300 }</pre>
+
+<div class="endpoint"><span class="method method-post">POST</span> <span class="path">/api/auth/totp/verify-recovery</span></div>
+<pre>Request: { tempToken: "xxx", recoveryCode: "xxxx-xxxx" }
+Response 200: { success: true, remainingRecoveryCodes: 7 } + Set-Cookie
+Response 401: { error: "invalid_recovery_code" }</pre>
+
+<h4>5.2.4. Deconnexion (<code>/auth/logout</code>)</h4>
+
+<p>Page simple qui :</p>
+<ol>
+  <li>Appelle <code>POST /api/auth/logout</code> pour invalider la session cote serveur</li>
+  <li>Supprime les cookies JWT et refresh token cote client</li>
+  <li>Redirige vers la page d'accueil avec un message "Vous avez ete deconnecte"</li>
+</ol>
+
+<h4>API requise (logout)</h4>
+<div class="endpoint"><span class="method method-post">POST</span> <span class="path">/api/auth/logout</span></div>
+<pre>Response 200: { success: true } + Clear-Cookie</pre>
+
+<h4>Edge cases auth</h4>
+<ul>
+  <li><strong>Compte banni</strong> — lors du callback Discord, le backend detecte le ban et retourne une erreur. Le frontend affiche un message clair avec la raison du ban et la duree (si temporaire). Bouton "Retour a l'accueil"</li>
+  <li><strong>Erreur Discord</strong> — si Discord est indisponible ou si le joueur refuse l'autorisation : afficher "La connexion avec Discord a echoue" avec un bouton "Reessayer"</li>
+  <li><strong>Session expiree</strong> — redirect vers Discord OAuth automatiquement avec un toast "Votre session a expire, veuillez vous reconnecter"</li>
+  <li><strong>TOTP tempToken expire</strong> — si le joueur met trop de temps a saisir son code TOTP (>5 min), le tempToken expire. Afficher "Votre session a expire" avec un bouton "Recommencer" qui relance le flow Discord</li>
+  <li><strong>Premiere connexion</strong> — le compte est automatiquement cree dans D1. Le joueur est redirige vers <code>/dashboard/profile</code> avec un message de bienvenue et une invitation a lier son compte Minecraft</li>
+  <li><strong>Tentatives TOTP multiples echouees</strong> — apres 5 echecs : verrouillage temporaire 5 minutes. Le joueur peut utiliser un code de recuperation a tout moment</li>
+</ul>
+
+<!-- ──────────────────────────────────── -->
+<h3>5.3. Boutique (<code>/shop</code>) <span class="tag tag-page">PAGE</span></h3>
+
+<h4>Layout</h4>
+<div class="wireframe">
+┌─────────────────────────────────────────────────────────────────────┐
+│  [Header]                                                           │
+│                                                                     │
+│  Boutique                                                           │
+│  [Tab: Boutique Premium]  [Tab: Boutique Vote]                      │
+│                                                                     │
+│  [Filtres: Categories]  [Tri: Prix/Popularite/Nouveau]              │
+│                                                                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐            │
+│  │ [image]  │  │ [image]  │  │ [image]  │  │ [image]  │            │
+│  │ Nom      │  │ Nom      │  │ Nom      │  │ Nom      │            │
+│  │ Desc     │  │ Desc     │  │ Desc     │  │ Desc     │            │
+│  │ Prix     │  │ Prix     │  │ Prix     │  │ Prix     │            │
+│  │ [Ajouter]│  │ [Ajouter]│  │ [Ajouter]│  │ [Ajouter]│            │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘            │
+│                                                                     │
+│  [Panier flottant: X articles — XX.XX EUR — Voir le panier]        │
+│                                                                     │
+│  [Footer]                                                           │
+└─────────────────────────────────────────────────────────────────────┘
+</div>
+
+<h4>5.3.1. Boutique Premium (<code>/shop/premium</code>)</h4>
+
+<p><strong>Categories de produits :</strong></p>
+<table>
+  <tr><th>Categorie</th><th>Exemples</th><th>Devise</th></tr>
+  <tr><td>Grades</td><td>VIP, VIP+, MVP, MVP+, Legend</td><td>EUR</td></tr>
+  <tr><td>Spawners</td><td>Spawner a vaches, cochons, endermen, blaze...</td><td>EUR</td></tr>
+  <tr><td>Packs Eris</td><td>500 Eris, 1000 Eris, 5000 Eris, 10000 Eris</td><td>EUR</td></tr>
+  <tr><td>Items speciaux</td><td>Cles de lootbox, cosmetiques, pets</td><td>EUR</td></tr>
+</table>
+
+<p><strong>Carte produit :</strong></p>
+<ul>
+  <li>Image du produit (texture MC ou illustration custom, ratio 1:1, 200x200px affiche)</li>
+  <li>Nom du produit (texte blanc, 1rem bold)</li>
+  <li>Description courte (texte gris, 2 lignes max, tronquee avec "...")</li>
+  <li>Prix : en EUR, affiche avec 2 decimales. Si promotion : prix barre + nouveau prix en vert</li>
+  <li>Badge optionnel : "NOUVEAU", "PROMO -20%", "POPULAIRE" (coins arrondis, couleurs distinctes)</li>
+  <li>Bouton "Ajouter au panier" — au clic : animation de l'item qui "vole" vers l'icone panier dans le header. Le compteur du panier s'incremente avec un bounce</li>
+  <li>Click sur la carte (hors bouton) : modal avec description longue, details (permissions du grade, duree du spawner, etc.)</li>
+</ul>
+
+<p><strong>Filtres et tri :</strong></p>
+<ul>
+  <li>Filtre par categorie (pills cliquables, selection multiple)</li>
+  <li>Tri : "Prix croissant", "Prix decroissant", "Popularite", "Nouveautes"</li>
+  <li>Barre de recherche avec filtre en temps reel (debounce 300ms)</li>
+</ul>
+
+<h4>5.3.2. Boutique Vote (<code>/shop/votes</code>)</h4>
+<p>Meme layout que la boutique premium, mais les prix sont en "Points de vote" (icone etoile jaune + nombre). Les produits sont des items in-game achetables avec les points gagnes en votant.</p>
+<ul>
+  <li>Solde actuel de points de vote affiche en haut : "Vos points de vote : 150 <icone>"</li>
+  <li>Si le joueur n'a pas assez de points : bouton grise "Points insuffisants" + lien "Voter pour gagner des points"</li>
+  <li>Achat instantane (pas de panier) : click "Acheter" -> confirmation modale -> <code>POST /api/shop/vote-purchase</code> -> notification succes/echec</li>
+</ul>
+
+<h4>5.3.3. Panier (<code>/shop/cart</code>)</h4>
+<ul>
+  <li><strong>Stockage</strong> — Zustand store + localStorage pour persistence entre les sessions. Synchronise avec le backend si connecte</li>
+  <li><strong>Affichage</strong> — liste des items avec : image miniature, nom, quantite (modifiable +/-), prix unitaire, prix total ligne, bouton supprimer (icone X)</li>
+  <li><strong>Total</strong> — sous-total, reduction (code promo applique), total TTC</li>
+  <li><strong>Code promo</strong> — champ texte + bouton "Appliquer". Validation via <code>POST /api/shop/validate-promo</code>. Si valide : afficher la reduction. Si invalide : message d'erreur inline</li>
+  <li><strong>CTA</strong> — "Passer au paiement" (gradient, large). Desactive si panier vide. Redirect vers <code>/shop/checkout</code></li>
+  <li><strong>Panier vide</strong> — illustration decorative + texte "Votre panier est vide" + lien "Retour a la boutique"</li>
+  <li><strong>Widget panier flottant</strong> — barre fixe en bas de page sur la boutique (pas sur les autres pages). Affiche : nombre d'articles + total + bouton "Voir le panier". Disparait quand le panier est vide</li>
+</ul>
+
+<h4>5.3.4. Checkout (<code>/shop/checkout</code>)</h4>
+
+<div class="critical">
+  <strong>Securite :</strong> Cette page est protegee par le middleware auth. Le joueur DOIT etre connecte pour acceder au checkout. Si non connecte : redirect vers Discord OAuth (la page d'origine <code>/shop/checkout</code> est sauvegardee pour redirection apres connexion).
+</div>
+
+<p><strong>Layout :</strong></p>
+<div class="wireframe">
+┌─────────────────────────────────────────────────────────────────────┐
+│  ┌─────────────────────────┐  ┌─────────────────────────┐          │
+│  │  Recapitulatif commande │  │  Methode de paiement    │          │
+│  │                         │  │                         │          │
+│  │  Item 1 .......... 5EUR │  │  ( ) Carte bancaire     │          │
+│  │  Item 2 .......... 3EUR │  │      [Stripe Elements]  │          │
+│  │  ──────────────────     │  │  ( ) PayPal             │          │
+│  │  Sous-total: 8 EUR      │  │  ( ) Paysafecard        │          │
+│  │  Promo: -1 EUR          │  │  ( ) Paiement mobile    │          │
+│  │  ──────────────────     │  │                         │          │
+│  │  TOTAL: 7 EUR TTC       │  │  [Payer 7.00 EUR]       │          │
+│  └─────────────────────────┘  └─────────────────────────┘          │
+└─────────────────────────────────────────────────────────────────────┘
+</div>
+
+<p><strong>Methodes de paiement :</strong></p>
+<table>
+  <tr><th>Methode</th><th>Integration</th><th>Notes</th></tr>
+  <tr><td>Carte bancaire (Visa, Mastercard)</td><td>Stripe Elements (composant iframe securise)</td><td>3D Secure automatique. Le formulaire carte est rendu par Stripe, pas par nous (PCI compliance)</td></tr>
+  <tr><td>PayPal</td><td>Stripe ou PayPal JS SDK</td><td>Redirect vers PayPal, retour callback</td></tr>
+  <tr><td>Paysafecard</td><td>Dedipass ou API Paysafecard directe</td><td>Saisie du code PIN 16 chiffres ou redirect</td></tr>
+  <tr><td>Paiement mobile (SMS+)</td><td>Dedipass</td><td>Le joueur appelle un numero surtaxe ou envoie un SMS. Code de confirmation retourne</td></tr>
+</table>
+
+<p><strong>Flow de paiement :</strong></p>
+<ol>
+  <li>Le joueur selectionne une methode de paiement (radio buttons)</li>
+  <li>Le formulaire specifique a la methode s'affiche (Stripe Elements pour CB, bouton PayPal, champ code Paysafecard, instructions SMS pour mobile)</li>
+  <li>Click "Payer X EUR" -> spinner dans le bouton, bouton desactive</li>
+  <li><code>POST /api/shop/create-payment</code> — cree une session de paiement cote backend</li>
+  <li>Selon la methode : traitement Stripe / redirect PayPal / validation code Paysafecard / validation code Dedipass</li>
+  <li>Callback succes : redirect vers <code>/shop/checkout/success?order=xxx</code> — page de confirmation avec recap + message "Vos items seront livres dans votre boite aux lettres en jeu dans les 5 minutes"</li>
+  <li>Callback echec : redirect vers <code>/shop/checkout/failed?reason=xxx</code> — page d'echec avec bouton "Reessayer"</li>
+</ol>
+
+<div class="note">
+  <strong>Livraison :</strong> Apres paiement confirme, le backend insere les items dans le systeme <code>MailWorldData</code> du mod. Le joueur recoit un mail in-game avec ses achats. Si le joueur n'est pas connecte au moment de l'achat, il recevra le mail a sa prochaine connexion.
+</div>
+
+<p><strong>Edge cases :</strong></p>
+<ul>
+  <li>Panier modifie pendant le checkout (prix change, item indisponible) : revalider au moment du paiement, afficher une erreur si discordance</li>
+  <li>Double soumission : desactiver le bouton immediatement, idempotency key cote backend</li>
+  <li>Timeout de paiement : apres 10 minutes sur la page checkout, afficher un avertissement. Apres 30 minutes, expirer la session de paiement</li>
+  <li>Navigateur ferme pendant le paiement : le backend gere les webhooks Stripe/PayPal pour confirmer le paiement meme sans retour client</li>
+</ul>
+
+<h4>API requise (boutique)</h4>
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/shop/products?type=premium|vote&category=grades&sort=price_asc&q=search</span></div>
+<pre>Response: { products: [{ id, name, description, price, currency, image, category, badges, stock }], total, page }</pre>
+
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/shop/product/{id}</span></div>
+<pre>Response: { id, name, description, longDescription, price, currency, image, category, badges, stock, details }</pre>
+
+<div class="endpoint"><span class="method method-post">POST</span> <span class="path">/api/shop/validate-promo</span></div>
+<pre>Request: { code: "SUMMER2026" }
+Response 200: { valid: true, discount: { type: "percent" | "fixed", value: 20 } }
+Response 400: { valid: false, error: "expired" | "invalid" | "already_used" }</pre>
+
+<div class="endpoint"><span class="method method-post">POST</span> <span class="path">/api/shop/create-payment</span></div>
+<pre>Request: { items: [{ productId, quantity }], paymentMethod, promoCode? }
+Response 200: { paymentId, clientSecret (Stripe), redirectUrl (PayPal), ... }</pre>
+
+<div class="endpoint"><span class="method method-post">POST</span> <span class="path">/api/shop/vote-purchase</span></div>
+<pre>Request: { productId }
+Response 200: { success: true, remainingPoints: 120 }
+Response 400: { error: "insufficient_points" | "out_of_stock" }</pre>
+
+<!-- ──────────────────────────────────── -->
+<h3>5.4. Dashboard / Mon Compte (<code>/dashboard</code>) <span class="tag tag-page">PAGE</span> <span class="tag tag-auth">AUTH</span></h3>
+
+<div class="critical">
+  <strong>Acces :</strong> Toutes les pages dashboard sont protegees. Le middleware redirige vers Discord OAuth si pas de session valide (la page d'origine est sauvegardee pour redirection apres connexion).
+</div>
+
+<h4>Layout commun</h4>
+<div class="wireframe">
+┌────────────────────────────────────────────────────────────────┐
+│  [Header standard]                                              │
+│  ┌──────────┬───────────────────────────────────────────────┐  │
+│  │ Sidebar  │  Contenu de la section                         │  │
+│  │          │                                                │  │
+│  │ [Avatar] │                                                │  │
+│  │ Username │                                                │  │
+│  │          │                                                │  │
+│  │ Profil   │                                                │  │
+│  │ Securite │                                                │  │
+│  │ Achats   │                                                │  │
+│  │ Votes    │                                                │  │
+│  │ Discord  │                                                │  │
+│  │ Download │                                                │  │
+│  │          │                                                │  │
+│  │ Deconnex │                                                │  │
+│  └──────────┴───────────────────────────────────────────────┘  │
+│  [Footer]                                                       │
+└────────────────────────────────────────────────────────────────┘
+</div>
+
+<p><strong>Sidebar :</strong></p>
+<ul>
+  <li>Largeur fixe 260px (desktop), collapsible en icones sur tablet (64px), drawer overlay sur mobile</li>
+  <li>En haut : avatar MC (64x64, via <code>mc-heads.net</code>), username en bold, rang serveur en badge colore</li>
+  <li>Liens de navigation avec icones (SVG ou Lucide React). Lien actif : background <code>#1A1830</code> + bordure gauche gradient</li>
+  <li>En bas : bouton "Deconnexion" (rouge, icone logout)</li>
+</ul>
+
+<h4>5.4.1. Profil (<code>/dashboard/profile</code>)</h4>
+
+<p><strong>Sections :</strong></p>
+
+<p><em>A. Informations joueur</em></p>
+<ul>
+  <li>Avatar MC (128x128) + username + rang serveur</li>
+  <li>Nom de faction + role dans la faction (si applicable)</li>
+  <li>Date d'inscription sur le serveur</li>
+  <li>Derniere connexion</li>
+</ul>
+
+<p><em>B. Statistiques PvP</em></p>
+<table>
+  <tr><th>Stat</th><th>Affichage</th></tr>
+  <tr><td>Kills</td><td>Nombre + icone epee</td></tr>
+  <tr><td>Deaths</td><td>Nombre + icone crane</td></tr>
+  <tr><td>KDA</td><td>Ratio calcule (kills/deaths, 2 decimales). Couleur : vert si > 1, rouge si < 1</td></tr>
+  <tr><td>Killstreak record</td><td>Nombre + icone flamme</td></tr>
+</table>
+
+<p><em>C. Statistiques monde</em></p>
+<table>
+  <tr><th>Stat</th><th>Affichage</th></tr>
+  <tr><td>Blocs mines</td><td>Nombre formate (1,234,567)</td></tr>
+  <tr><td>Blocs poses</td><td>Nombre formate</td></tr>
+  <tr><td>Temps de jeu total</td><td>Format : "12j 5h 30m"</td></tr>
+  <tr><td>Distance parcourue</td><td>En km (blocs / 1000)</td></tr>
+</table>
+
+<p><em>D. Graphique d'activite</em></p>
+<ul>
+  <li>Line chart (Recharts ou Chart.js) — activite des 30 derniers jours</li>
+  <li>Axe Y : heures de jeu par jour. Axe X : dates</li>
+  <li>Couleur de la ligne : gradient #6B2FA0 -> #00E5FF</li>
+  <li>Hover sur un point : tooltip avec date + heures exactes</li>
+</ul>
+
+<h4>API requise</h4>
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/player/profile</span></div>
+<pre>Response: {
+  username, uuid, rank, faction: { name, role },
+  registeredAt, lastSeen,
+  stats: { kills, deaths, kda, killstreak, blocksMined, blocksPlaced, playTime, distance },
+  activity: [{ date: "2026-03-25", hours: 3.5 }, ...]
+}</pre>
+
+<h4>5.4.2. Securite (<code>/dashboard/security</code>)</h4>
+
+<p><em>A. Compte Discord lie</em></p>
+<ul>
+  <li>Affichage du compte Discord actuellement lie : avatar Discord (64x64), username Discord, email Discord (partiellement masque : j***@gmail.com), date de liaison</li>
+  <li>Badge vert "Compte Discord verifie"</li>
+  <li>Texte informatif : "Votre compte EriniumFaction est lie a votre compte Discord. Pour vous connecter, utilisez le meme compte Discord."</li>
+</ul>
+
+<p><em>B. Double authentification (TOTP)</em></p>
+<ul>
+  <li><strong>Etat desactive :</strong>
+    <ul>
+      <li>Badge rouge "A2F desactivee" + texte d'avertissement : "Protegez votre compte en activant la double authentification"</li>
+      <li>Bouton "Activer la double authentification" (gradient, icone cadenas)</li>
+    </ul>
+  </li>
+  <li><strong>Flow d'activation :</strong>
+    <ol>
+      <li>Click "Activer la double authentification" → le backend genere un secret TOTP : <code>POST /api/auth/totp/setup</code></li>
+      <li>Afficher un QR code (genere client-side a partir de l'URI <code>otpauth://totp/EriniumFaction:username?secret=XXX&issuer=EriniumFaction</code>) + le code secret en texte (pour saisie manuelle dans Google Authenticator / Authy)</li>
+      <li>Sous le QR code : champ de saisie pour le code TOTP a 6 chiffres. Le joueur scanne le QR avec son app et entre le code affiche</li>
+      <li>Soumission : <code>POST /api/auth/totp/confirm</code> avec le code. Si valide : le backend stocke le secret chiffre dans D1, genere 8 codes de recuperation</li>
+      <li>Afficher les 8 codes de recuperation (usage unique) dans une zone dediee. Bouton "Copier" (copie les 8 codes separes par des retours a la ligne) + bouton "Telecharger .txt". Message d'avertissement : "Sauvegardez ces codes dans un endroit sur. Ils sont votre seul moyen de recuperer votre compte si vous perdez votre application d'authentification."</li>
+      <li>Checkbox obligatoire : "J'ai sauvegarde mes codes de recuperation". Bouton "Terminer" active seulement si coche</li>
+      <li>A2F activee. Badge vert "A2F active" dans la section securite</li>
+    </ol>
+  </li>
+  <li><strong>Etat active :</strong>
+    <ul>
+      <li>Badge vert "A2F active" + date d'activation</li>
+      <li>Bouton "Desactiver la double authentification" (rouge, outlined)</li>
+      <li>Bouton "Regenerer les codes de recuperation" (secondaire)</li>
+    </ul>
+  </li>
+  <li><strong>Flow de desactivation :</strong>
+    <ol>
+      <li>Click "Desactiver" → modale de confirmation</li>
+      <li>La modale demande un code TOTP valide OU un code de recuperation pour confirmer l'action</li>
+      <li>Soumission : <code>DELETE /api/auth/totp</code> avec le code</li>
+      <li>Si valide : A2F desactivee, badge repasse en rouge</li>
+    </ol>
+  </li>
+</ul>
+
+<p><em>C. Historique de connexions</em></p>
+<ul>
+  <li>Tableau pagine (20 par page) : date/heure, IP (partiellement masquee : 192.168.xxx.xxx), appareil/OS (User-Agent parse), localisation (ville, pays), statut (succes/echec/bloque)</li>
+  <li>Les connexions echouees sont en rouge</li>
+  <li>Bouton "Deconnecter toutes les sessions" en bas (invalidation de tous les refresh tokens sauf le courant)</li>
+</ul>
+
+<h4>API requise</h4>
+<div class="endpoint"><span class="method method-post">POST</span> <span class="path">/api/auth/totp/setup</span></div>
+<pre>Response: { secret: "JBSWY3DPEHPK3PXP", otpauthUri: "otpauth://totp/EriniumFaction:username?..." }</pre>
+
+<div class="endpoint"><span class="method method-post">POST</span> <span class="path">/api/auth/totp/confirm</span></div>
+<pre>Request: { totpCode: "123456" }
+Response 200: { success: true, recoveryCodes: ["xxxx-xxxx", "yyyy-yyyy", ...] }
+Response 401: { error: "invalid_totp" }</pre>
+
+<div class="endpoint"><span class="method method-delete">DELETE</span> <span class="path">/api/auth/totp</span></div>
+<pre>Request: { totpCode: "123456" } ou { recoveryCode: "xxxx-xxxx" }
+Response 200: { success: true }
+Response 401: { error: "invalid_code" }</pre>
+
+<div class="endpoint"><span class="method method-post">POST</span> <span class="path">/api/auth/totp/regenerate-recovery</span></div>
+<pre>Request: { totpCode: "123456" }
+Response 200: { recoveryCodes: ["xxxx-xxxx", ...] }
+Response 401: { error: "invalid_totp" }</pre>
+
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/auth/login-history?page=1&limit=20</span></div>
+<pre>Response: { entries: [{ date, ip, device, location, status }], total, page }</pre>
+
+<div class="endpoint"><span class="method method-post">POST</span> <span class="path">/api/auth/revoke-all-sessions</span></div>
+
+<h4>5.4.3. Achats (<code>/dashboard/purchases</code>)</h4>
+
+<ul>
+  <li><strong>Solde Eris</strong> — affiche en grand en haut : "Votre solde : 1,500 Eris" avec icone Eris</li>
+  <li><strong>Historique des achats</strong> — tableau pagine :
+    <table>
+      <tr><th>Colonne</th><th>Contenu</th></tr>
+      <tr><td>Date</td><td>JJ/MM/AAAA HH:MM</td></tr>
+      <tr><td>Article</td><td>Nom du produit + miniature</td></tr>
+      <tr><td>Prix</td><td>Montant en EUR ou points de vote</td></tr>
+      <tr><td>Methode</td><td>Carte, PayPal, Paysafecard, Mobile</td></tr>
+      <tr><td>Statut</td><td>Badge : "Livre" (vert), "En cours" (jaune), "Echec" (rouge), "Rembourse" (bleu)</td></tr>
+    </table>
+  </li>
+  <li>Filtre par periode (date debut / date fin)</li>
+  <li>Export CSV optionnel</li>
+</ul>
+
+<h4>API requise</h4>
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/player/purchases?page=1&limit=20&from=2026-01-01&to=2026-03-26</span></div>
+<pre>Response: { purchases: [{ id, date, product, price, currency, method, status }], total, page, erisBalance }</pre>
+
+<h4>5.4.4. Votes (<code>/dashboard/votes</code>)</h4>
+
+<ul>
+  <li><strong>Points de vote</strong> — solde actuel en grand : "150 points de vote"</li>
+  <li><strong>Liens rapides</strong> — boutons "Voter maintenant" (redirect vers <code>/vote</code>) et "Boutique vote" (redirect vers <code>/shop/votes</code>)</li>
+  <li><strong>Historique des votes</strong> — tableau pagine :
+    <table>
+      <tr><th>Colonne</th><th>Contenu</th></tr>
+      <tr><td>Date</td><td>JJ/MM/AAAA HH:MM</td></tr>
+      <tr><td>Site</td><td>Nom du site de vote (ex: "Serveurs-Minecraft.org")</td></tr>
+      <tr><td>Points gagnes</td><td>+X points</td></tr>
+    </table>
+  </li>
+  <li><strong>Statistiques</strong> — total de votes ce mois, total de votes all-time, classement du joueur parmi les voteurs</li>
+</ul>
+
+<h4>API requise</h4>
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/player/votes?page=1&limit=20</span></div>
+<pre>Response: { votePoints, votes: [{ date, site, pointsEarned }], total, monthlyTotal, allTimeTotal, rank }</pre>
+
+<h4>5.4.5. Discord (<code>/dashboard/discord</code>)</h4>
+
+<p>Le compte Discord est automatiquement lie puisqu'il sert d'authentification. Cette page affiche les informations du compte Discord lie et permet de gerer les avantages associes.</p>
+
+<ul>
+  <li><strong>Informations Discord :</strong> avatar Discord (64x64) + username Discord + email Discord (partiellement masque) + date de premiere connexion. Badge "Compte Discord actif"</li>
+  <li><strong>Avantages :</strong> texte expliquant ce que la liaison apporte (role Discord automatique, notifications Discord pour les achats, etc.)</li>
+  <li><strong>Synchronisation :</strong> bouton "Resynchroniser avec Discord" pour mettre a jour l'avatar et le username si le joueur les a changes sur Discord</li>
+</ul>
+
+<h4>API requise</h4>
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/player/discord</span></div>
+<pre>Response: { discordId, discordUsername, discordAvatar, email, linkedAt }</pre>
+
+<div class="endpoint"><span class="method method-post">POST</span> <span class="path">/api/player/discord/sync</span></div>
+<pre>Response: { success: true, discordUsername: "NewName", discordAvatar: "newHash" }</pre>
+
+<h4>5.4.6. Telechargement (<code>/dashboard/download</code>)</h4>
+
+<ul>
+  <li>3 boutons de telechargement pour le launcher : Windows (.exe), macOS (.dmg), Linux (.AppImage)</li>
+  <li>Detection automatique de l'OS du visiteur — le bouton correspondant est mis en avant (plus grand, badge "Recommande")</li>
+  <li>Version actuelle du launcher affichee</li>
+  <li>Instructions d'installation (3 etapes illustrees) :
+    <ol>
+      <li>Telecharger le launcher</li>
+      <li>Installer et lancer</li>
+      <li>Se connecter avec son compte Discord</li>
+    </ol>
+  </li>
+  <li>FAQ : "Le launcher est-il un virus ?", "Pourquoi un launcher custom ?", "Mon antivirus bloque le launcher"</li>
+  <li>Configuration minimale requise : OS, RAM, GPU, espace disque</li>
+</ul>
+
+<h4>API requise</h4>
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/launcher/latest</span></div>
+<pre>Response: {
+  version: "1.2.0",
+  downloads: {
+    windows: { url, size, sha256 },
+    macos: { url, size, sha256 },
+    linux: { url, size, sha256 }
+  },
+  changelog: "..."
+}</pre>
+
+<!-- ──────────────────────────────────── -->
+<h3>5.5. Vote (<code>/vote</code>) <span class="tag tag-page">PAGE</span></h3>
+
+<h4>Objectif</h4>
+<p>Maximiser le nombre de votes quotidiens en simplifiant l'acte de voter au maximum. Chaque vote rapporte des points echangeables en boutique.</p>
+
+<h4>Layout</h4>
+<div class="wireframe">
+┌─────────────────────────────────────────────────────────────────────┐
+│  Votez pour EriniumFaction !                                        │
+│  Gagnez des points de vote et echangez-les en boutique.             │
+│                                                                     │
+│  [Vos points de vote : 150]                (si connecte)            │
+│                                                                     │
+│  ┌─────────────────────────────────────────────────────────────┐    │
+│  │ [logo] Serveurs-Minecraft.org    Pret a voter  [VOTER ->]  │    │
+│  ├─────────────────────────────────────────────────────────────┤    │
+│  │ [logo] Serveur-Minecraft.com     Dans 1h 23m   [VOTER ->]  │    │
+│  ├─────────────────────────────────────────────────────────────┤    │
+│  │ [logo] TopG.org                  Pret a voter  [VOTER ->]  │    │
+│  ├─────────────────────────────────────────────────────────────┤    │
+│  │ [logo] Minecraft-Server.net      Dans 11h 05m  [VOTER ->]  │    │
+│  └─────────────────────────────────────────────────────────────┘    │
+│                                                                     │
+│  [Aller a la boutique vote ->]                                      │
+└─────────────────────────────────────────────────────────────────────┘
+</div>
+
+<h4>Sites de vote</h4>
+<p>Liste complete des sites de vote, extraite de la strategie marketing du serveur :</p>
+<table>
+  <tr><th>Site</th><th>URL</th><th>Cooldown</th><th>Points/vote</th></tr>
+  <tr><td>Serveurs-Minecraft.org</td><td>serveurs-minecraft.org</td><td>24h</td><td>3</td></tr>
+  <tr><td>Serveur-Minecraft.com</td><td>serveur-minecraft.com</td><td>24h</td><td>3</td></tr>
+  <tr><td>TopG.org</td><td>topg.org</td><td>12h</td><td>2</td></tr>
+  <tr><td>Minecraft-Server.net</td><td>minecraft-server.net</td><td>24h</td><td>3</td></tr>
+  <tr><td>MinecraftServers.org</td><td>minecraftservers.org</td><td>24h</td><td>2</td></tr>
+  <tr><td>Minecraft-Server-List.com</td><td>minecraft-server-list.com</td><td>24h</td><td>2</td></tr>
+  <tr><td>TopMinecraftServers.org</td><td>topminecraftservers.org</td><td>24h</td><td>2</td></tr>
+  <tr><td>Minecraft-MP.com</td><td>minecraft-mp.com</td><td>24h</td><td>2</td></tr>
+</table>
+
+<h4>Composants par ligne</h4>
+<ul>
+  <li><strong>Logo/favicon du site</strong> — image 32x32</li>
+  <li><strong>Nom du site</strong> — texte blanc bold</li>
+  <li><strong>Points gagnes</strong> — "+X pts" en badge dore</li>
+  <li><strong>Timer cooldown</strong> — si le joueur est connecte et a deja vote recemment : countdown "Dans Xh Xm" (texte jaune). Si pret : "Pret a voter" (texte vert). Si non connecte : pas de timer affiche</li>
+  <li><strong>Bouton "VOTER"</strong> — ouvre le lien de vote dans un nouvel onglet (<code>target="_blank"</code>). Style gradient, icone fleche externe</li>
+</ul>
+
+<h4>Integration NuVotifier</h4>
+<div class="note">
+  <strong>Backend :</strong> Quand un joueur vote sur un site, celui-ci envoie un callback NuVotifier au serveur MC. Le mod recoit le vote, credite les points au joueur (via <code>VotePlayerData</code> ou similaire), et envoie un message in-game. Le frontend affiche les points mis a jour via un appel API (polling ou websocket).
+</div>
+
+<h4>Cooldown tracking</h4>
+<ul>
+  <li>Les cooldowns sont stockes cote backend (date du dernier vote par site par joueur)</li>
+  <li>Le frontend recupere les cooldowns via <code>GET /api/player/vote-cooldowns</code> et calcule le temps restant client-side</li>
+  <li>Le timer se met a jour toutes les minutes (pas besoin de precision a la seconde)</li>
+  <li>Quand le timer atteint 0 : le texte passe a "Pret a voter" avec une animation subtile (pulse vert)</li>
+</ul>
+
+<h4>Non connecte</h4>
+<p>La page reste accessible sans connexion (pour le SEO et pour inciter les visiteurs a s'inscrire). Les liens de vote fonctionnent mais : pas de timer, pas de solde affiche, bandeau en haut "Connectez-vous pour gagner des points de vote !".</p>
+
+<h4>API requise</h4>
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/vote/sites</span></div>
+<pre>Response: { sites: [{ id, name, url, logo, pointsPerVote, cooldownHours }] }</pre>
+
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/player/vote-cooldowns</span></div>
+<pre>Response: { cooldowns: { "serveurs-minecraft-org": "2026-03-26T14:30:00Z", ... }, votePoints: 150 }</pre>
+
+<!-- ──────────────────────────────────── -->
+<h3>5.6. Classement (<code>/leaderboard</code>) <span class="tag tag-page">PAGE</span> <span class="tag tag-seo">SEO</span></h3>
+
+<h4>Layout</h4>
+<div class="wireframe">
+┌─────────────────────────────────────────────────────────────────────┐
+│  Classement                                                         │
+│                                                                     │
+│  [Tab: Joueurs]  [Tab: Factions]                                    │
+│                                                                     │
+│  Tri: [Kills] [KDA] [Richesse] [Temps de jeu]     [Recherche ___]  │
+│                                                                     │
+│  ┌───┬────────────┬───────┬───────┬──────┬──────────────────┐       │
+│  │ # │ Joueur     │ Kills │ Deaths│ KDA  │ Faction          │       │
+│  ├───┼────────────┼───────┼───────┼──────┼──────────────────┤       │
+│  │ 1 │ [av] xXPvP │ 1,234 │  567  │ 2.18 │ [tag] FactionX  │       │
+│  │ 2 │ [av] Pro   │ 1,100 │  430  │ 2.56 │ [tag] FactionY  │       │
+│  │ 3 │ [av] NoobK │   980 │  890  │ 1.10 │ [tag] FactionZ  │       │
+│  └───┴────────────┴───────┴───────┴──────┴──────────────────┘       │
+│                                                                     │
+│  [< Prev]  Page 1 sur 5  [Next >]                                  │
+└─────────────────────────────────────────────────────────────────────┘
+</div>
+
+<h4>5.6.1. Classement Joueurs</h4>
+
+<p><strong>Criteres de tri (tabs secondaires ou dropdown) :</strong></p>
+<table>
+  <tr><th>Critere</th><th>Colonnes affichees</th><th>Tri par defaut</th></tr>
+  <tr><td>Kills</td><td>#, Avatar+Pseudo, Kills, Deaths, KDA, Faction</td><td>Kills decroissant</td></tr>
+  <tr><td>KDA</td><td>#, Avatar+Pseudo, KDA, Kills, Deaths, Faction</td><td>KDA decroissant (min 10 kills)</td></tr>
+  <tr><td>Richesse</td><td>#, Avatar+Pseudo, Eris, Faction</td><td>Eris decroissant</td></tr>
+  <tr><td>Temps de jeu</td><td>#, Avatar+Pseudo, Temps de jeu, Derniere connexion</td><td>Temps decroissant</td></tr>
+</table>
+
+<p><strong>Details par ligne :</strong></p>
+<ul>
+  <li>Rang (#) — les 3 premiers ont des icones speciales : or, argent, bronze</li>
+  <li>Avatar MC (24x24) + pseudo cliquable (lien vers profil public ? ou tooltip avec stats resume)</li>
+  <li>Nom de faction avec sa couleur (tag [FAC] colore)</li>
+  <li>Colonnes numeriques alignees a droite, formatees (separateurs de milliers)</li>
+</ul>
+
+<p><strong>Pagination :</strong> 25 joueurs par page, max 200 dans le classement (8 pages max). Boutons Prev/Next + sauter a une page specifique.</p>
+
+<p><strong>Recherche :</strong> champ texte pour chercher un joueur par pseudo. Debounce 500ms. Si trouve : le tableau scroll/highlight le joueur. Si pas dans le top 200 : afficher "Joueur non classe" ou ses stats en dessous du tableau.</p>
+
+<h4>5.6.2. Classement Factions</h4>
+
+<p><strong>Colonnes :</strong></p>
+<table>
+  <tr><th>Colonne</th><th>Description</th></tr>
+  <tr><td>#</td><td>Rang</td></tr>
+  <tr><td>Nom</td><td>Nom de la faction avec couleur. Cliquable (tooltip ou page ?)</td></tr>
+  <tr><td>Leader</td><td>Pseudo du leader (avatar + nom)</td></tr>
+  <tr><td>Membres</td><td>Nombre de membres / max</td></tr>
+  <tr><td>Puissance</td><td>Power total de la faction</td></tr>
+  <tr><td>Territoire</td><td>Nombre de chunks claims</td></tr>
+  <tr><td>Kills faction</td><td>Total des kills de tous les membres</td></tr>
+</table>
+
+<p><strong>Tri par defaut :</strong> puissance decroissante.</p>
+
+<h4>Cache et rafraichissement</h4>
+<ul>
+  <li>Les donnees de classement sont cachees 5 minutes cote frontend (SWR <code>refreshInterval: 300000</code>)</li>
+  <li>Le backend met a jour le classement toutes les 5 minutes (pas en temps reel — les stats ne changent pas assez vite pour justifier du temps reel)</li>
+  <li>Afficher "Mis a jour il y a X minutes" en bas du classement</li>
+</ul>
+
+<h4>SEO</h4>
+<ul>
+  <li>SSR pour le rendu initial (Google indexe les top joueurs/factions)</li>
+  <li>Titre : "Classement — EriniumFaction | Top Joueurs et Factions"</li>
+  <li>Structured data : <code>ItemList</code> schema pour les top entries</li>
+</ul>
+
+<h4>API requise</h4>
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/leaderboard/players?sort=kills|kda|wealth|playtime&page=1&limit=25</span></div>
+<pre>Response: { entries: [{ rank, uuid, username, kills, deaths, kda, eris, playtime, faction, lastSeen }], total, updatedAt }</pre>
+
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/leaderboard/factions?sort=power|members|territory|kills&page=1&limit=25</span></div>
+<pre>Response: { entries: [{ rank, name, color, leader, members, maxMembers, power, territory, totalKills }], total, updatedAt }</pre>
+
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/leaderboard/search?q={username}</span></div>
+<pre>Response: { found: true, rank: 42, data: { ... } } | { found: false }</pre>
+
+<!-- ──────────────────────────────────── -->
+<h3>5.7. Statut Serveur (<code>/status</code>) <span class="tag tag-page">PAGE</span></h3>
+
+<h4>Layout</h4>
+<div class="wireframe">
+┌─────────────────────────────────────────────────────────────────────┐
+│  Statut du serveur                                                  │
+│                                                                     │
+│  ┌────────────────────────────────────────────┐                     │
+│  │  ● EN LIGNE                                │                     │
+│  │  IP: play.eriniumfaction.fr                │                     │
+│  │  Joueurs: 127 / 1000                       │                     │
+│  │  TPS: 19.8                                 │                     │
+│  │  Uptime: 2j 14h 32m                        │                     │
+│  │  Version: 1.12.2                           │                     │
+│  └────────────────────────────────────────────┘                     │
+│                                                                     │
+│  [Graphique TPS des dernieres 24h]                                  │
+│  [Graphique joueurs des dernieres 24h]                              │
+│                                                                     │
+│  Derniers incidents                                                 │
+│  ┌────────────────────────────────────────────┐                     │
+│  │ 25/03 14:00 - 14:15 | Maintenance prevue   │                     │
+│  │ 24/03 03:00 - 03:05 | Redemarrage auto     │                     │
+│  └────────────────────────────────────────────┘                     │
+└─────────────────────────────────────────────────────────────────────┘
+</div>
+
+<h4>Composants</h4>
+
+<p><em>A. Panneau de statut principal</em></p>
+<ul>
+  <li><strong>Indicateur en ligne/hors ligne</strong> — grand cercle pulse vert (en ligne) ou rouge fixe (hors ligne). Texte "EN LIGNE" / "HORS LIGNE" en gras</li>
+  <li><strong>IP du serveur</strong> — texte avec bouton "Copier" (copie dans le presse-papiers, feedback "Copie !" pendant 2 secondes)</li>
+  <li><strong>Joueurs</strong> — barre de progression (joueurs actuels / max) + chiffres. Couleur de la barre : vert &lt;50%, jaune 50-80%, rouge &gt;80%</li>
+  <li><strong>TPS</strong> — nombre affiche avec code couleur : vert (18-20), jaune (15-17.9), rouge (&lt;15). Jauge circulaire ou demi-jauge SVG</li>
+  <li><strong>Uptime</strong> — format "Xj Xh Xm", compteur en temps reel (incremente chaque minute)</li>
+  <li><strong>Version</strong> — "Minecraft 1.12.2 (Forge)"</li>
+</ul>
+
+<p><em>B. Graphiques historiques</em></p>
+<ul>
+  <li><strong>TPS sur 24h</strong> — line chart, axe Y 0-20, couleur selon la valeur (segments verts/jaunes/rouges)</li>
+  <li><strong>Joueurs sur 24h</strong> — area chart, axe Y 0-max, gradient fill #6B2FA0 -> transparent</li>
+  <li>Hover : tooltip avec valeur exacte + timestamp</li>
+  <li>Points de donnees : toutes les 5 minutes (288 points par graphique)</li>
+</ul>
+
+<p><em>C. Historique des incidents (optionnel, si CMS ou API fournit les donnees)</em></p>
+<ul>
+  <li>Liste des 10 derniers incidents/maintenances</li>
+  <li>Chaque entree : date, heure debut/fin, type (maintenance, incident, redemarrage), description courte</li>
+  <li>Badge colore par type</li>
+</ul>
+
+<h4>Polling</h4>
+<ul>
+  <li>Statut en temps reel : polling toutes les 15 secondes via <code>GET /api/server/status</code></li>
+  <li>Graphiques : charges au mount, rafraichis toutes les 5 minutes</li>
+  <li>Si le serveur passe de online a offline (ou inversement) : notification toast automatique</li>
+</ul>
+
+<h4>API requise</h4>
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/server/status</span></div>
+<pre>Response: { online, players: { current, max }, tps, uptime, version, ip }</pre>
+
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/server/history?period=24h&metric=tps|players</span></div>
+<pre>Response: { data: [{ timestamp: "2026-03-26T12:00:00Z", value: 19.8 }, ...] }</pre>
+
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/server/incidents?limit=10</span></div>
+<pre>Response: { incidents: [{ date, startTime, endTime, type, description }] }</pre>
+
+<!-- ──────────────────────────────────── -->
+<h3>5.8. Actualites / Patchnotes (<code>/news</code>) <span class="tag tag-page">PAGE</span> <span class="tag tag-seo">SEO</span></h3>
+
+<h4>5.8.1. Liste des articles (<code>/news</code>)</h4>
+
+<div class="wireframe">
+┌─────────────────────────────────────────────────────────────────────┐
+│  Actualites                                                         │
+│                                                                     │
+│  [Filtre: Tous | Mise a jour | Evenement | Maintenance | Hotfix]    │
+│                                                                     │
+│  ┌─────────────────────────────────────────────────────────────┐    │
+│  │  [Image]                                                     │    │
+│  │  [Tag: Mise a jour]  26 mars 2026                            │    │
+│  │  Titre de l'article                                          │    │
+│  │  Resume de l'article sur 2-3 lignes maximum...               │    │
+│  │  [Lire la suite ->]                                          │    │
+│  └─────────────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────────────────────────────────┐    │
+│  │  ...                                                         │    │
+│  └─────────────────────────────────────────────────────────────┘    │
+│                                                                     │
+│  [< Prev]  Page 1 sur 3  [Next >]                                  │
+└─────────────────────────────────────────────────────────────────────┘
+</div>
+
+<ul>
+  <li><strong>Layout</strong> — liste verticale, 1 carte par article, pleine largeur (max 800px centre)</li>
+  <li><strong>Carte article</strong> — image optionnelle (16:9, lazy load), tag colore, date, titre (h2), resume (3 lignes max, tronque), lien "Lire la suite"</li>
+  <li><strong>Tags</strong> :
+    <ul>
+      <li><span style="color:#00E5FF">Mise a jour</span> — nouvelles features, contenu</li>
+      <li><span style="color:#2ECC71">Evenement</span> — events temporaires</li>
+      <li><span style="color:#F1C40F">Maintenance</span> — maintenances planifiees</li>
+      <li><span style="color:#E74C3C">Hotfix</span> — corrections urgentes</li>
+    </ul>
+  </li>
+  <li><strong>Filtre par tag</strong> — pills cliquables en haut, "Tous" selectionne par defaut</li>
+  <li><strong>Pagination</strong> — 10 articles par page</li>
+  <li><strong>Ordre</strong> — du plus recent au plus ancien</li>
+</ul>
+
+<h4>5.8.2. Article individuel (<code>/news/[slug]</code>)</h4>
+
+<ul>
+  <li><strong>Contenu</strong> — rendu depuis du Markdown (ou HTML riche) stocke en base. Supporte : titres, paragraphes, listes, images, code blocks, citations, tableaux</li>
+  <li><strong>Metadata</strong> — tag, date de publication, auteur (optionnel)</li>
+  <li><strong>Image hero</strong> — grande image en haut si fournie (ratio 21:9 ou 16:9)</li>
+  <li><strong>Navigation</strong> — liens "Article precedent" / "Article suivant" en bas</li>
+  <li><strong>Partage</strong> — boutons de partage : copier le lien, Twitter/X, Discord (copy + message)</li>
+  <li><strong>Retour</strong> — lien "Retour aux actualites" en haut</li>
+</ul>
+
+<h4>Gestion de contenu</h4>
+<ul>
+  <li><strong>Option 1 (simple)</strong> — fichiers Markdown dans le repo Git (dossier <code>content/news/</code>). Build ISR, ajout d'articles via PR/commit</li>
+  <li><strong>Option 2 (CMS)</strong> — CMS headless (Strapi, Sanity, ou Payload CMS) avec API pour les articles. Plus flexible pour les admins non-dev</li>
+  <li><strong>Recommandation</strong> — commencer par Option 1, migrer vers CMS si necessaire</li>
+</ul>
+
+<h4>SEO</h4>
+<ul>
+  <li>Chaque article a son propre <code>&lt;title&gt;</code> et <code>&lt;meta description&gt;</code></li>
+  <li>Schema.org <code>Article</code> / <code>BlogPosting</code></li>
+  <li>Open Graph avec l'image hero de l'article</li>
+  <li>Sitemap dynamique incluant tous les articles</li>
+</ul>
+
+<h4>API requise</h4>
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/news?tag=update|event|maintenance|hotfix&page=1&limit=10</span></div>
+<pre>Response: { articles: [{ slug, title, summary, image, tag, date, author }], total, page }</pre>
+
+<div class="endpoint"><span class="method method-get">GET</span> <span class="path">/api/news/{slug}</span></div>
+<pre>Response: { slug, title, content (HTML), image, tag, date, author, prev, next }</pre>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>6. Pages legales</h2>
+
+<div class="warning">
+  <strong>Obligations legales :</strong> Le serveur est edite par une entite basee en France. Les pages legales suivantes sont OBLIGATOIRES pour tout site web commercial francais. Le contenu doit etre redige par un juriste ou adapte d'un modele juridique valide. Les textes ci-dessous sont des guides de structure, PAS des textes juridiques definitifs.
+</div>
+
+<h3>6.1. Mentions Legales (<code>/legal/mentions-legales</code>)</h3>
+<p>Obligatoire en vertu de la loi LCEN (Loi pour la Confiance dans l'Economie Numerique, art. 6).</p>
+<ul>
+  <li>Identite de l'editeur : nom/raison sociale, adresse, SIRET (si applicable), email de contact, directeur de publication</li>
+  <li>Identite de l'hebergeur : nom, adresse, contact</li>
+  <li>Propriete intellectuelle : "Minecraft est une marque deposee de Mojang Studios / Microsoft. EriniumFaction n'est pas affilie a Mojang."</li>
+  <li>Credits : technologies utilisees, mentions obligatoires (polices, icones, images si licences requises)</li>
+</ul>
+
+<h3>6.2. CGV (<code>/legal/cgv</code>)</h3>
+<p>Obligatoire car le site propose de la vente en ligne (boutique premium). Doit respecter le Code de la consommation.</p>
+<ul>
+  <li><strong>Objet</strong> — vente de biens virtuels (grades, items, monnaie in-game)</li>
+  <li><strong>Prix</strong> — affiches TTC en euros, susceptibles de modification</li>
+  <li><strong>Paiement</strong> — methodes acceptees (CB, PayPal, Paysafecard, mobile)</li>
+  <li><strong>Livraison</strong> — instantanee, via le systeme de mail in-game</li>
+  <li><strong>Droit de retractation</strong> — conformement a l'article L221-28 du Code de la consommation, le droit de retractation ne s'applique pas aux contenus numeriques fournis immediatement avec le consentement du consommateur. La case "Je renonce a mon droit de retractation" doit etre cochee au checkout</li>
+  <li><strong>Garantie</strong> — les items sont livres tels que decrits. En cas de non-livraison, contacter le SAV via Discord</li>
+  <li><strong>Remboursement</strong> — politique de remboursement (cas exceptionnels, via ticket Discord)</li>
+  <li><strong>Litiges</strong> — mediation de la consommation, tribunal competent</li>
+  <li><strong>Mineurs</strong> — les achats par des mineurs sont sous la responsabilite de leurs parents/tuteurs legaux</li>
+</ul>
+
+<h3>6.3. Politique de Confidentialite (<code>/legal/confidentialite</code>)</h3>
+<p>Obligatoire en vertu du RGPD (Reglement General sur la Protection des Donnees).</p>
+<ul>
+  <li><strong>Responsable de traitement</strong> — identite et coordonnees</li>
+  <li><strong>Donnees collectees</strong> :
+    <table>
+      <tr><th>Donnee</th><th>Finalite</th><th>Base legale</th><th>Duree de conservation</th></tr>
+      <tr><td>Discord ID, username, email, avatar</td><td>Identification, authentification</td><td>Execution du contrat</td><td>Duree du compte + 3 ans</td></tr>
+      <tr><td>Adresse IP</td><td>Securite, anti-VPN, anti-abus</td><td>Interet legitime</td><td>6 mois</td></tr>
+      <tr><td>HWID</td><td>Identification appareil, anti-multicompte</td><td>Interet legitime</td><td>Duree du compte + 1 an</td></tr>
+      <tr><td>Username MC</td><td>Identification en jeu</td><td>Execution du contrat</td><td>Duree du compte</td></tr>
+      <tr><td>Secret TOTP (chiffre)</td><td>Double authentification</td><td>Consentement</td><td>Tant que l'A2F est active</td></tr>
+      <tr><td>Historique achats</td><td>Facturation, SAV</td><td>Obligation legale</td><td>10 ans (obligation comptable)</td></tr>
+      <tr><td>Donnees de jeu (stats)</td><td>Classements, profil</td><td>Execution du contrat</td><td>Duree du compte</td></tr>
+    </table>
+  </li>
+  <li><strong>Droits des utilisateurs</strong> — acces, rectification, effacement, portabilite, opposition, limitation. Contact : email DPO ou formulaire dedie</li>
+  <li><strong>Cookies</strong> — liste des cookies utilises (session, preferences langue, analytics si applicable). Bandeau de consentement cookies (optionnel si cookies strictement necessaires uniquement)</li>
+  <li><strong>Transferts hors UE</strong> — si hebergement hors UE, mentionner les garanties (clauses contractuelles types, etc.)</li>
+  <li><strong>Securite</strong> — mesures prises (chiffrement, Discord OAuth, HTTPS, TOTP chiffre en base, etc.)</li>
+  <li><strong>Sous-traitants</strong> — Stripe (paiements), Cloudflare (CDN/hebergement), Discord (authentification), etc.</li>
+</ul>
+
+<h4>Design des pages legales</h4>
+<ul>
+  <li>Layout simple : texte sur fond sombre, max-width 800px, bien structure avec des h2/h3</li>
+  <li>Table des matieres cliquable en haut</li>
+  <li>Date de derniere mise a jour en haut</li>
+  <li>Pas d'effets speciaux, pas de glass panels — lisibilite maximale</li>
+</ul>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>7. SEO et performance</h2>
+
+<h3>7.1. SEO technique</h3>
+<ul>
+  <li><strong>Sitemap XML</strong> — genere dynamiquement par Next.js (<code>app/sitemap.ts</code>). Inclut : homepage, boutique, vote, classement, news, articles individuels. Exclut : dashboard, auth, legal</li>
+  <li><strong>robots.txt</strong> — autorise tout sauf <code>/dashboard/</code>, <code>/api/</code>, <code>/auth/</code></li>
+  <li><strong>Canonical URLs</strong> — sur chaque page pour eviter le contenu duplique (FR vs EN)</li>
+  <li><strong>Structured Data</strong> — Schema.org JSON-LD sur les pages pertinentes (WebSite, Organization, Article, ItemList, Product)</li>
+  <li><strong>Hreflang</strong> — <code>&lt;link rel="alternate" hreflang="fr" href="..." /&gt;</code> et <code>hreflang="en"</code> sur toutes les pages</li>
+  <li><strong>Meta tags</strong> — title unique par page (max 60 chars), description unique (max 155 chars), Open Graph (og:title, og:description, og:image), Twitter Card</li>
+</ul>
+
+<h3>7.2. Performance</h3>
+<ul>
+  <li><strong>Target Core Web Vitals</strong> :
+    <table>
+      <tr><th>Metrique</th><th>Objectif</th></tr>
+      <tr><td>LCP (Largest Contentful Paint)</td><td>&lt; 2.5s</td></tr>
+      <tr><td>FID (First Input Delay)</td><td>&lt; 100ms</td></tr>
+      <tr><td>CLS (Cumulative Layout Shift)</td><td>&lt; 0.1</td></tr>
+    </table>
+  </li>
+  <li><strong>Images</strong> — format WebP, <code>next/image</code> pour l'optimisation automatique (redimensionnement, lazy loading, srcset). Textures MC : PNG avec <code>image-rendering: pixelated</code></li>
+  <li><strong>Fonts</strong> — <code>next/font</code> pour Inter (self-hosted, no CLS). Subset latin uniquement</li>
+  <li><strong>Bundle</strong> — tree shaking, dynamic imports pour les pages lourdes (graphiques, carrousel). Objectif : &lt; 200KB JS initial (gzip)</li>
+  <li><strong>Cache</strong> — assets statiques : <code>Cache-Control: public, max-age=31536000, immutable</code>. Pages ISR : <code>s-maxage=60, stale-while-revalidate</code></li>
+  <li><strong>Preloading</strong> — preload des fonts critiques, preconnect vers les APIs externes (mc-heads.net, Stripe)</li>
+</ul>
+
+<h3>7.3. Accessibilite (WCAG 2.1 AA)</h3>
+<ul>
+  <li><strong>Navigation clavier</strong> — tous les elements interactifs sont focusables avec Tab, actionnables avec Enter/Space. Focus visible (ring gradient)</li>
+  <li><strong>Contraste</strong> — ratio minimum 4.5:1 pour le texte normal, 3:1 pour le texte large. Verifier avec le fond sombre</li>
+  <li><strong>Screen readers</strong> — semantic HTML (nav, main, article, section, aside). ARIA labels sur les icones sans texte, les boutons d'action, les modales</li>
+  <li><strong>Formulaires</strong> — labels explicites (pas de placeholder-only), messages d'erreur associes via <code>aria-describedby</code>, <code>aria-invalid</code> sur les champs en erreur</li>
+  <li><strong>Animations</strong> — respecter <code>prefers-reduced-motion</code> : desactiver les particules, reduire les transitions a des fades simples</li>
+  <li><strong>Images</strong> — alt text descriptif sur toutes les images informatives. Images decoratives : <code>alt=""</code></li>
+  <li><strong>Modales</strong> — focus trap, fermeture avec Escape, retour du focus a l'element declencheur</li>
+</ul>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>8. Securite frontend</h2>
+
+<ul>
+  <li><strong>XSS</strong> — React echappe par defaut. Ne JAMAIS utiliser <code>dangerouslySetInnerHTML</code> sauf pour le contenu d'articles (sanitize avec DOMPurify avant)</li>
+  <li><strong>CSRF</strong> — token CSRF dans les headers de toutes les requetes mutatives</li>
+  <li><strong>Auth cookies</strong> — <code>httpOnly</code>, <code>secure</code>, <code>sameSite=strict</code>. Pas de JWT dans localStorage</li>
+  <li><strong>Content Security Policy</strong> — headers CSP stricts : <code>default-src 'self'</code>, autoriser uniquement les sources connues (Stripe JS, mc-heads.net, Cloudflare Turnstile)</li>
+  <li><strong>Rate limiting</strong> — cote backend, mais le frontend doit aussi desactiver les boutons pendant les requetes pour eviter le spam</li>
+  <li><strong>Input validation</strong> — double validation : client-side (Zod, UX immediate) + server-side (backend, securite reelle). Ne JAMAIS faire confiance au client seul</li>
+  <li><strong>Sensitive data</strong> — ne JAMAIS afficher en clair : HWID complet (masquer partiellement), IP complete (masquer le dernier octet), token JWT, email Discord complet (masquer partiellement), secret TOTP</li>
+  <li><strong>Dependencies</strong> — <code>npm audit</code> dans le CI, <code>dependabot</code> active pour les mises a jour de securite</li>
+</ul>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>9. Monitoring et analytics</h2>
+
+<ul>
+  <li><strong>Error tracking</strong> — Sentry (free tier) pour capturer les erreurs JS client et les erreurs API. Source maps uploadees en CI</li>
+  <li><strong>Analytics</strong> — Plausible Analytics (self-hosted ou cloud, RGPD-friendly, pas de cookies). Metrics : pages vues, visiteurs uniques, sources de trafic, pays. PAS de Google Analytics (RGPD problematique)</li>
+  <li><strong>Uptime monitoring</strong> — UptimeRobot ou BetterStack pour surveiller la disponibilite du site et de l'API</li>
+  <li><strong>Performance</strong> — Vercel Analytics (si heberge sur Vercel) ou Web Vitals reporting custom</li>
+</ul>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>10. Plan de developpement</h2>
+
+<h3>10.1. Phases</h3>
+<table>
+  <tr><th>Phase</th><th>Scope</th><th>Priorite</th></tr>
+  <tr><td>Phase 1 — MVP</td><td>Accueil, Header, Footer, Auth (Discord OAuth + callback + TOTP), Status widget, Pages legales</td><td class="priority-critical">CRITIQUE</td></tr>
+  <tr><td>Phase 2 — Core</td><td>Dashboard (profil, securite, download), Vote, Classement</td><td class="priority-high">HAUTE</td></tr>
+  <tr><td>Phase 3 — Monetisation</td><td>Boutique premium + vote, Panier, Checkout, Integration paiements</td><td class="priority-high">HAUTE</td></tr>
+  <tr><td>Phase 4 — Contenu</td><td>Actualites / Patchnotes, Dashboard (achats, votes, Discord)</td><td class="priority-medium">MOYENNE</td></tr>
+  <tr><td>Phase 5 — Polish</td><td>Animations avancees, optimisations perf, A/B testing CTA, i18n EN</td><td class="priority-low">BASSE</td></tr>
+</table>
+
+<h3>10.2. Dependances backend</h3>
+<p>Le frontend est dependant d'une API backend qui n'existe pas encore. Pendant le developpement frontend :</p>
+<ul>
+  <li><strong>MSW (Mock Service Worker)</strong> — intercepter les appels API et retourner des donnees mockees. Permet de developper toutes les pages sans backend</li>
+  <li><strong>Fichiers de mock</strong> — <code>mocks/handlers.ts</code> avec toutes les routes mockees, donnees realistes</li>
+  <li><strong>Typage strict</strong> — toutes les interfaces API definies dans <code>lib/types.ts</code>. Le backend devra respecter ces contrats</li>
+  <li><strong>Swagger/OpenAPI</strong> — generer une spec OpenAPI a partir des types pour documenter l'API attendue</li>
+</ul>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>11. Resume des endpoints API</h2>
+
+<p>Liste consolidee de tous les endpoints API requis par le frontend. Ce contrat d'interface sera la base du cahier des charges backend.</p>
+
+<table>
+  <tr><th>Methode</th><th>Endpoint</th><th>Auth</th><th>Page(s)</th></tr>
+  <tr><td>GET</td><td><code>/api/server/status</code></td><td>Non</td><td>Header, Status</td></tr>
+  <tr><td>GET</td><td><code>/api/server/history</code></td><td>Non</td><td>Status</td></tr>
+  <tr><td>GET</td><td><code>/api/server/incidents</code></td><td>Non</td><td>Status</td></tr>
+  <tr><td>GET</td><td><code>/api/auth/discord/authorize</code></td><td>Non</td><td>Header, pages protegees</td></tr>
+  <tr><td>POST</td><td><code>/api/auth/discord/callback</code></td><td>Non</td><td>Auth Callback</td></tr>
+  <tr><td>POST</td><td><code>/api/auth/totp/verify</code></td><td>Non (tempToken)</td><td>Auth TOTP</td></tr>
+  <tr><td>POST</td><td><code>/api/auth/totp/verify-recovery</code></td><td>Non (tempToken)</td><td>Auth TOTP</td></tr>
+  <tr><td>POST</td><td><code>/api/auth/refresh</code></td><td>Cookie</td><td>Global (interceptor)</td></tr>
+  <tr><td>POST</td><td><code>/api/auth/logout</code></td><td>Oui</td><td>Auth Logout</td></tr>
+  <tr><td>POST</td><td><code>/api/auth/totp/setup</code></td><td>Oui</td><td>Dashboard Security</td></tr>
+  <tr><td>POST</td><td><code>/api/auth/totp/confirm</code></td><td>Oui</td><td>Dashboard Security</td></tr>
+  <tr><td>DELETE</td><td><code>/api/auth/totp</code></td><td>Oui</td><td>Dashboard Security</td></tr>
+  <tr><td>POST</td><td><code>/api/auth/totp/regenerate-recovery</code></td><td>Oui</td><td>Dashboard Security</td></tr>
+  <tr><td>GET</td><td><code>/api/auth/login-history</code></td><td>Oui</td><td>Dashboard Security</td></tr>
+  <tr><td>POST</td><td><code>/api/auth/revoke-all-sessions</code></td><td>Oui</td><td>Dashboard Security</td></tr>
+  <tr><td>GET</td><td><code>/api/player/profile</code></td><td>Oui</td><td>Dashboard Profile</td></tr>
+  <tr><td>GET</td><td><code>/api/player/purchases</code></td><td>Oui</td><td>Dashboard Purchases</td></tr>
+  <tr><td>GET</td><td><code>/api/player/votes</code></td><td>Oui</td><td>Dashboard Votes</td></tr>
+  <tr><td>GET</td><td><code>/api/player/discord</code></td><td>Oui</td><td>Dashboard Discord</td></tr>
+  <tr><td>POST</td><td><code>/api/player/discord/sync</code></td><td>Oui</td><td>Dashboard Discord</td></tr>
+  <tr><td>GET</td><td><code>/api/player/vote-cooldowns</code></td><td>Oui</td><td>Vote</td></tr>
+  <tr><td>GET</td><td><code>/api/shop/products</code></td><td>Non</td><td>Shop</td></tr>
+  <tr><td>GET</td><td><code>/api/shop/product/{id}</code></td><td>Non</td><td>Shop</td></tr>
+  <tr><td>POST</td><td><code>/api/shop/validate-promo</code></td><td>Oui</td><td>Shop Cart</td></tr>
+  <tr><td>POST</td><td><code>/api/shop/create-payment</code></td><td>Oui</td><td>Shop Checkout</td></tr>
+  <tr><td>POST</td><td><code>/api/shop/vote-purchase</code></td><td>Oui</td><td>Shop Votes</td></tr>
+  <tr><td>GET</td><td><code>/api/vote/sites</code></td><td>Non</td><td>Vote</td></tr>
+  <tr><td>GET</td><td><code>/api/leaderboard/players</code></td><td>Non</td><td>Leaderboard</td></tr>
+  <tr><td>GET</td><td><code>/api/leaderboard/factions</code></td><td>Non</td><td>Leaderboard</td></tr>
+  <tr><td>GET</td><td><code>/api/leaderboard/search</code></td><td>Non</td><td>Leaderboard</td></tr>
+  <tr><td>GET</td><td><code>/api/news</code></td><td>Non</td><td>News</td></tr>
+  <tr><td>GET</td><td><code>/api/news/{slug}</code></td><td>Non</td><td>News article</td></tr>
+  <tr><td>GET</td><td><code>/api/launcher/latest</code></td><td>Non</td><td>Dashboard Download</td></tr>
+</table>
+
+<p><strong>Total : 33 endpoints</strong> — 14 publics (pas d'auth ou tempToken), 19 proteges (JWT requis).</p>
+
+</body>
+</html>

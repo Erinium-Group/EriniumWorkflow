@@ -1,0 +1,84 @@
+Cahier pour cette demande (la plus grosse demande)
+
+Le mod aura besoin de sa propre dimension pour ajouter un contenu annexe.
+Je propose la "spatial update" une update qui n'ajoute pas qu'une dimension mais aussi pleins de nouveautés !
+Il n'y aura qu'une seule planète pour commencer, elle s'appelera Erina, il faudrait crafter, installer une fusée pour décoller et s'y rendre dans cette planète. La bas, impossible de claim, en revanche nous ne somme pas invincible, cet à dire que le pvp existe et la mort est possible.
+Pourquoi y aller la bas ? pour aller chercher les nouvelles ressources rares et importantes
+Ce que tu doit imaginer en design de cette planète :
+- Trouver une DA de cette planète
+- Faire une worlgen custom comme la worldgen custom créer pour l'overlord mais pour la planète Eriana, on pourra appeler "ErinaWorldGen"
+- Imaginer 10-15 idées de biomes dans le thème respectif d'Erina
+- Imaginer une bonne quantité de nouvelles ressources, mecaniques, events etc..
+
+Nouveauté proposer :
+
+- La table de R&D (un block qui se craft avec des ressources issus de cette planete)
+	(Mécanique de la table R&D, il faut faire des kills pour obtenir des points de recherche, ensuite avec ces points on pourra débloquer les craft, pour débloquer un craft il faut en plus de dépenser des points de recherche, dépenser une somme en dollars).
+	(La table R&D est incassable pendant la recherche pour pas que le joueur n'est dépenser ses ressources pour rien)
+
+	- Ancre de Résurrection — Bloc consommable. Tu le poses quelque part, et la prochaine fois que tu meurs (dans les 30 min), tu respawn dessus au lieu du spawn. Usage unique, détruit au déclenchement. Craft cher (Erinium + Nether Star). Gameplay : tu en poses un près de la base ennemie avant un raid pour revenir immédiatement au combat si tu meurs.
+
+	- Flare d'Erinium — Item jetable qui s'envole dans le ciel et explose en particules. Révèle tous les joueurs dans un rayon de 50 blocs pendant 8s (effet Glowing). Mais la flare est visible de TRÈS loin — les ennemis savent qu'ils ont été repérés. Crée du mind-game : tu lances une flare, l'ennemi sait que tu arrives, mais tu sais où il est.
+
+	- Fumigènes — Throwable qui crée un nuage de particules denses bloquant la vision dans un rayon de 5 blocs pendant 6s. 3 tiers : Valterite (petit nuage, 4s), Aetherite (moyen, 6s), Erinium (grand, 8s + applique Blindness 1s aux ennemis qui entrent). Outil de désengagement ou d'embuscade.
+
+	- Grappin d'Erinium — Item avec durabilité. Clic droit pour lancer un crochet (portée 15 blocs). Si touche un bloc solide, te tracte vers le point d'impact. Crée du PvP vertical sur les bases — escalader les murs sans échelles. 3 tiers : Valterite (10 blocs), Aetherite (15 blocs), Erinium (20 blocs + plus rapide). Cooldown de 3s entre utilisations.
+
+	- Bouclier d'Erinium — Pas un bouclier vanilla, un item activable (clic droit maintenu). Crée un mur de force devant toi (2x3 blocs) pendant 3s qui bloque les projectiles et repousse les joueurs. Cooldown 20s. Visuel : mur translucide violet/cyan. Crée un nouvel outil défensif en PvP 1.8 sans toucher au combat mêlée.
+	
+	- Totems d'Erinium — 3 variantes remplaçant le Totem of Undying vanilla. Totem de Valterite : à la mort, te sauve avec 3 coeurs + Speed II 5s (fuite). Totem d'Aetherite : à la mort, te sauve avec 5 coeurs + explosion AoE repoussant les ennemis. Totem d'Erinium : à la mort, te sauve avec 7 coeurs + 3s d'invincibilité. Tous usage unique, craft cher, occupent le slot offhand.
+	
+	- Piège à Gravité — Bloc caché posable en territoire faction uniquement. Quand un ennemi marche dessus, il est propulsé 15 blocs en l'air. Les dégâts de chute font le travail. Invisible pour les ennemis, visible pour la faction (texture légèrement différente). Usage unique, se détruit après activation.
+
+	- Mine Terrestre — Bloc invisible posable en territoire faction. Quand un ennemi marche dessus, explosion qui inflige 4 coeurs de dégâts + knockback. Invisible pour les ennemis, affiche une particule rouge subtile pour la faction. Craft : Erinium + TNT + pressure plate. Se détruit après activation. Max 5 par faction actives en même temps.
+
+	- Orbes de compétences pvp : Des orbes stackable que par un, avec une durabilité, on utilise avec clique droit et a un cooldown :
+		- Speed orb
+		- Jump orb (Te propusle de 150 blocks au dessus de toi)
+		- Heal orb
+		- Strengh orb
+		- Repulsive orb
+		- Action bar disorder orb (Mélange tout les items de la barre d'action des joueurs autour (hors faction) pour créer un désordre et forcer le joueur à devoir réorganiser sa barre principale)
+		- invisibility orb
+		- Dash orb
+
+	- Razor Wire (Un block ou on peu traverser mais on se prend ralenti et on prend des dégat selon le tier)
+		- Wood
+		- Iron
+		- Gold
+		- Diamond
+		- Valterite
+		- Aetherite
+		- Erinium
+
+	- Protective brick (mieux que l'obsidienne, obsi = 300 HP)
+		- Valterite Brick (50% + solide que l'obsi)
+		- Aetherite Brick (100% + solide que l'obsi)
+		- Erinium Brick (200% + solide que l'obsi)
+		(Chaque brick à des variantes mais qui offres plus de puissance selon le materiel)
+		- Variantes (70% moins solide par rapport à la variante de la brick) :
+			- Lava Brick (exemple Lava Valterite Brick, Lava Aetherite Brick, ...) (Pose de la lave quand il est cassé)
+			- Water Brick
+			- Razor Wire Brick (Voir Electric Bush pour comprendre)
+			- Poison effect Brick
+			- Wither effect Brick
+			- Explosion Brick
+			- Repulsive Brick
+		- Item : Erinium Brick Stick
+		(Les variantes ne peuvent être récupérer que par l'utilisation du Erinium Brick Stick, seules les personnes qui ont accès au chunk claim peuvent le récupérer)
+
+	- Slime pad (Un petit pad qui quand tu rentre dedans te propulse dans la direction visé du block, horizontale ou verticale)
+
+	- Valterite, Aetherite et Erinium TNT (des tnt comme celle en vanilla mais plus puissante)
+
+	- Dynamite
+
+	(Chacun de ses idées est aussi à designer dans le cahier des charges et remplir dans la zone "assets")
+
+- Si il y a des idées de la table R&D manquante ou mal détaillé occupe toi de l'ameliorer
+- Maintenant que je t'ai donner une nouvelle features de cette planete qu'est la table de R&D, je veux que tu imagine une bonne dixaines de nouvelles features hors table R&D
+- La fusée doit être très compliqué à crafter en raison que c'est une planète mid-end game.
+(La fusée sera crafter par un nouveau block modèle 3d appeler le rocket maker)
+
+
+Dans la grande finalté du projet je voudrais 3 planète, tier 1, 2 et 3 qui sont de plus en plus orienté end-game niveau stuff et ressource, pour l'instant on attaque que le sujet de la planète tier 1

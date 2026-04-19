@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 728 90" width="728" height="90">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0A0A12"/>
+      <stop offset="50%" style="stop-color:#12101E"/>
+      <stop offset="100%" style="stop-color:#0A0A12"/>
+    </linearGradient>
+    <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6B2FA0"/>
+      <stop offset="50%" style="stop-color:#8B3FD0"/>
+      <stop offset="100%" style="stop-color:#00E5FF"/>
+    </linearGradient>
+    <linearGradient id="shieldInner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A2E"/>
+      <stop offset="100%" style="stop-color:#0A0A12"/>
+    </linearGradient>
+    <linearGradient id="accentLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6B2FA0;stop-opacity:0"/>
+      <stop offset="20%" style="stop-color:#9B5FD0"/>
+      <stop offset="80%" style="stop-color:#00E5FF"/>
+      <stop offset="100%" style="stop-color:#00E5FF;stop-opacity:0"/>
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#C8A0FF"/>
+      <stop offset="100%" style="stop-color:#00E5FF"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="12%" cy="50%" r="15%">
+      <stop offset="0%" style="stop-color:#6B2FA0;stop-opacity:0.4"/>
+      <stop offset="100%" style="stop-color:#6B2FA0;stop-opacity:0"/>
+    </radialGradient>
+    <radialGradient id="glowRight" cx="88%" cy="50%" r="18%">
+      <stop offset="0%" style="stop-color:#00E5FF;stop-opacity:0.15"/>
+      <stop offset="100%" style="stop-color:#00E5FF;stop-opacity:0"/>
+    </radialGradient>
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="0" dy="1"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="outerGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.6"/></feComponentTransfer>
+    </filter>
+    <filter id="textGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="728" height="90" fill="url(#bgGrad)"/>
+  <rect width="728" height="90" fill="url(#glow)"/>
+  <rect width="728" height="90" fill="url(#glowRight)"/>
+
+  <!-- Top accent line -->
+  <line x1="0" y1="1" x2="728" y2="1" stroke="url(#accentLine)" stroke-width="1.5"/>
+  <!-- Bottom accent line -->
+  <line x1="0" y1="89" x2="728" y2="89" stroke="url(#accentLine)" stroke-width="1.5"/>
+
+  <!-- Small shield logo (left side) -->
+  <g transform="translate(30, 7) scale(0.17)">
+    <!-- Shield glow -->
+    <path d="M250 45 L410 120 L410 280 Q410 380 250 460 Q90 380 90 280 L90 120 Z"
+          fill="url(#mainGrad)" filter="url(#outerGlow)" opacity="0.5"/>
+    <!-- Shield outline -->
+    <path d="M250 55 L400 125 L400 275 Q400 370 250 445 Q100 370 100 275 L100 125 Z"
+          fill="url(#mainGrad)"/>
+    <!-- Shield inner -->
+    <path d="M250 70 L387 135 L387 270 Q387 358 250 430 Q113 358 113 270 L113 135 Z"
+          fill="url(#shieldInner)"/>
+    <!-- Letter E -->
+    <rect x="190" y="170" width="28" height="155" rx="4" fill="url(#mainGrad)"/>
+    <rect x="190" y="170" width="120" height="24" rx="4" fill="url(#mainGrad)"/>
+    <rect x="190" y="232" width="100" height="22" rx="4" fill="url(#mainGrad)"/>
+    <rect x="190" y="301" width="120" height="24" rx="4" fill="url(#mainGrad)"/>
+    <!-- Diamond accent -->
+    <rect x="295" y="235" width="14" height="14" rx="2" transform="rotate(45 302 242)" fill="#00E5FF" opacity="0.9"/>
+    <!-- Crossed swords -->
+    <line x1="160" y1="350" x2="340" y2="130" stroke="url(#mainGrad)" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+    <line x1="340" y1="350" x2="160" y2="130" stroke="url(#mainGrad)" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+  </g>
+
+  <!-- Server name -->
+  <g filter="url(#textGlow)">
+    <text x="120" y="38" font-family="'Segoe UI', Arial, sans-serif" font-size="26" font-weight="800"
+          letter-spacing="3" fill="url(#mainGrad)">ERINIUM</text>
+  </g>
+  <text x="120" y="38" font-family="'Segoe UI', Arial, sans-serif" font-size="26" font-weight="800"
+        letter-spacing="3" fill="url(#mainGrad)">ERINIUM</text>
+  <text x="265" y="38" font-family="'Segoe UI', Arial, sans-serif" font-size="26" font-weight="300"
+        letter-spacing="5" fill="#E8E8F0" opacity="0.9">FACTION</text>
+
+  <!-- Tagline -->
+  <text x="120" y="56" font-family="'Segoe UI', Arial, sans-serif" font-size="11" font-weight="400"
+        letter-spacing="1.5" fill="#8892A4">MINECRAFT MODD&#xC9; 1.12.2</text>
+
+  <!-- Separator dot -->
+  <circle cx="312" cy="52" r="1.5" fill="#00E5FF" opacity="0.7"/>
+
+  <!-- Features -->
+  <text x="322" y="56" font-family="'Segoe UI', Arial, sans-serif" font-size="11" font-weight="400"
+        letter-spacing="1.5" fill="#8892A4">FACTION &amp; PVP</text>
+
+  <!-- Bottom tags -->
+  <!-- Tag: Enchantements -->
+  <rect x="120" y="64" width="105" height="18" rx="9" fill="#6B2FA0" opacity="0.25"/>
+  <rect x="120" y="64" width="105" height="18" rx="9" fill="none" stroke="#6B2FA0" stroke-width="0.5" opacity="0.5"/>
+  <text x="172" y="77" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="9"
+        font-weight="600" fill="#C8A0FF">Enchantements</text>
+
+  <!-- Tag: 36 Biomes -->
+  <rect x="232" y="64" width="72" height="18" rx="9" fill="#6B2FA0" opacity="0.25"/>
+  <rect x="232" y="64" width="72" height="18" rx="9" fill="none" stroke="#6B2FA0" stroke-width="0.5" opacity="0.5"/>
+  <text x="268" y="77" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="9"
+        font-weight="600" fill="#C8A0FF">36 Biomes</text>
+
+  <!-- Tag: Artefacts -->
+  <rect x="311" y="64" width="62" height="18" rx="9" fill="#6B2FA0" opacity="0.25"/>
+  <rect x="311" y="64" width="62" height="18" rx="9" fill="none" stroke="#6B2FA0" stroke-width="0.5" opacity="0.5"/>
+  <text x="342" y="77" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="9"
+        font-weight="600" fill="#C8A0FF">Artefacts</text>
+
+  <!-- Tag: RPG -->
+  <rect x="380" y="64" width="40" height="18" rx="9" fill="#00E5FF" opacity="0.15"/>
+  <rect x="380" y="64" width="40" height="18" rx="9" fill="none" stroke="#00E5FF" stroke-width="0.5" opacity="0.4"/>
+  <text x="400" y="77" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="9"
+        font-weight="600" fill="#00E5FF">RPG</text>
+
+  <!-- Right side: Sortie -->
+  <text x="610" y="35" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="10"
+        font-weight="600" letter-spacing="3" fill="#8892A4" opacity="0.7">SORTIE</text>
+  <g filter="url(#textGlow)">
+    <text x="610" y="56" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="22"
+          font-weight="800" letter-spacing="1" fill="url(#textGrad)">JUILLET 2026</text>
+  </g>
+  <text x="610" y="56" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="22"
+        font-weight="800" letter-spacing="1" fill="url(#textGrad)">JUILLET 2026</text>
+  <text x="610" y="76" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="9"
+        font-weight="400" letter-spacing="1" fill="#00E5FF" opacity="0.6">discord.gg/fcJmskudey</text>
+
+  <!-- Sparkles -->
+  <circle cx="108" cy="20" r="1" fill="#00E5FF" opacity="0.6"/>
+  <circle cx="430" cy="12" r="1.2" fill="#9B5FD0" opacity="0.5"/>
+  <circle cx="540" cy="80" r="1" fill="#00E5FF" opacity="0.4"/>
+  <circle cx="700" cy="15" r="1.5" fill="#6B2FA0" opacity="0.5"/>
+
+  <!-- Subtle vertical separator -->
+  <line x1="510" y1="15" x2="510" y2="75" stroke="#6B2FA0" stroke-width="0.5" opacity="0.3"/>
+</svg>

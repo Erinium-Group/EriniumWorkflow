@@ -1,0 +1,2228 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Biomes Custom | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+    /* Biome palette */
+    --forest:    #2ECC71;
+    --plains:    #F1C40F;
+    --mountain:  #8892A4;
+    --cold:      #A8D8FF;
+    --tropical:  #00E5FF;
+    --wetland:   #3D9970;
+    --dry:       #E67E22;
+    --special:   #9B4FCF;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(46,204,113,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 50% 90%, rgba(107,47,160,0.08) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 12px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--forest);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--forest) 50%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+
+  /* Biome category badges */
+  .badge-forest   { color: var(--forest);   border-color: rgba(46,204,113,0.4);  background: rgba(46,204,113,0.10); }
+  .badge-plains   { color: var(--plains);   border-color: rgba(241,196,15,0.4);  background: rgba(241,196,15,0.10); }
+  .badge-mountain { color: var(--mountain); border-color: rgba(136,146,164,0.4); background: rgba(136,146,164,0.10); }
+  .badge-cold     { color: var(--cold);     border-color: rgba(168,216,255,0.4); background: rgba(168,216,255,0.10); }
+  .badge-tropical { color: var(--tropical); border-color: rgba(0,229,255,0.4);   background: rgba(0,229,255,0.08); }
+  .badge-wetland  { color: var(--wetland);  border-color: rgba(61,153,112,0.4);  background: rgba(61,153,112,0.10); }
+  .badge-dry      { color: var(--dry);      border-color: rgba(230,126,34,0.4);  background: rgba(230,126,34,0.10); }
+  .badge-special  { color: var(--special);  border-color: rgba(155,79,207,0.4);  background: rgba(155,79,207,0.10); }
+
+  /* =========================================================
+     SECTION CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+  .section-card:nth-child(14) { animation-delay: .70s; }
+  .section-card:nth-child(15) { animation-delay: .75s; }
+  .section-card:nth-child(16) { animation-delay: .80s; }
+  .section-card:nth-child(17) { animation-delay: .85s; }
+  .section-card:nth-child(18) { animation-delay: .90s; }
+  .section-card:nth-child(19) { animation-delay: .95s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num    { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num   { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num    { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num  { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.cold-num    { background: linear-gradient(135deg, #4a7fa0 0%, #A8D8FF 100%); }
+  .section-card h2 .s-num.forest-num  { background: linear-gradient(135deg, #1a7a45 0%, #2ECC71 100%); }
+  .section-card h2 .s-num.wetland-num { background: linear-gradient(135deg, #1e5e44 0%, #3D9970 100%); }
+  .section-card h2 .s-num.dry-num     { background: linear-gradient(135deg, #7a4010 0%, #E67E22 100%); }
+  .section-card h2 .s-num.special-num { background: linear-gradient(135deg, #5a1e8a 0%, #9B4FCF 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     BIOME DETAIL CARDS
+  ========================================================= */
+  .biome-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .biome-card {
+    background: rgba(5,5,10,0.50);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .biome-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .biome-card.forest::before   { background: linear-gradient(90deg, var(--forest), transparent); }
+  .biome-card.plains::before   { background: linear-gradient(90deg, var(--plains), transparent); }
+  .biome-card.mountain::before { background: linear-gradient(90deg, var(--mountain), transparent); }
+  .biome-card.cold::before     { background: linear-gradient(90deg, var(--cold), transparent); }
+  .biome-card.tropical::before { background: linear-gradient(90deg, var(--tropical), transparent); }
+  .biome-card.wetland::before  { background: linear-gradient(90deg, var(--wetland), transparent); }
+  .biome-card.dry::before      { background: linear-gradient(90deg, var(--dry), transparent); }
+  .biome-card.special::before  { background: linear-gradient(90deg, var(--special), transparent); }
+
+  .biome-card-name {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .biome-card.forest   .biome-card-name { color: var(--forest); }
+  .biome-card.plains   .biome-card-name { color: var(--plains); }
+  .biome-card.mountain .biome-card-name { color: var(--mountain); }
+  .biome-card.cold     .biome-card-name { color: var(--cold); }
+  .biome-card.tropical .biome-card-name { color: var(--tropical); }
+  .biome-card.wetland  .biome-card-name { color: var(--wetland); }
+  .biome-card.dry      .biome-card-name { color: var(--dry); }
+  .biome-card.special  .biome-card-name { color: var(--special); }
+
+  .biome-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .meta-chip {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--card-bdr);
+    color: var(--slate);
+    letter-spacing: 0.04em;
+  }
+
+  .biome-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .biome-features li {
+    font-size: 12px;
+    color: var(--slate);
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .biome-features li::before {
+    content: '·';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr { background: rgba(107,47,160,0.18); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .tag-rare { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(155,79,207,0.12); color: var(--violet-l); border: 1px solid rgba(155,79,207,0.3); letter-spacing: 0.05em; }
+
+  .cat-forest   { color: var(--forest);   font-weight: 600; }
+  .cat-plains   { color: var(--plains);   font-weight: 600; }
+  .cat-mountain { color: var(--mountain); font-weight: 600; }
+  .cat-cold     { color: var(--cold);     font-weight: 600; }
+  .cat-tropical { color: var(--tropical); font-weight: 600; }
+  .cat-wetland  { color: var(--wetland);  font-weight: 600; }
+  .cat-dry      { color: var(--dry);      font-weight: 600; }
+  .cat-special  { color: var(--special);  font-weight: 600; }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .cl  { color: #FFCB6B; }
+
+  /* =========================================================
+     INFO BOXES
+  ========================================================= */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2);   }
+
+  /* =========================================================
+     ANIMATIONS + DIVIDER
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-bdr), transparent);
+    margin: 24px 0;
+  }
+
+  /* =========================================================
+     MOBILE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,47,160,0.4);
+    transition: transform .2s;
+  }
+
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 50;
+      width: 260px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .biome-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    .section-card { padding: 24px 18px; }
+    .page-header h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+
+    <span class="sidebar-title">Sommaire</span>
+
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Vue d'ensemble des 30 biomes</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Biomes Forestiers (7)</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Biomes Plaines &amp; Collines (5)</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Biomes Montagnes &amp; Canyons (3)</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Biomes Froids (3)</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Biomes Tropicaux &amp; Cotiers (5)</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Biomes Humides (2)</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Biomes Secs (3)</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Biomes Souterrain &amp; Special (2)</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Blocs Custom (9+)</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Generateurs d'Arbres (11)</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Features de Terrain</a>
+    <a class="nav-link" href="#s14"><span class="num">14</span> Regles de Placement</a>
+    <a class="nav-link" href="#s15"><span class="num">15</span> Architecture Technique</a>
+    <a class="nav-link" href="#s16"><span class="num">16</span> Integration Monde Minage</a>
+    <a class="nav-link" href="#s17"><span class="num">17</span> Configuration</a>
+    <a class="nav-link" href="#s18"><span class="num">18</span> Assets &amp; Textures</a>
+    <a class="nav-link" href="#s19"><span class="num">19</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <!-- HEADER -->
+    <header class="page-header">
+      <div class="eyebrow">Cahier des charges — Generation du monde</div>
+      <h1>Biomes Custom</h1>
+      <p>30 biomes uniques pour l'Overworld et le Monde Minage — exploration diversifiee, arbres custom, features de terrain, biomes rares et adjacence intelligente via GenLayer Mixin.</p>
+      <div class="header-badges">
+        <span class="badge badge-violet">Forge 1.12.2</span>
+        <span class="badge badge-green">30 biomes</span>
+        <span class="badge badge-forest">11 arbres custom</span>
+        <span class="badge badge-cyan">GenLayer Mixin</span>
+        <span class="badge badge-orange">9+ blocs custom</span>
+        <span class="badge badge-gold">Planifie</span>
+      </div>
+    </header>
+
+    <!-- ===== S01 : CONTEXTE & OBJECTIFS ===== -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Pourquoi des biomes custom ?</h3>
+      <p>L'Overworld vanilla de Minecraft 1.12.2 offre un nombre limite de biomes, souvent visuellement redondants apres quelques heures de jeu. Dans le contexte d'un serveur faction PvP long terme, l'exploration doit etre une activite recompensante en elle-meme — les joueurs doivent avoir une vraie raison de parcourir le monde plutot que de rester dans leur base.</p>
+      <p>Le systeme de 30 biomes custom a pour objectif d'enrichir l'experience d'exploration sans rompre l'equilibre du gameplay PvP. Ces biomes restent volontairement "vanilla-like" — pas de themes aliens, de corruption ou de biomes fantaisistes — mais poussent la diversite visuelle, l'ambiance et la topographie bien au-dela de ce que propose le vanilla.</p>
+
+      <h3>Philosophie de conception</h3>
+      <ul>
+        <li><strong>Vanilla-like</strong> — chaque biome ressemble a quelque chose qui pourrait exister dans Minecraft, juste en mieux et plus varie</li>
+        <li><strong>Visuellement distinct</strong> — chaque biome doit etre reconnaissable en un coup d'oeil (silhouette d'arbres, couleur du sol, hauteur, densite)</li>
+        <li><strong>Performance first</strong> — les generateurs de terrain respectent les contraintes de generation en lots (chunk-by-chunk), pas de calculs O(n²) dans les decorateurs</li>
+        <li><strong>Configurable</strong> — chaque biome peut etre desactive individuellement, les poids de rarete sont reglables dans le fichier de configuration</li>
+        <li><strong>Coherent avec le PvP</strong> — les biomes ne conferent pas d'avantages PvP injustes ; certains biomes rares peuvent concentrer des ressources specifiques pour cree des points d'interet strategiques</li>
+      </ul>
+
+      <h3>Objectifs techniques</h3>
+      <ul>
+        <li><strong>Enregistrement Forge</strong> — 30 sous-classes de <code>Biome</code> via <code>RegistryEvent.Register&lt;Biome&gt;</code></li>
+        <li><strong>Injection GenLayer</strong> — Mixin sur <code>GenLayerBiome</code> pour integrer les biomes dans la generation vanilla sans remplacer completement le systeme</li>
+        <li><strong>Arbres custom</strong> — 11 <code>WorldGenAbstractTree</code> avec logique de generation propre</li>
+        <li><strong>Decorateurs custom</strong> — 8 features de terrain (troncs tombes, rochers, ruisseaux, colonnes, etc.)</li>
+        <li><strong>Blocs custom</strong> — 9 nouveaux blocs pour les elements visuels distinctifs des biomes</li>
+        <li><strong>Biomes partages</strong> — le Monde Minage reutilise les memes 30 biomes</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">i</span>
+        <div class="content"><strong>Aucun biome remplacement</strong> — les biomes vanilla restent presents. Les biomes custom s'ajoutent au pool de generation en utilisant leur propre poids de rarete. L'equilibre entre biomes vanilla et custom est configurable.</div>
+      </div>
+    </section>
+
+    <!-- ===== S02 : VUE D'ENSEMBLE ===== -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Vue d'ensemble des 30 biomes</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Biome</th>
+              <th>Categorie</th>
+              <th>Temperature</th>
+              <th>Base Height</th>
+              <th>Rarete</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Foret Dense</td><td><span class="cat-forest">Forets</span></td><td>0.7</td><td>0.1</td><td>Commun</td></tr>
+            <tr><td>2</td><td>Foret de Bouleaux Geants</td><td><span class="cat-forest">Forets</span></td><td>0.6</td><td>0.2</td><td>Commun</td></tr>
+            <tr><td>3</td><td>Taiga Ancienne</td><td><span class="cat-forest">Forets</span></td><td>0.25</td><td>0.2</td><td>Peu commun</td></tr>
+            <tr><td>4</td><td>Foret de Cerisiers</td><td><span class="cat-forest">Forets</span></td><td>0.8</td><td>0.1</td><td>Peu commun</td></tr>
+            <tr><td>5</td><td>Foret d'Automne</td><td><span class="cat-forest">Forets</span></td><td>0.5</td><td>0.15</td><td>Peu commun</td></tr>
+            <tr><td>6</td><td>Foret de Sequoias</td><td><span class="cat-forest">Forets</span></td><td>0.7</td><td>0.3</td><td>Rare</td></tr>
+            <tr><td>7</td><td>Foret Brumeuse</td><td><span class="cat-forest">Forets</span></td><td>0.4</td><td>0.2</td><td>Peu commun</td></tr>
+            <tr><td>8</td><td>Prairie Fleurie</td><td><span class="cat-plains">Plaines &amp; Collines</span></td><td>0.8</td><td>0.05</td><td>Commun</td></tr>
+            <tr><td>9</td><td>Collines Vallonnees</td><td><span class="cat-plains">Plaines &amp; Collines</span></td><td>0.7</td><td>0.45</td><td>Commun</td></tr>
+            <tr><td>10</td><td>Savane Haute</td><td><span class="cat-plains">Plaines &amp; Collines</span></td><td>1.2</td><td>0.1</td><td>Peu commun</td></tr>
+            <tr><td>11</td><td>Plateau Venteux</td><td><span class="cat-plains">Plaines &amp; Collines</span></td><td>0.3</td><td>1.5</td><td>Peu commun</td></tr>
+            <tr><td>12</td><td>Plaine Volcanique</td><td><span class="cat-plains">Plaines &amp; Collines</span></td><td>1.5</td><td>0.05</td><td>Rare</td></tr>
+            <tr><td>13</td><td>Montagnes Escarpees</td><td><span class="cat-mountain">Montagnes</span></td><td>0.2</td><td>1.8</td><td>Peu commun</td></tr>
+            <tr><td>14</td><td>Canyon Profond</td><td><span class="cat-mountain">Montagnes</span></td><td>0.8</td><td>-0.3</td><td>Rare</td></tr>
+            <tr><td>15</td><td>Volcan</td><td><span class="cat-mountain">Montagnes</span></td><td>2.0</td><td>2.0</td><td><span class="tag-rare">Tres rare</span></td></tr>
+            <tr><td>16</td><td>Glacier</td><td><span class="cat-cold">Froids</span></td><td>0.0</td><td>1.0</td><td><span class="tag-rare">Tres rare</span></td></tr>
+            <tr><td>17</td><td>Toundra Enneigee</td><td><span class="cat-cold">Froids</span></td><td>0.05</td><td>0.05</td><td>Peu commun</td></tr>
+            <tr><td>18</td><td>Foret de Bambou</td><td><span class="cat-cold">Froids</span></td><td>0.8</td><td>0.1</td><td>Peu commun</td></tr>
+            <tr><td>19</td><td>Jungle Epaisse</td><td><span class="cat-tropical">Tropicaux &amp; Cotiers</span></td><td>0.95</td><td>0.1</td><td>Commun</td></tr>
+            <tr><td>20</td><td>Plage Etendue</td><td><span class="cat-tropical">Tropicaux &amp; Cotiers</span></td><td>0.8</td><td>0.0</td><td>Commun</td></tr>
+            <tr><td>21</td><td>Lagune Tropicale</td><td><span class="cat-tropical">Tropicaux &amp; Cotiers</span></td><td>0.9</td><td>-0.2</td><td>Peu commun</td></tr>
+            <tr><td>22</td><td>Archipel</td><td><span class="cat-tropical">Tropicaux &amp; Cotiers</span></td><td>0.8</td><td>-0.1</td><td><span class="tag-rare">Tres rare</span></td></tr>
+            <tr><td>23</td><td>Mangrove Cotiere</td><td><span class="cat-tropical">Tropicaux &amp; Cotiers</span></td><td>0.9</td><td>-0.1</td><td>Peu commun</td></tr>
+            <tr><td>24</td><td>Marecage Profond</td><td><span class="cat-wetland">Humides</span></td><td>0.8</td><td>-0.2</td><td>Peu commun</td></tr>
+            <tr><td>25</td><td>Vallee Fluviale</td><td><span class="cat-wetland">Humides</span></td><td>0.7</td><td>-0.1</td><td>Peu commun</td></tr>
+            <tr><td>26</td><td>Desert Rouge</td><td><span class="cat-dry">Secs</span></td><td>2.0</td><td>0.1</td><td>Peu commun</td></tr>
+            <tr><td>27</td><td>Oasis</td><td><span class="cat-dry">Secs</span></td><td>1.5</td><td>0.05</td><td>Rare</td></tr>
+            <tr><td>28</td><td>Foret Petrifiee</td><td><span class="cat-dry">Secs</span></td><td>0.5</td><td>0.1</td><td>Rare</td></tr>
+            <tr><td>29</td><td>Grotte Ouverte</td><td><span class="cat-special">Souterrain</span></td><td>0.5</td><td>0.1</td><td>Rare</td></tr>
+            <tr><td>30</td><td>Mesa Amelioree</td><td><span class="cat-special">Special</span></td><td>2.0</td><td>0.5</td><td>Peu commun</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Rarete et poids</strong> — "Commun" = poids 10, "Peu commun" = poids 5, "Rare" = poids 2, "Tres rare" = poids 1. Tous ces poids sont surchargeables dans <code>BiomeConfig</code>.</div>
+      </div>
+    </section>
+
+    <!-- ===== S03 : BIOMES FORESTIERS ===== -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num forest-num">03</span> Biomes Forestiers (7)</h2>
+      <p>Les forets constituent le coeur de la diversite vegetale du mod. Chaque foret possede une palette d'arbres unique, une densite et une ambiance lumineuse distinctes.</p>
+
+      <div class="biome-grid">
+
+        <div class="biome-card forest">
+          <div class="biome-card-name">#1 — Foret Dense</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.7</span>
+            <span class="meta-chip">H 0.1 / V 0.3</span>
+            <span class="meta-chip">Commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Chenes geants de 15-20 blocs de haut via <code>WorldGenTallOak</code></li>
+            <li>Sous-bois dense de fougeres (fern, large fern) couvrant 80% du sol</li>
+            <li>Troncs tombes horizontaux (moussu) generes via <code>WorldGenFallenLog</code></li>
+            <li>Champignons aux pieds des arbres (10% des arbres)</li>
+            <li>Sol : terre avec herbe normale, quelques blocs de podzol sous les troncs</li>
+            <li>Lumiere filtree — peu de clairierres, ambiance sombre</li>
+          </ul>
+        </div>
+
+        <div class="biome-card forest">
+          <div class="biome-card-name">#2 — Foret de Bouleaux Geants</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.6</span>
+            <span class="meta-chip">H 0.2 / V 0.3</span>
+            <span class="meta-chip">Commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Bouleaux de 20+ blocs via <code>WorldGenGiantBirch</code> — troncs fins et tres hauts</li>
+            <li>Canopee blanche continue — feuillage dense formant un plafond a 18-22 blocs</li>
+            <li>Sol couvert de fleurs blanches (Lily of the Valley equivalent — daisy)</li>
+            <li>Herbe haute claire, peu de sous-bois encombrant</li>
+            <li>Ambiance lumineuse et aeree — l'une des forets les plus lumineuses</li>
+            <li>Peu de troncs tombes, pas de champignons</li>
+          </ul>
+        </div>
+
+        <div class="biome-card forest">
+          <div class="biome-card-name">#3 — Taiga Ancienne</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.25</span>
+            <span class="meta-chip">H 0.2 / V 0.4</span>
+            <span class="meta-chip">Peu commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Epicieas de 25-30 blocs via <code>WorldGenAncientSpruce</code> — tronc epais (2x2 au bas)</li>
+            <li>Podzol epais partout — pas un seul bloc de terre nue visible</li>
+            <li>Champignons rouge et brun, fougeres, mousses (vines au sol)</li>
+            <li>Troncs tombes tres frequents avec mousse (mossy cobblestone log style)</li>
+            <li>Clairierres naturelles avec ruisseaux (<code>WorldGenStream</code>)</li>
+            <li>Loups et renards (vanilla) spawn amplifie dans ce biome</li>
+          </ul>
+        </div>
+
+        <div class="biome-card forest">
+          <div class="biome-card-name">#4 — Foret de Cerisiers</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.8</span>
+            <span class="meta-chip">H 0.1 / V 0.2</span>
+            <span class="meta-chip">Peu commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Cerisiers avec feuilles roses (<code>BlockCherryLeaves</code>) via <code>WorldGenCherryTree</code></li>
+            <li>Petales tombees simulees avec des tapis roses (pink carpet) au sol</li>
+            <li>Sol : herbe normale avec quelques blocs de mousse (<code>BlockMossyGround</code>)</li>
+            <li>Branches courtes et larges — canopee basse (8-12 blocs)</li>
+            <li>Ambiance Japonaise calme et sereine, faible densite d'arbres</li>
+            <li>Saplings cerisiers droppables pour plantation par les joueurs</li>
+          </ul>
+        </div>
+
+        <div class="biome-card forest">
+          <div class="biome-card-name">#5 — Foret d'Automne</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.5</span>
+            <span class="meta-chip">H 0.15 / V 0.3</span>
+            <span class="meta-chip">Peu commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Chenes et bouleaux avec feuilles orange/rouge/jaune (<code>BlockAutumnLeaves</code> x3)</li>
+            <li>Feuilles tombees au sol (<code>BlockFallenLeaves</code>) comme des tapis decoratifs</li>
+            <li>Mix d'arbres normaux et d'arbres automne dans la meme zone</li>
+            <li>Saplings automne generent un arbre aleatoire (orange, rouge ou jaune)</li>
+            <li>Sol : herbe normale, quelques blocs de terre nue visible</li>
+            <li>Ambiance chaude et coloree — photogenique</li>
+          </ul>
+        </div>
+
+        <div class="biome-card forest">
+          <div class="biome-card-name">#6 — Foret de Sequoias</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.7</span>
+            <span class="meta-chip">H 0.3 / V 0.5</span>
+            <span class="meta-chip">Rare</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sequoias massifs 2x2 troncs, 30-40 blocs de haut via <code>WorldGenSequoia</code></li>
+            <li>Tres espaces — seulement 2-4 arbres par chunk, jamais proches</li>
+            <li>Sous-bois ouvert avec fougeres, aucune autre forme d'arbre</li>
+            <li>Lumiere filtree entre les piliers de tronc — ambiance cathedrale</li>
+            <li>Quelques rochers (<code>WorldGenBoulder</code>) aux pieds des sequoias</li>
+            <li>Biome rare mais grand quand il apparait (min 15 chunks de rayon)</li>
+          </ul>
+        </div>
+
+        <div class="biome-card forest">
+          <div class="biome-card-name">#7 — Foret Brumeuse</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.4</span>
+            <span class="meta-chip">H 0.2 / V 0.4</span>
+            <span class="meta-chip">Peu commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Epicieas sombres serres via <code>WorldGenMistySpruce</code> — espacement minimal</li>
+            <li>Mousse partout : sol, troncs, rochers — <code>BlockMossyGround</code> omniprésent</li>
+            <li>Tres faible niveau de lumiere meme en plein jour</li>
+            <li>Brume (fog) cote client via override de <code>getFogColor()</code> dans le Biome</li>
+            <li>Particules de brouillard via <code>BiomeDecorator</code> client-side</li>
+            <li>Atmosphere oppressante — spawn de creepers et araignees amplifie</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== S04 : PLAINES & COLLINES ===== -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Biomes Plaines &amp; Collines (5)</h2>
+      <p>Des biomes ouverts avec une grande variete de reliefs — des plaines plates aux plateaux eleves, en passant par les reliefs vallonn&#233;s et les plaines d'origine volcanique.</p>
+
+      <div class="biome-grid">
+
+        <div class="biome-card plains">
+          <div class="biome-card-name">#8 — Prairie Fleurie</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.8</span>
+            <span class="meta-chip">H 0.05 / V 0.05</span>
+            <span class="meta-chip">Commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Herbe haute (double tallgrass) couvrant 60% du sol</li>
+            <li>Patches de fleurs monocolores : une zone = un seul type de fleur</li>
+            <li>Ruisseaux naturels fins (<code>WorldGenStream</code>) traversant les prairies</li>
+            <li>Quelques chenes solitaires eparpilles (1-2 par chunk max)</li>
+            <li>Sol : herbe tres verte, couleur saturee (temperature + pluie eleves)</li>
+            <li>Abeilles vanilla spawning amplifie, nids sur les arbres isoles</li>
+          </ul>
+        </div>
+
+        <div class="biome-card plains">
+          <div class="biome-card-name">#9 — Collines Vallonnees</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.7</span>
+            <span class="meta-chip">H 0.45 / V 0.6</span>
+            <span class="meta-chip">Commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Collines douces et arrondies — transitions progressives entre sommets et vallees</li>
+            <li>Chenes solitaires sur les sommets de colline (1 arbre par sommet)</li>
+            <li>Chemins de terre naturels en fond de vallee (gravel path)</li>
+            <li>Herbe normale, quelques fleurs epar&#231;ees</li>
+            <li>Lacets de ruisseaux dans les vallees</li>
+            <li>Tres bon biome pour construire des bases avec vue panoramique</li>
+          </ul>
+        </div>
+
+        <div class="biome-card plains">
+          <div class="biome-card-name">#10 — Savane Haute</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 1.2</span>
+            <span class="meta-chip">H 0.1 / V 0.15</span>
+            <span class="meta-chip">Peu commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Herbe jaune (double tallgrass seche) couvrant 70% du sol</li>
+            <li>Acacias epars mais plus grands que le vanilla (tronc plus haut)</li>
+            <li>Monticules de terre grossiere (coarse dirt) 2-4 blocs — termitières</li>
+            <li>Sol aride : herbe seche, coarse dirt fréquent, pas de fleurs</li>
+            <li>Tres plat — base height 0.1 avec height variation minimale</li>
+            <li>Chevaux et ânes vanilla spawning amplifie</li>
+          </ul>
+        </div>
+
+        <div class="biome-card plains">
+          <div class="biome-card-name">#11 — Plateau Venteux</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.3</span>
+            <span class="meta-chip">H 1.5 / V 0.05</span>
+            <span class="meta-chip">Peu commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Plateau eleve parfaitement plat a Y=90+ — vue panoramique sur le monde</li>
+            <li>Herbe rase, quelques buissons (dead bush), pas d'arbres</li>
+            <li>Falaises abruptes aux bords du plateau — descente verticale de 40+ blocs</li>
+            <li>Particules de vent cote client (override <code>getFogColor()</code>, particule blanche)</li>
+            <li>Orchidees bleues sporadiques pour la couleur</li>
+            <li>Point de repere naturel — visible de loin grace a sa hauteur</li>
+          </ul>
+        </div>
+
+        <div class="biome-card plains">
+          <div class="biome-card-name">#12 — Plaine Volcanique</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 1.5</span>
+            <span class="meta-chip">H 0.05 / V 0.2</span>
+            <span class="meta-chip">Rare</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol entierement en basalte (<code>BlockBasalt</code>) — aucune herbe</li>
+            <li>Colonnes de basalte (<code>WorldGenBasaltColumn</code>) de 3-8 blocs</li>
+            <li>Fissures dans le sol laissant apparaitre la lave (1 bloc large)</li>
+            <li>Blocs de cendre (<code>BlockAsh</code>) en couche fine sur le basalte</li>
+            <li>Tres riche en minerais (doublement de la densite vanilla)</li>
+            <li>Aucune vegetation, aucun arbre — biome mineraux pur</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== S05 : MONTAGNES & CANYONS ===== -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num">05</span> Biomes Montagnes &amp; Canyons (3)</h2>
+      <p>Des reliefs extremes — des pics neigeux aux gorges profondes, jusqu'au volcan en eruption, point focal strategique du monde.</p>
+
+      <div class="biome-grid">
+
+        <div class="biome-card mountain">
+          <div class="biome-card-name">#13 — Montagnes Escarpees</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.2</span>
+            <span class="meta-chip">H 1.8 / V 1.0</span>
+            <span class="meta-chip">Peu commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Pics aigus et falaises verticales — heightVariation a 1.0 (max vanilla-like)</li>
+            <li>Neige automatique au-dessus de Y=100 (temperature basse)</li>
+            <li>Lacs de montagne dans les creux (water pool naturels)</li>
+            <li>Cascades d'eau le long des falaises (genere via IWorldGenerator)</li>
+            <li>Quelques pins isoles sous la limite de neige</li>
+            <li>Minerais de surface plus accessible due aux falaises exposees</li>
+          </ul>
+        </div>
+
+        <div class="biome-card mountain">
+          <div class="biome-card-name">#14 — Canyon Profond</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.8</span>
+            <span class="meta-chip">H -0.3 / V 0.8</span>
+            <span class="meta-chip">Rare</span>
+          </div>
+          <ul class="biome-features">
+            <li>Gorges etroites de 10-15 blocs de large avec parois verticales</li>
+            <li>Riviere au fond — lit de gravier avec eau courante</li>
+            <li>Parois en pierre, grès, granite — couches naturelles exposees</li>
+            <li>Ponts naturels en pierre au-dessus des gorges (genere via IWorldGenerator)</li>
+            <li>Arbres au bord des falaises surplombant le vide</li>
+            <li>Excallent pour l'exploration verticale et l'exploitation miniere</li>
+          </ul>
+        </div>
+
+        <div class="biome-card mountain">
+          <div class="biome-card-name">#15 — Volcan</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 2.0</span>
+            <span class="meta-chip">H 2.0 / V 1.5</span>
+            <span class="meta-chip">Tres rare</span>
+          </div>
+          <ul class="biome-features">
+            <li>Montagne conique avec cratere au sommet contenant de la lave</li>
+            <li>Coulees de lave le long des flancs (lava flow features)</li>
+            <li>Sol : basalte + obsidienne + blocs de cendre (<code>BlockAsh</code>)</li>
+            <li>Particules de fumee au sommet (client-side override)</li>
+            <li>Minerais concentres dans les parois du cratere (ores rares amplifies)</li>
+            <li>Zone dangereuse — lave visible, peu de chemin sur</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">!</span>
+        <div class="content"><strong>Le Volcan est un point strategique PvP</strong> — sa concentration en minerais rares en fait une cible naturelle pour les conflits de faction. Il est extremement rare (poids 1) pour eviter la saturation. Un seul Volcan par continent est recommande via le systeme de rarete des GenLayer.</div>
+      </div>
+    </section>
+
+    <!-- ===== S06 : BIOMES FROIDS ===== -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num cold-num">06</span> Biomes Froids (3)</h2>
+      <p>Des biomes de froid intense, de neige et de glace — chacun avec une identite visuelle distincte malgre leur temperature commune.</p>
+
+      <div class="biome-grid">
+
+        <div class="biome-card cold">
+          <div class="biome-card-name">#16 — Glacier</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.0</span>
+            <span class="meta-chip">H 1.0 / V 0.4</span>
+            <span class="meta-chip">Tres rare</span>
+          </div>
+          <ul class="biome-features">
+            <li>Terrain entierement en packed ice — sol lisse et glissant</li>
+            <li>Plateau eleve et plat — meme philosophie que Plateau Venteux mais glaciaire</li>
+            <li>Crevasses profondes (ravines) dans la glace exposant l'eau dessous</li>
+            <li>Neige en poudre simulee avec des tapis blancs (white carpet)</li>
+            <li>Aucun arbre, aucune vegetation — paysage blanc mineral</li>
+            <li>Ours polaires vanilla en grande densite</li>
+          </ul>
+        </div>
+
+        <div class="biome-card cold">
+          <div class="biome-card-name">#17 — Toundra Enneigee</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.05</span>
+            <span class="meta-chip">H 0.05 / V 0.1</span>
+            <span class="meta-chip">Peu commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Plaines enneigees avec neige en surface</li>
+            <li>Baies sauvages (sweet berry bushes) — ressource alimentaire froide</li>
+            <li>Rivieres gelees (frozen river) traversant les plaines</li>
+            <li>Igloos vanilla mais avec meilleure frequence</li>
+            <li>Quelques pins isoles et arbustes</li>
+            <li>Ours polaires et loups blancs (wolves)</li>
+          </ul>
+        </div>
+
+        <div class="biome-card cold">
+          <div class="biome-card-name">#18 — Foret de Bambou</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.8</span>
+            <span class="meta-chip">H 0.1 / V 0.15</span>
+            <span class="meta-chip">Peu commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Bambou dense via sugar cane logic (ou bloc custom si 1.12 supporte)</li>
+            <li>Podzol comme sol — renforce l'aspect foret de bambou japonaise</li>
+            <li>Aucun autre arbre — le bambou occupe tout l'espace vertical</li>
+            <li>Pandas vanilla (si disponibles en 1.12.2 via addon) sinon ocelots</li>
+            <li>Ombre uniforme verte — effet visuel unique</li>
+            <li>Peu commun mais jamais tres grand (biome de transition)</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== S07 : BIOMES TROPICAUX & COTIERS ===== -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num cyan-num">07</span> Biomes Tropicaux &amp; Cotiers (5)</h2>
+      <p>Des biomes chauds et humides lies a la mer — des plages etendues aux lagunes turquoise, des archipels aux forets de mangroves.</p>
+
+      <div class="biome-grid">
+
+        <div class="biome-card tropical">
+          <div class="biome-card-name">#19 — Jungle Epaisse</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.95</span>
+            <span class="meta-chip">H 0.1 / V 0.4</span>
+            <span class="meta-chip">Commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Jungle ultra-dense — 4 fois la densite d'arbres de la jungle vanilla</li>
+            <li>Canopee connectee formant un plafond continu de lianes et feuillage</li>
+            <li>Sous-bois sombre quasi inaccessible sans couper</li>
+            <li>Perroquets et cacao vanilla — spawn amplifie</li>
+            <li>Ruines de temples generes plus frequemment via IWorldGenerator</li>
+            <li>Navigation difficile — ideal pour ambushes PvP</li>
+          </ul>
+        </div>
+
+        <div class="biome-card tropical">
+          <div class="biome-card-name">#20 — Plage Etendue</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.8</span>
+            <span class="meta-chip">H 0.0 / V 0.02</span>
+            <span class="meta-chip">Commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Plage 3x plus large que la vanilla — sable blanc etale</li>
+            <li>Dunes de sable (collines douces en sable) le long du rivage</li>
+            <li>Palmiers (<code>WorldGenPalmTree</code>) disperses sur la plage</li>
+            <li>Eau claire (override de <code>getWaterColorMultiplier()</code>)</li>
+            <li>Tortues marines vanilla spawning (si disponibles) sinon calmars</li>
+            <li>Coquillages decoratifs (gravel en taches sur le sable)</li>
+          </ul>
+        </div>
+
+        <div class="biome-card tropical">
+          <div class="biome-card-name">#21 — Lagune Tropicale</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.9</span>
+            <span class="meta-chip">H -0.2 / V 0.1</span>
+            <span class="meta-chip">Peu commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Eau peu profonde (1-3 blocs) avec couleur turquoise (water color override)</li>
+            <li>Ilots de sable emergent de l'eau</li>
+            <li>Coraux de surface et nenuphars (lily pad)</li>
+            <li>Palmiers sur les ilots (<code>WorldGenPalmTree</code>)</li>
+            <li>Environnement translucide — fond visible depuis la surface</li>
+            <li>Base height negatif — biome principalement aquatique</li>
+          </ul>
+        </div>
+
+        <div class="biome-card tropical">
+          <div class="biome-card-name">#22 — Archipel</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.8</span>
+            <span class="meta-chip">H -0.1 / V 0.5</span>
+            <span class="meta-chip">Tres rare</span>
+          </div>
+          <ul class="biome-features">
+            <li>Chaine d'ilots de 20-40 blocs chacun separes par de l'eau peu profonde</li>
+            <li>Chaque ilot a une mini-vegetation (palmiers, fleurs tropicales)</li>
+            <li>Sable blanc sur tous les ilots</li>
+            <li>Navigation inter-ilots possible a pied entre les hauts-fonds</li>
+            <li>Biome immediatement reconnaissable depuis les airs</li>
+            <li>Aucun mob hostile naturel — paradis pacifique</li>
+          </ul>
+        </div>
+
+        <div class="biome-card tropical">
+          <div class="biome-card-name">#23 — Mangrove Cotiere</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.9</span>
+            <span class="meta-chip">H -0.1 / V 0.15</span>
+            <span class="meta-chip">Peu commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Arbres de mangrove avec racines aeriennes dans l'eau (<code>WorldGenMangrove</code>)</li>
+            <li>Sol bourbeux : soul sand reskin (blocMuddyGround) ou simple soul sand</li>
+            <li>Canaux navigables entre les racines — labyrinthe aquatique</li>
+            <li>Aucune navigation facile a pied — foret aquatique dense</li>
+            <li>Nenuphars, joncs (reeds/sugar cane), vines partout</li>
+            <li>Grenouilles et slimes vanilla spawning</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== S08 : BIOMES HUMIDES ===== -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num wetland-num">08</span> Biomes Humides (2)</h2>
+      <p>Des environnements marcageux et fluviaux, proches de l'eau, avec des arbres adaptes et une faune specifique.</p>
+
+      <div class="biome-grid">
+
+        <div class="biome-card wetland">
+          <div class="biome-card-name">#24 — Marecage Profond</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.8</span>
+            <span class="meta-chip">H -0.2 / V 0.1</span>
+            <span class="meta-chip">Peu commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Eau stagnante peu profonde couvrant 40% du sol</li>
+            <li>Arbres style mangrove avec lianes (<code>WorldGenMangrove</code> variante)</li>
+            <li>Nenuphars denses, joncs, mousses partout</li>
+            <li>Lumiere tres faible meme en journee — atmosphère oppressante</li>
+            <li>Slimes et sorcieres — spawn amplifie les nuits</li>
+            <li>Sol : herbe marecageuse, gravier sous l'eau, quelques blocs d'argile</li>
+          </ul>
+        </div>
+
+        <div class="biome-card wetland">
+          <div class="biome-card-name">#25 — Vallee Fluviale</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.7</span>
+            <span class="meta-chip">H -0.1 / V 0.2</span>
+            <span class="meta-chip">Peu commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Riviere large de 15-20 blocs traversant le biome de bout en bout</li>
+            <li>Berges de gravier — transition douce entre l'eau et la terre</li>
+            <li>Saules pleureurs (<code>WorldGenWeepingWillow</code>) sur les berges</li>
+            <li>Sol tres fertile : herbe tres verte, fleurs, terres agricoles naturelles</li>
+            <li>Nenuphars et joncs dans les sections calmes de la riviere</li>
+            <li>Excellent biome agricole — eau accessible partout</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== S09 : BIOMES SECS ===== -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num dry-num">09</span> Biomes Secs (3)</h2>
+      <p>Des environnements arides et hostiles — desert rouge, oasis sacree et foret mineralisee. Chacun present un defi de survie ou une promesse de richesse.</p>
+
+      <div class="biome-grid">
+
+        <div class="biome-card dry">
+          <div class="biome-card-name">#26 — Desert Rouge</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 2.0</span>
+            <span class="meta-chip">H 0.1 / V 0.3</span>
+            <span class="meta-chip">Peu commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Sol en sable rouge et terracotta — palette chaude et saturee</li>
+            <li>Formations rocheuses erodees en terracotta et pierre rouge</li>
+            <li>Rares cactus mais present pour marquer le caractere desert</li>
+            <li>Aucune eau visible en surface — biome sec pur</li>
+            <li>Tres ouvert et vaste — visibility maximale pour le PvP</li>
+            <li>Fossiles naturels plus frequents dans ce biome</li>
+          </ul>
+        </div>
+
+        <div class="biome-card dry">
+          <div class="biome-card-name">#27 — Oasis</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 1.5</span>
+            <span class="meta-chip">H 0.05 / V 0.05</span>
+            <span class="meta-chip">Rare</span>
+          </div>
+          <ul class="biome-features">
+            <li>Biome de petite taille (5-8 chunks) toujours au coeur du Desert Rouge</li>
+            <li>Plan d'eau central avec sable blanc autour</li>
+            <li>Palmiers (<code>WorldGenPalmTree</code>) en couronne autour de l'eau</li>
+            <li>Herbe verte luxuriante, canne a sucre — contraste fort avec le desert</li>
+            <li>Point de repere et ressource eau/nourriture dans les terres arides</li>
+            <li>Point de conflit PvP naturel — resource unique dans un desert</li>
+          </ul>
+        </div>
+
+        <div class="biome-card dry">
+          <div class="biome-card-name">#28 — Foret Petrifiee</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.5</span>
+            <span class="meta-chip">H 0.1 / V 0.2</span>
+            <span class="meta-chip">Rare</span>
+          </div>
+          <ul class="biome-features">
+            <li>Arbres petrifies en pierre (<code>WorldGenPetrifiedTree</code>) — troncs sans feuilles</li>
+            <li>Troncs en stone, andesite, cobblestone — aucune feuille, branches cassees</li>
+            <li>Sol craquelle : cracked stone, coarse dirt, quelques blocs d'argile seche</li>
+            <li>Mares d'eau stagnante boueuse (quelques blocs)</li>
+            <li>Toiles d'araignees (cobwebs) entre les branches basses</li>
+            <li>Araignees et squelettes spawning intensifie — biome dangereux</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== S10 : BIOMES SOUTERRAIN & SPECIAL ===== -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num special-num">10</span> Biomes Souterrain &amp; Special (2)</h2>
+      <p>Deux biomes uniques qui ne rentrent dans aucune autre categorie — la Grotte Ouverte et la Mesa Amelioree.</p>
+
+      <div class="biome-grid">
+
+        <div class="biome-card special">
+          <div class="biome-card-name">#29 — Grotte Ouverte</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 0.5</span>
+            <span class="meta-chip">H 0.1 / V 0.3</span>
+            <span class="meta-chip">Rare</span>
+          </div>
+          <ul class="biome-features">
+            <li>Biome de surface avec de grandes cavites ouvertes sous le sol (20-30 blocs de haut)</li>
+            <li>Sol en "pont" de pierre au-dessus du vide — effondrement possible</li>
+            <li>Stalactites et stalagmites via <code>WorldGenStalactite</code> (cobblestone fence + stone)</li>
+            <li>Lacs souterrains accessibles depuis les trous en surface</li>
+            <li>Mousse et vines sur les parois des cavites</li>
+            <li>Glowstone cachee dans les plafonds de cavites — lumiere douce</li>
+          </ul>
+        </div>
+
+        <div class="biome-card special">
+          <div class="biome-card-name">#30 — Mesa Amelioree</div>
+          <div class="biome-meta">
+            <span class="meta-chip">Temp 2.0</span>
+            <span class="meta-chip">H 0.5 / V 0.9</span>
+            <span class="meta-chip">Peu commun</span>
+          </div>
+          <ul class="biome-features">
+            <li>Plateaux en terracotta avec bords plus tranchants qu'en vanilla</li>
+            <li>Escaliers naturels sculptes dans les parois de terracotta</li>
+            <li>Bandes de terracotta de couleur plus variee (6-8 couleurs vs 3 vanilla)</li>
+            <li>Or et autres minerais dans les couches de mesa — facilement accessible</li>
+            <li>Arbres morts (dead oak) sur les plateaux</li>
+            <li>Biome photogenique — falaises colorees visibles de loin</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== S11 : BLOCS CUSTOM ===== -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num green-num">11</span> Blocs Custom (9+)</h2>
+      <p>Chaque nouveau bloc est enregistre via <code>EriBlock.create()</code> de l'API EriAPI et suit les conventions du projet (textures 16x16, modele JSON, blockstate, traductions FR/EN).</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Bloc</th>
+              <th>Classe</th>
+              <th>Utilise dans</th>
+              <th>Comportement</th>
+              <th>Drop</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cherry Leaves</td>
+              <td><code>BlockCherryLeaves</code></td>
+              <td>Foret de Cerisiers</td>
+              <td>Comme Leaves — opacite, desintegration sans tronc pres</td>
+              <td>Sapling cerisier (5% chance)</td>
+            </tr>
+            <tr>
+              <td>Cherry Sapling</td>
+              <td><code>BlockCherrySapling</code></td>
+              <td>Foret de Cerisiers</td>
+              <td>Pousse en cerisier via <code>WorldGenCherryTree</code></td>
+              <td>Lui-meme</td>
+            </tr>
+            <tr>
+              <td>Autumn Leaves (x3)</td>
+              <td><code>BlockAutumnLeaves</code></td>
+              <td>Foret d'Automne</td>
+              <td>3 variantes (Orange, Rouge, Jaune) — metadata 0/1/2</td>
+              <td>Sapling automne (5% chance)</td>
+            </tr>
+            <tr>
+              <td>Autumn Sapling</td>
+              <td><code>BlockAutumnSapling</code></td>
+              <td>Foret d'Automne</td>
+              <td>Pousse en arbre automne (couleur aleatoire)</td>
+              <td>Lui-meme</td>
+            </tr>
+            <tr>
+              <td>Basalt</td>
+              <td><code>BlockBasalt</code></td>
+              <td>Plaine Volcanique, Volcan</td>
+              <td>Bloc decoratif solide, durete 1.5, resistance 10</td>
+              <td>Lui-meme (pickaxe requis)</td>
+            </tr>
+            <tr>
+              <td>Ash Block</td>
+              <td><code>BlockAsh</code></td>
+              <td>Volcan, Plaine Volcanique</td>
+              <td>Comme concrete powder — tombe avec la gravite</td>
+              <td>Lui-meme (pelle)</td>
+            </tr>
+            <tr>
+              <td>Fallen Leaves</td>
+              <td><code>BlockFallenLeaves</code></td>
+              <td>Foret d'Automne</td>
+              <td>Bloc en tapis (hauteur 1/16), non solide</td>
+              <td>Rien (decoratif)</td>
+            </tr>
+            <tr>
+              <td>Palm Log</td>
+              <td><code>BlockPalmLog</code></td>
+              <td>Biomes tropicaux, Oasis</td>
+              <td>Comme Wood — orientable sur 3 axes</td>
+              <td>Lui-meme (hache)</td>
+            </tr>
+            <tr>
+              <td>Palm Leaves</td>
+              <td><code>BlockPalmLeaves</code></td>
+              <td>Biomes tropicaux, Oasis</td>
+              <td>Comme Leaves mais forme de palmier (pas de desintegration longue distance)</td>
+              <td>Sapling palmier (5% chance)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Utilisation d'EriBlock</strong> — Tous les blocs sont enregistres via <code>EriBlock.create("eriniumfaction", "nom")</code>. Les textures sont placees dans <code>assets/eriniumfaction/textures/blocks/</code>. Les modeles JSON et blockstates sont generes manuellement selon les conventions Forge 1.12.2.</div>
+      </div>
+
+      <div class="code-block"><span class="cm">// Exemple d'enregistrement — BlockBasalt</span>
+<span class="ty">EriBlock</span>.<span class="fn">create</span>(<span class="st">"eriniumfaction"</span>, <span class="st">"basalt"</span>)
+    .<span class="fn">material</span>(<span class="ty">Material</span>.ROCK)
+    .<span class="fn">hardness</span>(<span class="nu">1.5f</span>)
+    .<span class="fn">resistance</span>(<span class="nu">10.0f</span>)
+    .<span class="fn">harvestTool</span>(<span class="st">"pickaxe"</span>, <span class="nu">1</span>)
+    .<span class="fn">register</span>();
+
+<span class="cm">// BlockAsh — tombe avec la gravite comme Gravel</span>
+<span class="kw">public class</span> <span class="cl">BlockAsh</span> <span class="kw">extends</span> <span class="ty">BlockFalling</span> {
+    <span class="kw">public</span> <span class="fn">BlockAsh</span>() {
+        <span class="kw">super</span>(<span class="ty">Material</span>.SAND);
+        <span class="fn">setHardness</span>(<span class="nu">0.5f</span>);
+        <span class="fn">setSoundType</span>(<span class="ty">SoundType</span>.SAND);
+    }
+}</div>
+    </section>
+
+    <!-- ===== S12 : GENERATEURS D'ARBRES ===== -->
+    <section class="section-card" id="s12">
+      <h2><span class="s-num">12</span> Generateurs d'Arbres (11)</h2>
+      <p>Chaque generateur d'arbre herite de <code>WorldGenAbstractTree</code> et implemente la methode <code>generate(World, Random, BlockPos)</code>. Les arbres sont places par les <code>BiomeDecorator</code> respectifs de chaque biome.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Classe</th>
+              <th>Biome(s)</th>
+              <th>Tronc</th>
+              <th>Feuilles</th>
+              <th>Hauteur</th>
+              <th>Particularite</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>WorldGenTallOak</code></td>
+              <td>Foret Dense</td>
+              <td>Oak Log</td>
+              <td>Oak Leaves</td>
+              <td>15-20</td>
+              <td>Couronne large, branche basses optionnelles</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenGiantBirch</code></td>
+              <td>Foret de Bouleaux Geants</td>
+              <td>Birch Log</td>
+              <td>Birch Leaves</td>
+              <td>20-28</td>
+              <td>Tronc tres fin, couronne blanche compact</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenAncientSpruce</code></td>
+              <td>Taiga Ancienne</td>
+              <td>Spruce Log (2x2 bas)</td>
+              <td>Spruce Leaves</td>
+              <td>25-30</td>
+              <td>Base 2x2, pyramide longue, mousse autour du pied</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenCherryTree</code></td>
+              <td>Foret de Cerisiers</td>
+              <td>Oak Log (pale)</td>
+              <td>Cherry Leaves (rose)</td>
+              <td>8-12</td>
+              <td>Forme ronde compacte, branches courtes et larges</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenAutumnTree</code></td>
+              <td>Foret d'Automne</td>
+              <td>Oak Log</td>
+              <td>AutumnLeaves (random)</td>
+              <td>8-14</td>
+              <td>Selectionne aleatoirement orange / rouge / jaune</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenSequoia</code></td>
+              <td>Foret de Sequoias</td>
+              <td>Dark Oak Log (2x2)</td>
+              <td>Dark Oak Leaves</td>
+              <td>30-40</td>
+              <td>Tronc massif 2x2 sans branches basses, couronne haute</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenMistySpruce</code></td>
+              <td>Foret Brumeuse</td>
+              <td>Spruce Log</td>
+              <td>Spruce Leaves (dense)</td>
+              <td>12-18</td>
+              <td>Branches courtes, forme conique tres serree</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenPalmTree</code></td>
+              <td>Plage, Lagune, Archipel, Oasis</td>
+              <td>Palm Log (courbe)</td>
+              <td>Palm Leaves</td>
+              <td>8-14</td>
+              <td>Tronc incline aleatoirement (offset de 1 bloc par pallier)</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenMangrove</code></td>
+              <td>Mangrove Cotiere, Marecage</td>
+              <td>Jungle Log</td>
+              <td>Jungle Leaves</td>
+              <td>6-10</td>
+              <td>Racines aeriennes se posant dans l'eau autour du tronc</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenWeepingWillow</code></td>
+              <td>Vallee Fluviale</td>
+              <td>Oak Log</td>
+              <td>Oak Leaves + Vines tombantes</td>
+              <td>10-16</td>
+              <td>Branches larges avec vines suspendues jusqu'au sol</td>
+            </tr>
+            <tr>
+              <td><code>WorldGenPetrifiedTree</code></td>
+              <td>Foret Petrifiee</td>
+              <td>Stone / Andesite / Cobblestone</td>
+              <td>Aucune</td>
+              <td>6-12</td>
+              <td>Tronc en pierre, aucune feuille, branches brisees (forme irreguliere)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Implementation de reference — WorldGenPalmTree</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">WorldGenPalmTree</span> <span class="kw">extends</span> <span class="ty">WorldGenAbstractTree</span> {
+
+    <span class="kw">private final</span> <span class="ty">IBlockState</span> palmLog    = <span class="ty">EriniumBlocks</span>.PALM_LOG.<span class="fn">getDefaultState</span>();
+    <span class="kw">private final</span> <span class="ty">IBlockState</span> palmLeaves = <span class="ty">EriniumBlocks</span>.PALM_LEAVES.<span class="fn">getDefaultState</span>();
+
+    <span class="an">@Override</span>
+    <span class="kw">public boolean</span> <span class="fn">generate</span>(<span class="ty">World</span> world, <span class="ty">Random</span> rand, <span class="ty">BlockPos</span> pos) {
+        <span class="kw">int</span> height = <span class="nu">8</span> + rand.<span class="fn">nextInt</span>(<span class="nu">6</span>); <span class="cm">// 8 a 13</span>
+        <span class="kw">int</span> leanX  = rand.<span class="fn">nextInt</span>(<span class="nu">3</span>) - <span class="nu">1</span>; <span class="cm">// -1, 0, +1</span>
+        <span class="kw">int</span> leanZ  = rand.<span class="fn">nextInt</span>(<span class="nu">3</span>) - <span class="nu">1</span>;
+        <span class="ty">BlockPos</span> trunk = pos;
+
+        <span class="cm">// Genereer le tronc incline</span>
+        <span class="kw">for</span> (<span class="kw">int</span> y = <span class="nu">0</span>; y &lt; height; y++) {
+            <span class="kw">if</span> (y &gt; height / <span class="nu">2</span>) {
+                trunk = trunk.<span class="fn">add</span>(leanX &gt; <span class="nu">0</span> ? <span class="nu">1</span> : <span class="nu">0</span>, <span class="nu">1</span>, leanZ &gt; <span class="nu">0</span> ? <span class="nu">1</span> : <span class="nu">0</span>);
+                leanX = <span class="nu">0</span>; leanZ = <span class="nu">0</span>; <span class="cm">// ne lean qu'une fois</span>
+            } <span class="kw">else</span> {
+                trunk = trunk.<span class="fn">up</span>();
+            }
+            world.<span class="fn">setBlockState</span>(trunk, palmLog, <span class="nu">2</span>);
+        }
+
+        <span class="cm">// Generer la couronne de palmes</span>
+        <span class="ty">BlockPos</span> crown = trunk;
+        <span class="kw">for</span> (<span class="kw">int</span> dx = <span class="op">-</span><span class="nu">3</span>; dx &lt;= <span class="nu">3</span>; dx++) {
+            <span class="kw">for</span> (<span class="kw">int</span> dz = <span class="op">-</span><span class="nu">3</span>; dz &lt;= <span class="nu">3</span>; dz++) {
+                <span class="kw">int</span> dist = <span class="ty">Math</span>.<span class="fn">abs</span>(dx) + <span class="ty">Math</span>.<span class="fn">abs</span>(dz);
+                <span class="kw">if</span> (dist &lt;= <span class="nu">3</span> &amp;&amp; !(dist == <span class="nu">3</span> &amp;&amp; rand.<span class="fn">nextBoolean</span>()))
+                    world.<span class="fn">setBlockState</span>(crown.<span class="fn">add</span>(dx, <span class="nu">0</span>, dz), palmLeaves, <span class="nu">2</span>);
+            }
+        }
+        <span class="kw">return true</span>;
+    }
+}</div>
+    </section>
+
+    <!-- ===== S13 : FEATURES DE TERRAIN ===== -->
+    <section class="section-card" id="s13">
+      <h2><span class="s-num orange-num">13</span> Features de Terrain</h2>
+      <p>Les features de terrain sont des decorateurs places par les <code>BiomeDecorator</code> de chaque biome, ou via <code>IWorldGenerator</code> pour les structures plus complexes.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Classe</th>
+              <th>Biomes</th>
+              <th>Description</th>
+              <th>Frequence / chunk</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Tronc Tombe</td>
+              <td><code>WorldGenFallenLog</code></td>
+              <td>Foret Dense, Taiga Ancienne, Brumeuse</td>
+              <td>Log horizontal de 4-8 blocs avec mousse autour</td>
+              <td>1-3</td>
+            </tr>
+            <tr>
+              <td>Rocher</td>
+              <td><code>WorldGenBoulder</code></td>
+              <td>Foret de Sequoias, Montagnes, Taiga</td>
+              <td>Amas de 3-10 blocs de stone/mossy cobble</td>
+              <td>0-2</td>
+            </tr>
+            <tr>
+              <td>Ruisseau</td>
+              <td><code>WorldGenStream</code></td>
+              <td>Prairie Fleurie, Collines, Taiga Ancienne</td>
+              <td>Canal d'eau fin (1 bloc) de 6-15 blocs de long</td>
+              <td>0-1</td>
+            </tr>
+            <tr>
+              <td>Patch de fleurs</td>
+              <td><code>WorldGenFlowerPatch</code></td>
+              <td>Prairie Fleurie, Prairie</td>
+              <td>Zone 5x5 de la meme fleur (monocolore)</td>
+              <td>2-5</td>
+            </tr>
+            <tr>
+              <td>Monticule Termitiere</td>
+              <td><code>WorldGenTermiteMound</code></td>
+              <td>Savane Haute</td>
+              <td>Pilier de coarse dirt de 2-4 blocs de haut</td>
+              <td>1-3</td>
+            </tr>
+            <tr>
+              <td>Colonne Basalte</td>
+              <td><code>WorldGenBasaltColumn</code></td>
+              <td>Plaine Volcanique, Volcan</td>
+              <td>Pilier vertical de basalte de 3-8 blocs</td>
+              <td>2-6</td>
+            </tr>
+            <tr>
+              <td>Stalactite/Stalagmite</td>
+              <td><code>WorldGenStalactite</code></td>
+              <td>Grotte Ouverte</td>
+              <td>Cobblestone fence + stone tete-beche, 2-6 blocs</td>
+              <td>4-12 (dans cavites)</td>
+            </tr>
+            <tr>
+              <td>Fissure de Lave</td>
+              <td><code>WorldGenLavaCrack</code></td>
+              <td>Plaine Volcanique, Volcan</td>
+              <td>Canal de lava de 1 bloc large, 3-8 blocs de long</td>
+              <td>1-4</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Implementation du BiomeDecorator custom</h3>
+      <p>Chaque biome custom peut surcharger <code>decorate(World, Random, BlockPos)</code> dans sa classe Biome, ou utiliser un <code>BiomeDecorator</code> dedie. Les features sont appelees avec une probabilite par chunk.</p>
+
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">BiomeForetDense</span> <span class="kw">extends</span> <span class="ty">Biome</span> {
+
+    <span class="kw">private final</span> <span class="ty">WorldGenFallenLog</span>  fallenLog  = <span class="kw">new</span> <span class="ty">WorldGenFallenLog</span>();
+    <span class="kw">private final</span> <span class="ty">WorldGenFlowerPatch</span> mushroom   = <span class="kw">new</span> <span class="ty">WorldGenFlowerPatch</span>(<span class="ty">Blocks</span>.BROWN_MUSHROOM);
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">decorate</span>(<span class="ty">World</span> world, <span class="ty">Random</span> rand, <span class="ty">BlockPos</span> pos) {
+        <span class="kw">super</span>.<span class="fn">decorate</span>(world, rand, pos); <span class="cm">// decors vanilla de base</span>
+
+        <span class="cm">// Troncs tombes : 1-3 par chunk</span>
+        <span class="kw">int</span> logCount = <span class="nu">1</span> + rand.<span class="fn">nextInt</span>(<span class="nu">3</span>);
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; logCount; i++) {
+            <span class="ty">BlockPos</span> target = pos.<span class="fn">add</span>(rand.<span class="fn">nextInt</span>(<span class="nu">16</span>), <span class="nu">0</span>, rand.<span class="fn">nextInt</span>(<span class="nu">16</span>));
+            fallenLog.<span class="fn">generate</span>(world, rand, <span class="fn">getTopPos</span>(world, target));
+        }
+
+        <span class="cm">// Champignons au pied des arbres (20% de chance par chunk)</span>
+        <span class="kw">if</span> (rand.<span class="fn">nextFloat</span>() &lt; <span class="nu">0.2f</span>) {
+            <span class="ty">BlockPos</span> mPos = pos.<span class="fn">add</span>(rand.<span class="fn">nextInt</span>(<span class="nu">16</span>), <span class="nu">0</span>, rand.<span class="fn">nextInt</span>(<span class="nu">16</span>));
+            mushroom.<span class="fn">generate</span>(world, rand, <span class="fn">getTopPos</span>(world, mPos));
+        }
+    }
+}</div>
+    </section>
+
+    <!-- ===== S14 : REGLES DE PLACEMENT ===== -->
+    <section class="section-card" id="s14">
+      <h2><span class="s-num">14</span> Regles de Placement — GenLayer</h2>
+      <p>Le placement des biomes dans le monde utilise le systeme de GenLayer de Minecraft, modifie via Mixin pour injecter les biomes custom avec des regles d'adjacence intelligentes.</p>
+
+      <h3 class="first">Regles d'adjacence par temperature</h3>
+      <p>Les biomes custom respectent le systeme de zones climatiques de Minecraft. Les biomes de temperature similaire tendent a etre adjacents :</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Zone Climatique</th>
+              <th>Temperature</th>
+              <th>Biomes Custom Assignes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Froide</td>
+              <td>0.0 – 0.3</td>
+              <td>Glacier, Toundra Enneigee, Montagnes Escarpees, Foret Brumeuse, Taiga Ancienne</td>
+            </tr>
+            <tr>
+              <td>Temperee</td>
+              <td>0.3 – 0.7</td>
+              <td>Foret Dense, Foret de Bouleaux, Foret d'Automne, Collines, Canyon Profond, Foret Petrifiee, Grotte Ouverte</td>
+            </tr>
+            <tr>
+              <td>Chaude</td>
+              <td>0.7 – 1.0</td>
+              <td>Foret de Cerisiers, Foret de Sequoias, Prairie Fleurie, Vallee Fluviale, Marecage Profond, Plage Etendue, Archipel, Jungle Epaisse, Bambou, Mesa Amelioree</td>
+            </tr>
+            <tr>
+              <td>Aride</td>
+              <td>1.0 – 2.0+</td>
+              <td>Savane Haute, Plaine Volcanique, Volcan, Desert Rouge, Oasis, Lagune Tropicale, Mangrove Cotiere, Plateau Venteux</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Poids de rarete et frequence d'apparition</h3>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Rarete</th>
+              <th>Poids (defaut)</th>
+              <th>Biomes concernes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Commun</td>
+              <td>10</td>
+              <td>Foret Dense, Bouleaux, Prairie Fleurie, Collines, Jungle, Plage</td>
+            </tr>
+            <tr>
+              <td>Peu commun</td>
+              <td>5</td>
+              <td>Taiga, Cerisiers, Automne, Savane, Plateau, Montagnes, Toundra, Bambou, Lagune, Mangrove, Marecage, Vallee, Desert Rouge, Mesa</td>
+            </tr>
+            <tr>
+              <td>Rare</td>
+              <td>2</td>
+              <td>Sequoias, Plaine Volcanique, Canyon, Foret Petrifiee, Oasis, Grotte Ouverte</td>
+            </tr>
+            <tr>
+              <td>Tres rare</td>
+              <td>1</td>
+              <td>Volcan, Glacier, Archipel</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Regles speciales d'adjacence</h3>
+      <ul>
+        <li><strong>Oasis</strong> — genere uniquement a l'interieur ou a la bordure du Desert Rouge (biome enfant dans GenLayerBiome)</li>
+        <li><strong>Plage Etendue</strong> — genere en bordure d'ocean, remplace les plages vanilla adjacentes aux biomes tropicaux</li>
+        <li><strong>Lagune Tropicale / Archipel</strong> — genere en bordure ou dans les eaux peu profondes (shallow ocean)</li>
+        <li><strong>Glacier</strong> — genere uniquement adjacent a des biomes froids (temperature &lt; 0.1)</li>
+        <li><strong>Volcan</strong> — isole, entour&#233; par la Plaine Volcanique ou l'ocean</li>
+        <li><strong>Canyon Profond</strong> — peut generer adjacent aux Montagnes Escarpees</li>
+      </ul>
+
+      <h3>Injection via MixinGenLayerBiome</h3>
+      <div class="code-block"><span class="an">@Mixin</span>(<span class="ty">GenLayerBiome</span>.<span class="kw">class</span>)
+<span class="kw">public class</span> <span class="cl">MixinGenLayerBiome</span> {
+
+    <span class="an">@Inject</span>(method = <span class="st">"getInts"</span>, at = <span class="an">@At</span>(<span class="st">"RETURN"</span>), cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">injectCustomBiomes</span>(<span class="ty">CallbackInfoReturnable</span>&lt;<span class="kw">int</span>[]&gt; cir) {
+        <span class="kw">int</span>[] result = cir.<span class="fn">getReturnValue</span>();
+        <span class="ty">BiomeConfig</span> cfg = <span class="ty">BiomeConfig</span>.<span class="fn">getInstance</span>();
+
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; result.<span class="kw">length</span>; i++) {
+            <span class="kw">int</span> vanillaId = result[i];
+            <span class="cm">// Remplacement probabiliste selon la temperature du biome vanilla</span>
+            <span class="ty">Biome</span> vanilla = <span class="ty">Biome</span>.<span class="fn">getBiome</span>(vanillaId);
+            <span class="kw">if</span> (vanilla != <span class="kw">null</span>) {
+                <span class="ty">Biome</span> custom = <span class="ty">EriniumBiomes</span>.<span class="fn">selectReplacement</span>(vanilla, <span class="kw">this</span>.worldSeed, i, cfg);
+                <span class="kw">if</span> (custom != <span class="kw">null</span>) result[i] = <span class="ty">Biome</span>.<span class="fn">getIdForBiome</span>(custom);
+            }
+        }
+        cir.<span class="fn">setReturnValue</span>(result);
+    }
+}</div>
+
+      <div class="info-box warn">
+        <span class="icon">!</span>
+        <div class="content"><strong>Seeds et determinisme</strong> — L'injection dans GenLayerBiome doit utiliser le worldSeed pour rester deterministe. Le meme seed doit generer exactement le meme monde, avec ou sans les biomes custom actives. Tester avec plusieurs seeds.</div>
+      </div>
+    </section>
+
+    <!-- ===== S15 : ARCHITECTURE TECHNIQUE ===== -->
+    <section class="section-card" id="s15">
+      <h2><span class="s-num cyan-num">15</span> Architecture Technique</h2>
+
+      <h3 class="first">Structure des packages</h3>
+      <div class="code-block">fr.eriniumgroup.eriniumfaction.world/
+├── biome/
+│   ├── <span class="cl">EriniumBiomes</span>.java            <span class="cm">— Registre statique, enregistre les 30 biomes</span>
+│   ├── forest/
+│   │   ├── <span class="cl">BiomeForetDense</span>.java
+│   │   ├── <span class="cl">BiomeBouleauxGeants</span>.java
+│   │   ├── <span class="cl">BiomeTaigaAncienne</span>.java
+│   │   ├── <span class="cl">BiomeCerisiers</span>.java
+│   │   ├── <span class="cl">BiomeAutomne</span>.java
+│   │   ├── <span class="cl">BiomeSequoias</span>.java
+│   │   └── <span class="cl">BiomeBrumeuse</span>.java
+│   ├── plains/
+│   │   ├── <span class="cl">BiomePrairieFleurie</span>.java
+│   │   ├── <span class="cl">BiomeCollines</span>.java
+│   │   ├── <span class="cl">BiomeSavaneHaute</span>.java
+│   │   ├── <span class="cl">BiomePlateauVenteux</span>.java
+│   │   └── <span class="cl">BiomePlaineVolcanique</span>.java
+│   ├── mountain/
+│   │   ├── <span class="cl">BiomeMontagne</span>.java
+│   │   ├── <span class="cl">BiomeCanyon</span>.java
+│   │   └── <span class="cl">BiomeVolcan</span>.java
+│   ├── cold/
+│   │   ├── <span class="cl">BiomeGlacier</span>.java
+│   │   ├── <span class="cl">BiomeToundra</span>.java
+│   │   └── <span class="cl">BiomeBambou</span>.java
+│   ├── tropical/
+│   │   ├── <span class="cl">BiomeJungleEpaisse</span>.java
+│   │   ├── <span class="cl">BiomePlageEtendue</span>.java
+│   │   ├── <span class="cl">BiomeLagune</span>.java
+│   │   ├── <span class="cl">BiomeArchipel</span>.java
+│   │   └── <span class="cl">BiomeMangroveCotiere</span>.java
+│   ├── wetland/
+│   │   ├── <span class="cl">BiomeMarecage</span>.java
+│   │   └── <span class="cl">BiomeValleeFluviale</span>.java
+│   ├── dry/
+│   │   ├── <span class="cl">BiomeDesertRouge</span>.java
+│   │   ├── <span class="cl">BiomeOasis</span>.java
+│   │   └── <span class="cl">BiomeForetPetrifiee</span>.java
+│   ├── underground/
+│   │   └── <span class="cl">BiomeGrotteOuverte</span>.java
+│   └── special/
+│       └── <span class="cl">BiomeMesaAmelioree</span>.java
+├── tree/
+│   ├── <span class="cl">WorldGenTallOak</span>.java
+│   ├── <span class="cl">WorldGenGiantBirch</span>.java
+│   ├── <span class="cl">WorldGenAncientSpruce</span>.java
+│   ├── <span class="cl">WorldGenCherryTree</span>.java
+│   ├── <span class="cl">WorldGenAutumnTree</span>.java
+│   ├── <span class="cl">WorldGenSequoia</span>.java
+│   ├── <span class="cl">WorldGenMistySpruce</span>.java
+│   ├── <span class="cl">WorldGenPalmTree</span>.java
+│   ├── <span class="cl">WorldGenMangrove</span>.java
+│   ├── <span class="cl">WorldGenWeepingWillow</span>.java
+│   └── <span class="cl">WorldGenPetrifiedTree</span>.java
+├── feature/
+│   ├── <span class="cl">WorldGenFallenLog</span>.java
+│   ├── <span class="cl">WorldGenBoulder</span>.java
+│   ├── <span class="cl">WorldGenStream</span>.java
+│   ├── <span class="cl">WorldGenFlowerPatch</span>.java
+│   ├── <span class="cl">WorldGenTermiteMound</span>.java
+│   ├── <span class="cl">WorldGenBasaltColumn</span>.java
+│   ├── <span class="cl">WorldGenStalactite</span>.java
+│   └── <span class="cl">WorldGenLavaCrack</span>.java
+├── block/
+│   ├── <span class="cl">BlockCherryLeaves</span>.java
+│   ├── <span class="cl">BlockCherrySapling</span>.java
+│   ├── <span class="cl">BlockAutumnLeaves</span>.java
+│   ├── <span class="cl">BlockAutumnSapling</span>.java
+│   ├── <span class="cl">BlockBasalt</span>.java
+│   ├── <span class="cl">BlockAsh</span>.java
+│   ├── <span class="cl">BlockFallenLeaves</span>.java
+│   ├── <span class="cl">BlockPalmLog</span>.java
+│   └── <span class="cl">BlockPalmLeaves</span>.java
+├── mixin/
+│   └── <span class="cl">MixinGenLayerBiome</span>.java      <span class="cm">— Injection des biomes custom dans GenLayer</span>
+└── config/
+    └── <span class="cl">BiomeConfig</span>.java              <span class="cm">— Config individuelle par biome (enabled, weight)</span></div>
+
+      <h3>Enregistrement des biomes</h3>
+      <div class="code-block"><span class="cm">// Dans EriniumBiomes.java — appele dans CommonProxy.preInit()</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public static void</span> <span class="fn">registerBiomes</span>(<span class="ty">RegistryEvent.Register</span>&lt;<span class="ty">Biome</span>&gt; event) {
+    <span class="kw">if</span> (!<span class="ty">BiomeConfig</span>.<span class="fn">getInstance</span>().<span class="fn">isBiomesEnabled</span>()) <span class="kw">return</span>;
+    <span class="ty">IForgeRegistry</span>&lt;<span class="ty">Biome</span>&gt; reg = event.<span class="fn">getRegistry</span>();
+
+    <span class="cm">// Forets</span>
+    reg.<span class="fn">register</span>(<span class="ty">FORET_DENSE</span>          = <span class="kw">new</span> <span class="ty">BiomeForetDense</span>()          .<span class="fn">setRegistryName</span>(<span class="st">"eriniumfaction:foret_dense"</span>));
+    reg.<span class="fn">register</span>(<span class="ty">BOULEAUX_GEANTS</span>      = <span class="kw">new</span> <span class="ty">BiomeBouleauxGeants</span>()      .<span class="fn">setRegistryName</span>(<span class="st">"eriniumfaction:bouleaux_geants"</span>));
+    <span class="cm">// ... (les 30 biomes)</span>
+
+    <span class="ty">EriniumFaction</span>.LOGGER.<span class="fn">info</span>(<span class="st">"Enregistrement de 30 biomes custom termine."</span>);
+}
+
+<span class="cm">// Methode de selection pour l'injection GenLayer</span>
+<span class="kw">public static</span> <span class="ty">Biome</span> <span class="fn">selectReplacement</span>(<span class="ty">Biome</span> vanilla, <span class="kw">long</span> seed, <span class="kw">int</span> idx, <span class="ty">BiomeConfig</span> cfg) {
+    <span class="ty">Random</span> rng = <span class="kw">new</span> <span class="ty">Random</span>(seed ^ idx);
+    <span class="ty">List</span>&lt;<span class="ty">WeightedBiome</span>&gt; pool = <span class="fn">getBiomesForClimate</span>(vanilla.<span class="fn">getTemperature</span>(), cfg);
+    <span class="kw">if</span> (pool.<span class="fn">isEmpty</span>()) <span class="kw">return null</span>;
+    <span class="kw">int</span> roll = rng.<span class="fn">nextInt</span>(<span class="fn">totalWeight</span>(pool) + <span class="nu">10</span>); <span class="cm">// +10 pour garder des biomes vanilla</span>
+    <span class="kw">return</span> <span class="fn">pickByWeight</span>(pool, roll);
+}</div>
+
+      <h3>Enregistrement dans le mixin JSON</h3>
+      <p>Ajouter <code>MixinGenLayerBiome</code> dans <code>mixins.eriniumfaction.json</code> sous la cle <code>"mixins"</code> (commun client + serveur).</p>
+    </section>
+
+    <!-- ===== S16 : INTEGRATION MONDE MINAGE ===== -->
+    <section class="section-card" id="s16">
+      <h2><span class="s-num green-num">16</span> Integration Monde Minage</h2>
+      <p>Le Monde Minage (dimension custom definie dans le cahier des charges "Monde Minage") reutilise les memes 30 biomes custom. Cela offre une experience d'exploration cohérente et garantit que les biomes ont un impact dans les deux dimensions.</p>
+
+      <h3 class="first">Partage du BiomeProvider</h3>
+      <p>Le <code>WorldProvider</code> du Monde Minage utilise un <code>BiomeProvider</code> configure pour inclure les biomes custom au meme titre que l'Overworld. La configuration <code>customBiomesInMiningWorld</code> permet de desactiver cette integration si necessaire.</p>
+
+      <div class="code-block"><span class="cm">// Dans WorldProviderMinage (voir cahier des charges mining-world.html)</span>
+<span class="an">@Override</span>
+<span class="kw">public</span> <span class="ty">BiomeProvider</span> <span class="fn">createBiomeProvider</span>() {
+    <span class="kw">if</span> (<span class="ty">BiomeConfig</span>.<span class="fn">getInstance</span>().<span class="fn">isCustomBiomesInMiningWorld</span>()) {
+        <span class="cm">// Utilise le meme ChunkGeneratorOverworld-like avec biomes custom</span>
+        <span class="kw">return new</span> <span class="ty">BiomeProviderSingle</span>(<span class="ty">Biomes</span>.FOREST); <span class="cm">// remplace par provider custom</span>
+    }
+    <span class="kw">return super</span>.<span class="fn">createBiomeProvider</span>();
+}</div>
+
+      <h3>Differences avec l'Overworld</h3>
+      <ul>
+        <li><strong>Pas de factions</strong> dans le Monde Minage — les biomes sont purement decoratifs et ne creent pas de points de conflit (pas de claims)</li>
+        <li><strong>Minerais amplifies</strong> — la densite de minerais reste celle definie par le Monde Minage, independamment du biome</li>
+        <li><strong>Biomes rares conserves</strong> — le Volcan dans le Monde Minage genere quand meme ses minerais concentres</li>
+        <li><strong>Reset periodique</strong> — lors du reset du Monde Minage, les biomes sont regeneres selon les memes regles</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">i</span>
+        <div class="content"><strong>Coherence de seed</strong> — Le Monde Minage utilise un seed different de l'Overworld pour la generation de terrain, mais les biomes custom restent les memes. Cela garantit une experience de biome differente a chaque reset tout en conservant les 30 types.</div>
+      </div>
+    </section>
+
+    <!-- ===== S17 : CONFIGURATION ===== -->
+    <section class="section-card" id="s17">
+      <h2><span class="s-num">17</span> Configuration</h2>
+      <p>La configuration est geree dans <code>BiomeConfig.java</code> et utilise le systeme de fichiers de configuration Forge standard (<code>Configuration</code> dans <code>config/EriniumFaction/biomes.cfg</code>).</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cle</th>
+              <th>Type</th>
+              <th>Defaut</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>enableCustomBiomes</code></td>
+              <td>Boolean</td>
+              <td>true</td>
+              <td>Activer/desactiver l'ensemble du systeme de biomes custom</td>
+            </tr>
+            <tr>
+              <td><code>biomeEnabled_foret_dense</code></td>
+              <td>Boolean</td>
+              <td>true</td>
+              <td>Activer ce biome specifique (une cle par biome)</td>
+            </tr>
+            <tr>
+              <td><code>biomeWeight_foret_dense</code></td>
+              <td>Integer</td>
+              <td>10</td>
+              <td>Poids de rarete dans GenLayer (plus eleve = plus frequent)</td>
+            </tr>
+            <tr>
+              <td><code>rareBiomeChance</code></td>
+              <td>Integer (1-20)</td>
+              <td>5</td>
+              <td>Chance additionnelle (%) pour les biomes Tres Rares</td>
+            </tr>
+            <tr>
+              <td><code>customBiomesInMiningWorld</code></td>
+              <td>Boolean</td>
+              <td>true</td>
+              <td>Appliquer les biomes custom dans le Monde Minage</td>
+            </tr>
+            <tr>
+              <td><code>vanillaBiomeWeight</code></td>
+              <td>Integer</td>
+              <td>10</td>
+              <td>Poids global des biomes vanilla restants (balance custom/vanilla)</td>
+            </tr>
+            <tr>
+              <td><code>debugBiomeBorders</code></td>
+              <td>Boolean</td>
+              <td>false</td>
+              <td>Affiche les frontieres de biome en mode debug (dev only)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Une cle par biome</strong> — les 30 biomes ont chacun <code>biomeEnabled_&lt;id&gt;</code> et <code>biomeWeight_&lt;id&gt;</code>. Exemple : <code>biomeEnabled_volcan = true</code>, <code>biomeWeight_volcan = 1</code> (tres rare). Les cles sont generees automatiquement au premier lancement.</div>
+      </div>
+    </section>
+
+    <!-- ===== S18 : ASSETS ===== -->
+    <section class="section-card" id="s18">
+      <h2><span class="s-num gold-num">18</span> Assets &amp; Textures</h2>
+      <p>Toutes les textures respectent le workflow defini dans <code>docs/ASSETS_WORKFLOW.md</code> : SVG source → validation → PNG 16x16 pour les blocs, 32x32 ou 64x64 optionnel.</p>
+
+      <h3 class="first">Textures de blocs necessaires</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Bloc</th>
+              <th>Faces requises</th>
+              <th>Dimensions</th>
+              <th>Palette suggeree</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cherry Leaves</td>
+              <td>1 face (all)</td>
+              <td>16x16</td>
+              <td>Rose pastel (#FFB7C5), meme forme que oak_leaves</td>
+            </tr>
+            <tr>
+              <td>Cherry Sapling</td>
+              <td>1 sprite</td>
+              <td>16x16</td>
+              <td>Tige verte, feuilles roses — style sapling vanilla</td>
+            </tr>
+            <tr>
+              <td>Autumn Leaves (x3)</td>
+              <td>1 face chacune</td>
+              <td>16x16</td>
+              <td>Orange #FF8C00, Rouge #CC2200, Jaune #FFD700</td>
+            </tr>
+            <tr>
+              <td>Autumn Sapling</td>
+              <td>1 sprite</td>
+              <td>16x16</td>
+              <td>Tige, feuilles orangees — mix automne</td>
+            </tr>
+            <tr>
+              <td>Basalt</td>
+              <td>Top, Side, Bottom</td>
+              <td>16x16</td>
+              <td>Gris anthracite #2C2C2C, texture pierre sombre</td>
+            </tr>
+            <tr>
+              <td>Ash Block</td>
+              <td>1 face (all)</td>
+              <td>16x16</td>
+              <td>Gris clair #A0A0A0, granuleux comme du sable</td>
+            </tr>
+            <tr>
+              <td>Fallen Leaves</td>
+              <td>1 sprite (cross)</td>
+              <td>16x16</td>
+              <td>Feuilles plates orangees, semi-transparentes</td>
+            </tr>
+            <tr>
+              <td>Palm Log</td>
+              <td>Top, Side</td>
+              <td>16x16</td>
+              <td>Marron clair #8B5E3C avec texture fibreuse verticale</td>
+            </tr>
+            <tr>
+              <td>Palm Leaves</td>
+              <td>1 face</td>
+              <td>16x16</td>
+              <td>Vert tropical vif #2D9E4A, feuilles allongees</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Saplings — modeles JSON</h3>
+      <p>Chaque sapling utilise le modele <code>block/cross</code> (deux plans croises). Les feuilles customisent le parametre <code>tintindex</code> si elles doivent reagir aux couleurs de biome.</p>
+
+      <h3>Couleurs de fog et eau par biome</h3>
+      <p>Les biomes tropicaux et speciaux utilisent <code>getWaterColorMultiplier()</code> et <code>getFogColor()</code> pour differentes couleurs ambiance :</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Biome</th>
+              <th>Couleur eau</th>
+              <th>Couleur fog</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Lagune Tropicale</td><td>#00B4CC (turquoise)</td><td>Defaut</td></tr>
+            <tr><td>Archipel</td><td>#00CCDD (bleu clair)</td><td>Defaut</td></tr>
+            <tr><td>Foret Brumeuse</td><td>Defaut</td><td>#8899AA (gris bleu)</td></tr>
+            <tr><td>Marecage Profond</td><td>#335544 (vert fonce)</td><td>#556644 (vert brume)</td></tr>
+            <tr><td>Glacier</td><td>#A0D0FF (bleu glace)</td><td>#CCDDEE (blanc glace)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== S19 : PLAN DE TESTS ===== -->
+    <section class="section-card" id="s19">
+      <h2><span class="s-num">19</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests de generation</h3>
+      <ul>
+        <li><strong>Tous les 30 biomes generes</strong> — verifier avec <code>/locatebiome</code> (commande admin) que chaque biome est detectable dans un rayon de 5000 blocs</li>
+        <li><strong>Determinisme</strong> — le meme seed doit produire exactement le meme monde a chaque generation</li>
+        <li><strong>Aucun biome manquant</strong> — EriniumBiomes.REGISTRY ne doit pas avoir de null</li>
+        <li><strong>Biomes rares presenc</strong> — avec <code>biomeWeight_volcan = 100</code> (force), le Volcan doit apparaitre regulierement</li>
+        <li><strong>Integration avec vanilla</strong> — les biomes vanilla doivent toujours apparaitre (tester sans custom biomes actifs)</li>
+      </ul>
+
+      <h3>Tests de transitions</h3>
+      <ul>
+        <li><strong>Transitions temperature</strong> — aucun biome froid ne doit etre adjacent a un biome chaud sans biome temperee entre les deux</li>
+        <li><strong>Oasis dans le desert</strong> — l'Oasis doit uniquement generer entouree de Desert Rouge</li>
+        <li><strong>Plage Etendue</strong> — doit generer sur les cotes, pas en milieu de continent</li>
+        <li><strong>Glacier</strong> — ne doit pas generer pres de biomes chauds</li>
+        <li><strong>Volcan isole</strong> — le Volcan ne doit pas etre bord-a-bord avec d'autres montagnes</li>
+      </ul>
+
+      <h3>Tests de performance</h3>
+      <ul>
+        <li><strong>Generation de chunk</strong> — temps de generation par chunk inferieur a 50ms (meme avec features custom)</li>
+        <li><strong>TPS serveur</strong> — aucun drop de TPS lors de l'exploration de nouveaux chunks</li>
+        <li><strong>Sequoia</strong> — la generation du sequoia (tronc 2x2, 40 blocs) ne doit pas causer de freeze</li>
+        <li><strong>Stress test</strong> — generer 500 chunks en une fois via commande admin — pas de crash OOM</li>
+        <li><strong>Monde Minage reset</strong> — le reset + regeneration complete ne doit pas causer d'outage serveur</li>
+      </ul>
+
+      <h3>Tests visuels</h3>
+      <ul>
+        <li><strong>Chaque biome identifiable</strong> — screenshot comparatif des 30 biomes pour confirmer l'identite visuelle distincte</li>
+        <li><strong>Arbres custom corrects</strong> — verifier que chaque arbre genere ressemble a son specification</li>
+        <li><strong>Blocs custom corrects</strong> — textures en jeu correspondant aux PNG assets valides</li>
+        <li><strong>Couleurs eau/fog</strong> — verifier les overrides dans les 5 biomes concernes</li>
+        <li><strong>Features de terrain</strong> — troncs tombes, rochers, colonnes, fissures visibles dans leurs biomes respectifs</li>
+      </ul>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Attention — Mondes existants</strong> — Le systeme de biomes custom ne DOIT PAS modifier les biomes des chunks deja charges. L'injection dans GenLayerBiome s'applique uniquement aux nouveaux chunks. Tester sur un monde avec des chunks preexistants pour confirmer l'absence de regression.</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<script>
+  // Active nav link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector('.nav-link[href="#' + e.target.id + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Anti-Cheat Client | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #4AE0E0; --aetherite: #9B59B6; --erinium: #FFD700;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+    --common: #2ECC71; --uncommon: #3498DB; --mythic: #E74C3C;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(74,224,224,0.09) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(255,215,0,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, #4AE0E0 40%, #FFD700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+  .section-card:nth-child(14) { animation-delay: .70s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '>'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .ascii-diagram .ab { color: var(--rare); }
+  .ascii-diagram .am { color: var(--aetherite); }
+  .ascii-diagram .ao { color: var(--orange); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  .tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+  .tier-grid.four-col { grid-template-columns: repeat(4, 1fr); }
+  .tier-grid.two-col { grid-template-columns: repeat(2, 1fr); }
+  .tier-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 22px 14px; text-align: center; }
+  .tier-card-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .tier-card-sub  { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); margin-bottom: 10px; }
+  .tier-reduction { font-size: 22px; font-weight: 800; margin: 6px 0; }
+  .tier-card-stat { font-size: 12px; color: var(--slate); margin: 4px 0; }
+  .tier-card-stat strong { color: var(--text); }
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .tier-grid.four-col { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } .tier-grid.four-col { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Architecture Technique</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Couche 1 — JVM Integrity</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Couche 2 — Process &amp; OS</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Couche 3 — Behavior Analysis</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Couche 4 — Resource Integrity</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Communication Client-Serveur</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Strategie de Reponse</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Whitelist / Blacklist</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Distribution &amp; Integration</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Configuration</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Securite &amp; Anti-Tamper</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Plan de Tests</a>
+    <a class="nav-link" href="#s14"><span class="num">14</span> Limitations Connues</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumAntiCheat</div>
+      <h1>Anti-Cheat Client</h1>
+      <p>Un mod client dedie a la detection des cheats invisibles au serveur : injections JVM, processus malveillants, modifications memoire, comportements suspects et ressources alterees. Inspire de VAC (Valve Anti-Cheat) et Vanguard (Riot Games), adapte a l'ecosysteme Minecraft Forge 1.12.2.</p>
+      <div class="header-badges">
+        <span class="badge badge-red">Securite</span>
+        <span class="badge badge-violet">Mod Separe</span>
+        <span class="badge badge-cyan">DLL Native (Windows)</span>
+        <span class="badge badge-green">4 Couches de Detection</span>
+        <span class="badge badge-gold">Chiffrement AES-256-GCM</span>
+        <span class="badge badge-orange">Ban Wave System</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Positionnement dans l'ecosysteme</h3>
+      <p><strong>EriniumAntiCheat</strong> est un mod Forge 1.12.2 <strong>separe</strong> d'EriniumFaction, avec son propre Mod ID (<code>eriniumanticheat</code>). Il vient <strong>completer</strong> les systemes de securite existants :</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Systeme existant</th><th>Couverture</th><th>Statut</th></tr></thead>
+          <tbody>
+            <tr><td>Anti-Cheat Serveur</td><td>CheckMovement, CheckCombat, CheckWorld, CheckPacket, CheckMining</td><td><span class="tag-yes">9/9</span></td></tr>
+            <tr><td>ModIntegrityChecker</td><td>Verification des mods charges (hash, manifest, mods interdits)</td><td><span class="tag-yes">DONE</span></td></tr>
+            <tr><td>Authentification</td><td>JWT + HWID binding + anti-VPN + token rotation</td><td><span class="tag-yes">DONE</span></td></tr>
+            <tr><td>Anti-Cheat Client</td><td>Detection cote client : injections, processus, memoire, comportement</td><td><span class="tag-no">A FAIRE</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Inspiration</h3>
+      <ul>
+        <li><strong>VAC (Valve Anti-Cheat) :</strong> Scanning passif des processus et DLLs, ban waves differes, pas de mode kernel. VAC collecte silencieusement et ban par vagues pour eviter de reveler les signatures detectees.</li>
+        <li><strong>Vanguard (Riot Games) :</strong> Verification d'integrite en temps reel, challenge-response, heartbeat continu. Vanguard prouve que l'anti-cheat tourne en permanence, pas seulement au lancement.</li>
+        <li><strong>Adaptation Minecraft :</strong> Pas de driver kernel (trop invasif pour un mod MC). On reste en userland avec JNI pour les appels natifs Windows. La couche Java pure fonctionne sur tous les OS.</li>
+      </ul>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Detection en profondeur :</strong> Detecter ce que le serveur ne peut pas voir — agents Java attaches, processus cheat en arriere-plan, DLLs injectees, bytecode modifie au runtime, resource packs x-ray.</li>
+        <li><strong>Faux positifs minimaux :</strong> Whitelist exhaustive des logiciels legitimes (NVIDIA, Discord, OBS, etc.). Les processus inconnus sont remontes sans action punitive immediate.</li>
+        <li><strong>Resilience au contournement :</strong> Heartbeat continu avec challenge-response. Desactiver l'anti-cheat apres le check initial n'est pas possible — le serveur detecte l'absence de heartbeat.</li>
+        <li><strong>Performance :</strong> Les scans sont espaces et asynchrones. Impact &lt; 2 FPS en moyenne. Le scanning natif (DLL) est optimise pour ne pas impacter le rendu.</li>
+        <li><strong>Transparence :</strong> Les joueurs savent que l'anti-cheat tourne. Pas de collecte de donnees personnelles au-dela des processus et DLLs du process Java.</li>
+      </ul>
+
+      <h3>Ce que le systeme ne fait pas</h3>
+      <ul>
+        <li><strong>Pas de kernel driver :</strong> Aucun composant ring-0. Tout tourne en userland (ring-3).</li>
+        <li><strong>Pas de keylogger :</strong> L'anti-cheat n'enregistre pas les frappes clavier. L'analyse d'input ne concerne que les clics souris et les mouvements camera dans Minecraft.</li>
+        <li><strong>Pas de screenshot :</strong> Aucune capture d'ecran n'est envoyee au serveur.</li>
+        <li><strong>Pas de ban automatique :</strong> Les violations SUSPICIOUS sont collectees pour des ban waves manuelles ou programmees. Seules les violations CRITICAL declenchent un kick immediat.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Dependances :</strong> Le mod declare <code>required-after:eriapi</code> et <code>required-after:eriniumfaction</code>. EriAPI fournit le framework (events, network, scheduler), EriniumFaction fournit le BanManager et le systeme d'authentification (JWT, HWID).</div>
+      </div>
+    </section>
+
+    <!-- ═══ S2 — ARCHITECTURE TECHNIQUE ═══ -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Architecture Technique</h2>
+
+      <h3 class="first">Mod separe avec bridge</h3>
+      <p>EriniumAntiCheat est un mod Forge independant. Il communique avec EriniumFaction via le bus d'events Forge (<code>AntiCheatViolationEvent</code>). Le serveur EriniumFaction ecoute ces events et applique les sanctions via son BanManager.</p>
+
+      <div class="ascii-diagram"><span class="ac">EriniumAntiCheat (client)</span>
+<span class="as">  |</span>
+<span class="as">  |--- Couche 1 : JVM Integrity (Java pur, tous OS)</span>
+<span class="as">  |--- Couche 2 : Process &amp; OS (DLL native, Windows uniquement)</span>
+<span class="as">  |--- Couche 3 : Behavior Analysis (Java pur, tous OS)</span>
+<span class="as">  |--- Couche 4 : Resource Integrity (Java pur, tous OS)</span>
+<span class="as">  |</span>
+<span class="av">  |--- Channel chiffre AES-256-GCM (ef_anticheat)</span>
+<span class="as">  |</span>
+<span class="ag">EriniumFaction (serveur)</span>
+<span class="as">  |--- AntiCheatViolationEvent (bridge)</span>
+<span class="as">  |--- BanManager (kick / ban wave)</span>
+<span class="as">  |--- AdminAlertManager (alertes temps reel)</span></div>
+
+      <h3>Structure des packages</h3>
+      <div class="code-block"><span class="cm">fr.eriniumgroup.eriniumanticheat/</span>
+<span class="av">├── core/</span>
+<span class="as">│   ├── AntiCheatMod.java</span>          <span class="cm">// @Mod(modid = "eriniumanticheat")</span>
+<span class="as">│   ├── AntiCheatConfig.java</span>        <span class="cm">// Forge Configuration (cfg)</span>
+<span class="as">│   └── OSDetector.java</span>             <span class="cm">// Detection OS + chargement DLL conditionnel</span>
+<span class="av">├── native/</span>
+<span class="as">│   ├── NativeBridge.java</span>           <span class="cm">// Methodes JNI (native declarations)</span>
+<span class="as">│   └── NativeScanner.java</span>          <span class="cm">// Wrapper Java autour de NativeBridge</span>
+<span class="av">├── scan/</span>
+<span class="av">│   ├── jvm/</span>
+<span class="as">│   │   ├── AgentDetector.java</span>      <span class="cm">// Scan -javaagent, -agentlib, Instrumentation</span>
+<span class="as">│   │   ├── ClassLoaderAuditor.java</span> <span class="cm">// Enumeration classes, ClassLoaders non standard</span>
+<span class="as">│   │   ├── MixinAuditor.java</span>       <span class="cm">// Verification mixins autorises (manifest)</span>
+<span class="as">│   │   ├── BytecodeVerifier.java</span>   <span class="cm">// SHA-256 des classes critiques MC</span>
+<span class="as">│   │   └── JvmArgsInspector.java</span>   <span class="cm">// Detection arguments JVM suspects</span>
+<span class="av">│   ├── process/</span>
+<span class="as">│   │   ├── ProcessScanner.java</span>     <span class="cm">// Enumeration processus via DLL</span>
+<span class="as">│   │   ├── DebuggerDetector.java</span>   <span class="cm">// IsDebuggerPresent, NtQuery</span>
+<span class="as">│   │   ├── DllInjectionDetector.java</span> <span class="cm">// Enumeration DLLs chargees</span>
+<span class="as">│   │   ├── WindowScanner.java</span>      <span class="cm">// Enumeration fenetres (EnumWindows)</span>
+<span class="as">│   │   └── HookDetector.java</span>       <span class="cm">// Detection IAT hooking</span>
+<span class="av">│   ├── behavior/</span>
+<span class="as">│   │   ├── InputAnalyzer.java</span>      <span class="cm">// CPS, regularite clics, aim snap</span>
+<span class="as">│   │   ├── MovementAnalyzer.java</span>   <span class="cm">// Correlation client/serveur</span>
+<span class="as">│   │   └── PacketTimingAnalyzer.java</span> <span class="cm">// Detection timer hack</span>
+<span class="av">│   └── resource/</span>
+<span class="as">│       ├── ResourcePackValidator.java</span> <span class="cm">// Hash textures, detection x-ray</span>
+<span class="as">│       ├── ShaderValidator.java</span>    <span class="cm">// Detection shaders wallhack/ESP</span>
+<span class="as">│       └── ConfigValidator.java</span>    <span class="cm">// Verification config mod</span>
+<span class="av">├── network/</span>
+<span class="as">│   ├── AntiCheatChannel.java</span>      <span class="cm">// Channel Forge "ef_anticheat"</span>
+<span class="as">│   ├── CryptoHandler.java</span>         <span class="cm">// AES-256-GCM + DH ephemere</span>
+<span class="as">│   ├── ChallengeHandler.java</span>      <span class="cm">// Challenge-Response protocol</span>
+<span class="as">│   ├── HeartbeatManager.java</span>      <span class="cm">// Heartbeat a intervalles aleatoires</span>
+<span class="as">│   └── packets/</span>                   <span class="cm">// PacketScanReport, PacketChallenge, etc.</span>
+<span class="av">├── report/</span>
+<span class="as">│   ├── ViolationCollector.java</span>    <span class="cm">// Collecte et agregation des violations</span>
+<span class="as">│   ├── ViolationLevel.java</span>        <span class="cm">// Enum CRITICAL / SUSPICIOUS / INFO</span>
+<span class="as">│   ├── BanWaveScheduler.java</span>      <span class="cm">// Programmation des ban waves (serveur)</span>
+<span class="as">│   └── AdminAlertManager.java</span>     <span class="cm">// Alertes admins temps reel</span>
+<span class="av">├── whitelist/</span>
+<span class="as">│   ├── ProcessWhitelist.java</span>      <span class="cm">// 50+ processus whitelistes hardcodes</span>
+<span class="as">│   ├── DynamicBlacklist.java</span>      <span class="cm">// Blacklist telechargee du serveur</span>
+<span class="as">│   └── UnknownReporter.java</span>       <span class="cm">// Remontee des processus inconnus</span>
+<span class="av">└── mixin/</span>
+<span class="as">    └── MixinACLoader.java</span>         <span class="cm">// IFMLLoadingPlugin + IEarlyMixinLoader</span></div>
+
+      <h3>DLL native</h3>
+      <p>Le composant natif est une DLL Windows x64 (<code>eriniumanticheat.dll</code>) compilee en C/C++. Elle est distribuee par le launcher dans le manifest et placee dans le dossier <code>natives/</code> du client.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Propriete</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Nom du fichier</td><td><code>eriniumanticheat.dll</code></td></tr>
+            <tr><td>Architecture</td><td>Windows x64 uniquement</td></tr>
+            <tr><td>Langage</td><td>C/C++ (MSVC)</td></tr>
+            <tr><td>Distribution</td><td>Launcher manifest (telechargement automatique)</td></tr>
+            <tr><td>Emplacement</td><td><code>natives/eriniumanticheat.dll</code></td></tr>
+            <tr><td>Verification</td><td>Hash SHA-256 dans le manifest, verifie au chargement</td></tr>
+            <tr><td>Chargement</td><td><code>System.load()</code> via <code>NativeBridge.java</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Fallback multi-OS :</strong> Sur Linux et macOS, la DLL n'est pas chargee. Les couches 1 (JVM Integrity), 3 (Behavior Analysis) et 4 (Resource Integrity) restent actives car elles sont en Java pur. Seule la couche 2 (Process &amp; OS) est desactivee.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S3 — COUCHE 1 : JVM INTEGRITY ═══ -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Couche 1 — JVM Integrity</h2>
+
+      <p>Couche entierement en <strong>Java pur</strong>, fonctionne sur <strong>tous les OS</strong>. Elle verifie l'integrite de la JVM elle-meme : agents attaches, classes injectees, mixins non autorises, bytecode modifie.</p>
+
+      <h3 class="first">AgentDetector</h3>
+      <p>Detecte les agents Java attaches a la JVM, utilises par les cheats avances pour modifier le bytecode au runtime.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode de detection</th><th>Detail</th><th>Niveau</th></tr></thead>
+          <tbody>
+            <tr><td>Arguments JVM</td><td>Scan de <code>-javaagent:</code>, <code>-agentlib:</code>, <code>-agentpath:</code> dans <code>ManagementFactory.getRuntimeMXBean().getInputArguments()</code></td><td><span class="tag-no">CRITICAL</span></td></tr>
+            <tr><td>Instrumentation API</td><td>Tentative d'acces a <code>java.lang.instrument.Instrumentation</code> via reflection pour verifier si un agent est attache au runtime (post-launch attach)</td><td><span class="tag-no">CRITICAL</span></td></tr>
+            <tr><td>Attach API</td><td>Verification de la presence de <code>com.sun.tools.attach.VirtualMachine</code> dans le classpath (indicateur d'outil d'attach)</td><td><span class="tag-no">CRITICAL</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">AgentDetector</span> {
+
+    <span class="kw">public</span> <span class="ty">ScanResult</span> <span class="fn">scan</span>() {
+        <span class="ty">List</span>&lt;<span class="ty">String</span>&gt; violations = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+
+        <span class="cm">// 1. Scan des arguments JVM</span>
+        <span class="ty">List</span>&lt;<span class="ty">String</span>&gt; args = <span class="ty">ManagementFactory</span>.<span class="fn">getRuntimeMXBean</span>().<span class="fn">getInputArguments</span>();
+        <span class="kw">for</span> (<span class="ty">String</span> arg : args) {
+            <span class="kw">if</span> (arg.<span class="fn">startsWith</span>(<span class="st">"-javaagent:"</span>)
+                || arg.<span class="fn">startsWith</span>(<span class="st">"-agentlib:"</span>)
+                || arg.<span class="fn">startsWith</span>(<span class="st">"-agentpath:"</span>)) {
+                violations.<span class="fn">add</span>(<span class="st">"AGENT_ARG: "</span> + arg);
+            }
+        }
+
+        <span class="cm">// 2. Verification Instrumentation API (attach post-launch)</span>
+        <span class="kw">try</span> {
+            <span class="ty">Class</span>&lt;?&gt; instrClass = <span class="ty">Class</span>.<span class="fn">forName</span>(<span class="st">"sun.instrument.InstrumentationImpl"</span>);
+            <span class="cm">// Si la classe existe et est chargee, un agent est attache</span>
+            violations.<span class="fn">add</span>(<span class="st">"INSTRUMENTATION_LOADED"</span>);
+        } <span class="kw">catch</span> (<span class="ty">ClassNotFoundException</span> e) {
+            <span class="cm">// Attendu — pas d'agent</span>
+        }
+
+        <span class="cm">// 3. Verification Attach API dans le classpath</span>
+        <span class="kw">try</span> {
+            <span class="ty">Class</span>.<span class="fn">forName</span>(<span class="st">"com.sun.tools.attach.VirtualMachine"</span>);
+            violations.<span class="fn">add</span>(<span class="st">"ATTACH_API_AVAILABLE"</span>);
+        } <span class="kw">catch</span> (<span class="ty">ClassNotFoundException</span> e) {
+            <span class="cm">// Attendu</span>
+        }
+
+        <span class="kw">return new</span> <span class="ty">ScanResult</span>(<span class="st">"AgentDetector"</span>, violations);
+    }
+}</div>
+
+      <h3>ClassLoaderAuditor</h3>
+      <p>Enumere toutes les classes chargees dans la JVM et detecte les ClassLoaders non standard injectes par des clients cheats.</p>
+      <ul>
+        <li><strong>Enumeration des classes :</strong> Utilise <code>Instrumentation.getAllLoadedClasses()</code> si disponible, sinon parcourt les ClassLoaders connus via reflection.</li>
+        <li><strong>Manifest de classes autorisees :</strong> Un fichier manifest (signe, distribue par le launcher) contient la liste des packages/prefixes autorises. Tout package inconnu est flagge.</li>
+        <li><strong>ClassLoaders non standard :</strong> Detecte les ClassLoaders qui ne sont pas <code>AppClassLoader</code>, <code>ExtClassLoader</code>, <code>LaunchClassLoader</code> (Forge), ou <code>MixinClassLoader</code> (Mixin). Un ClassLoader inconnu indique une injection.</li>
+        <li><strong>Packages suspects :</strong> Blacklist de packages connus de cheats : <code>net.wurstclient</code>, <code>me.earth.earthhack</code>, <code>org.impact</code>, <code>net.ccbluex.liquidbounce</code>, <code>me.aristois</code>, <code>meteordevelopment</code>, <code>com.lambda</code>, <code>dev.tigr.ares</code>, etc.</li>
+      </ul>
+
+      <h3>MixinAuditor</h3>
+      <p>Verifie que seuls les mixins autorises sont appliques sur les classes Minecraft. Les clients cheats utilisent souvent Mixin pour modifier le comportement du jeu.</p>
+      <ul>
+        <li><strong>Manifest de mixins autorises :</strong> Le serveur envoie au login la liste des fichiers mixin JSON autorises (<code>mixins.eriniumfaction.json</code>, <code>mixins.eriniumanticheat.json</code>, <code>mixins.eriapi.json</code>). Tout fichier mixin non liste est suspect.</li>
+        <li><strong>Enumeration des mixins appliques :</strong> Interroge le <code>MixinEnvironment</code> pour lister les transformers et configurations actives.</li>
+        <li><strong>Classe cible monitoring :</strong> Verifie que les classes critiques (EntityPlayerSP, NetHandlerPlayClient, RenderGlobal, etc.) n'ont pas de mixins non autorises appliques.</li>
+      </ul>
+
+      <h3>BytecodeVerifier</h3>
+      <p>Calcule et verifie les checksums SHA-256 des classes critiques de Minecraft. Si le bytecode d'une classe change au runtime (via agent, retransform, ou classloader custom), le checksum ne correspondra plus.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Classe surveillee</th><th>Raison</th></tr></thead>
+          <tbody>
+            <tr><td><code>EntityPlayerSP</code></td><td>Mouvement du joueur, input, sprint, fly</td></tr>
+            <tr><td><code>NetHandlerPlayClient</code></td><td>Envoi/reception de packets, timer hack</td></tr>
+            <tr><td><code>PlayerControllerMP</code></td><td>Interactions, attaques, reach hack</td></tr>
+            <tr><td><code>RenderGlobal</code></td><td>Rendu du monde, wallhack, x-ray, ESP</td></tr>
+            <tr><td><code>EntityRenderer</code></td><td>Camera, FOV, zoom hack, freecam</td></tr>
+            <tr><td><code>Minecraft</code> (main class)</td><td>Timer (vitesse de jeu), displayGuiScreen</td></tr>
+            <tr><td><code>GuiIngame</code></td><td>HUD, crosshair overlay, ESP overlay</td></tr>
+            <tr><td><code>World</code></td><td>X-ray via getBlockState override</td></tr>
+            <tr><td><code>MovementInputFromOptions</code></td><td>Auto-walk, strafe, scaffold</td></tr>
+            <tr><td><code>KeyBinding</code></td><td>Manipulation des touches, auto-click</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Fonctionnement :</strong> Au premier chargement (postInit), les checksums SHA-256 sont calcules pour chaque classe cible via <code>ClassLoader.getResourceAsStream()</code>. Ces checksums de reference sont stockes en memoire. Un scan periodique (toutes les 60 secondes) recalcule les checksums et compare avec les references. Si un checksum differe, la classe a ete modifiee au runtime.</p>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Attention Mixin :</strong> Les mixins legitimes (EriniumFaction, EriAPI) modifient aussi le bytecode. Le BytecodeVerifier doit capturer les checksums <strong>apres</strong> l'application des mixins autorises (a postInit), pas avant. Ainsi, les modifications legales sont dans la reference.</div>
+      </div>
+
+      <h3>JvmArgsInspector</h3>
+      <p>Detecte les arguments JVM suspects qui indiquent un debugging, un agent, ou une manipulation du classpath.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Argument suspect</th><th>Raison</th><th>Niveau</th></tr></thead>
+          <tbody>
+            <tr><td><code>-Xdebug</code></td><td>Mode debug JVM (breakpoints, step-through)</td><td><span class="tag-no">CRITICAL</span></td></tr>
+            <tr><td><code>-Xrunjdwp</code></td><td>Java Debug Wire Protocol (debugger distant)</td><td><span class="tag-no">CRITICAL</span></td></tr>
+            <tr><td><code>-agentlib:jdwp</code></td><td>Debugger JDWP moderne</td><td><span class="tag-no">CRITICAL</span></td></tr>
+            <tr><td><code>-Xbootclasspath</code></td><td>Remplacement du bootstrap classpath (injection de classes core)</td><td><span class="tag-no">CRITICAL</span></td></tr>
+            <tr><td><code>-javaagent</code></td><td>Agent Java (couvert aussi par AgentDetector)</td><td><span class="tag-no">CRITICAL</span></td></tr>
+            <tr><td><code>-XX:+DisableAttachMechanism</code></td><td>Paradoxalement suspect : empeche la verification de l'attach API</td><td><span class="tag-yes">SUSPICIOUS</span></td></tr>
+            <tr><td><code>-Dsun.jvm.hotspot.debugger</code></td><td>HotSpot debugger system property</td><td><span class="tag-no">CRITICAL</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>System Properties :</strong> En plus des arguments, le scanner verifie certaines System Properties suspectes via <code>System.getProperties()</code> : <code>jdk.attach.allowAttachSelf</code>, <code>com.sun.management.jmxremote</code>, etc.</p>
+    </section>
+
+    <!-- ═══ S4 — COUCHE 2 : PROCESS & OS ═══ -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Couche 2 — Process &amp; OS Scanning</h2>
+
+      <p>Couche utilisant la <strong>DLL native</strong> via JNI. Active uniquement sur <strong>Windows x64</strong>. Scanne les processus, DLLs, fenetres et hooks au niveau du systeme d'exploitation.</p>
+
+      <h3 class="first">Auto-detection OS</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">OSDetector</span> {
+    <span class="kw">public enum</span> <span class="cl">OS</span> { <span class="an">WINDOWS</span>, <span class="an">LINUX</span>, <span class="an">MAC</span>, <span class="an">UNKNOWN</span> }
+
+    <span class="kw">private static final</span> <span class="ty">OS</span> CURRENT;
+    <span class="kw">static</span> {
+        <span class="ty">String</span> osName = <span class="ty">System</span>.<span class="fn">getProperty</span>(<span class="st">"os.name"</span>).<span class="fn">toLowerCase</span>();
+        <span class="kw">if</span> (osName.<span class="fn">contains</span>(<span class="st">"win"</span>)) CURRENT = <span class="ty">OS</span>.<span class="an">WINDOWS</span>;
+        <span class="kw">else if</span> (osName.<span class="fn">contains</span>(<span class="st">"nux"</span>) || osName.<span class="fn">contains</span>(<span class="st">"nix"</span>)) CURRENT = <span class="ty">OS</span>.<span class="an">LINUX</span>;
+        <span class="kw">else if</span> (osName.<span class="fn">contains</span>(<span class="st">"mac"</span>)) CURRENT = <span class="ty">OS</span>.<span class="an">MAC</span>;
+        <span class="kw">else</span> CURRENT = <span class="ty">OS</span>.<span class="an">UNKNOWN</span>;
+    }
+
+    <span class="kw">public static</span> <span class="ty">OS</span> <span class="fn">getOS</span>() { <span class="kw">return</span> CURRENT; }
+    <span class="kw">public static</span> <span class="kw">boolean</span> <span class="fn">isNativeAvailable</span>() { <span class="kw">return</span> CURRENT == <span class="ty">OS</span>.<span class="an">WINDOWS</span>; }
+}</div>
+
+      <h3>NativeBridge (JNI)</h3>
+      <p>Interface Java declarant les methodes natives implementees dans la DLL.</p>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">NativeBridge</span> {
+    <span class="kw">private static</span> <span class="kw">boolean</span> loaded = <span class="kw">false</span>;
+
+    <span class="kw">public static</span> <span class="kw">boolean</span> <span class="fn">load</span>(<span class="ty">String</span> dllPath) {
+        <span class="kw">try</span> {
+            <span class="ty">System</span>.<span class="fn">load</span>(dllPath);
+            loaded = <span class="kw">true</span>;
+        } <span class="kw">catch</span> (<span class="ty">UnsatisfiedLinkError</span> e) {
+            loaded = <span class="kw">false</span>;
+        }
+        <span class="kw">return</span> loaded;
+    }
+
+    <span class="cm">// Process scanning</span>
+    <span class="kw">public static native</span> <span class="ty">String</span>[] <span class="fn">enumerateProcesses</span>();
+    <span class="kw">public static native</span> <span class="ty">String</span>[] <span class="fn">enumerateLoadedDlls</span>();
+    <span class="kw">public static native</span> <span class="ty">String</span>[] <span class="fn">enumerateWindowTitles</span>();
+
+    <span class="cm">// Debugger detection</span>
+    <span class="kw">public static native</span> <span class="kw">boolean</span> <span class="fn">isDebuggerPresent</span>();
+    <span class="kw">public static native</span> <span class="kw">boolean</span> <span class="fn">isRemoteDebuggerPresent</span>();
+    <span class="kw">public static native</span> <span class="kw">boolean</span> <span class="fn">ntQueryDebugPort</span>();
+
+    <span class="cm">// Hook detection</span>
+    <span class="kw">public static native</span> <span class="kw">boolean</span> <span class="fn">checkIATIntegrity</span>();
+
+    <span class="cm">// Self-verification</span>
+    <span class="kw">public static native</span> <span class="ty">byte</span>[] <span class="fn">getMemoryHash</span>();  <span class="cm">// SHA-256 de la DLL en memoire</span>
+}</div>
+
+      <h3>ProcessScanner</h3>
+      <p>Enumere tous les processus en cours via <code>CreateToolhelp32Snapshot</code> (Win32 API) et compare contre la blacklist et la whitelist.</p>
+      <ul>
+        <li><strong>Enumeration :</strong> La DLL appelle <code>CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)</code> puis itere avec <code>Process32First</code> / <code>Process32Next</code> pour obtenir la liste des noms de processus.</li>
+        <li><strong>Comparaison :</strong> Chaque processus est compare contre la blacklist de cheats connus (section 9), puis contre la whitelist. Les processus non classes sont marques comme "inconnus" et remontes au serveur.</li>
+        <li><strong>Matching :</strong> La comparaison est case-insensitive et utilise des patterns glob pour les variantes (<code>wurst*.exe</code>, <code>*liquidbounce*</code>, etc.).</li>
+      </ul>
+
+      <h3>DebuggerDetector</h3>
+      <p>Detecte les debuggers attaches au processus Java. Un debugger permet de modifier le comportement du jeu en temps reel (breakpoints, modification de variables).</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>API Win32</th><th>Detection</th><th>Contournement connu</th></tr></thead>
+          <tbody>
+            <tr><td><code>IsDebuggerPresent()</code></td><td>Debugger userland attache (OllyDbg, x64dbg)</td><td>Patchable en memoire — combine avec les autres</td></tr>
+            <tr><td><code>CheckRemoteDebuggerPresent()</code></td><td>Debugger distant ou kernel debugger</td><td>Hooking possible — c'est pourquoi HookDetector existe</td></tr>
+            <tr><td><code>NtQueryInformationProcess(DebugPort)</code></td><td>Verifie si un port debug est attribue au processus (le plus fiable)</td><td>Necessite un driver kernel pour contourner</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Les trois methodes sont combinees : si au moins une retourne <code>true</code>, la violation est CRITICAL. L'utilisation de trois methodes rend le contournement plus difficile car il faut les patcher toutes.</p>
+
+      <h3>DllInjectionDetector</h3>
+      <p>Enumere les DLLs chargees dans le processus Java et detecte les injections.</p>
+      <ul>
+        <li><strong>Enumeration :</strong> La DLL utilise <code>EnumProcessModules</code> pour lister toutes les DLLs chargees dans le processus <code>javaw.exe</code>.</li>
+        <li><strong>Whitelist :</strong> Les DLLs attendues sont whitelistees : DLLs JVM (<code>jvm.dll</code>, <code>java.dll</code>, <code>zip.dll</code>...), DLLs systeme Windows (<code>kernel32.dll</code>, <code>ntdll.dll</code>, <code>user32.dll</code>...), DLLs NVIDIA (<code>nvoglv64.dll</code>, <code>nvinjectfilter64.dll</code>...), DLLs AMD, DLLs Intel, DLLs Forge/Minecraft.</li>
+        <li><strong>Detection :</strong> Toute DLL non whitelistee est suspecte. Le chemin complet de la DLL et son hash sont remontes au serveur.</li>
+      </ul>
+
+      <h3>WindowScanner</h3>
+      <p>Enumere les fenetres visibles via <code>EnumWindows</code> (Win32 API) et compare les titres avec une blacklist de cheats.</p>
+      <ul>
+        <li><strong>Titres blacklistes :</strong> "Wurst", "Impact Client", "LiquidBounce", "Aristois", "Future Client", "Meteor Client", "Ares", "Lambda", "Sigma", "Rise Client", "Novoline", "Exhibition", "Remix", etc.</li>
+        <li><strong>Patterns suspects :</strong> Titres contenant "inject", "cheat", "hack", "esp", "aimbot", "auto clicker" (case-insensitive).</li>
+        <li><strong>Niveau :</strong> Un titre blackliste exact est CRITICAL. Un pattern suspect est SUSPICIOUS.</li>
+      </ul>
+
+      <h3>HookDetector</h3>
+      <p>Verifie l'integrite des fonctions Win32 API utilisees par l'anti-cheat. Les cheats avances hookent les API systeme pour cacher leurs processus ou DLLs.</p>
+      <ul>
+        <li><strong>IAT Hooking :</strong> Verifie que l'Import Address Table (IAT) du processus n'a pas ete modifiee. Compare les adresses des fonctions importees avec les adresses reelles dans les DLLs systeme.</li>
+        <li><strong>Inline Hooking :</strong> Verifie les premiers octets des fonctions critiques (<code>NtQueryInformationProcess</code>, <code>EnumProcessModules</code>, <code>IsDebuggerPresent</code>) pour detecter les JMP/CALL patches.</li>
+        <li><strong>Niveau :</strong> Toute alteration des fonctions API est CRITICAL.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Antivirus :</strong> Certains antivirus (Avast, Norton, Kaspersky) injectent des DLLs dans les processus pour la surveillance. Ces DLLs sont dans la whitelist pour eviter les faux positifs. Les DLLs d'antivirus connues : <code>aswhooka.dll</code> (Avast), <code>nvinject.dll</code> (Norton), <code>klhk.dll</code> (Kaspersky), etc.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S5 — COUCHE 3 : BEHAVIOR ANALYSIS ═══ -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num orange-num">05</span> Couche 3 — Behavior Analysis</h2>
+
+      <p>Couche en <strong>Java pur</strong>, fonctionne sur <strong>tous les OS</strong>. Analyse les patterns de comportement du joueur cote client pour detecter les auto-clickers, les aim assists et les timer hacks.</p>
+
+      <h3 class="first">InputAnalyzer</h3>
+      <p>Analyse les patterns de clic et de visee du joueur. Un humain a une variance naturelle dans ses actions, tandis qu'un outil automatise est statistiquement regulier.</p>
+
+      <h3>Analyse des clics (Auto-Clicker Detection)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metrique</th><th>Calcul</th><th>Seuil suspect</th></tr></thead>
+          <tbody>
+            <tr><td>CPS (Clicks Per Second)</td><td>Nombre de clics dans une fenetre glissante de 1 seconde</td><td>&gt; 20 CPS soutenu sur 5+ secondes</td></tr>
+            <tr><td>Ecart-type des intervalles</td><td><code>stddev(intervals)</code> sur les 50 derniers clics</td><td>&lt; 2ms (trop regulier = machine)</td></tr>
+            <tr><td>Coefficient de variation</td><td><code>stddev / mean</code> des intervalles</td><td>&lt; 0.05 (distribution trop homogene)</td></tr>
+            <tr><td>Periodicite FFT</td><td>Analyse de Fourier sur les intervalles pour detecter un pattern repete</td><td>Pic dominant &gt; 0.8 normalise</td></tr>
+            <tr><td>Distribution des intervalles</td><td>Test de normalite (Shapiro-Wilk simplifie) sur les intervalles</td><td>Rejet de normalite avec p &lt; 0.01</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Fenetre d'analyse :</strong> Les 200 derniers clics sont conserves en buffer circulaire. L'analyse est executee toutes les 100 ticks (5 secondes) si le joueur est en combat (a attaque une entite dans les 5 dernieres secondes).</p>
+
+      <h3>Analyse de visee (Aim Assist Detection)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metrique</th><th>Calcul</th><th>Seuil suspect</th></tr></thead>
+          <tbody>
+            <tr><td>Snap-to-target</td><td>Changement d'angle &gt; 30 degres en 1 tick qui finit sur une hitbox d'entite</td><td>3+ occurrences en 10 secondes</td></tr>
+            <tr><td>Angular smoothness</td><td>Variation de l'acceleration angulaire (jerk). Un aim humain a du jerk variable, un aimbot lisse est constant.</td><td>Jerk stddev &lt; 0.5 deg/tick3</td></tr>
+            <tr><td>Target switching</td><td>Frequence de changement de cible en combat multi-joueurs. Un aimbot switch instantanement, un humain a un delai.</td><td>Switch &lt; 2 ticks entre 2 cibles differentes</td></tr>
+            <tr><td>Yaw/Pitch correlation</td><td>Ratio de mouvement yaw vs pitch. Les aimbots modifient souvent un seul axe a la fois de maniere lineaire.</td><td>Correlation lineaire r &gt; 0.95 sur 20 ticks</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Jitter clicking :</strong> Le serveur utilise un mod PvP 1.8 (pas de cooldown d'attaque). Le jitter clicking est une technique LEGITIME qui peut atteindre 12-16 CPS avec une variance moderee. Les seuils sont calibres pour ne pas punir le jitter clicking. Seuls les CPS anormalement hauts (&gt; 20) ou la regularite statistiquement impossible declenchent une alerte.</div>
+      </div>
+
+      <h3>MovementAnalyzer</h3>
+      <p>Complement client au CheckMovement du serveur. Le client envoie des donnees supplementaires que le serveur ne peut pas connaitre :</p>
+      <ul>
+        <li><strong>Position camera :</strong> Le pitch/yaw du joueur, pour verifier la coherence entre la direction regardee et le mouvement.</li>
+        <li><strong>Velocite appliquee :</strong> La velocite calculee par le client (motionX, motionY, motionZ), que le serveur peut comparer avec ses propres calculs.</li>
+        <li><strong>Etat des touches :</strong> Quelles touches de mouvement sont enfoncees (forward, back, left, right, jump, sneak), pour detecter les inconsistances (ex: mouvement vers l'avant sans touche forward = scaffold ou auto-walk).</li>
+        <li><strong>Collision state :</strong> Si le client detecte une collision avec un bloc, pour verifier la coherence avec le noclip (le joueur traverse les blocs).</li>
+      </ul>
+      <p><strong>Frequence :</strong> Les donnees sont envoyees toutes les 10 ticks (0.5 secondes) via le channel chiffre. Le serveur correle les donnees client avec ses propres checks.</p>
+
+      <h3>PacketTimingAnalyzer</h3>
+      <p>Detecte le <strong>timer hack</strong> — la modification de la vitesse de jeu (Minecraft.timer) qui accelere ou ralentit le tick rate du client.</p>
+      <ul>
+        <li><strong>Mesure :</strong> Le client mesure le temps reel (System.nanoTime) entre chaque envoi de packet de mouvement (CPacketPlayer). En fonctionnement normal, l'intervalle est de ~50ms (20 ticks/seconde).</li>
+        <li><strong>Detection :</strong> Si l'intervalle moyen sur 20 packets est &lt; 40ms (timer &gt; 1.25x) ou &gt; 65ms (timer &lt; 0.77x), c'est suspect. Le ratio reel/attendu est envoye au serveur.</li>
+        <li><strong>Tolerance :</strong> Une tolerance de +/- 10ms est appliquee pour compenser les variations de framerate et les microlags.</li>
+        <li><strong>Frequence :</strong> L'analyse est executee toutes les 2 secondes (40 ticks).</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S6 — COUCHE 4 : RESOURCE INTEGRITY ═══ -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num red-num">06</span> Couche 4 — Resource Integrity</h2>
+
+      <p>Couche en <strong>Java pur</strong>, fonctionne sur <strong>tous les OS</strong>. Verifie que les ressources du jeu (textures, shaders, configs) n'ont pas ete modifiees pour obtenir un avantage (x-ray, fullbright, wallhack).</p>
+
+      <h3 class="first">ResourcePackValidator</h3>
+      <p>Detecte les resource packs x-ray qui rendent les blocs transparents pour voir les minerais a travers le terrain.</p>
+
+      <h3>Textures surveillees</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Texture</th><th>Raison de la surveillance</th></tr></thead>
+          <tbody>
+            <tr><td><code>stone.png</code></td><td>Rendu transparent = voir les minerais dans la pierre</td></tr>
+            <tr><td><code>dirt.png</code></td><td>Rendu transparent = voir les donjons souterrains</td></tr>
+            <tr><td><code>netherrack.png</code></td><td>Rendu transparent = voir le quartz/ancient debris au Nether</td></tr>
+            <tr><td><code>cobblestone.png</code></td><td>Rendu transparent = voir a travers les murs construits</td></tr>
+            <tr><td><code>sand.png</code> / <code>gravel.png</code></td><td>Rendu transparent = voir les blocs de dessous</td></tr>
+            <tr><td><code>water_still.png</code> / <code>water_flow.png</code></td><td>Rendu transparent = voir sous l'eau</td></tr>
+            <tr><td><code>lava_still.png</code> / <code>lava_flow.png</code></td><td>Rendu transparent = voir sous la lave</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Methode de detection :</strong></p>
+      <ul>
+        <li><strong>Hash SHA-256 :</strong> Le serveur envoie les hash des textures vanilla attendues. Le client hash les textures reellement chargees et compare. Si le hash differe, le resource pack a modifie la texture.</li>
+        <li><strong>Analyse de transparence :</strong> Pour chaque texture surveillee, le client analyse le canal alpha moyen des pixels. Si la transparence moyenne depasse 50% sur une texture censee etre opaque, c'est un x-ray pack.</li>
+        <li><strong>Fullbright detection :</strong> Verifie si les textures ont ete modifiees pour emettre de la lumiere (fichier <code>lightmap</code> modifie ou shaders qui ignorent l'eclairage).</li>
+      </ul>
+
+      <h3>ShaderValidator</h3>
+      <p>Detecte les shaders modifies pour wallhack ou ESP (Entity Shader Pack).</p>
+      <ul>
+        <li><strong>Shader files :</strong> Enumere les fichiers <code>.vsh</code> / <code>.fsh</code> charges. Verifie que seuls les shaders vanilla ou autorises (OptiFine, nos shaders custom) sont presents.</li>
+        <li><strong>Wallhack patterns :</strong> Analyse le code GLSL pour detecter les patterns suspects : <code>discard</code> conditionnel sur le depth buffer (rendre les blocs proches invisibles), modification du <code>gl_FragColor.a</code> a 0 pour les blocs non-minerai.</li>
+        <li><strong>ESP patterns :</strong> Detection de rendu d'entites a travers les murs (depth test desactive pour les entites, outline shader sur les joueurs).</li>
+      </ul>
+
+      <h3>ConfigValidator</h3>
+      <p>Verifie que les fichiers de configuration critiques du mod n'ont pas ete modifies manuellement pour obtenir un avantage.</p>
+      <ul>
+        <li><strong>options.txt :</strong> Detecte les valeurs suspectes — gamma &gt; 1.0 (fullbright), renderDistance anormalement eleve ou faible selon le contexte.</li>
+        <li><strong>optionsof.txt (OptiFine) :</strong> Detecte les options x-ray potentielles — fast render + specific chunk loading patterns.</li>
+        <li><strong>Configs du mod :</strong> Verifie l'integrite des fichiers <code>config/EriniumFaction/</code> et <code>config/EriniumAntiCheat/</code> contre les valeurs attendues signees par le serveur.</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Gamma / brightness :</strong> La gamma 1.0 dans <code>options.txt</code> est le maximum vanilla. Les valeurs superieures (souvent 15.0 ou 1000.0) donnent un fullbright. Cependant, certains joueurs utilisent des ecrans sombres et augmentent la gamma. Le seuil SUSPICIOUS est fixe a <strong>gamma &gt; 5.0</strong>, et CRITICAL a <strong>gamma &gt; 100.0</strong>.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S7 — COMMUNICATION CLIENT-SERVEUR ═══ -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num cyan-num">07</span> Communication Client-Serveur</h2>
+
+      <h3 class="first">Channel Forge</h3>
+      <p>Le mod enregistre un channel Forge custom <code>ef_anticheat</code> pour toute communication entre le client et le serveur. Ce channel est <strong>distinct</strong> du channel principal d'EriniumFaction (<code>ef_main</code>).</p>
+
+      <h3>Chiffrement AES-256-GCM</h3>
+      <p>Toute communication sur le channel est chiffree avec <strong>AES-256-GCM</strong> (Galois/Counter Mode) pour empecher le sniffing et le spoofing des messages anti-cheat.</p>
+
+      <div class="ascii-diagram"><span class="ay">Etablissement de la cle de session :</span>
+
+<span class="ac">Client</span>                                      <span class="ag">Serveur</span>
+<span class="as">  |                                              |</span>
+<span class="as">  |</span>  <span class="av">1. Login reussi (JWT + HWID valides)</span>        <span class="as">|</span>
+<span class="as">  |</span><span class="as">--------------------------------------------->|</span>
+<span class="as">  |                                              |</span>
+<span class="as">  |</span>  <span class="av">2. Serveur genere DH keypair ephemere</span>       <span class="as">|</span>
+<span class="as">  |</span>  <span class="av">   Envoie DH public + nonce (signe JWT)</span>     <span class="as">|</span>
+<span class="as">  |</span><span class="as"><---------------------------------------------</span><span class="as">|</span>
+<span class="as">  |                                              |</span>
+<span class="as">  |</span>  <span class="ac">3. Client genere DH keypair ephemere</span>        <span class="as">|</span>
+<span class="as">  |</span>  <span class="ac">   Calcule shared secret (DH)</span>                <span class="as">|</span>
+<span class="as">  |</span>  <span class="ac">   Derive AES-256 key (HKDF-SHA256)</span>          <span class="as">|</span>
+<span class="as">  |</span>  <span class="ac">   Envoie DH public</span>                          <span class="as">|</span>
+<span class="as">  |</span><span class="as">--------------------------------------------->|</span>
+<span class="as">  |                                              |</span>
+<span class="as">  |</span>  <span class="ag">4. Serveur calcule le meme shared secret</span>    <span class="as">|</span>
+<span class="as">  |</span>  <span class="ag">   Derive la meme AES-256 key</span>                <span class="as">|</span>
+<span class="as">  |                                              |</span>
+<span class="as">  |</span>  <span class="ay">5. Communication chiffree AES-256-GCM</span>       <span class="as">|</span>
+<span class="as">  |</span><span class="as"><============================================>|</span></div>
+
+      <p><strong>Details techniques :</strong></p>
+      <ul>
+        <li><strong>Diffie-Hellman :</strong> Groupes DH 2048 bits ephemeres. Une nouvelle paire de cles est generee a chaque connexion. Forward secrecy : compromettre une session ne compromet pas les autres.</li>
+        <li><strong>HKDF :</strong> Le shared secret DH est passe par HKDF-SHA256 avec le JWT token comme salt et "ef_anticheat_session" comme info pour deriver la cle AES-256.</li>
+        <li><strong>GCM :</strong> Chaque message utilise un nonce unique (compteur 96 bits). Le tag d'authentification GCM (128 bits) garantit l'integrite — un message modifie en transit est rejete.</li>
+        <li><strong>Rotation :</strong> La cle de session est re-derivee toutes les 30 minutes (via un nouveau DH exchange) pour limiter l'impact d'une compromission.</li>
+      </ul>
+
+      <h3>Challenge-Response</h3>
+      <p>Le serveur envoie periodiquement des <strong>challenges</strong> au client pour prouver que l'anti-cheat tourne reellement et n'a pas ete desactive ou patche.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type de challenge</th><th>Description</th><th>Reponse attendue</th></tr></thead>
+          <tbody>
+            <tr><td>MEMORY_HASH</td><td>Demande le hash SHA-256 de la DLL en memoire</td><td>Hash correspondant au hash connu du serveur</td></tr>
+            <tr><td>SCANNER_STATE</td><td>Demande l'etat des scanners (actifs, derniere execution, nb violations)</td><td>Structure JSON signee avec timestamp recent</td></tr>
+            <tr><td>SPECIFIC_SCAN</td><td>Demande un scan specifique (ex: "scan processus maintenant")</td><td>Resultat du scan demande avec timestamp</td></tr>
+            <tr><td>CLASS_HASH</td><td>Demande le hash d'une classe Java specifique</td><td>Hash SHA-256 de la classe en memoire</td></tr>
+            <tr><td>RANDOM_COMPUTE</td><td>Envoie un seed et demande un calcul deterministe utilisant du code interne de l'AC</td><td>Resultat du calcul — prouve que le code AC est en memoire et executable</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Timeout :</strong> Le client a <strong>10 secondes</strong> pour repondre a un challenge. Passe ce delai, la violation est comptee comme un heartbeat manque.</p>
+
+      <h3>Heartbeat</h3>
+      <p>Mecanisme de verification continue. Le serveur envoie des heartbeats a <strong>intervalles aleatoires</strong> pour empecher le client de predire quand le prochain check aura lieu.</p>
+      <ul>
+        <li><strong>Intervalle :</strong> Aleatoire entre 30 et 120 secondes (configurable). L'aleatoire empeche un cheat de reactiver l'AC juste avant le heartbeat.</li>
+        <li><strong>Contenu :</strong> Chaque heartbeat contient un <strong>micro-challenge</strong> (question aleatoire sur l'etat interne : hash d'un scanner, timestamp du dernier scan, etc.).</li>
+        <li><strong>Timeout :</strong> Le client a <strong>N secondes</strong> (configurable, par defaut 15) pour repondre. Un timeout est compte comme un heartbeat manque.</li>
+        <li><strong>Tolerance :</strong> <strong>3 heartbeats manques</strong> consecutifs declenchent un kick immediat. Un seul heartbeat manque est logue mais tolere (lag reseau).</li>
+      </ul>
+
+      <h3>Rapport de scan</h3>
+      <p>Le client envoie regulierement (toutes les 5 minutes) un rapport de scan agrege contenant :</p>
+      <ul>
+        <li><strong>Liste des processus :</strong> Noms des processus en cours (sans donnees personnelles — juste le nom executable).</li>
+        <li><strong>DLLs chargees :</strong> Liste des DLLs dans le processus Java (noms et hash).</li>
+        <li><strong>Classes suspectes :</strong> Packages/classes detectes qui ne sont pas dans le manifest.</li>
+        <li><strong>Violations detectees :</strong> Toutes les violations depuis le dernier rapport, avec timestamp et details.</li>
+        <li><strong>Metriques :</strong> CPS moyen, ecart-type des clics, checksum des classes critiques, etat des scanners.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S8 — STRATEGIE DE REPONSE ═══ -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num red-num">08</span> Strategie de Reponse Hybride</h2>
+
+      <h3 class="first">Niveaux de violation</h3>
+      <div class="tier-grid two-col">
+        <div class="tier-card" style="border-color: rgba(231,76,60,0.4);">
+          <div class="tier-card-name" style="color: var(--red);">CRITICAL</div>
+          <div class="tier-card-sub">Kick immediat</div>
+          <div class="tier-reduction" style="color: var(--red);">INSTANT</div>
+          <div class="tier-card-stat">Action <strong>immediate</strong></div>
+          <div class="tier-card-stat">Aucune tolerance</div>
+        </div>
+        <div class="tier-card" style="border-color: rgba(241,196,15,0.4);">
+          <div class="tier-card-name" style="color: var(--gold);">SUSPICIOUS</div>
+          <div class="tier-card-sub">Collecte silencieuse</div>
+          <div class="tier-reduction" style="color: var(--gold);">WAVE</div>
+          <div class="tier-card-stat">Action <strong>differee</strong></div>
+          <div class="tier-card-stat">Ban wave programmable</div>
+        </div>
+      </div>
+
+      <h3>Violations CRITICAL (kick immediat)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Violation</th><th>Source</th><th>Raison du kick</th></tr></thead>
+          <tbody>
+            <tr><td>Debugger attache</td><td>DebuggerDetector</td><td>Permet de modifier le jeu en temps reel</td></tr>
+            <tr><td>DLL injectee</td><td>DllInjectionDetector</td><td>Injection de code malveillant dans le processus</td></tr>
+            <tr><td>Agent Java detecte</td><td>AgentDetector</td><td>Modification du bytecode au runtime</td></tr>
+            <tr><td>Bytecode modifie</td><td>BytecodeVerifier</td><td>Classe critique MC alteree apres le chargement</td></tr>
+            <tr><td>Processus blackliste</td><td>ProcessScanner</td><td>Cheat loader connu en cours d'execution</td></tr>
+            <tr><td>Heartbeat timeout (x3)</td><td>HeartbeatManager</td><td>Anti-cheat probablement desactive</td></tr>
+            <tr><td>Challenge echoue</td><td>ChallengeHandler</td><td>Reponse invalide = anti-cheat modifie/emule</td></tr>
+            <tr><td>Hook API detecte</td><td>HookDetector</td><td>Tentative de cacher des processus/DLLs</td></tr>
+            <tr><td>Arguments JVM debug</td><td>JvmArgsInspector</td><td>Debugger ou agent attache via arguments</td></tr>
+            <tr><td>Mixin non autorise</td><td>MixinAuditor</td><td>Mod cheat injectant des mixins</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Violations SUSPICIOUS (collecte silencieuse)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Violation</th><th>Source</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>Processus inconnu suspect</td><td>ProcessScanner</td><td>Remonte au serveur, visible dans le dashboard admin</td></tr>
+            <tr><td>CPS anormalement haut</td><td>InputAnalyzer</td><td>Log avec statistiques, accumulation de points</td></tr>
+            <tr><td>Pattern aim suspect</td><td>InputAnalyzer</td><td>Log avec metriques angulaires</td></tr>
+            <tr><td>Timer hack potentiel</td><td>PacketTimingAnalyzer</td><td>Log avec ratio reel/attendu</td></tr>
+            <tr><td>Resource pack modifie</td><td>ResourcePackValidator</td><td>Log avec hash et diff</td></tr>
+            <tr><td>Gamma excessive (&gt; 5.0)</td><td>ConfigValidator</td><td>Log, avertissement au joueur</td></tr>
+            <tr><td>Fenetre suspecte</td><td>WindowScanner</td><td>Log avec titre de la fenetre</td></tr>
+            <tr><td>ClassLoader inconnu</td><td>ClassLoaderAuditor</td><td>Log avec nom du ClassLoader et classes chargees</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>BanWaveScheduler</h3>
+      <p>Les violations SUSPICIOUS sont accumulees cote serveur dans un registre par joueur. Les bans ne sont pas appliques immediatement — ils sont programmes en <strong>ban waves</strong> pour eviter de reveler les methodes de detection.</p>
+      <ul>
+        <li><strong>Seuil de ban :</strong> Un joueur est ajoute a la prochaine ban wave quand il accumule plus de <strong>N points de violation</strong> (configurable, par defaut 50). Chaque type de violation a un poids different.</li>
+        <li><strong>Frequence :</strong> Ban wave configurable — par defaut <strong>hebdomadaire</strong> (dimanche 3h00 UTC). Peut etre declenchee manuellement par un admin.</li>
+        <li><strong>Format :</strong> Les bans sont appliques en masse. Le joueur voit "Banned for suspicious activity" sans detail sur la detection specifique.</li>
+        <li><strong>Historique :</strong> Toutes les violations sont conservees dans la base de donnees avec timestamps pour audit et appel.</li>
+      </ul>
+
+      <h3>AdminAlertManager</h3>
+      <p>Alertes en temps reel pour les administrateurs en ligne.</p>
+      <ul>
+        <li><strong>Violations CRITICAL :</strong> Alerte immediate a tous les admins en ligne via message chat stylise avec details complets (joueur, type de violation, timestamp, donnees techniques).</li>
+        <li><strong>Violations SUSPICIOUS :</strong> Visibles dans un <strong>dashboard admin</strong> accessible via commande <code>/ac dashboard</code>. Affiche les joueurs les plus suspects, les violations recentes, et les statistiques globales.</li>
+        <li><strong>Webhook (optionnel) :</strong> Si configure, les alertes CRITICAL sont aussi envoyees via webhook Discord pour les admins hors-ligne.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Poids des violations SUSPICIOUS :</strong> CPS anormal = <strong>5 pts</strong>, Aim suspect = <strong>8 pts</strong>, Timer hack = <strong>10 pts</strong>, Resource pack x-ray = <strong>15 pts</strong>, Processus inconnu = <strong>2 pts</strong>, Gamma excessive = <strong>3 pts</strong>, Fenetre suspecte = <strong>5 pts</strong>, ClassLoader inconnu = <strong>7 pts</strong>. Le seuil de ban wave par defaut est de <strong>50 points</strong>.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S9 — WHITELIST / BLACKLIST ═══ -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num green-num">09</span> Whitelist / Blacklist / Inconnus</h2>
+
+      <h3 class="first">ProcessWhitelist (hardcodee)</h3>
+      <p>Liste de 50+ logiciels communs incluse en dur dans le mod. Ces processus ne declenchent <strong>jamais</strong> d'alerte.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Categorie</th><th>Processus</th></tr></thead>
+          <tbody>
+            <tr><td>GPU NVIDIA</td><td><code>nvcontainer.exe</code>, <code>nvsphelper64.exe</code>, <code>nvidia share.exe</code>, <code>nvidia web helper.exe</code>, <code>nvdisplay.container.exe</code>, <code>geforce experience.exe</code></td></tr>
+            <tr><td>GPU AMD</td><td><code>radeonsoft.exe</code>, <code>amdow.exe</code>, <code>cnext.exe</code>, <code>amd rsservices.exe</code></td></tr>
+            <tr><td>Communication</td><td><code>discord.exe</code>, <code>discordcanary.exe</code>, <code>discordptb.exe</code>, <code>teamspeak3.exe</code>, <code>ts3client_win64.exe</code>, <code>slack.exe</code></td></tr>
+            <tr><td>Gaming</td><td><code>steam.exe</code>, <code>steamwebhelper.exe</code>, <code>epicgameslauncher.exe</code>, <code>origin.exe</code>, <code>galaxyclient.exe</code></td></tr>
+            <tr><td>Streaming</td><td><code>obs64.exe</code>, <code>obs-browser-page.exe</code>, <code>streamlabs obs.exe</code>, <code>xsplit.core.exe</code></td></tr>
+            <tr><td>Peripheriques</td><td><code>icue.exe</code> (Corsair iCUE), <code>razer synapse 3.exe</code>, <code>razersynapse.exe</code>, <code>lghub.exe</code> (Logitech G Hub), <code>lghub_agent.exe</code>, <code>steelseries engine 3.exe</code></td></tr>
+            <tr><td>Monitoring</td><td><code>hwmonitor.exe</code>, <code>cpuz.exe</code>, <code>gpuz.exe</code>, <code>msiafterburner.exe</code>, <code>rtss.exe</code> (RivaTuner), <code>hwinfo64.exe</code></td></tr>
+            <tr><td>Navigateurs</td><td><code>chrome.exe</code>, <code>firefox.exe</code>, <code>msedge.exe</code>, <code>brave.exe</code>, <code>opera.exe</code>, <code>vivaldi.exe</code></td></tr>
+            <tr><td>Media</td><td><code>spotify.exe</code>, <code>itunes.exe</code>, <code>vlc.exe</code>, <code>foobar2000.exe</code></td></tr>
+            <tr><td>Systeme</td><td><code>taskmgr.exe</code>, <code>explorer.exe</code>, <code>svchost.exe</code>, <code>csrss.exe</code>, <code>dwm.exe</code>, <code>conhost.exe</code>, <code>runtimebroker.exe</code>, <code>searchhost.exe</code></td></tr>
+            <tr><td>Securite</td><td><code>msmpeng.exe</code> (Windows Defender), <code>malwarebytes.exe</code>, <code>avastui.exe</code>, <code>avgui.exe</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>DynamicBlacklist (serveur)</h3>
+      <p>Blacklist telechargee depuis le serveur au login et mise a jour via les heartbeats. Permet d'ajouter de nouvelles signatures sans mettre a jour le mod.</p>
+      <ul>
+        <li><strong>Format :</strong> JSON signe contenant 3 listes : noms de processus, hash SHA-256 de DLLs, patterns de titres de fenetres.</li>
+        <li><strong>Telechargement :</strong> A la connexion au serveur, apres le key exchange. Le fichier est stocke en memoire uniquement (pas sur disque).</li>
+        <li><strong>Mise a jour :</strong> Chaque heartbeat peut contenir un delta de mise a jour (ajouts/suppressions). Le client merge le delta avec la blacklist en memoire.</li>
+        <li><strong>Signature :</strong> Le JSON est signe avec la cle privee du serveur. Le client verifie la signature avant d'appliquer — empeche l'injection de fausses blacklists.</li>
+      </ul>
+      <div class="code-block"><span class="cm">// Format de la blacklist dynamique (JSON)</span>
+{
+    <span class="st">"version"</span>: <span class="nu">42</span>,
+    <span class="st">"timestamp"</span>: <span class="nu">1718300000</span>,
+    <span class="st">"processes"</span>: [
+        { <span class="st">"name"</span>: <span class="st">"wurst*.exe"</span>, <span class="st">"level"</span>: <span class="st">"CRITICAL"</span> },
+        { <span class="st">"name"</span>: <span class="st">"impact*.exe"</span>, <span class="st">"level"</span>: <span class="st">"CRITICAL"</span> },
+        { <span class="st">"name"</span>: <span class="st">"*liquidbounce*"</span>, <span class="st">"level"</span>: <span class="st">"CRITICAL"</span> }
+    ],
+    <span class="st">"dlls"</span>: [
+        { <span class="st">"hash"</span>: <span class="st">"a1b2c3..."</span>, <span class="st">"name"</span>: <span class="st">"cheatengine*.dll"</span>, <span class="st">"level"</span>: <span class="st">"CRITICAL"</span> }
+    ],
+    <span class="st">"windows"</span>: [
+        { <span class="st">"title"</span>: <span class="st">"*Cheat Engine*"</span>, <span class="st">"level"</span>: <span class="st">"CRITICAL"</span> },
+        { <span class="st">"title"</span>: <span class="st">"*inject*"</span>, <span class="st">"level"</span>: <span class="st">"SUSPICIOUS"</span> }
+    ],
+    <span class="st">"signature"</span>: <span class="st">"base64_rsa_signature..."</span>
+}</div>
+
+      <h3>Blacklist de cheats Minecraft connus</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Client Cheat</th><th>Processus / Package</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Wurst</td><td><code>net.wurstclient</code></td><td>Open source, tres repandu</td></tr>
+            <tr><td>Impact</td><td><code>org.impact</code>, <code>impactclient.net</code></td><td>Utility mod populaire avec cheats</td></tr>
+            <tr><td>Aristois</td><td><code>me.aristois</code></td><td>Client mod avec injection</td></tr>
+            <tr><td>LiquidBounce</td><td><code>net.ccbluex.liquidbounce</code></td><td>Open source, scriptable</td></tr>
+            <tr><td>Future Client</td><td><code>me.earth.earthhack</code></td><td>Client premium, obfusque</td></tr>
+            <tr><td>Meteor Client</td><td><code>meteordevelopment.meteor</code></td><td>Fabric principalement, mais variantes Forge</td></tr>
+            <tr><td>Lambda</td><td><code>com.lambda</code></td><td>Fork de KAMI Blue</td></tr>
+            <tr><td>Ares</td><td><code>dev.tigr.ares</code></td><td>Client PvP cheat</td></tr>
+            <tr><td>Sigma</td><td><code>info.sigmaprofiles</code></td><td>Client ghost, difficile a detecter</td></tr>
+            <tr><td>Rise Client</td><td><code>dev.rise</code></td><td>Client premium, HvH</td></tr>
+            <tr><td>Novoline</td><td><code>net.novoline</code></td><td>Client Hypixel bypass</td></tr>
+            <tr><td>Exhibition</td><td><code>me.exhibition</code></td><td>Client premium, anti-AC avance</td></tr>
+            <tr><td>Remix</td><td><code>me.remix</code></td><td>Client ghost premium</td></tr>
+            <tr><td>Vape</td><td><code>(ghost client)</code></td><td>Injection DLL, pas de package Java visible</td></tr>
+            <tr><td>Cheat Engine</td><td><code>cheatengine*.exe</code></td><td>Modification memoire universelle</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>UnknownReporter</h3>
+      <p>Tout processus qui n'est ni dans la whitelist ni dans la blacklist est considere comme <strong>inconnu</strong>. Aucune action punitive n'est prise.</p>
+      <ul>
+        <li><strong>Remontee :</strong> Le nom du processus est envoye au serveur dans le rapport de scan periodique.</li>
+        <li><strong>Dashboard :</strong> Les admins voient la liste des processus inconnus dans le dashboard, avec le nombre de joueurs chez qui ils apparaissent.</li>
+        <li><strong>Classification :</strong> Via la commande <code>/ac whitelist add &lt;process&gt;</code> ou <code>/ac blacklist add &lt;process&gt; &lt;level&gt;</code>, les admins classifient le processus. Il est alors ajoute a la blacklist dynamique (distribue a tous les clients au prochain heartbeat).</li>
+        <li><strong>Apprentissage :</strong> Le systeme s'ameliore avec le temps. Plus les admins classifient de processus, moins il y a d'inconnus remontes.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S10 — DISTRIBUTION & INTEGRATION ═══ -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num gold-num">10</span> Distribution &amp; Integration</h2>
+
+      <h3 class="first">Distribution via le launcher</h3>
+      <p>Le mod <code>EriniumAntiCheat</code> et la DLL native sont distribues via le <strong>launcher custom</strong> (ElectronJS). Ils font partie du manifest de mods required.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fichier</th><th>Emplacement</th><th>Distribution</th></tr></thead>
+          <tbody>
+            <tr><td><code>eriniumanticheat-1.0.0.jar</code></td><td><code>mods/</code></td><td>Manifest mods (telechargement auto)</td></tr>
+            <tr><td><code>eriniumanticheat.dll</code></td><td><code>natives/</code></td><td>Manifest natives (telechargement auto, Windows only)</td></tr>
+            <tr><td><code>eriapi-1.2.0-1.12.2.jar</code></td><td><code>mods/</code></td><td>Manifest mods (dependance)</td></tr>
+            <tr><td><code>eriniumfaction-1.0.0.jar</code></td><td><code>mods/</code></td><td>Manifest mods (dependance)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Le launcher verifie le hash SHA-256 de chaque fichier avant le lancement. Si un fichier est modifie, il est re-telecharge. Cela empeche les joueurs de modifier/supprimer la DLL ou le mod anti-cheat.</p>
+
+      <h3>Bridge avec EriniumFaction</h3>
+      <p>L'integration entre EriniumAntiCheat et EriniumFaction se fait via le <strong>Forge Event Bus</strong>.</p>
+      <div class="code-block"><span class="cm">// Cote EriniumAntiCheat — quand une violation est detectee</span>
+<span class="ty">AntiCheatViolationEvent</span> event = <span class="kw">new</span> <span class="ty">AntiCheatViolationEvent</span>(
+    player,
+    <span class="ty">ViolationLevel</span>.<span class="an">CRITICAL</span>,
+    <span class="st">"DEBUGGER_DETECTED"</span>,
+    <span class="st">"IsDebuggerPresent returned true"</span>
+);
+<span class="ty">MinecraftForge</span>.<span class="an">EVENT_BUS</span>.<span class="fn">post</span>(event);
+
+<span class="cm">// Cote EriniumFaction — ecoute les violations</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onAntiCheatViolation</span>(<span class="ty">AntiCheatViolationEvent</span> event) {
+    <span class="kw">if</span> (event.<span class="fn">getLevel</span>() == <span class="ty">ViolationLevel</span>.<span class="an">CRITICAL</span>) {
+        <span class="ty">BanManager</span>.<span class="fn">getInstance</span>().<span class="fn">kick</span>(
+            event.<span class="fn">getPlayer</span>(),
+            <span class="st">"Anti-Cheat: "</span> + event.<span class="fn">getReason</span>()
+        );
+    } <span class="kw">else</span> {
+        <span class="ty">BanManager</span>.<span class="fn">getInstance</span>().<span class="fn">addViolation</span>(
+            event.<span class="fn">getPlayer</span>(),
+            event.<span class="fn">getType</span>(),
+            event.<span class="fn">getWeight</span>()
+        );
+    }
+}</div>
+
+      <h3>Declaration du mod</h3>
+      <div class="code-block"><span class="an">@Mod</span>(
+    modid = <span class="st">"eriniumanticheat"</span>,
+    name = <span class="st">"Erinium AntiCheat"</span>,
+    version = <span class="st">"1.0.0"</span>,
+    dependencies = <span class="st">"required-after:eriapi;required-after:eriniumfaction"</span>,
+    acceptedMinecraftVersions = <span class="st">"[1.12.2]"</span>
+)
+<span class="kw">public class</span> <span class="cl">AntiCheatMod</span> {
+    <span class="kw">public static final</span> <span class="ty">String</span> MODID = <span class="st">"eriniumanticheat"</span>;
+    <span class="kw">public static final</span> <span class="ty">Logger</span> LOGGER = <span class="ty">LogManager</span>.<span class="fn">getLogger</span>(MODID);
+}</div>
+
+      <div class="info-box tip">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Separation des responsabilites :</strong> EriniumAntiCheat detecte, EriniumFaction punit. L'anti-cheat n'a pas de logique de ban — il envoie des events. EriniumFaction decide de la sanction (kick, ban wave, avertissement) selon sa propre logique et sa configuration. Cela permet de modifier la politique de sanction sans toucher au code de detection.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S11 — CONFIGURATION ═══ -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num orange-num">11</span> Configuration</h2>
+
+      <h3 class="first">Fichier de configuration</h3>
+      <p>Chemin : <code>config/EriniumAntiCheat/eriniumanticheat.cfg</code></p>
+      <p>Le fichier utilise le systeme de <code>Configuration</code> Forge standard. Toutes les valeurs sont modifiables sans recompilation.</p>
+
+      <h3>Categories et options</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Categorie</th><th>Option</th><th>Type</th><th>Defaut</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td rowspan="5">general</td><td><code>enableLayer1_JVM</code></td><td>boolean</td><td><code>true</code></td><td>Active la couche JVM Integrity</td></tr>
+            <tr><td><code>enableLayer2_Process</code></td><td>boolean</td><td><code>true</code></td><td>Active la couche Process &amp; OS (Windows only)</td></tr>
+            <tr><td><code>enableLayer3_Behavior</code></td><td>boolean</td><td><code>true</code></td><td>Active la couche Behavior Analysis</td></tr>
+            <tr><td><code>enableLayer4_Resource</code></td><td>boolean</td><td><code>true</code></td><td>Active la couche Resource Integrity</td></tr>
+            <tr><td><code>debugMode</code></td><td>boolean</td><td><code>false</code></td><td>Log tous les scans dans la console (dev only)</td></tr>
+            <tr><td rowspan="4">heartbeat</td><td><code>minInterval</code></td><td>int</td><td><code>30</code></td><td>Intervalle minimum entre heartbeats (secondes)</td></tr>
+            <tr><td><code>maxInterval</code></td><td>int</td><td><code>120</code></td><td>Intervalle maximum entre heartbeats (secondes)</td></tr>
+            <tr><td><code>responseTimeout</code></td><td>int</td><td><code>15</code></td><td>Temps de reponse maximum (secondes)</td></tr>
+            <tr><td><code>maxMissed</code></td><td>int</td><td><code>3</code></td><td>Nombre de heartbeats manques avant kick</td></tr>
+            <tr><td rowspan="3">thresholds</td><td><code>banWavePoints</code></td><td>int</td><td><code>50</code></td><td>Points de violation pour declencher un ban wave</td></tr>
+            <tr><td><code>maxCPS</code></td><td>int</td><td><code>20</code></td><td>CPS maximum avant flagging SUSPICIOUS</td></tr>
+            <tr><td><code>gammaThreshold</code></td><td>float</td><td><code>5.0</code></td><td>Gamma au-dessus de laquelle c'est SUSPICIOUS</td></tr>
+            <tr><td rowspan="2">native</td><td><code>dllPath</code></td><td>String</td><td><code>natives/eriniumanticheat.dll</code></td><td>Chemin relatif vers la DLL native</td></tr>
+            <tr><td><code>scanIntervalSeconds</code></td><td>int</td><td><code>60</code></td><td>Intervalle entre les scans natifs (secondes)</td></tr>
+            <tr><td rowspan="3">banwave</td><td><code>enabled</code></td><td>boolean</td><td><code>true</code></td><td>Active le systeme de ban wave automatique</td></tr>
+            <tr><td><code>cronExpression</code></td><td>String</td><td><code>0 3 * * 0</code></td><td>Expression cron (dimanche 3h00 UTC par defaut)</td></tr>
+            <tr><td><code>blacklistUrl</code></td><td>String</td><td><code>(vide)</code></td><td>URL du serveur de blacklist dynamique (optionnel, sinon incluse dans les heartbeats)</td></tr>
+            <tr><td rowspan="2">crypto</td><td><code>keyRotationMinutes</code></td><td>int</td><td><code>30</code></td><td>Rotation de la cle de session (minutes)</td></tr>
+            <tr><td><code>dhKeySize</code></td><td>int</td><td><code>2048</code></td><td>Taille des cles Diffie-Hellman (bits)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Configuration serveur :</strong> Le fichier <code>eriniumanticheat.cfg</code> est sur le <strong>serveur</strong>. Les valeurs sont envoyees au client au login. Le client n'a PAS de fichier de configuration modifiable — cela empecherait les joueurs de desactiver les couches de detection. Le seul fichier cote client est la config video/audio standard de Forge.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S12 — SECURITE & ANTI-TAMPER ═══ -->
+    <section class="section-card" id="s12">
+      <h2><span class="s-num red-num">12</span> Securite &amp; Anti-Tamper</h2>
+
+      <h3 class="first">Verification de la DLL</h3>
+      <p>La DLL native est elle-meme protegee contre la modification.</p>
+      <ul>
+        <li><strong>Hash au chargement :</strong> Avant <code>System.load()</code>, le mod calcule le hash SHA-256 du fichier <code>eriniumanticheat.dll</code> et le compare avec le hash attendu (inclus dans le manifest du launcher). Si le hash differe, la DLL n'est pas chargee et une violation CRITICAL est envoyee.</li>
+        <li><strong>Hash en memoire :</strong> La DLL expose une methode <code>getMemoryHash()</code> qui retourne le SHA-256 de son propre code en memoire. Le serveur peut demander ce hash via challenge-response pour verifier que la DLL n'a pas ete patchee en memoire apres chargement.</li>
+        <li><strong>Timestamp :</strong> La DLL verifie sa propre date de compilation. Si la date est trop ancienne par rapport a la version attendue, elle refuse de fonctionner (protege contre l'utilisation d'anciennes versions vulnérables).</li>
+      </ul>
+
+      <h3>Chiffrement des communications</h3>
+      <ul>
+        <li><strong>Man-in-the-middle :</strong> Le DH exchange est lie au JWT du joueur (le JWT sert de salt). Un attaquant ne peut pas intercepter et modifier les messages sans connaitre le JWT.</li>
+        <li><strong>Replay attacks :</strong> Chaque message chiffre contient un nonce (compteur) et un timestamp. Les messages dupliques ou rejoues sont rejetes.</li>
+        <li><strong>Spoofing :</strong> Le tag GCM garantit l'authenticite. Un message forge (faux rapport de scan) sera rejete car le tag ne correspondra pas.</li>
+      </ul>
+
+      <h3>Heartbeat anti-desactivation</h3>
+      <ul>
+        <li><strong>Intervalles aleatoires :</strong> Le joueur/cheat ne peut pas predire quand le prochain heartbeat arrivera. Desactiver l'AC "entre les heartbeats" est impossible car l'intervalle est inconnu.</li>
+        <li><strong>Micro-challenges :</strong> Chaque heartbeat contient une question specifique qui necessite que le code de l'anti-cheat soit en memoire et fonctionnel pour repondre. Un emulateur qui repond "tout va bien" sans executer les vrais scans echouera sur les micro-challenges.</li>
+        <li><strong>Cumul :</strong> Les heartbeats manques sont cumules. Meme un seul heartbeat manque est logue et peut contribuer au score de violation SUSPICIOUS.</li>
+      </ul>
+
+      <h3>Obfuscation (production)</h3>
+      <p>En production, les classes Java d'EriniumAntiCheat sont obfusquees avec <strong>ProGuard</strong> (ou equivalent). L'objectif n'est pas d'empecher le reverse engineering (impossible a 100%), mais de le <strong>ralentir</strong> et d'augmenter le cout.</p>
+      <ul>
+        <li><strong>Classes renommees :</strong> Toutes les classes internes (scanners, handlers, etc.) sont renommees en noms courts (a, b, c...). Seules les classes d'interface publique (@Mod, events Forge) gardent leurs noms.</li>
+        <li><strong>Strings chiffrees :</strong> Les chaines de caracteres sensibles (noms de processus blacklistes, patterns de detection) sont chiffrees au compile-time et dechiffrees au runtime.</li>
+        <li><strong>Flow obfuscation :</strong> Les methodes critiques (hash, challenge-response) ont un control flow opaque — le flux d'execution est rendu non trivial a suivre dans un decompileur.</li>
+      </ul>
+
+      <h3>Challenge-Response : preuve d'execution</h3>
+      <p>Le challenge RANDOM_COMPUTE est la protection la plus forte contre l'emulation. Le serveur envoie un seed aleatoire, et le client doit executer un calcul <strong>deterministe</strong> qui utilise du code interne de l'anti-cheat. Le resultat prouve que le code est en memoire et s'execute correctement.</p>
+      <div class="code-block"><span class="cm">// Exemple simplifie de challenge RANDOM_COMPUTE</span>
+<span class="cm">// Le vrai calcul est plus complexe et change entre versions</span>
+
+<span class="cm">// Serveur envoie : seed = 0x4A3F7C82</span>
+<span class="cm">// Client calcule :</span>
+<span class="kw">long</span> result = seed;
+result ^= <span class="ty">AgentDetector</span>.<span class="fn">getLastScanTimestamp</span>();   <span class="cm">// Necessite que AgentDetector tourne</span>
+result = <span class="ty">Long</span>.<span class="fn">rotateLeft</span>(result, <span class="nu">13</span>);
+result ^= <span class="ty">BytecodeVerifier</span>.<span class="fn">getCriticalHash</span>();    <span class="cm">// Necessite les checksums en memoire</span>
+result = result * <span class="nu">0x5DEECE66DL</span> + <span class="nu">0xBL</span>;
+result ^= <span class="ty">NativeBridge</span>.<span class="fn">getMemoryHash</span>()[<span class="nu">0</span>];       <span class="cm">// Necessite la DLL chargee</span>
+
+<span class="cm">// Client repond : result</span>
+<span class="cm">// Serveur verifie : meme calcul cote serveur avec les valeurs attendues</span></div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Mise a jour du challenge :</strong> Le calcul RANDOM_COMPUTE change entre les versions du mod. Chaque mise a jour du mod invalide les emulateurs existants car le calcul est different. C'est une course aux armements deliberee — chaque mise a jour force les tricheurs a refaire le reverse engineering.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S13 — PLAN DE TESTS ═══ -->
+    <section class="section-card" id="s13">
+      <h2><span class="s-num green-num">13</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests unitaires — Scanners JVM</h3>
+      <ul class="checklist">
+        <li><strong>AgentDetector</strong> : Verifier la detection de <code>-javaagent:test.jar</code> injecte dans les arguments</li>
+        <li><strong>ClassLoaderAuditor</strong> : Verifier la detection d'un ClassLoader custom cree dans un test</li>
+        <li><strong>MixinAuditor</strong> : Verifier que les mixins EriniumFaction passent et qu'un mixin forge n'est pas flagge</li>
+        <li><strong>BytecodeVerifier</strong> : Verifier que le checksum d'une classe non modifiee est stable entre deux calculs</li>
+        <li><strong>JvmArgsInspector</strong> : Verifier la detection des arguments suspects listes</li>
+      </ul>
+
+      <h3>Tests d'integration — Cheats connus</h3>
+      <ul class="checklist">
+        <li>Installer Wurst Client dans un environnement de test et verifier la detection (ClassLoaderAuditor + ProcessScanner)</li>
+        <li>Installer LiquidBounce et verifier la detection des mixins non autorises (MixinAuditor)</li>
+        <li>Utiliser Cheat Engine sur le processus Java et verifier la detection (DebuggerDetector + WindowScanner)</li>
+        <li>Injecter une DLL custom dans le processus Java et verifier la detection (DllInjectionDetector)</li>
+        <li>Attacher un agent Java au runtime via JMX et verifier la detection (AgentDetector)</li>
+        <li>Modifier le bytecode d'EntityPlayerSP avec un agent et verifier la detection (BytecodeVerifier)</li>
+      </ul>
+
+      <h3>Tests de faux positifs</h3>
+      <ul class="checklist">
+        <li>Lancer le jeu avec Discord, Steam, OBS, et NVIDIA GeForce Experience en arriere-plan : aucune alerte</li>
+        <li>Lancer avec Corsair iCUE, Razer Synapse, Logitech G Hub : aucune alerte</li>
+        <li>Lancer avec Chrome, Firefox, Spotify, MSI Afterburner : aucune alerte</li>
+        <li>Lancer avec Windows Defender, Malwarebytes actifs : aucune alerte</li>
+        <li>Utiliser un resource pack HD legitime (Faithful, Sphax) : aucune alerte</li>
+        <li>Utiliser OptiFine avec shaders classiques (SEUS, BSL) : aucune alerte</li>
+        <li>Jitter clicking a 14 CPS en PvP : aucune alerte (seuil a 20 CPS)</li>
+        <li>Mouvements brusques de souris en combat rapproche : aucune alerte (variance humaine)</li>
+      </ul>
+
+      <h3>Tests de performance</h3>
+      <ul class="checklist">
+        <li>Impact FPS : mesurer la difference avec et sans l'anti-cheat actif. Objectif : <strong>&lt; 2 FPS</strong> de difference</li>
+        <li>Scan JVM (Couche 1) : &lt; 5ms par cycle de scan. Frequence : toutes les 60 secondes</li>
+        <li>Scan natif (Couche 2) : &lt; 10ms par cycle. Frequence : toutes les 60 secondes</li>
+        <li>Behavior analysis (Couche 3) : &lt; 1ms par tick analyse. Frequence : toutes les 5 secondes (en combat)</li>
+        <li>Resource validation (Couche 4) : &lt; 50ms au login (one-shot). Re-validation toutes les 10 minutes : &lt; 20ms</li>
+        <li>Heartbeat response : &lt; 5ms de traitement client (hors latence reseau)</li>
+        <li>Chiffrement AES-256-GCM : &lt; 0.5ms par message (negligeable)</li>
+        <li>Memoire : &lt; 15 MB supplementaires en RAM pour tous les caches et buffers</li>
+      </ul>
+
+      <h3>Tests de communication chiffree</h3>
+      <ul class="checklist">
+        <li>Key exchange DH : verifier que les deux parties derivent la meme cle AES</li>
+        <li>Chiffrement/dechiffrement : verifier l'integrite des messages sur 1000 echanges</li>
+        <li>Rotation de cle : verifier que la transition est transparente (pas de messages perdus)</li>
+        <li>Message corrompu : verifier que le tag GCM rejette le message</li>
+        <li>Replay : verifier qu'un message rejoue (meme nonce) est rejete</li>
+      </ul>
+
+      <h3>Tests de contournement</h3>
+      <ul class="checklist">
+        <li>Desactiver la DLL (renommer/supprimer) : le launcher la re-telecharge avant le lancement</li>
+        <li>Modifier la DLL (patcher un octet) : hash invalide, violation CRITICAL</li>
+        <li>Tuer le thread de scan : le heartbeat detecte l'absence de reponse</li>
+        <li>Spoof les reponses heartbeat : le micro-challenge echoue (donnees incorrectes)</li>
+        <li>Hooker les API Win32 utilisees : HookDetector detecte les hooks IAT/inline</li>
+        <li>Cacher un processus (rootkit userland) : le scan DLL detecte toujours les DLLs injectees</li>
+        <li>Modifier la blacklist dynamique en memoire : signature RSA invalide, rejet</li>
+        <li>Emulateur d'anti-cheat (repondre sans executer) : RANDOM_COMPUTE echoue</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S14 — LIMITATIONS CONNUES ═══ -->
+    <section class="section-card" id="s14">
+      <h2><span class="s-num">14</span> Limitations Connues</h2>
+
+      <h3 class="first">Limitations techniques</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Limitation</th><th>Impact</th><th>Mitigation</th></tr></thead>
+          <tbody>
+            <tr><td>Pas d'acces kernel (ring-0)</td><td>Un rootkit kernel peut cacher des processus et DLLs a notre scanning userland</td><td>La majorite des tricheurs MC n'utilisent pas de rootkit kernel. Risque residuel accepte.</td></tr>
+            <tr><td>Java reflection</td><td>Un attaquant peut utiliser la reflection pour inspecter les classes de l'anti-cheat, lire les patterns de detection, extraire les seuils</td><td>Obfuscation ProGuard + strings chiffrees. Augmente le cout du reverse, ne l'elimine pas.</td></tr>
+            <tr><td>Linux / macOS sans scanning natif</td><td>Les joueurs non-Windows n'ont pas la couche 2 (Process &amp; OS). Moins de detection.</td><td>Les couches 1, 3 et 4 restent actives. La majorite des joueurs Minecraft sont sur Windows. Futur : portage vers .so (Linux) et .dylib (macOS).</td></tr>
+            <tr><td>Reverse engineering de la DLL</td><td>Un attaquant motive peut decompiler la DLL pour comprendre les methodes de detection</td><td>Mise a jour reguliere de la DLL avec de nouvelles signatures + challenge RANDOM_COMPUTE qui change entre versions.</td></tr>
+            <tr><td>Faux positifs processus</td><td>Un logiciel inconnu mais legitime peut etre remonte comme suspect</td><td>Le systeme ne punit pas les inconnus. Les admins classifient et whitelistont. Risque zero de ban injuste pour un processus inconnu.</td></tr>
+            <tr><td>Charge sur le serveur (500-1000 joueurs)</td><td>500-1000 heartbeats + rapports de scan simultanes</td><td>Les heartbeats sont espaces (30-120s, aleatoire, pas synchronises). Les rapports sont envoyes toutes les 5 minutes. Le traitement est batche cote serveur.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Limitations conceptuelles</h3>
+      <ul>
+        <li><strong>Course aux armements :</strong> L'anti-cheat client est fondamentalement une course aux armements. Un attaquant avec suffisamment de temps et de competences peut toujours contourner un anti-cheat userland. L'objectif n'est pas l'invulnerabilite — c'est de rendre le triche suffisamment couteux pour decourager la majorite.</li>
+        <li><strong>Client-side trust :</strong> Toute donnee venant du client est potentiellement forgeable. C'est pourquoi le systeme est concu en <strong>defense en profondeur</strong> — 4 couches independantes, heartbeat continu, challenge-response. Un attaquant doit contourner TOUTES les couches simultanement.</li>
+        <li><strong>Vie privee :</strong> Le scan de processus est le point le plus sensible. La whitelist exhaustive et le fait de ne remonter que les noms (pas les chemins complets, pas les arguments de ligne de commande) est un compromis delibere entre securite et vie privee.</li>
+        <li><strong>Performance :</strong> Les scans doivent etre espaces pour ne pas impacter le gameplay. Un tricher qui active son cheat pendant les 60 secondes entre deux scans natifs peut techniquement l'utiliser brievement. C'est mitige par la couche 3 (behavior analysis) qui tourne en continu.</li>
+      </ul>
+
+      <h3>Evolutions futures</h3>
+      <ul>
+        <li><strong>Port Linux :</strong> DLL native portee en <code>.so</code> pour la couche 2 sur Linux.</li>
+        <li><strong>Machine Learning :</strong> Entrainer un modele sur les patterns d'input (clics, visee, mouvement) pour detecter les cheats inconnus par anomalie statistique plutot que par signature.</li>
+        <li><strong>Screenshot on demand :</strong> Option opt-in pour envoyer un screenshot au serveur sur demande admin (avec consentement explicite du joueur).</li>
+        <li><strong>Anti-cheat community :</strong> Partager les signatures de cheats entre serveurs utilisant EriniumAntiCheat (blacklist communautaire).</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Philosophie :</strong> L'anti-cheat parfait n'existe pas. L'objectif est de rendre le cout du triche <strong>superieur au benefice</strong>. Avec 4 couches de detection, un heartbeat continu, des ban waves, et des mises a jour regulieres, la majorite des tricheurs seront detectes ou decourages. Les quelques-uns qui passent seront geres par le staff via les rapports et le dashboard admin.</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('navToggle');
+  if (toggle) toggle.addEventListener('click', function() { sidebar.classList.toggle('open'); });
+
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        navLinks.forEach(function(link) { link.classList.remove('active'); });
+        const active = document.querySelector('.nav-link[href="#' + entry.target.id + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(function(s) { observer.observe(s); });
+</script>
+</body>
+</html>

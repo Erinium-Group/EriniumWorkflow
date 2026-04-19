@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Artéfacts | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #5B9BD5; --aetherite: #A855F7; --erinium: #F59E0B;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(245,158,11,0.06) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-rare     { color: var(--rare);     border-color: rgba(52,152,219,0.4);  background: rgba(52,152,219,0.1); }
+  .badge-epic     { color: var(--epic);     border-color: rgba(155,89,182,0.4);  background: rgba(155,89,182,0.1); }
+  .badge-legendary{ color: var(--legendary);border-color: rgba(241,196,15,0.4);  background: rgba(241,196,15,0.1); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+  .section-card:nth-child(14) { animation-delay: .70s; }
+  .section-card:nth-child(15) { animation-delay: .75s; }
+  .section-card:nth-child(16) { animation-delay: .80s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '›'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .rarity-rare      { color: var(--rare);      font-weight: 600; }
+  .rarity-epic      { color: var(--epic);      font-weight: 600; }
+  .rarity-legendary { color: var(--legendary); font-weight: 600; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .ascii-diagram .ab { color: var(--rare); }
+  .ascii-diagram .am { color: var(--epic); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  /* Rarity grid */
+  .rarity-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+  .rarity-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 20px; text-align: center; }
+  .rarity-card.rare       { border-top: 3px solid var(--rare); }
+  .rarity-card.epic       { border-top: 3px solid var(--epic); }
+  .rarity-card.legendary  { border-top: 3px solid var(--legendary); }
+  .rarity-card-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .rarity-card.rare       .rarity-card-name { color: var(--rare); }
+  .rarity-card.epic       .rarity-card-name { color: var(--epic); }
+  .rarity-card.legendary  .rarity-card-name { color: var(--legendary); }
+  .rarity-card-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); margin-bottom: 14px; }
+  .rarity-card-stat { font-size: 12px; color: var(--slate); margin: 4px 0; }
+  .rarity-card-stat strong { color: var(--text); }
+  /* Artifact cards */
+  .artifact-grid { display: flex; flex-direction: column; gap: 16px; margin: 20px 0; }
+  .artifact-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 20px 24px; }
+  .artifact-card.rare       { border-left: 3px solid var(--rare);      }
+  .artifact-card.epic       { border-left: 3px solid var(--epic);      }
+  .artifact-card.legendary  { border-left: 3px solid var(--legendary); }
+  .artifact-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+  .artifact-card-name { font-size: 15px; font-weight: 700; }
+  .artifact-card.rare       .artifact-card-name { color: var(--rare); }
+  .artifact-card.epic       .artifact-card-name { color: var(--epic); }
+  .artifact-card.legendary  .artifact-card-name { color: var(--legendary); }
+  .artifact-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+  .artifact-tag.active  { background: rgba(0,229,255,0.08);  border: 1px solid rgba(0,229,255,0.2);  color: var(--cyan); }
+  .artifact-tag.passive { background: rgba(46,204,113,0.08); border: 1px solid rgba(46,204,113,0.2); color: var(--green); }
+  .artifact-tag.rare      { background: rgba(52,152,219,0.08);   border: 1px solid rgba(52,152,219,0.25);   color: var(--rare); }
+  .artifact-tag.epic      { background: rgba(155,89,182,0.08);   border: 1px solid rgba(155,89,182,0.25);   color: var(--epic); }
+  .artifact-tag.legendary { background: rgba(241,196,15,0.08);   border: 1px solid rgba(241,196,15,0.25);   color: var(--legendary); }
+  .artifact-cd { font-size: 11px; color: var(--slate); }
+  .artifact-cd strong { color: var(--text); }
+  .artifact-desc { font-size: 13px; color: var(--slate); margin-top: 8px; line-height: 1.6; }
+  .artifact-desc strong { color: var(--text); }
+  .artifact-visual { font-size: 12px; color: var(--violet-l); margin-top: 6px; font-style: italic; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .rarity-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Raretes &amp; Classification</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Liste des Artefacts</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Equipement &amp; Slots</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Drop au PvP</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Durabilite &amp; Reparation</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Obtention</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Retour Visuel</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Synergies &amp; Builds</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Structures de Donnees</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Architecture Technique</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Commandes &amp; Permissions</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Assets</a>
+    <a class="nav-link" href="#s14"><span class="num">14</span> Equilibrage</a>
+    <a class="nav-link" href="#s15"><span class="num">15</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges · EriniumFaction</div>
+      <h1>Artefacts</h1>
+      <p>Objets uniques et rares aux capacites actives ou passives puissantes. Ils tombent des evenements mondiaux et des boss d'Erinium. Echangeables, volables lors du PvP, ils creent des enjeux eleves a chaque combat.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">A faire</span>
+        <span class="badge badge-rare">3 Rares</span>
+        <span class="badge badge-epic">3 Epiques</span>
+        <span class="badge badge-legendary">2 Legendaires</span>
+        <span class="badge badge-red">Drop au PvP</span>
+        <span class="badge badge-cyan">1 slot dedie</span>
+        <span class="badge badge-violet">8 artefacts</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Vision du systeme</h3>
+      <p>Les artefacts sont le loot <strong>le plus rare et le plus precieux</strong> du jeu. Ils ne s'obtiennent pas par le craft — uniquement par l'accomplissement : tuer des boss, survivre aux evenements mondiaux. Porter un artefact equipe, c'est etre une cible.</p>
+      <p>Le systeme repose sur trois piliers :</p>
+      <ul>
+        <li><strong>Enjeux eleves au PvP :</strong> un artefact equipe tombe au sol a 100% si on est tue par un joueur en zone hostile. Un seul combat peut tout changer.</li>
+        <li><strong>Diversification des builds :</strong> chaque artefact definit un style de jeu distinct — flanker furtif (Oeil), tank reactif (Bouclier de Resonance), assassin (Lame Fantome), support (Ancre Dimensionnelle), bruiser (Fragment du Noyau).</li>
+        <li><strong>Motivation PvP permanente :</strong> savoir qu'un ennemi porte un Artefact Legendaire rend chaque engagement significatif.</li>
+      </ul>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Uniquement actif ou passif — pas les deux :</strong> chaque artefact fait une chose, mais il la fait tres bien.</li>
+        <li><strong>Lisibilite :</strong> les effets visuels distincts permettent de reconnaitre immediatement quel artefact un ennemi utilise.</li>
+        <li><strong>Economie circulaire :</strong> la durabilite et les couts de reparation (Erinium Ingots + $) creent une demande constante pour les minerais haut-tier.</li>
+        <li><strong>Preparation future :</strong> le systeme est concu pour s'integrer nativement aux evenements mondiaux quand ils seront implementes.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>PvP 1.8 :</strong> Le serveur utilise le combat 1.8 (pas de cooldown d'attaque). Les artefacts ne touchent JAMAIS l'ATTACK_SPEED. Tous les effets de combat sont bases sur les degats bruts, la resistance, le knockback et la vitesse de deplacement.</div>
+      </div>
+
+      <h3>Integration dans l'ecosysteme</h3>
+      <p>Les artefacts sont un systeme independant qui <strong>se superpose</strong> aux systemes existants sans les remplacer. Les stats RPG, les gemmes, les accessoires et les enchantements continuent de fonctionner normalement. Un artefact equipe est un multiplicateur de puissance, pas un substitut au progression RPG.</p>
+    </section>
+
+    <!-- ═══ S2 — RARETES & CLASSIFICATION ═══ -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Raretes &amp; Classification</h2>
+
+      <p>Trois niveaux de rarete definissent la puissance, la disponibilite et la valeur strategique des artefacts.</p>
+
+      <div class="rarity-grid">
+        <div class="rarity-card rare">
+          <div class="rarity-card-name">Rare</div>
+          <div class="rarity-card-sub">Tier 1</div>
+          <div class="rarity-card-stat"><strong>Taux de drop :</strong> ~15% depuis les evenements</div>
+          <div class="rarity-card-stat"><strong>Puissance :</strong> Modere, utile</div>
+          <div class="rarity-card-stat"><strong>Style :</strong> Passif pratique ou actif a CD court</div>
+          <div class="rarity-card-stat"><strong>Reparation :</strong> 4 Erinium + 500$</div>
+          <div class="rarity-card-stat"><strong>Couleur :</strong> #3498DB</div>
+        </div>
+        <div class="rarity-card epic">
+          <div class="rarity-card-name">Epique</div>
+          <div class="rarity-card-sub">Tier 2</div>
+          <div class="rarity-card-stat"><strong>Taux de drop :</strong> ~5% depuis les evenements</div>
+          <div class="rarity-card-stat"><strong>Puissance :</strong> Fort, game-changing</div>
+          <div class="rarity-card-stat"><strong>Style :</strong> Actif a CD modere (3-6 min)</div>
+          <div class="rarity-card-stat"><strong>Reparation :</strong> 8 Erinium + 2000$</div>
+          <div class="rarity-card-stat"><strong>Couleur :</strong> #9B59B6</div>
+        </div>
+        <div class="rarity-card legendary">
+          <div class="rarity-card-name">Legendaire</div>
+          <div class="rarity-card-sub">Tier 3</div>
+          <div class="rarity-card-stat"><strong>Taux de drop :</strong> ~1% ou boss garanti</div>
+          <div class="rarity-card-stat"><strong>Puissance :</strong> Extremement puissant</div>
+          <div class="rarity-card-stat"><strong>Style :</strong> Passif fort ou actif a long CD</div>
+          <div class="rarity-card-stat"><strong>Reparation :</strong> 16 Erinium + 10 000$</div>
+          <div class="rarity-card-stat"><strong>Couleur :</strong> #F1C40F</div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Parametre</th>
+              <th>Rare</th>
+              <th>Epique</th>
+              <th>Legendaire</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Durabilite max</td>
+              <td>200 utilisations</td>
+              <td>150 utilisations</td>
+              <td>100 utilisations</td>
+            </tr>
+            <tr>
+              <td>Cout par usage actif</td>
+              <td>5 durabilite</td>
+              <td>8 durabilite</td>
+              <td>10 durabilite</td>
+            </tr>
+            <tr>
+              <td>Perte durabilite passive</td>
+              <td>1/min hors combat</td>
+              <td>1/min hors combat</td>
+              <td>1/min hors combat</td>
+            </tr>
+            <tr>
+              <td>Tooltip border couleur</td>
+              <td><span class="rarity-rare">Bleu #3498DB</span></td>
+              <td><span class="rarity-epic">Violet #9B59B6</span></td>
+              <td><span class="rarity-legendary">Or #F1C40F</span></td>
+            </tr>
+            <tr>
+              <td>Glow de l'item</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Classification par type</h3>
+      <p>Un artefact est soit <strong>Actif</strong> (clic droit pour declencher l'effet, CD explicite) soit <strong>Passif</strong> (toujours actif quand equipe, jamais de declenchement manuel). Un seul artefact peut etre equipe a la fois.</p>
+    </section>
+
+    <!-- ═══ S3 — LISTE DES ARTEFACTS ═══ -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Liste des Artefacts</h2>
+
+      <p>8 artefacts distincts couvrant les roles offensif, defensif, utilitaire et de support.</p>
+
+      <div class="artifact-grid">
+
+        <!-- OEIL D'ERINIUM -->
+        <div class="artifact-card rare">
+          <div class="artifact-card-header">
+            <span class="artifact-card-name">Oeil d'Erinium</span>
+            <span class="artifact-tag rare">Rare</span>
+            <span class="artifact-tag active">Actif</span>
+            <span class="artifact-cd">CD : <strong>5 min</strong></span>
+          </div>
+          <div class="artifact-desc">Revele tous les joueurs dans un rayon de <strong>100 blocs</strong> a travers les murs pendant <strong>10 secondes</strong>. Les joueurs reveles recoivent l'effet <code>Glowing</code> (contours visibles). Ideal pour les flankers et les chasseurs de prime.</div>
+          <div class="artifact-visual">Effet visuel : onde de scan cylindrique s'expandant depuis le joueur (particules cyan). Les contours des joueurs reveles brillent de la couleur de leur faction.</div>
+        </div>
+
+        <!-- COEUR CRISTALLIN -->
+        <div class="artifact-card rare">
+          <div class="artifact-card-header">
+            <span class="artifact-card-name">Coeur Cristallin</span>
+            <span class="artifact-tag rare">Rare</span>
+            <span class="artifact-tag passive">Passif</span>
+          </div>
+          <div class="artifact-desc">Regeneration lente permanente <strong>hors combat</strong> : <strong>0.5 coeur toutes les 3 secondes</strong>. "Hors combat" = aucun degat inflige ou recu depuis au moins <strong>5 secondes</strong>. Se desactive immediatement au premier degat. Synergise avec les builds a haute resistance.</div>
+          <div class="artifact-visual">Effet visuel : lueur cristalline pulsee sur la poitrine du joueur (particules blanches/bleues lentes) quand la regen est active.</div>
+        </div>
+
+        <!-- GRIFFES DU NEANT -->
+        <div class="artifact-card rare">
+          <div class="artifact-card-header">
+            <span class="artifact-card-name">Griffes du Neant</span>
+            <span class="artifact-tag rare">Rare</span>
+            <span class="artifact-tag passive">Passif</span>
+          </div>
+          <div class="artifact-desc">Vos attaques appliquent un debuff cumulable sur la cible : chaque coup reduit les soins recus par <strong>5% par stack</strong> (maximum <strong>40% = 8 stacks</strong>). Le debuff dure <strong>6 secondes</strong> et le timer se reinitialise a chaque coup. Anti-heal systematique en combat soutenu.</div>
+          <div class="artifact-visual">Effet visuel : particules violettes/noires sur les armes lors des frappes. La cible a une legere aura sombre qui s'intensifie avec les stacks.</div>
+        </div>
+
+        <!-- LAME FANTOME -->
+        <div class="artifact-card epic">
+          <div class="artifact-card-header">
+            <span class="artifact-card-name">Lame Fantome</span>
+            <span class="artifact-tag epic">Epique</span>
+            <span class="artifact-tag active">Actif</span>
+            <span class="artifact-cd">CD : <strong>3 min</strong></span>
+          </div>
+          <div class="artifact-desc">Pendant <strong>6 secondes</strong> apres l'activation, le prochain coup de melee <strong>ignore l'integralite de l'armure</strong> de la cible (reduction d'armure portee a 0 pour ce coup uniquement). Contre les joueurs full-Erinium, c'est un one-tap potentiel. L'effet se consomme au premier coup ou expire apres 6 secondes.</div>
+          <div class="artifact-visual">Effet visuel : l'arme en main devient translucide avec un contour bleuatre fantomatique. Trail de particules spectrales lors du deplacement.</div>
+        </div>
+
+        <!-- BOUCLIER DE RESONANCE -->
+        <div class="artifact-card epic">
+          <div class="artifact-card-header">
+            <span class="artifact-card-name">Bouclier de Resonance</span>
+            <span class="artifact-tag epic">Epique</span>
+            <span class="artifact-tag active">Actif</span>
+            <span class="artifact-cd">CD : <strong>4 min</strong></span>
+          </div>
+          <div class="artifact-desc">Pendant <strong>3 secondes</strong>, <strong>50% de tous les degats recus</strong> sont reflechis directement sur l'attaquant (il ne prend pas moins de degats, le reflet s'ajoute). Puissant en situation 1v1. En 1vN, le reflet touche le dernier attaquant. Contre-joue les combos de sorts lourds.</div>
+          <div class="artifact-visual">Effet visuel : bouclier hexagonal cristallin autour du joueur avec des reflets prismatiques. Quand un degat est reflechi, un eclair dore part vers l'attaquant.</div>
+        </div>
+
+        <!-- PRISME D'ERINIUM -->
+        <div class="artifact-card epic">
+          <div class="artifact-card-header">
+            <span class="artifact-card-name">Prisme d'Erinium</span>
+            <span class="artifact-tag epic">Epique</span>
+            <span class="artifact-tag active">Actif</span>
+            <span class="artifact-cd">CD : <strong>6 min</strong></span>
+          </div>
+          <div class="artifact-desc">Cree une <strong>zone de 6 blocs de rayon</strong> pendant <strong>8 secondes</strong> depuis la position d'activation. Dans cette zone, <strong>tous les degats (allies ET ennemis) sont reduits de 40%</strong>. Controle de zone strategique : peut sauver une position defensible ou neutraliser un assaut groupe. Se place au sol.</div>
+          <div class="artifact-visual">Effet visuel : prisme geodesique en fil d'argent pose au sol, interieur rempli de particules dorales scintillantes. Tous les combattants dans la zone ont une legere aura doree.</div>
+        </div>
+
+        <!-- FRAGMENT DU NOYAU -->
+        <div class="artifact-card legendary">
+          <div class="artifact-card-header">
+            <span class="artifact-card-name">Fragment du Noyau</span>
+            <span class="artifact-tag legendary">Legendaire</span>
+            <span class="artifact-tag passive">Passif</span>
+          </div>
+          <div class="artifact-desc"><strong>+20% de degats</strong> quand vous etes en situation de surencerclement : <strong>2 ennemis ou plus dans un rayon de 10 blocs</strong>. La detection est automatique : les joueurs ennemis hostiles (relations "ennemi" ou "neutre" en warzone) comptent. Actif les ticks ou au moins 2 ennemis sont presents, desactive immediatement sinon.</div>
+          <div class="artifact-visual">Effet visuel : aura violette intense autour du joueur qui s'intensifie quand la condition est remplie. Lueur pulsee sur le sol en dessous du joueur.</div>
+        </div>
+
+        <!-- ANCRE DIMENSIONNELLE -->
+        <div class="artifact-card legendary">
+          <div class="artifact-card-header">
+            <span class="artifact-card-name">Ancre Dimensionnelle</span>
+            <span class="artifact-tag legendary">Legendaire</span>
+            <span class="artifact-tag active">Actif</span>
+            <span class="artifact-cd">CD : <strong>15 min</strong></span>
+          </div>
+          <div class="artifact-desc">Teleporte <strong>tous les membres de la faction</strong> dans un rayon de <strong>30 blocs</strong> a votre position exacte. Necessite <strong>une ligne de vue vers le ciel</strong> (bloc solide au-dessus = echec). Maximum 10 joueurs teleportes. Les joueurs teleportes ne peuvent pas etre en combat (ont inflige ou recu des degats dans les 2 dernieres secondes).</div>
+          <div class="artifact-visual">Effet visuel : faille dimensionnelle violette/cyan s'ouvre brievement a la position de chaque joueur teleporte. Anneau de particules dores au moment de l'arrivee.</div>
+        </div>
+
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Identifiants internes :</strong> <code>oeil_erinium</code>, <code>coeur_cristallin</code>, <code>griffes_neant</code>, <code>lame_fantome</code>, <code>bouclier_resonance</code>, <code>prisme_erinium</code>, <code>fragment_noyau</code>, <code>ancre_dimensionnelle</code>. Ces IDs sont utilises pour les commandes, le stockage NBT et la config JSON.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S4 — EQUIPEMENT & SLOTS ═══ -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num">04</span> Equipement &amp; Slots</h2>
+
+      <h3 class="first">Slot dedie</h3>
+      <p>Les artefacts occupent un <strong>slot dedie</strong> independant de l'inventaire et de l'armure. Un seul artefact peut etre equipe a la fois, peu importe le nombre d'artefacts possedes. Les artefacts non equipes peuvent etre stockes dans des coffres, echanges avec d'autres joueurs ou vendus sur le marche.</p>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Limite stricte :</strong> equiper un deuxieme artefact alors qu'un est deja equipe desequipe automatiquement le premier et le place dans l'inventaire. S'il n'y a pas de place dans l'inventaire, l'operation est refusee avec un message d'erreur.</div>
+      </div>
+
+      <h3>Mecaniques d'equipement</h3>
+      <ul>
+        <li><strong>Equiper :</strong> Clic droit sur l'item artefact depuis l'inventaire, ou via le GUI Artefacts</li>
+        <li><strong>Artefacts actifs :</strong> Clic droit avec l'item en main (main principale ou secondaire) pour declench l'effet</li>
+        <li><strong>Artefacts passifs :</strong> Toujours actifs tant qu'equipes, aucune action requise</li>
+        <li><strong>Desequiper :</strong> Via le GUI Artefacts ou commande <code>/artifact info</code></li>
+      </ul>
+
+      <h3>Interface GUI</h3>
+      <p>Accessible via le menu RPG (touche dediee) ou la commande <code>/artifact info</code>. L'interface affiche :</p>
+      <ul>
+        <li>L'artefact actuellement equipe (avec durabilite, effet, CD restant)</li>
+        <li>Les artefacts en inventaire/stockage</li>
+        <li>Les stats comparatives entre artefacts</li>
+        <li>Un bouton d'activation rapide pour les actifs</li>
+      </ul>
+
+      <div class="ascii-diagram"><span class="ac">┌─────────────────────────────────────────┐</span>
+<span class="ac">│</span>          <span class="ay">GESTION DES ARTEFACTS</span>            <span class="ac">│</span>
+<span class="ac">├─────────────────┬───────────────────────┤</span>
+<span class="ac">│</span> <span class="av">EQUIPE</span>          <span class="ac">│</span> <span class="ag">STOCKAGE (4 max)</span>      <span class="ac">│</span>
+<span class="ac">│</span>                 <span class="ac">│</span>                       <span class="ac">│</span>
+<span class="ac">│</span>  <span class="ay">[Lame Fantome]</span> <span class="ac">│</span>  <span class="ab">[Oeil d'Erinium]</span>      <span class="ac">│</span>
+<span class="ac">│</span>  <span class="as">Durabilite:    </span> <span class="ac">│</span>  <span class="am">[Fragment Noyau]</span>      <span class="ac">│</span>
+<span class="ac">│</span>  <span class="ag">███████░░ 78%</span>  <span class="ac">│</span>  <span class="as">[Vide]</span>                <span class="ac">│</span>
+<span class="ac">│</span>  <span class="as">CD: 1m 24s</span>     <span class="ac">│</span>  <span class="as">[Vide]</span>                <span class="ac">│</span>
+<span class="ac">│</span>                 <span class="ac">│</span>                       <span class="ac">│</span>
+<span class="ac">│</span>  <span class="ac">[ACTIVER]</span>      <span class="ac">│</span>                       <span class="ac">│</span>
+<span class="ac">└─────────────────┴───────────────────────┘</span></div>
+    </section>
+
+    <!-- ═══ S5 — DROP AU PVP ═══ -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num red-num">05</span> Drop au PvP</h2>
+
+      <h3 class="first">Principe fondamental</h3>
+      <p>Si un joueur portant un artefact <strong>equipe</strong> est tue par un <strong>autre joueur</strong> dans une <strong>zone eligible</strong>, l'artefact tombe au sol sous forme d'item. N'importe qui peut le ramasser, y compris le meurtrier, ses allies, ou un tiers opportuniste.</p>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>100% de drop rate :</strong> si toutes les conditions sont remplies, l'artefact tombe a chaque fois sans exception. Pas de chance, pas de roll. La certitude rend l'enjeu reel.</div>
+      </div>
+
+      <h3>Conditions du drop</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Condition</th>
+              <th>Artefact tombe ?</th>
+              <th>Raison</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Mort en Warzone (tue par joueur)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Zone de conflit, risque assume</td>
+            </tr>
+            <tr>
+              <td>Mort en territoire ennemi (tue par joueur)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Zone de raid, risque assume</td>
+            </tr>
+            <tr>
+              <td>Mort en territoire neutre (tue par joueur)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Hors protection, risque assume</td>
+            </tr>
+            <tr>
+              <td>Mort en territoire propre (tue par joueur)</td>
+              <td><span class="tag-no">NON</span></td>
+              <td>Avantage territorial, protection du domicile</td>
+            </tr>
+            <tr>
+              <td>Mort a cause de mobs (PvE)</td>
+              <td><span class="tag-no">NON</span></td>
+              <td>Risque environnemental, pas PvP</td>
+            </tr>
+            <tr>
+              <td>Mort environnementale (vide, lave, chute)</td>
+              <td><span class="tag-no">NON</span></td>
+              <td>Risque environnemental, pas PvP</td>
+            </tr>
+            <tr>
+              <td>Mort dans le Monde Minage</td>
+              <td><span class="tag-no">NON</span></td>
+              <td>Zone proteged, invincibilite totale</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Detection de zone</h3>
+      <p>La verification de zone s'effectue a l'instant de la mort (<code>LivingDeathEvent</code>). L'ordre de verification :</p>
+      <ul>
+        <li><strong>1.</strong> Le joueur est-il en Warzone ? → DROP</li>
+        <li><strong>2.</strong> Le chunk ou il meurt est-il claim par sa propre faction ? → NO DROP</li>
+        <li><strong>3.</strong> La cause de mort est-elle un joueur (<code>EntityPlayer</code>) ? → DROP</li>
+        <li><strong>4.</strong> Sinon → NO DROP</li>
+      </ul>
+
+      <h3>Mecanique de ramassage</h3>
+      <p>L'artefact dropped a un <strong>delai de ramassage de 2 secondes</strong> (le joueur mort ne peut pas immediatement le reprendre). Apres ce delai, n'importe qui peut le ramasser. Si personne ne le ramasse pendant <strong>5 minutes</strong>, il disparait.</p>
+    </section>
+
+    <!-- ═══ S6 — DURABILITE & REPARATION ═══ -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num orange-num">06</span> Durabilite &amp; Reparation</h2>
+
+      <h3 class="first">Concept</h3>
+      <p>Les artefacts ne sont pas eternels. Chaque utilisation (pour les actifs) et le simple fait de les porter (passifs) consomme de la durabilite. Quand la durabilite atteint 0, l'artefact devient <strong>Inerte</strong> : il ne fonctionne plus mais n'est pas detruit. Il peut toujours etre equipe, dropped au PvP et repare.</p>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Philosophie :</strong> les artefacts ne se detruisent jamais. L'etat Inerte est une pression economique, pas une punition permanente. Un artefact legendaire reste legendaire meme a 0 durabilite.</div>
+      </div>
+
+      <h3>Consommation de durabilite</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Evenement</th>
+              <th>Rare</th>
+              <th>Epique</th>
+              <th>Legendaire</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Utilisation active (clic droit)</td>
+              <td>-5</td>
+              <td>-8</td>
+              <td>-10</td>
+            </tr>
+            <tr>
+              <td>Equipe et en jeu (passifs &amp; actifs)</td>
+              <td>-1 / min</td>
+              <td>-1 / min</td>
+              <td>-1 / min</td>
+            </tr>
+            <tr>
+              <td>Durabilite maximale</td>
+              <td>200</td>
+              <td>150</td>
+              <td>100</td>
+            </tr>
+            <tr>
+              <td>Utilisations actives max</td>
+              <td>40 (sans perte passive)</td>
+              <td>~18</td>
+              <td>10</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Etat Inerte</h3>
+      <ul>
+        <li>L'artefact affiche dans son tooltip <strong style="color:#E74C3C;">[INERTE — Aucun effet]</strong></li>
+        <li>Tous les effets actifs et passifs sont desactives</li>
+        <li>L'artefact peut toujours etre equipe, stocke, echange, dropped</li>
+        <li>L'etat Inerte est stocke en NBT : <code>ArtifactDurability: 0</code></li>
+      </ul>
+
+      <h3>Reparation</h3>
+      <p>La reparation s'effectue sur une <strong>Enclume standard Minecraft</strong> avec des ingredients speciaux en second slot. La durabilite est completement restauree en une operation.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Rarete</th>
+              <th>Erinium Ingots</th>
+              <th>Cout $ (EconomyManager)</th>
+              <th>Resultat</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="rarity-rare">Rare</span></td>
+              <td>4 Erinium Ingots</td>
+              <td>500 $</td>
+              <td>Durabilite pleine</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-epic">Epique</span></td>
+              <td>8 Erinium Ingots</td>
+              <td>2 000 $</td>
+              <td>Durabilite pleine</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-legendary">Legendaire</span></td>
+              <td>16 Erinium Ingots</td>
+              <td>10 000 $</td>
+              <td>Durabilite pleine</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Le cout $ est debite du compte joueur via <code>EconomyManager.withdraw()</code> a l'instant de la reparation. Si le joueur n'a pas les fonds, la reparation est refusee avec un message EriChat.</p>
+    </section>
+
+    <!-- ═══ S7 — OBTENTION ═══ -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num">07</span> Obtention</h2>
+
+      <h3 class="first">Obtention actuelle (avant les evenements)</h3>
+      <p>En attendant l'implementation du systeme d'evenements mondiaux, les artefacts tombent des <strong>boss vanilla</strong> dans des conditions specifiques :</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Artefact garanti</th>
+              <th>Condition</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Wither (vanilla)</td>
+              <td>1 Rare aleatoire</td>
+              <td>100% — mort du Wither</td>
+            </tr>
+            <tr>
+              <td>Ender Dragon (vanilla)</td>
+              <td>1 Epique aleatoire</td>
+              <td>100% — premier kill par session serveur</td>
+            </tr>
+            <tr>
+              <td>Commande admin</td>
+              <td>N'importe lequel</td>
+              <td><code>/artifact give &lt;joueur&gt; &lt;id&gt;</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Temporaire :</strong> ce systeme de drop vanilla est un placeholder. L'obtention finale sera liee aux evenements mondiaux (Eruptions, Fracture du Noyau) et aux boss Erinium propres au mod. Ces sources donneront acces aux artefacts legendaires.</div>
+      </div>
+
+      <h3>Obtention future (avec le systeme d'evenements)</h3>
+      <ul>
+        <li><strong>Evenement Eruption :</strong> loot table avec ~15% Rare, ~5% Epique, ~1% Legendaire au chest final</li>
+        <li><strong>Fracture du Noyau (boss) :</strong> drop garanti d'un artefact Legendaire aleatoire</li>
+        <li><strong>Boss Erinium T3 :</strong> pool d'Epiques garantis</li>
+        <li><strong>Convois mondiaux :</strong> chance de Rare dans les caisses de convoi</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S8 — RETOUR VISUEL ═══ -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num cyan-num">08</span> Retour Visuel</h2>
+
+      <h3 class="first">HUD Overlay</h3>
+      <p>Un <strong>OverlayMod</strong> dedie (via <code>OverlayModManager</code> d'EriAPI) affiche en bas a droite du HUD :</p>
+      <ul>
+        <li><strong>Icone</strong> de l'artefact equipe (texture PNG 16x16, bordure coloree selon la rarete)</li>
+        <li><strong>Barre de durabilite</strong> dessous (coloree selon l'etat : vert → jaune → rouge → gris si Inerte)</li>
+        <li><strong>Timer de cooldown</strong> circulaire superpose sur l'icone pour les actifs (noir translucide qui se vide dans le sens horaire)</li>
+        <li>Si inerte : icone en niveaux de gris avec croix rouge</li>
+      </ul>
+
+      <h3>Particules par artefact</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Artefact</th>
+              <th>Effet de proc</th>
+              <th>Particules</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="rarity-rare">Oeil d'Erinium</span></td>
+              <td>Onde cylindrique s'expandant</td>
+              <td>SPELL_INSTANT (cyan), PORTAL autour des cibles reveleees</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-rare">Coeur Cristallin</span></td>
+              <td>Pulsation lente sur la poitrine</td>
+              <td>HEART (blanc) toutes les 3s quand regen active</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-rare">Griffes du Neant</span></td>
+              <td>Stacks sur la cible frappee</td>
+              <td>WITCH (violet fonce) a chaque coup, SMOKE sur la cible</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-epic">Lame Fantome</span></td>
+              <td>Arme translucide + trail</td>
+              <td>SPELL_WITCH (bleu pale) continu sur l'arme equipe</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-epic">Bouclier de Resonance</span></td>
+              <td>Bouclier hexagonal + eclair reflet</td>
+              <td>DRIP_LAVA (dore) en cercle autour du joueur, CRIT au reflet</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-epic">Prisme d'Erinium</span></td>
+              <td>Zone geodesique au sol</td>
+              <td>ENCHANTMENT_TABLE (or) en pluie dans la zone, END_ROD aux limites</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-legendary">Fragment du Noyau</span></td>
+              <td>Aura violette pulsee</td>
+              <td>SPELL_MOB_AMBIENT (violet) autour du joueur quand condition active</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-legendary">Ancre Dimensionnelle</span></td>
+              <td>Faille dimensionnelle</td>
+              <td>PORTAL (cyan/violet) en vortex a l'arrivee de chaque joueur TP</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tooltips</h3>
+      <p>Les tooltips des artefacts utilisent une <strong>bordure coloree selon la rarete</strong> (injection via Mixin sur <code>GuiScreen.renderToolTip</code> ou via le systeme de tooltip EriAPI). Structure du tooltip :</p>
+      <ul>
+        <li>Nom colore (rarete) + tag [ACTIF] ou [PASSIF]</li>
+        <li>Description de l'effet (blanc)</li>
+        <li>Durabilite actuelle (barre coloree)</li>
+        <li>Cooldown si actif (gris si off cooldown, rouge si en CD)</li>
+        <li>Cout de reparation (or)</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S9 — SYNERGIES & BUILDS ═══ -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num gold-num">09</span> Synergies &amp; Builds</h2>
+
+      <p>Les artefacts interagissent avec les systemes RPG, gemmes et enchantements par conception. Voici des exemples de builds viables.</p>
+
+      <h3 class="first">Build Assassin — Lame Fantome + Stats Force</h3>
+      <p>Maximise les points de stat en <strong>Force</strong> pour des degats bruts eleves. L'arme ignore l'armure le temps d'un coup : un assassin level 50 full Force avec Lame Fantome peut potentiellement tuer un tank full Erinium en un engagement.</p>
+      <ul>
+        <li>Artefact : <strong>Lame Fantome</strong> (Epique, Actif)</li>
+        <li>Stats : Force maximale, Agilite secondaire (vitesse de deplacement)</li>
+        <li>Gemmes : Rubis (Force) dans les slots arme</li>
+        <li>Enchantement recommande : Execution (si implementee) pour finisher</li>
+      </ul>
+
+      <h3>Build Tank Reactif — Bouclier de Resonance + Resistance</h3>
+      <p>Un joueur en full Erinium avec stats <strong>Resistance</strong> maximale qui active le Bouclier de Resonance devient un piege anti-rush. Les 50% de reflet sur 3 secondes peuvent tuer un attaquant qui a engage le combo.</p>
+      <ul>
+        <li>Artefact : <strong>Bouclier de Resonance</strong> (Epique, Actif)</li>
+        <li>Stats : Resistance prioritaire, Vigueur (PV) secondaire</li>
+        <li>Gemmes : Saphir (Resistance) dans armure</li>
+        <li>Synergy : Coeur Cristallin (si obtenu) pour regen hors combat</li>
+      </ul>
+
+      <h3>Build Frontline 1vN — Fragment du Noyau + Vigueur</h3>
+      <p>Le Fragment du Noyau est concu pour les frondeurs solitaires qui attaquent des groupes. +20% de degats quand 2 ennemis ou plus sont proches, combine a une haute Vigueur pour encaisser, cree un profil de bruiser capable de tenir seul contre plusieurs.</p>
+      <ul>
+        <li>Artefact : <strong>Fragment du Noyau</strong> (Legendaire, Passif)</li>
+        <li>Stats : Vigueur (PV) + Resistance equilibrees, Force moderee</li>
+        <li>Gemmes : Emeraude (lifesteal si implementee) pour soutien</li>
+        <li>Enchantement : Siphon (si disponible) pour synergy de regen au combat</li>
+      </ul>
+
+      <h3>Build Support Faction — Ancre Dimensionnelle</h3>
+      <p>Destine aux leaders de faction ou aux joueurs qui preferent la strategie. L'Ancre permet de reunifier une faction dispersee en une fraction de seconde — decisif lors d'une defense de base ou d'un assaut coordonne.</p>
+      <ul>
+        <li>Artefact : <strong>Ancre Dimensionnelle</strong> (Legendaire, Actif)</li>
+        <li>Stats : flexible — ce build est defini par la tactique, pas les stats</li>
+        <li>Gemmes : Onyx (survie) pour rester en vie suffisamment longtemps pour activer</li>
+        <li>Condition : ciel visible requise — a ne pas utiliser sous terre</li>
+      </ul>
+
+      <h3>Build Anti-Heal — Griffes du Neant + Force</h3>
+      <p>Contre les builds de regeneration (Coeur Cristallin, amulets de regen, potions). Les Griffes du Neant a pleine pile reduisent les soins de 40%, annulant partiellement les capacites de sustain adverses. Ideal contre les tanks qui comptent sur la regen hors combat.</p>
+      <ul>
+        <li>Artefact : <strong>Griffes du Neant</strong> (Rare, Passif)</li>
+        <li>Stats : Force pour maintenir les stacks rapidement, Agilite pour rester sur la cible</li>
+        <li>Synergy : Coeur Cristallin en opposition → counter direct</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S10 — STRUCTURES DE DONNEES ═══ -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num">10</span> Structures de Donnees</h2>
+
+      <h3 class="first">ArtifactData — EriData joueur</h3>
+      <div class="code-block"><span class="an">@EriData</span>(<span class="st">modId</span> = <span class="st">"eriniumfaction"</span>, <span class="st">scope</span> = <span class="ty">DataScope</span>.<span class="cl">PLAYER</span>, <span class="st">persistOnDeath</span> = <span class="kw">true</span>)
+<span class="kw">public class</span> <span class="ty">ArtifactData</span> {
+    <span class="cm">/** ID de l'artefact equipe, ou chaine vide si aucun */</span>
+    <span class="an">@Sync</span> <span class="kw">public</span> <span class="ty">String</span> equippedArtifact = <span class="st">""</span>;
+
+    <span class="cm">/** Map artefact ID → timestamp (ms) d'expiration du cooldown */</span>
+    <span class="kw">public</span> <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">Long</span>&gt; cooldowns = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+
+    <span class="cm">/** Helper : l'artefact equipe est-il en cooldown ? */</span>
+    <span class="kw">public boolean</span> <span class="fn">isOnCooldown</span>(<span class="ty">String</span> artifactId) {
+        <span class="ty">Long</span> expiry = cooldowns.<span class="fn">get</span>(artifactId);
+        <span class="kw">return</span> expiry != <span class="kw">null</span> &amp;&amp; <span class="ty">System</span>.<span class="fn">currentTimeMillis</span>() &lt; expiry;
+    }
+
+    <span class="cm">/** Helper : temps restant en secondes */</span>
+    <span class="kw">public int</span> <span class="fn">getRemainingCooldown</span>(<span class="ty">String</span> artifactId) {
+        <span class="ty">Long</span> expiry = cooldowns.<span class="fn">get</span>(artifactId);
+        <span class="kw">if</span> (expiry == <span class="kw">null</span>) <span class="kw">return</span> <span class="nu">0</span>;
+        <span class="kw">return</span> (<span class="kw">int</span>) <span class="ty">Math</span>.<span class="fn">max</span>(<span class="nu">0</span>, (expiry - <span class="ty">System</span>.<span class="fn">currentTimeMillis</span>()) / <span class="nu">1000</span>);
+    }
+}</div>
+
+      <h3>NBT de l'item artefact</h3>
+      <div class="code-block"><span class="cm">// Cles NBT sur l'ItemStack artefact</span>
+<span class="st">"ArtifactId"</span>              : <span class="ty">String</span>  <span class="cm">// ex: "lame_fantome"</span>
+<span class="st">"ArtifactRarity"</span>          : <span class="ty">String</span>  <span class="cm">// "RARE" | "EPIC" | "LEGENDARY"</span>
+<span class="st">"ArtifactDurability"</span>      : <span class="ty">int</span>     <span class="cm">// durabilite actuelle</span>
+<span class="st">"ArtifactMaxDurability"</span>   : <span class="ty">int</span>     <span class="cm">// durabilite max selon rarete</span>
+<span class="st">"ArtifactType"</span>            : <span class="ty">String</span>  <span class="cm">// "ACTIVE" | "PASSIVE"</span></div>
+
+      <h3>ArtifactType — Enum</h3>
+      <div class="code-block"><span class="kw">public enum</span> <span class="ty">ArtifactType</span> {
+    <span class="cl">OEIL_ERINIUM</span>(     <span class="st">"oeil_erinium"</span>,      <span class="ty">ArtifactRarity</span>.<span class="cl">RARE</span>,      <span class="kw">false</span>, <span class="nu">300</span>, <span class="nu">200</span>),
+    <span class="cl">COEUR_CRISTALLIN</span>( <span class="st">"coeur_cristallin"</span>,  <span class="ty">ArtifactRarity</span>.<span class="cl">RARE</span>,      <span class="kw">true</span>,  <span class="nu">0</span>,   <span class="nu">200</span>),
+    <span class="cl">GRIFFES_NEANT</span>(    <span class="st">"griffes_neant"</span>,     <span class="ty">ArtifactRarity</span>.<span class="cl">RARE</span>,      <span class="kw">true</span>,  <span class="nu">0</span>,   <span class="nu">200</span>),
+    <span class="cl">LAME_FANTOME</span>(     <span class="st">"lame_fantome"</span>,      <span class="ty">ArtifactRarity</span>.<span class="cl">EPIC</span>,      <span class="kw">false</span>, <span class="nu">180</span>, <span class="nu">150</span>),
+    <span class="cl">BOUCLIER_RESONANCE</span>(<span class="st">"bouclier_resonance"</span>,<span class="ty">ArtifactRarity</span>.<span class="cl">EPIC</span>,      <span class="kw">false</span>, <span class="nu">240</span>, <span class="nu">150</span>),
+    <span class="cl">PRISME_ERINIUM</span>(   <span class="st">"prisme_erinium"</span>,    <span class="ty">ArtifactRarity</span>.<span class="cl">EPIC</span>,      <span class="kw">false</span>, <span class="nu">360</span>, <span class="nu">150</span>),
+    <span class="cl">FRAGMENT_NOYAU</span>(   <span class="st">"fragment_noyau"</span>,    <span class="ty">ArtifactRarity</span>.<span class="cl">LEGENDARY</span>, <span class="kw">true</span>,  <span class="nu">0</span>,   <span class="nu">100</span>),
+    <span class="cl">ANCRE_DIMENSIONNELLE</span>(<span class="st">"ancre_dimensionnelle"</span>,<span class="ty">ArtifactRarity</span>.<span class="cl">LEGENDARY</span>,<span class="kw">false</span>,<span class="nu">900</span>, <span class="nu">100</span>);
+
+    <span class="kw">public final</span> <span class="ty">String</span> id;
+    <span class="kw">public final</span> <span class="ty">ArtifactRarity</span> rarity;
+    <span class="kw">public final boolean</span> passive;      <span class="cm">// true = passif, false = actif</span>
+    <span class="kw">public final int</span> cooldownSeconds;  <span class="cm">// 0 pour les passifs</span>
+    <span class="kw">public final int</span> maxDurability;
+}</div>
+
+      <h3>ArtifactRarity — Enum</h3>
+      <div class="code-block"><span class="kw">public enum</span> <span class="ty">ArtifactRarity</span> {
+    <span class="cl">RARE</span>(      <span class="st">"&9Rare"</span>,       <span class="nu">0xFF3498DB</span>, <span class="nu">4</span>,  <span class="nu">500</span>,    <span class="nu">200</span>),
+    <span class="cl">EPIC</span>(      <span class="st">"&5Epique"</span>,     <span class="nu">0xFF9B59B6</span>, <span class="nu">8</span>,  <span class="nu">2000</span>,  <span class="nu">150</span>),
+    <span class="cl">LEGENDARY</span>( <span class="st">"&6Legendaire"</span>, <span class="nu">0xFFF1C40F</span>, <span class="nu">16</span>, <span class="nu">10000</span>, <span class="nu">100</span>);
+
+    <span class="kw">public final</span> <span class="ty">String</span> displayName;  <span class="cm">// couleur Minecraft</span>
+    <span class="kw">public final int</span> color;            <span class="cm">// ARGB pour le rendu</span>
+    <span class="kw">public final int</span> repairEriniumCost;<span class="cm">// Erinium Ingots</span>
+    <span class="kw">public final int</span> repairMoneyCost;  <span class="cm">// $</span>
+    <span class="kw">public final int</span> maxDurability;
+}</div>
+    </section>
+
+    <!-- ═══ S11 — ARCHITECTURE TECHNIQUE ═══ -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num">11</span> Architecture Technique</h2>
+
+      <h3 class="first">Structure du package</h3>
+      <div class="code-block"><span class="st">fr.eriniumgroup.eriniumfaction.artifact/</span>
+<span class="ac">├── ArtifactType.java</span>              <span class="cm">— Enum tous artefacts avec metadata (id, rarete, passif, CD, durabilite)</span>
+<span class="ac">├── ArtifactRarity.java</span>            <span class="cm">— Enum RARE / EPIC / LEGENDARY (couleur, cout reparation)</span>
+<span class="ac">├── ArtifactItem.java</span>              <span class="cm">— Classe item de base pour tous les artefacts (NBT, tooltip)</span>
+<span class="ac">├── ArtifactManager.java</span>           <span class="cm">— Singleton : equip/desequip, cooldowns, durabilite, drop PvP</span>
+<span class="ac">├── ArtifactData.java</span>              <span class="cm">— @EriData joueur (artefact equipe, Map cooldowns)</span>
+<span class="ac">├── ArtifactEventHandler.java</span>      <span class="cm">— Forge events : LivingDeathEvent, LivingHurtEvent, PlayerTickEvent</span>
+<span class="ac">├── ArtifactDropHandler.java</span>       <span class="cm">— Logique drop PvP (verification zone, delai ramassage, despawn)</span>
+<span class="ac">├── effect/</span>
+<span class="ac">│   ├── OeilEffect.java</span>            <span class="cm">— Reveal joueurs (Glowing potion, particules onde)</span>
+<span class="ac">│   ├── CoeurCristallinEffect.java</span> <span class="cm">— Regen hors-combat (tracking dernier degat)</span>
+<span class="ac">│   ├── GriffesNeantEffect.java</span>    <span class="cm">— Stacks anti-heal sur cible (Map&lt;UUID, StackData&gt;)</span>
+<span class="ac">│   ├── LameFantomeEffect.java</span>     <span class="cm">— Flag next-hit armor ignore (Set&lt;UUID&gt;)</span>
+<span class="ac">│   ├── BouclierResonanceEffect.java</span><span class="cm">— Reflexion degats (Set&lt;UUID&gt; actifs, prevent recursion)</span>
+<span class="ac">│   ├── PrismeEffect.java</span>          <span class="cm">— Zone damage reduction (BlockPos, AxisAlignedBB, EriScheduler)</span>
+<span class="ac">│   ├── FragmentNoyauEffect.java</span>   <span class="cm">— Detection surencerclement (comptage joueurs proches /tick)</span>
+<span class="ac">│   └── AncreDimensionnelleEffect.java</span> <span class="cm">— Teleportation masse faction (line of sight check, combat check)</span>
+<span class="ac">├── gui/</span>
+<span class="ac">│   └── ArtifactOverlay.java</span>       <span class="cm">— HUD overlay (extends OverlayMod, icone + durabilite + CD circulaire)</span>
+<span class="ac">└── command/</span>
+<span class="ac">    └── ArtifactCommand.java</span>       <span class="cm">— /artifact give, list, info</span></div>
+
+      <h3>ArtifactManager — points cles</h3>
+      <ul>
+        <li><strong>Singleton</strong> : <code>ArtifactManager.getInstance()</code></li>
+        <li><strong>equip(player, itemStack)</strong> : verifie si l'artefact est valide (NBT ArtifactId present), desequipe l'ancien si necessaire, met a jour ArtifactData</li>
+        <li><strong>activate(player)</strong> : verifie CD, durabilite &gt; 0, delegue a l'effet correspondant, decremente durabilite, pose le CD dans ArtifactData.cooldowns</li>
+        <li><strong>tickPassive(player)</strong> : appele par PlayerTickEvent, delegue aux effets passifs actifs, decremente durabilite chaque minute</li>
+        <li>Utilise <strong>EriEvents</strong> pour tous les listeners Forge</li>
+      </ul>
+
+      <h3>Events utilises</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Usage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>LivingDeathEvent</code></td>
+              <td>Detection mort PvP, verification zone, drop artefact</td>
+            </tr>
+            <tr>
+              <td><code>LivingHurtEvent</code></td>
+              <td>Griffes du Neant (stack), Bouclier de Resonance (reflexion), Lame Fantome (ignore armure), Fragment du Noyau (bonus degats)</td>
+            </tr>
+            <tr>
+              <td><code>LivingHealEvent</code></td>
+              <td>Griffes du Neant (reduction soins selon stacks)</td>
+            </tr>
+            <tr>
+              <td><code>PlayerInteractEvent.RightClickItem</code></td>
+              <td>Activation des artefacts actifs (clic droit en jeu)</td>
+            </tr>
+            <tr>
+              <td><code>PlayerTickEvent</code></td>
+              <td>Coeur Cristallin (regen hors combat), Fragment du Noyau (detection surencerclement), perte durabilite passive (compteur/tick)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Notes d'implementation importantes</h3>
+      <ul>
+        <li>Le Bouclier de Resonance maintient un <code>Set&lt;UUID&gt;</code> des joueurs "en reflexion" pour eviter la recursion infinie (le reflet ne peut pas lui-meme etre reflechi)</li>
+        <li>PrismeEffect utilise <code>EriScheduler</code> pour la duree de 8 secondes et EriEvents pour detecter les entrees/sorties de zone</li>
+        <li>L'Ancre verifie la ligne de vue vers le ciel via <code>world.canSeeSky(BlockPos)</code></li>
+        <li>GriffesNeantEffect stocke les stacks par UUID cible avec un timestamp d'expiration (Map&lt;UUID, long[]&gt; ou classe interne)</li>
+        <li>OeilEffect utilise l'effet de potion <code>MobEffects.GLOWING</code> pour les contours visibles</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S12 — COMMANDES & PERMISSIONS ═══ -->
+    <section class="section-card" id="s12">
+      <h2><span class="s-num">12</span> Commandes &amp; Permissions</h2>
+
+      <h3 class="first">Commandes joueur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Commande</th>
+              <th>Description</th>
+              <th>Permission</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/artifact info</code></td>
+              <td>Affiche l'artefact equipe, sa durabilite et le CD restant</td>
+              <td>Tout joueur</td>
+            </tr>
+            <tr>
+              <td><code>/artifact list</code></td>
+              <td>Liste tous les artefacts disponibles avec description et stats</td>
+              <td>Tout joueur</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Commandes admin</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Commande</th>
+              <th>Description</th>
+              <th>Permission</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/artifact give &lt;joueur&gt; &lt;id&gt;</code></td>
+              <td>Donne un artefact specifique a un joueur. ID = valeur de l'enum ArtifactType (ex: lame_fantome)</td>
+              <td><code>artifact.admin</code></td>
+            </tr>
+            <tr>
+              <td><code>/artifact reset &lt;joueur&gt;</code></td>
+              <td>Retire l'artefact equipe du joueur et remet tous ses cooldowns a zero</td>
+              <td><code>artifact.admin</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Auto-completion</h3>
+      <ul>
+        <li><code>/artifact give</code> : suggestions des noms de joueurs en ligne + suggestions des IDs d'artefacts (<code>.suggestsDynamic</code> depuis <code>ArtifactType.values()</code>)</li>
+        <li><code>/artifact reset</code> : suggestions des noms de joueurs en ligne</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Permission a documenter :</strong> ajouter <code>artifact.admin</code> dans <code>docs/permissions.md</code> avec description et grade minimum recommande.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S13 — ASSETS ═══ -->
+    <section class="section-card" id="s13">
+      <h2><span class="s-num cyan-num">13</span> Assets</h2>
+
+      <h3 class="first">Textures items (8 artefacts)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Artefact</th>
+              <th>Fichier</th>
+              <th>Dimensions</th>
+              <th>Style</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="rarity-rare">Oeil d'Erinium</span></td>
+              <td><code>oeil_erinium.png</code></td>
+              <td>64x64</td>
+              <td>Oeil stylise avec iris cyan, bordure bleue lumineuse</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-rare">Coeur Cristallin</span></td>
+              <td><code>coeur_cristallin.png</code></td>
+              <td>64x64</td>
+              <td>Cristal en forme de coeur, reflets blancs, aura bleu pale</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-rare">Griffes du Neant</span></td>
+              <td><code>griffes_neant.png</code></td>
+              <td>64x64</td>
+              <td>Trois griffes acurees, couleur violette sombre, aura noire</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-epic">Lame Fantome</span></td>
+              <td><code>lame_fantome.png</code></td>
+              <td>64x64</td>
+              <td>Lame translucide bleutee, contour spectral, particules fantomatiques</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-epic">Bouclier de Resonance</span></td>
+              <td><code>bouclier_resonance.png</code></td>
+              <td>64x64</td>
+              <td>Hexagone cristallin prismatique, reflets dores, texture hexagonale interne</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-epic">Prisme d'Erinium</span></td>
+              <td><code>prisme_erinium.png</code></td>
+              <td>64x64</td>
+              <td>Prisme geometrique dore, facettes claires, interior glowing</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-legendary">Fragment du Noyau</span></td>
+              <td><code>fragment_noyau.png</code></td>
+              <td>64x64</td>
+              <td>Fragment de cristal noir/violet, crevasses lumineuses or, aura intense</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-legendary">Ancre Dimensionnelle</span></td>
+              <td><code>ancre_dimensionnelle.png</code></td>
+              <td>64x64</td>
+              <td>Ancre geodesique avec vortex espace au centre, or + cyan</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Icones HUD Overlay</h3>
+      <p>Chaque artefact a une icone 16x16 en <strong>niveaux de gris</strong> (pour l'etat Inerte) et en <strong>couleur rarete</strong> (etat normal). Nomenclature : <code>overlay/artifact_&lt;id&gt;.png</code> et <code>overlay/artifact_&lt;id&gt;_gray.png</code>.</p>
+
+      <h3>Modeles JSON</h3>
+      <p>Chaque item artefact a un modele JSON standard (<code>item/generated</code> avec <code>layer0</code>) pointe vers sa texture. Le glow (EnumRarity custom ou NBT Enchanted Glint) est gere via l'item Java, pas le modele.</p>
+
+      <h3>Traductions</h3>
+      <p>Fichiers <code>assets/eriniumfaction/lang/fr_FR.lang</code> et <code>en_US.lang</code>. Cles a ajouter pour les 8 noms d'artefacts, leurs descriptions de tooltip, et les messages de commandes (<code>artifact.given</code>, <code>artifact.reset</code>, <code>artifact.activated</code>, <code>artifact.cooldown</code>, <code>artifact.inert</code>, <code>artifact.dropped</code>).</p>
+    </section>
+
+    <!-- ═══ S14 — EQUILIBRAGE ═══ -->
+    <section class="section-card" id="s14">
+      <h2><span class="s-num gold-num">14</span> Equilibrage</h2>
+
+      <h3 class="first">Philosophie des cooldowns</h3>
+      <p>Les cooldowns sont calibres pour que l'artefact soit un outil de combat ponctuel et decisif, pas une rotation perpetuelle. Un CD de 3-6 minutes sur un actif epique signifie qu'il sera utilise une fois par engagement majeur — pas une fois par coup.</p>
+      <ul>
+        <li><strong>Rare (5 min) :</strong> utile frequemment mais pas game-breaking a chaque usage</li>
+        <li><strong>Epique (3-6 min) :</strong> pouvoir significatif, un ou deux usages par session de combat</li>
+        <li><strong>Legendaire (15 min) :</strong> usage tactique rare, reserve aux moments decisifs</li>
+      </ul>
+
+      <h3>Pourquoi le Fragment du Noyau est +20% et pas plus</h3>
+      <p>En PvP 1.8 sans cooldown d'attaque, les degats bruts s'appliquent a haute frequence (jitter click). +20% de degats passifs dans une situation de surencerclement correspond a environ +1.5 demi-coeur par coup supplementaire sur armure Erinium. Suffisamment pour faire une difference en combat soutenu, insuffisant pour etre brise en burst.</p>
+
+      <h3>Pourquoi le Bouclier de Resonance reflechit 50% et pas 100%</h3>
+      <p>A 100%, l'artefact deviendrait trivialement brise : un tank full Erinium utilisant le Bouclier sous un combo d'assassin retournerait potentiellement l'integralite des degats. A 50%, le reflet est un "bonus de punition" qui penalise l'attaquant inconsidere sans le tuer automatiquement.</p>
+
+      <h3>Durabilite : le vrai cout de puissance</h3>
+      <p>Un artefact legendaire (100 durabilite, -10 par usage actif) ne tient que <strong>10 activations</strong> avant de devenir Inerte. A 10 000$ de reparation + 16 Erinium Ingots, maintenir un legendaire actif est un investissement economique majeur. Cela cree une demande en Erinium et en monnaie, et valorise les joueurs qui savent utiliser leurs artefacts au bon moment.</p>
+
+      <h3>Anti-abus</h3>
+      <ul>
+        <li><strong>Ancre Dimensionnelle :</strong> la condition "ligne de vue vers le ciel" empeche l'usage dans les bases souterraines (ou l'ennemi attendrait simplement le CD)</li>
+        <li><strong>Bouclier de Resonance :</strong> flag anti-recursion empeche les reflexions en chaine si deux joueurs ont le Bouclier actif simultanement</li>
+        <li><strong>Oeil d'Erinium :</strong> delai de 2 secondes avant activation (evite le spam de scan)</li>
+        <li><strong>Drop au PvP :</strong> le territoire propre ne drop pas = pas d'exploitation "suicidez-moi chez moi pour reprendre"</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S15 — PLAN DE TESTS ═══ -->
+    <section class="section-card" id="s15">
+      <h2><span class="s-num green-num">15</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests unitaires — Logique de drop</h3>
+      <ul>
+        <li>Mort en Warzone par joueur → artefact tombe</li>
+        <li>Mort en territoire propre par joueur → artefact ne tombe pas</li>
+        <li>Mort par mob en Warzone → artefact ne tombe pas</li>
+        <li>Mort dans Monde Minage → artefact ne tombe pas</li>
+        <li>Mort sans artefact equipe → rien ne se passe</li>
+        <li>Artefact Inerte equipe mort en Warzone → tombe quand meme (Inerte = pas detruit)</li>
+      </ul>
+
+      <h3>Tests unitaires — Durabilite et reparation</h3>
+      <ul>
+        <li>Utilisation active : durabilite decremente correctement par rarete</li>
+        <li>Durabilite = 0 : artefact devient Inerte, effet desactive</li>
+        <li>Reparation avec bons ingredients et argent → durabilite pleine</li>
+        <li>Reparation sans assez d'argent → refusee, message affiche</li>
+        <li>Perte de durabilite passive : 1 par minute de port verifiable</li>
+      </ul>
+
+      <h3>Tests par artefact</h3>
+      <ul>
+        <li><strong>Oeil d'Erinium :</strong> les joueurs ennemis dans 100 blocs recoivent Glowing ; les allies ne sont pas reveals ; le CD se pose apres usage</li>
+        <li><strong>Coeur Cristallin :</strong> regen active apres 5s sans degat ; desactivee immediatement au premier degat recu ou inflige</li>
+        <li><strong>Griffes du Neant :</strong> les stacks s'accumulent correctement (test avec 8 coups rapides → 40% reduction) ; expire apres 6s sans coup</li>
+        <li><strong>Lame Fantome :</strong> le prochain coup uniquement ignore l'armure ; le deuxieme coup la prend en compte</li>
+        <li><strong>Bouclier de Resonance :</strong> 50% du degat recu reflechit sur l'attaquant ; pas de recursion si l'attaquant a aussi le Bouclier actif</li>
+        <li><strong>Prisme d'Erinium :</strong> la zone reduit les degats de 40% pour allies ET ennemis ; les degats hors zone sont normaux</li>
+        <li><strong>Fragment du Noyau :</strong> +20% degats avec 2 ennemis proches ; 0% bonus avec 1 seul ennemi ; desactive immediatement quand ils s'eloignent</li>
+        <li><strong>Ancre Dimensionnelle :</strong> teleporte les allies dans 30 blocs ; echoue sans ciel visible ; echoue si le joueur cible est en combat</li>
+      </ul>
+
+      <h3>Tests d'integration</h3>
+      <ul>
+        <li>Equiper un artefact quand un autre est deja equipe → desequipement automatique correct</li>
+        <li>Artefact dans inventaire plein → refus d'equipement</li>
+        <li>Cooldown persiste apres reconnexion (via ArtifactData serialization)</li>
+        <li>Overlay HUD correct (icone, durabilite, CD circulaire) pour chaque artefact</li>
+        <li>Commandes admin (<code>/artifact give</code>, <code>/artifact reset</code>) fonctionnent avec auto-complete</li>
+        <li>Drop boss Wither → Rare aleatoire correct</li>
+        <li>Drop Ender Dragon → Epique aleatoire correct (premier kill uniquement)</li>
+        <li>Synergies : Coeur Cristallin + Griffes du Neant adverses se contre-interagissent correctement</li>
+      </ul>
+
+      <h3>Tests de performance</h3>
+      <ul>
+        <li><code>PlayerTickEvent</code> : le check du Fragment du Noyau (scan de joueurs proches) ne cause pas de lag visible avec 20 joueurs simultanes</li>
+        <li>GriffesNeantEffect : nettoyage des entrees expirees dans la Map (pas de memory leak)</li>
+        <li>PrismeEffect : la zone ne cree pas de lag sur AxisAlignedBB check chaque tick</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<script>
+  // Highlight nav link actif selon scroll
+  const links = document.querySelectorAll('.nav-link');
+  const sections = document.querySelectorAll('.section-card[id]');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { threshold: 0.25 });
+  sections.forEach(s => obs.observe(s));
+</script>
+
+</body>
+</html>

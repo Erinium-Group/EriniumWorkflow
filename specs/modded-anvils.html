@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Enclumes Moddees | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #4AE0E0; --aetherite: #9B59B6; --erinium: #FFD700;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(74,224,224,0.09) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(255,215,0,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, #4AE0E0 40%, #FFD700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-valterite{ color: var(--valterite);border-color: rgba(74,224,224,0.35); background: rgba(74,224,224,0.08); }
+  .badge-aetherite{ color: var(--aetherite);border-color: rgba(155,89,182,0.35); background: rgba(155,89,182,0.08); }
+  .badge-erinium  { color: var(--erinium);  border-color: rgba(255,215,0,0.35);  background: rgba(255,215,0,0.08); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h2 .s-num.valterite-num { background: linear-gradient(135deg, #1a8080 0%, var(--valterite) 100%); }
+  .section-card h2 .s-num.aetherite-num { background: linear-gradient(135deg, #5c2d6e 0%, var(--aetherite) 100%); }
+  .section-card h2 .s-num.erinium-num   { background: linear-gradient(135deg, #a07800 0%, var(--erinium) 100%); color: #1a1200; }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '›'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .ascii-diagram .ab { color: var(--rare); }
+  .ascii-diagram .am { color: var(--aetherite); }
+  .ascii-diagram .avt { color: var(--valterite); }
+  .ascii-diagram .aer { color: var(--erinium); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  /* Tier cards */
+  .tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+  .tier-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 22px 20px; text-align: center; }
+  .tier-card.valterite { border-top: 3px solid var(--valterite); }
+  .tier-card.aetherite { border-top: 3px solid var(--aetherite); }
+  .tier-card.erinium   { border-top: 3px solid var(--erinium); }
+  .tier-card-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .tier-card.valterite .tier-card-name { color: var(--valterite); }
+  .tier-card.aetherite .tier-card-name { color: var(--aetherite); }
+  .tier-card.erinium   .tier-card-name { color: var(--erinium); }
+  .tier-card-sub  { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); margin-bottom: 14px; }
+  .tier-card-stat { font-size: 12px; color: var(--slate); margin: 5px 0; }
+  .tier-card-stat strong { color: var(--text); }
+  .tier-reduction { font-size: 26px; font-weight: 800; margin: 10px 0 6px; }
+  .tier-card.valterite .tier-reduction { color: var(--valterite); }
+  .tier-card.aetherite .tier-reduction { color: var(--aetherite); }
+  .tier-card.erinium   .tier-reduction { color: var(--erinium); }
+  /* Checklist */
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .tier-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Les 3 Enclumes</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Recettes de Craft</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Mecanique Reduction XP</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Absence de Degradation</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Gravite et Degats</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Architecture Technique</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Assets</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Integration</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges · EriniumFaction</div>
+      <h1>Enclumes Moddees</h1>
+      <p>Trois enclumes haut-tier (Valterite, Aetherite, Erinium) qui fonctionnent comme l'enclume vanilla tout en reduisant le cout en XP des operations. Un investissement permanent pour les joueurs qui progressent dans l'economie d'Erinium.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-valterite">Valterite -20%</span>
+        <span class="badge badge-aetherite">Aetherite -30%</span>
+        <span class="badge badge-erinium">Erinium -50%</span>
+        <span class="badge badge-green">Pas de degradation</span>
+        <span class="badge badge-cyan">3 blocs</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Vision du systeme</h3>
+      <p>Les enclumes moddees sont un <strong>investissement de progression</strong>. Un joueur haut-tier qui a investi du temps dans les ressources Valterite, Aetherite ou Erinium merite une recompense tangible lors des operations d'enclume — qui sont frequentes dans un contexte PvP ou les armes, armures et enchantements sont constamment repares et ameliores.</p>
+      <p>Le systeme repose sur un principe simple :</p>
+      <ul>
+        <li><strong>Plus le materiau est rare, plus la reduction est grande.</strong> Valterite (tier 1) : -20%, Aetherite (tier 2) : -30%, Erinium (tier 3) : -50%.</li>
+        <li><strong>Investissement permanent :</strong> contrairement a l'enclume vanilla qui se degrade, les enclumes moddees ne se brisent jamais. Les crafter une seule fois suffit.</li>
+        <li><strong>Complementarite avec le systeme d'enchantements :</strong> les enchantements Erinium personnalises (Sharpness VII, Protection VI, etc.) coutent plus cher a l'enclume que les enchantements vanilla. Les enclumes moddees compensent directement ce surcout.</li>
+      </ul>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Economie XP :</strong> donner de la valeur aux ressources haut-tier au-dela du PvP direct. Crafter une enclume Erinium est un objectif concret pour les joueurs mid-game.</li>
+        <li><strong>Comportement familier :</strong> le GUI est identique a l'enclume vanilla — pas de nouvelle mecanique a apprendre, juste un bonus transparent.</li>
+        <li><strong>Equilibre :</strong> la reduction s'applique au cout en niveaux uniquement, pas aux ingredients de reparation. L'XP reste une ressource precieuse meme avec l'enclume Erinium.</li>
+        <li><strong>Performance serveur :</strong> aucun tick, aucun event permanent — la reduction est calculee une seule fois lors de l'ouverture du slot de resultat, comme vanilla.</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Complement enchantements :</strong> Le spec enchantements Erinium introduit des niveaux superieurs (Sharpness VII = 30 niveaux a l'enclume). L'enclume Erinium ramene ce cout a 15 niveaux — rendant les enchantements puissants accessibles sans vider sa barre d'XP.</div>
+      </div>
+
+      <h3>Ce que le systeme ne fait pas</h3>
+      <ul>
+        <li><strong>Pas de bypass du plafond "Too Expensive" :</strong> la limite de 39 niveaux vanilla reste en vigueur (sauf si le systeme d'enchantements Erinium la gere independamment).</li>
+        <li><strong>Pas de reduction des ingredients :</strong> reparer une epee diamant necessite toujours autant de diamants — seul le cout XP est reduit.</li>
+        <li><strong>Pas de nouvelles operations :</strong> les enclumes moddees font exactement la meme chose que l'enclume vanilla, en moins cher.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S2 — LES 3 ENCLUMES ═══ -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num valterite-num">02</span> Les 3 Enclumes</h2>
+
+      <div class="tier-grid">
+        <div class="tier-card valterite">
+          <div class="tier-card-name">Valterite</div>
+          <div class="tier-card-sub">Tier 1 — Cyan</div>
+          <div class="tier-reduction">-20%</div>
+          <div class="tier-card-stat"><strong>Materiau :</strong> Lingot de Valterite</div>
+          <div class="tier-card-stat"><strong>Couleur :</strong> #4AE0E0</div>
+          <div class="tier-card-stat"><strong>Degradation :</strong> Aucune</div>
+          <div class="tier-card-stat"><strong>ID bloc :</strong> valterite_anvil</div>
+        </div>
+        <div class="tier-card aetherite">
+          <div class="tier-card-name">Aetherite</div>
+          <div class="tier-card-sub">Tier 2 — Violet</div>
+          <div class="tier-reduction">-30%</div>
+          <div class="tier-card-stat"><strong>Materiau :</strong> Cristal d'Aetherite</div>
+          <div class="tier-card-stat"><strong>Couleur :</strong> #9B59B6</div>
+          <div class="tier-card-stat"><strong>Degradation :</strong> Aucune</div>
+          <div class="tier-card-stat"><strong>ID bloc :</strong> aetherite_anvil</div>
+        </div>
+        <div class="tier-card erinium">
+          <div class="tier-card-name">Erinium</div>
+          <div class="tier-card-sub">Tier 3 — Or</div>
+          <div class="tier-reduction">-50%</div>
+          <div class="tier-card-stat"><strong>Materiau :</strong> Fragment d'Erinium</div>
+          <div class="tier-card-stat"><strong>Couleur :</strong> #FFD700</div>
+          <div class="tier-card-stat"><strong>Degradation :</strong> Aucune</div>
+          <div class="tier-card-stat"><strong>ID bloc :</strong> erinium_anvil</div>
+        </div>
+      </div>
+
+      <h3>Tableau comparatif complet</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Parametre</th>
+              <th>Vanilla</th>
+              <th style="color:var(--valterite)">Valterite</th>
+              <th style="color:var(--aetherite)">Aetherite</th>
+              <th style="color:var(--erinium)">Erinium</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Reduction XP</td>
+              <td>0%</td>
+              <td style="color:var(--valterite)">-20%</td>
+              <td style="color:var(--aetherite)">-30%</td>
+              <td style="color:var(--erinium)">-50%</td>
+            </tr>
+            <tr>
+              <td>Materiau de craft</td>
+              <td>Lingot de Fer</td>
+              <td>Lingot de Valterite</td>
+              <td>Cristal d'Aetherite</td>
+              <td>Fragment d'Erinium</td>
+            </tr>
+            <tr>
+              <td>Degradation</td>
+              <td><span class="tag-yes">OUI (3 etats)</span></td>
+              <td><span class="tag-no">NON</span></td>
+              <td><span class="tag-no">NON</span></td>
+              <td><span class="tag-no">NON</span></td>
+            </tr>
+            <tr>
+              <td>Gravite (chute)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+            <tr>
+              <td>Degats de chute</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+            <tr>
+              <td>ID bloc</td>
+              <td>minecraft:anvil</td>
+              <td>eriniumfaction:valterite_anvil</td>
+              <td>eriniumfaction:aetherite_anvil</td>
+              <td>eriniumfaction:erinium_anvil</td>
+            </tr>
+            <tr>
+              <td>Classe bloc</td>
+              <td>BlockAnvil</td>
+              <td colspan="3">ModdedAnvil (extends BlockFalling)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ S3 — RECETTES DE CRAFT ═══ -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num cyan-num">03</span> Recettes de Craft</h2>
+
+      <p>Les trois enclumes utilisent le <strong>meme pattern que l'enclume vanilla</strong> (3 blocs en haut, 1 bloc au milieu, 3 blocs en bas), mais avec les materiaux haut-tier correspondants. Ce choix rend les recettes intuitives — si on sait crafter une enclume vanilla, on sait crafter les suivantes.</p>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Pattern vanilla rappel :</strong> L'enclume vanilla utilise 3 blocs de fer en haut, 1 lingot de fer au milieu, 3 blocs de fer en bas. Nos enclumes moddees remplacent chaque ingredient par son equivalent haut-tier. Les recettes sont enregistrees via <code>EriRecipe.shaped()</code>.</div>
+      </div>
+
+      <h3 class="first">Enclume de Valterite</h3>
+      <p>Materiau : <strong style="color:var(--valterite)">Bloc de Valterite</strong> (V) pour les coins/rangees + <strong style="color:var(--valterite)">Lingot de Valterite</strong> (v) pour le centre.</p>
+      <div class="ascii-diagram"><span class="avt">V V V</span>    <span class="as">← 3x Bloc de Valterite</span>
+<span class="avt">  v  </span>    <span class="as">← 1x Lingot de Valterite</span>
+<span class="avt">V V V</span>    <span class="as">← 3x Bloc de Valterite</span>
+
+<span class="as">Resultat : 1x Enclume de Valterite</span>
+<span class="as">Ingredients totaux : 7x Bloc de Valterite + 1x Lingot de Valterite</span>
+<span class="as">                     (soit ~64 Lingots de Valterite equivalents)</span></div>
+
+      <h3>Enclume d'Aetherite</h3>
+      <p>Materiau : <strong style="color:var(--aetherite)">Bloc d'Aetherite</strong> (A) pour les coins/rangees + <strong style="color:var(--aetherite)">Cristal d'Aetherite</strong> (a) pour le centre.</p>
+      <div class="ascii-diagram"><span class="am">A A A</span>    <span class="as">← 3x Bloc d'Aetherite</span>
+<span class="am">  a  </span>    <span class="as">← 1x Cristal d'Aetherite</span>
+<span class="am">A A A</span>    <span class="as">← 3x Bloc d'Aetherite</span>
+
+<span class="as">Resultat : 1x Enclume d'Aetherite</span>
+<span class="as">Ingredients totaux : 7x Bloc d'Aetherite + 1x Cristal d'Aetherite</span></div>
+
+      <h3>Enclume d'Erinium</h3>
+      <p>Materiau : <strong style="color:var(--erinium)">Bloc d'Erinium</strong> (E) pour les coins/rangees + <strong style="color:var(--erinium)">Fragment d'Erinium</strong> (e) pour le centre.</p>
+      <div class="ascii-diagram"><span class="aer">E E E</span>    <span class="as">← 3x Bloc d'Erinium</span>
+<span class="aer">  e  </span>    <span class="as">← 1x Fragment d'Erinium</span>
+<span class="aer">E E E</span>    <span class="as">← 3x Bloc d'Erinium</span>
+
+<span class="as">Resultat : 1x Enclume d'Erinium</span>
+<span class="as">Ingredients totaux : 7x Bloc d'Erinium + 1x Fragment d'Erinium</span>
+<span class="as">                     (investissement significatif — enclume la plus rare)</span></div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Note d'implementation :</strong> Les recettes sont enregistrees avec <code>EriRecipe.shaped()</code> dans <code>EriniumRecipes.java</code>. Chaque enclume resulte en exactement 1 bloc. Verifier que les items "Bloc de Valterite", "Bloc d'Aetherite", "Bloc d'Erinium" existent bien dans le registre avant d'ecrire les recettes.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S4 — MECANIQUE REDUCTION XP ═══ -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num green-num">04</span> Mecanique de Reduction XP</h2>
+
+      <h3 class="first">Principe de calcul</h3>
+      <p>La reduction s'applique au <strong>cout final calcule par la logique vanilla</strong>, apres tous les calculs internes (penalite de precedente reparation incluse). L'enclume moddee ne modifie pas la mecanique vanilla — elle applique simplement un multiplicateur sur le resultat.</p>
+
+      <div class="code-block"><span class="cm">// Formule appliquee dans ContainerModdedAnvil</span>
+<span class="cm">// reduction = 0.20f pour Valterite, 0.30f pour Aetherite, 0.50f pour Erinium</span>
+
+<span class="kw">int</span> coutVanilla = <span class="cm">/* calcule par la logique vanilla heritee */</span>;
+<span class="kw">int</span> coutFinal = <span class="fn">Math</span>.max(<span class="nu">1</span>, (<span class="kw">int</span>)(coutVanilla * (<span class="nu">1.0f</span> - reduction)));
+
+<span class="cm">// Exemples :</span>
+<span class="cm">// Valterite  : Math.max(1, (int)(10 * 0.80f)) = Math.max(1, 8)  = 8</span>
+<span class="cm">// Aetherite  : Math.max(1, (int)(10 * 0.70f)) = Math.max(1, 7)  = 7</span>
+<span class="cm">// Erinium    : Math.max(1, (int)(10 * 0.50f)) = Math.max(1, 5)  = 5</span>
+<span class="cm">// Erinium    : Math.max(1, (int)( 1 * 0.50f)) = Math.max(1, 0)  = 1  ← minimum garanti</span></div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Cout minimum = 1 niveau :</strong> Une operation ne sera jamais gratuite. Meme si la reduction mathematique donnerait 0, le cout est force a 1 niveau. Renommer un item coute toujours au moins 1 niveau, quelle que soit l'enclume utilisee.</div>
+      </div>
+
+      <h3>Champ d'application</h3>
+      <p>La reduction s'applique a <strong>toutes les operations</strong> prises en charge par le Container vanilla :</p>
+      <ul>
+        <li><strong>Renommage :</strong> donner un nom a n'importe quel item (cout de base : 1 niveau).</li>
+        <li><strong>Reparation par ingredient :</strong> reparer une epee diamant avec des diamants.</li>
+        <li><strong>Reparation par doublon :</strong> combiner deux items identiques pour fusionner leur durabilite.</li>
+        <li><strong>Combinaison d'enchantements :</strong> fusionner un livre enchante ou un item enchante dans un autre.</li>
+        <li><strong>Enchantements Erinium etendus :</strong> les niveaux superieurs (Sharpness V + V = VI, etc.) coutent plus cher — la reduction s'y applique normalement.</li>
+      </ul>
+
+      <h3>Tableau d'exemples concrets</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Operation</th>
+              <th>Cout Vanilla</th>
+              <th style="color:var(--valterite)">Valterite (-20%)</th>
+              <th style="color:var(--aetherite)">Aetherite (-30%)</th>
+              <th style="color:var(--erinium)">Erinium (-50%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Reparer epee diamant</td>
+              <td>6 niveaux</td>
+              <td>5 niveaux</td>
+              <td>4 niveaux</td>
+              <td>3 niveaux</td>
+            </tr>
+            <tr>
+              <td>Combiner Sharpness V + V</td>
+              <td>12 niveaux</td>
+              <td>10 niveaux</td>
+              <td>8 niveaux</td>
+              <td>6 niveaux</td>
+            </tr>
+            <tr>
+              <td>Renommer un item</td>
+              <td>1 niveau</td>
+              <td>1 niveau</td>
+              <td>1 niveau</td>
+              <td>1 niveau</td>
+            </tr>
+            <tr>
+              <td>Sharpness VII via livre enchante</td>
+              <td>30 niveaux</td>
+              <td>24 niveaux</td>
+              <td>21 niveaux</td>
+              <td>15 niveaux</td>
+            </tr>
+            <tr>
+              <td>Protection VI via livre enchante</td>
+              <td>25 niveaux</td>
+              <td>20 niveaux</td>
+              <td>17 niveaux</td>
+              <td>12 niveaux</td>
+            </tr>
+            <tr>
+              <td>Reparation + renommage combine</td>
+              <td>8 niveaux</td>
+              <td>6 niveaux</td>
+              <td>5 niveaux</td>
+              <td>4 niveaux</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Troncature entiere :</strong> Le cast <code>(int)</code> tronque vers le bas (ex: 4.8 → 4). C'est intentionnel et favorable au joueur. Ne pas utiliser <code>Math.round()</code> — la reduction doit toujours arrondir vers le bas.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S5 — ABSENCE DE DEGRADATION ═══ -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num orange-num">05</span> Absence de Degradation</h2>
+
+      <h3 class="first">Comportement vanilla vs moddee</h3>
+      <p>L'enclume vanilla possede un systeme de degradation en 3 etats visuels progressifs : <strong>neuve</strong>, <strong>legerement endommagee</strong> (une encoche), <strong>tres endommagee</strong> (deux encoches). Chaque utilisation a une chance de faire progresser l'etat, jusqu'a la destruction complete.</p>
+      <p>Les enclumes moddees <strong>n'ont pas ce systeme</strong>. Elles ne possedent qu'un seul etat visuel et ne se degradent jamais, quelle que soit la frequence d'utilisation.</p>
+
+      <div class="ascii-diagram"><span class="as">Enclume Vanilla :</span>
+<span class="ag">[ Neuve ]</span> <span class="as">──chance──►</span> <span class="ay">[ Endommagee ]</span> <span class="as">──chance──►</span> <span class="ar">[ Tres endommagee ]</span> <span class="as">──chance──►</span> <span class="ar">[ DETRUITE ]</span>
+
+<span class="as">Enclumes Moddees :</span>
+<span class="avt">[ Valterite ]</span> <span class="as">──utilisation──►</span> <span class="avt">[ Valterite ]</span> <span class="as">──utilisation──►</span> <span class="avt">[ Valterite ]</span> <span class="as">... permanent</span>
+<span class="am">[ Aetherite ]</span> <span class="as">──utilisation──►</span> <span class="am">[ Aetherite ]</span> <span class="as">──utilisation──►</span> <span class="am">[ Aetherite ]</span> <span class="as">... permanent</span>
+<span class="aer">[ Erinium   ]</span> <span class="as">──utilisation──►</span> <span class="aer">[ Erinium   ]</span> <span class="as">──utilisation──►</span> <span class="aer">[ Erinium   ]</span> <span class="as">... permanent</span></div>
+
+      <h3>Implementation technique</h3>
+      <p>La degradation vanilla est geree dans <code>BlockAnvil</code> via la meta-donnee du bloc (0 = neuf, 4 = legerement endommage, 8 = tres endommage) et dans <code>ContainerRepair</code> via <code>onCrafting()</code>. Nos blocs <code>ModdedAnvil</code> <strong>n'heritent pas de <code>BlockAnvil</code></strong> — ils heritent de <code>BlockFalling</code> directement, ce qui elimine toute logique de degradation.</p>
+      <p>Notre <code>ContainerModdedAnvil</code> override <code>onCrafting()</code> sans appeler <code>super</code> pour la partie degradation — ou override la methode qui appelle <code>world.setBlockState()</code> avec la meta incrementee.</p>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Avantage joueur :</strong> Crafter une enclume Erinium est un objectif fort — ~64 ressources Erinium equivalentes. En contrepartie, l'enclume dure toute la vie du joueur sur le serveur. C'est un investissement une-fois-pour-toutes, pas un consommable.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S6 — GRAVITE ET DEGATS ═══ -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num red-num">06</span> Gravite et Degats</h2>
+
+      <h3 class="first">Comportement de chute</h3>
+      <p>Les 3 enclumes moddees <strong>tombent par gravite</strong> si le bloc en dessous est retire ou non solide, exactement comme l'enclume vanilla. Elles infligent des degats aux entites sur lesquelles elles atterrissent.</p>
+      <ul>
+        <li><strong>Heritage :</strong> <code>ModdedAnvil extends BlockFalling</code> — la gravite est geree nativement par Forge via les entites <code>EntityFallingBlock</code>.</li>
+        <li><strong>Degats de chute :</strong> identiques a l'enclume vanilla — calcules en fonction de la hauteur de chute (2 a 40 degats selon les blocs de chute).</li>
+        <li><strong>Entites touchees :</strong> joueurs, mobs, et toute entite LivingEntity en dessous du point d'impact.</li>
+      </ul>
+
+      <h3>Formule des degats vanilla</h3>
+      <div class="code-block"><span class="cm">// Reprise de la logique BlockAnvil / EntityFallingBlock vanilla</span>
+<span class="cm">// fallDistance = distance de chute en blocs</span>
+<span class="kw">int</span> damage = (<span class="kw">int</span>)(<span class="nu">2</span> + fallDistance * <span class="nu">0.5f</span>);
+damage = <span class="fn">Math</span>.min(damage, <span class="nu">40</span>); <span class="cm">// Plafonne a 40 degats (20 coeurs)</span>
+
+<span class="cm">// Cette logique est dans EntityFallingBlock#fall() — nos blocs l'heritent</span>
+<span class="cm">// automatiquement via BlockFalling, aucune surcharge necessaire.</span></div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Compatible FallingBlockHealthHandler :</strong> Si le serveur a un handler qui preserve les HP de bloc lors d'une chute (BlockHealth), les enclumes moddees sont compatibles — leurs HP sont preserves apres l'atterrissage. Aucune logique speciale requise.</div>
+      </div>
+
+      <h3>Comportement en zone protegee</h3>
+      <p>Une enclume moddee posee dans un claim de faction se comporte normalement. La gravite s'applique independamment de la protection territoriale — le bloc tombe si le support est retire, que ce soit en zone neutre ou protegee.</p>
+    </section>
+
+    <!-- ═══ S7 — ARCHITECTURE TECHNIQUE ═══ -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num">07</span> Architecture Technique</h2>
+
+      <h3 class="first">Structure de code</h3>
+      <div class="ascii-diagram"><span class="ac">fr.eriniumgroup.eriniumfaction.enchant.anvil/</span>
+<span class="as">├── </span><span class="av">ModdedAnvil.java</span>          <span class="as">— Classe de bloc (extends BlockFalling, IGuiProvider)</span>
+<span class="as">│       ├── Constructeur : material(IRON), hardness(5.0), resistance(2000)</span>
+<span class="as">│       ├── float xpReduction         — reduction configuree (0.20 / 0.30 / 0.50)</span>
+<span class="as">│       ├── onBlockActivated()        — ouvre ContainerModdedAnvil via IGuiHandler</span>
+<span class="as">│       └── getStateFromMeta()        — 4 rotations facing (NORTH/SOUTH/EAST/WEST)</span>
+<span class="as">│</span>
+<span class="as">├── </span><span class="av">ContainerModdedAnvil.java</span> <span class="as">— Container (extends ContainerRepair)</span>
+<span class="as">│       ├── float xpReduction         — injectee depuis ModdedAnvil a l'ouverture</span>
+<span class="as">│       └── updateRepairOutput()      — override : applique la reduction au levelCost</span>
+<span class="as">│</span>
+<span class="as">├── </span><span class="av">GuiModdedAnvil.java</span>       <span class="as">— GuiContainer (extends GuiRepair)</span>
+<span class="as">│       └── drawGuiContainerForegroundLayer() — label colore "%reduction%" en haut a droite</span>
+<span class="as">│</span>
+<span class="as">└── </span><span class="av">AnvilGuiHandler.java</span>      <span class="as">— IGuiHandler (ou ajout dans FactionChestGuiHandler)</span>
+<span class="as">        ├── GUI_ID_VALTERITE = 200</span>
+<span class="as">        ├── GUI_ID_AETHERITE = 201</span>
+<span class="as">        └── GUI_ID_ERINIUM   = 202</span></div>
+
+      <h3>Points d'implementation cles</h3>
+      <ul>
+        <li><strong>Registration des blocs :</strong> via <code>@Mod.EventBusSubscriber</code> et <code>RegistryEvent.Register&lt;Block&gt;</code> + <code>Register&lt;Item&gt;</code> dans <code>EriniumCreativeTab.java</code> ou un fichier dedie.</li>
+        <li><strong>Pas de Mixin necessaire :</strong> on n'intercepte pas la logique vanilla — on cree des blocs independants avec leur propre Container.</li>
+        <li><strong>Reduction XP dans ContainerModdedAnvil :</strong> <code>ContainerRepair.updateRepairOutput()</code> est la methode qui calcule et assigne <code>this.maximumCost</code>. On override cette methode, appel super, puis on applique la formule de reduction.</li>
+        <li><strong>GUI :</strong> <code>GuiRepair</code> est la classe vanilla. On l'etend en ajoutant un label colore indiquant la reduction. Le GUI n'utilise pas EriAPI (GuiContainer vanilla pour la compatibilite avec les slots d'inventaire natifs).</li>
+        <li><strong>Modeles de bloc :</strong> les JSON de modele utilisent <code>"parent": "minecraft:block/anvil"</code> pour heriter la geometrie 3D de l'enclume vanilla. Seule la texture est surchargee.</li>
+        <li><strong>Blockstates :</strong> 4 rotations (<code>facing: north/south/east/west</code>) comme l'enclume vanilla.</li>
+      </ul>
+
+      <h3>Pseudo-code ContainerModdedAnvil</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">ContainerModdedAnvil</span> <span class="kw">extends</span> <span class="cl">ContainerRepair</span> {
+
+    <span class="kw">private final float</span> xpReduction;
+
+    <span class="kw">public</span> <span class="fn">ContainerModdedAnvil</span>(<span class="ty">InventoryPlayer</span> playerInv, <span class="ty">World</span> world,
+                                  <span class="ty">BlockPos</span> pos, <span class="kw">float</span> xpReduction) {
+        <span class="kw">super</span>(playerInv, world, pos);
+        <span class="kw">this</span>.xpReduction = xpReduction;
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">updateRepairOutput</span>() {
+        <span class="kw">super</span>.<span class="fn">updateRepairOutput</span>(); <span class="cm">// calcul vanilla complet</span>
+
+        <span class="cm">// Appliquer la reduction sur le cout calcule par vanilla</span>
+        <span class="kw">if</span> (<span class="kw">this</span>.maximumCost > <span class="nu">0</span>) {
+            <span class="kw">this</span>.maximumCost = <span class="fn">Math</span>.max(<span class="nu">1</span>,
+                (<span class="kw">int</span>)(<span class="kw">this</span>.maximumCost * (<span class="nu">1.0f</span> - xpReduction))
+            );
+        }
+    }
+}</div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Acces a <code>maximumCost</code> :</strong> Ce champ est <code>public int</code> dans <code>ContainerRepair</code> (Minecraft 1.12.2) — accessible directement depuis la sous-classe sans Mixin ni reflection. Verifier avec le mapping stable-39 avant d'implementer.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S8 — ASSETS ═══ -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num cyan-num">08</span> Assets</h2>
+
+      <h3 class="first">Textures de bloc</h3>
+      <p>Chaque enclume requiert <strong>2 textures</strong> (side et top), generees par le workflow texture-gen avec la categorie <code>anvil</code>.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Fichier</th><th>Tier</th><th>Couleur dominante</th><th>Dimensions</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>valterite_anvil_side.png</td><td style="color:var(--valterite)">Valterite</td><td>#4AE0E0 (cyan)</td><td>64x64</td></tr>
+            <tr><td>valterite_anvil_top.png</td><td style="color:var(--valterite)">Valterite</td><td>#4AE0E0 (cyan)</td><td>64x64</td></tr>
+            <tr><td>aetherite_anvil_side.png</td><td style="color:var(--aetherite)">Aetherite</td><td>#9B59B6 (violet)</td><td>64x64</td></tr>
+            <tr><td>aetherite_anvil_top.png</td><td style="color:var(--aetherite)">Aetherite</td><td>#9B59B6 (violet)</td><td>64x64</td></tr>
+            <tr><td>erinium_anvil_side.png</td><td style="color:var(--erinium)">Erinium</td><td>#FFD700 (or)</td><td>64x64</td></tr>
+            <tr><td>erinium_anvil_top.png</td><td style="color:var(--erinium)">Erinium</td><td>#FFD700 (or)</td><td>64x64</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Modeles de bloc (JSON)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Fichier</th><th>Parent</th><th>Textures surchargees</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>models/block/valterite_anvil.json</td><td>minecraft:block/anvil</td><td>body → valterite_anvil_side, top → valterite_anvil_top</td></tr>
+            <tr><td>models/block/aetherite_anvil.json</td><td>minecraft:block/anvil</td><td>body → aetherite_anvil_side, top → aetherite_anvil_top</td></tr>
+            <tr><td>models/block/erinium_anvil.json</td><td>minecraft:block/anvil</td><td>body → erinium_anvil_side, top → erinium_anvil_top</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Blockstates (JSON)</h3>
+      <p>4 variantes de rotation (<code>facing=north/south/east/west</code>) pour chaque enclume, suivant le meme pattern que <code>minecraft:anvil</code>.</p>
+
+      <h3>Modeles d'item (JSON)</h3>
+      <p>3 modeles d'item avec <code>"parent": "eriniumfaction:block/X_anvil"</code> — un par tier.</p>
+
+      <h3>Traductions</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Cle</th><th>FR</th><th>EN</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>tile.valterite_anvil.name</td><td>Enclume de Valterite</td><td>Valterite Anvil</td></tr>
+            <tr><td>tile.aetherite_anvil.name</td><td>Enclume d'Aetherite</td><td>Aetherite Anvil</td></tr>
+            <tr><td>tile.erinium_anvil.name</td><td>Enclume d'Erinium</td><td>Erinium Anvil</td></tr>
+            <tr><td>gui.modded_anvil.reduction</td><td>Reduction XP : -%d%%</td><td>XP Reduction: -%d%%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ S9 — INTEGRATION ═══ -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num gold-num">09</span> Integration</h2>
+
+      <h3 class="first">Systemes compatibles</h3>
+      <ul>
+        <li><strong>BlockHealth :</strong> les HP personnalisables dans la config s'appliquent normalement aux 3 enclumes. Elles ont une resistance aux explosions elevee (resistance 2000) mais peuvent etre detruites par TNT avec suffisamment de force. Les HP sont preserves apres une chute (via FallingBlockHealthHandler).</li>
+        <li><strong>FactionProtection :</strong> l'interaction avec une enclume moddee est autorisee selon les regles de protection normales — un membre de faction peut l'utiliser dans son claim, un ennemi ne peut pas interagir en zone protegee.</li>
+        <li><strong>FallingBlockHealthHandler :</strong> les HP du bloc sont preserves apres la chute. Une enclume avec 80/100 HP avant de tomber aura toujours 80/100 HP apres l'atterrissage.</li>
+        <li><strong>Enchantements Erinium :</strong> toutes les operations d'enchantement etendues (Sharpness V+V=VI, niveaux superieurs via livres) fonctionnent sur les enclumes moddees. La reduction s'applique aux couts eleves de ces enchantements — c'est l'integration cle du systeme.</li>
+        <li><strong>EriniumCreativeTab :</strong> les 3 enclumes sont ajoutees a l'onglet creatif EriniumFaction dans la sous-categorie "Blocs".</li>
+      </ul>
+
+      <h3>Ce qui n'est pas modifie</h3>
+      <ul>
+        <li><strong>L'enclume vanilla :</strong> toujours disponible, non affectee par ce systeme. Les joueurs peuvent continuer d'utiliser l'enclume vanilla normalement.</li>
+        <li><strong>Le systeme de "Too Expensive" :</strong> la limite de 39 niveaux vanilla n'est pas contournee par les enclumes moddees. Si vanilla refuse l'operation, les enclumes moddees la refusent aussi. La reduction XP ne permet pas de franchir cette limite.</li>
+        <li><strong>Les ingredients de reparation :</strong> reparer une armure diamant necessite toujours des diamants — seul le cout en niveaux XP est reduit.</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Pas d'exploit :</strong> La reduction de cout n'est pas un exploit — elle ne contourne aucun plafond du jeu. Elle reduit uniquement la quantite d'XP depensee, ce qui est exactement l'objectif design du systeme.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S10 — PLAN DE TESTS ═══ -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num cyan-num">10</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests de craft et placement</h3>
+      <ul class="checklist">
+        <li>Craft des 3 enclumes avec les bonnes recettes (verifier ingredients exacts)</li>
+        <li>Placement et rotation dans les 4 directions (NORTH / SOUTH / EAST / WEST)</li>
+        <li>Apparence visuelle correcte (textures distinctes par tier)</li>
+        <li>Nom d'item correct en FR et EN dans le tooltip</li>
+      </ul>
+
+      <div class="divider"></div>
+
+      <h3>Tests de gravite</h3>
+      <ul class="checklist">
+        <li>Chute declenchee quand le bloc support est retire</li>
+        <li>Degats aux entites lors de l'atterrissage (verifier la formule hauteur)</li>
+        <li>HP preserves apres chute (si FallingBlockHealthHandler actif)</li>
+        <li>Comportement sur une colonne de plusieurs blocs (chute enchainees)</li>
+      </ul>
+
+      <div class="divider"></div>
+
+      <h3>Tests de reduction XP</h3>
+      <ul class="checklist">
+        <li>Operation de renommage : cout = 1 niveau (minimum garanti, quel que soit le tier)</li>
+        <li>Reparation d'item diamant : verifier -20% / -30% / -50% sur le cout affiche</li>
+        <li>Combinaison d'enchantements vanilla (Sharpness IV + IV = V) : verifier reduction</li>
+        <li>Combinaison d'enchantements Erinium etendus (Sharpness V + V = VI) : verifier reduction</li>
+        <li>Cout calcule a 1 par vanilla → reste a 1 (pas de reduction sous le minimum)</li>
+        <li>Cout calcule a 3 avec Erinium (-50%) → resultat = 1 (minimum garanti, pas 0)</li>
+      </ul>
+
+      <div class="divider"></div>
+
+      <h3>Tests de non-degradation</h3>
+      <ul class="checklist">
+        <li>Utiliser l'enclume 50 fois — verifier qu'elle reste dans son etat initial</li>
+        <li>Aucun changement d'etat visuel apres usage intense</li>
+        <li>L'enclume ne disparait pas / ne se brise pas apres utilisation</li>
+      </ul>
+
+      <div class="divider"></div>
+
+      <h3>Tests d'integration</h3>
+      <ul class="checklist">
+        <li>Compatibilite BlockHealth : HP configurables appliques correctement</li>
+        <li>FactionProtection : joueur hors faction bloque en zone protegee</li>
+        <li>FallingBlockHealthHandler : HP preserves apres chute</li>
+        <li>Enchantements Erinium etendus fonctionnels sur les 3 enclumes</li>
+        <li>Aucun crash / NPE lors d'une utilisation en multijoueur simultane</li>
+        <li>Performance : aucune degradation TPS mesurable lors de l'utilisation de l'enclume</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('navToggle');
+  if (toggle) toggle.addEventListener('click', function() { sidebar.classList.toggle('open'); });
+
+  // Highlight active nav link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        navLinks.forEach(function(link) { link.classList.remove('active'); });
+        const active = document.querySelector('.nav-link[href="#' + entry.target.id + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(function(s) { observer.observe(s); });
+</script>
+</body>
+</html>

@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Systeme de Lootbox | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #4AE0E0; --aetherite: #9B59B6; --erinium: #FFD700;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+    --common: #2ECC71; --uncommon: #3498DB; --mythic: #E74C3C;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(74,224,224,0.09) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(255,215,0,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, #4AE0E0 40%, #FFD700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '>'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .ascii-diagram .ab { color: var(--rare); }
+  .ascii-diagram .am { color: var(--aetherite); }
+  .ascii-diagram .ao { color: var(--orange); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  .tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+  .tier-grid.six-col { grid-template-columns: repeat(6, 1fr); }
+  .tier-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 22px 14px; text-align: center; }
+  .tier-card-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .tier-card-sub  { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); margin-bottom: 10px; }
+  .tier-reduction { font-size: 22px; font-weight: 800; margin: 6px 0; }
+  .tier-card-stat { font-size: 12px; color: var(--slate); margin: 4px 0; }
+  .tier-card-stat strong { color: var(--text); }
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .tier-grid.six-col { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } .tier-grid.six-col { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Architecture Config-Driven</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Format des Fichiers Config</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Tiers de Rarete</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Bloc Lootbox &amp; Registration</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Mecanique d'Ouverture</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Animation &amp; Rendu</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Structures de Donnees</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Packets Reseau</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Commandes &amp; Permissions</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Cas Limites &amp; Securite</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Systeme de Lootbox</h1>
+      <p>Des blocs lootbox configurables places dans le monde par les joueurs, contenant un lootpool defini par config. A l'ouverture, un seul tier de rarete est tire au sort, puis N items de ce tier sont generes et propulses en l'air avec une animation spectaculaire.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-violet">Config-Driven</span>
+        <span class="badge badge-gold">6 Tiers de Rarete</span>
+        <span class="badge badge-cyan">Animation 3D</span>
+        <span class="badge badge-red">Premium — /give only</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Vision du systeme</h3>
+      <p>Les lootbox sont des <strong>blocs physiques</strong> que les joueurs placent dans le monde et ouvrent par clic droit. Chaque type de lootbox est defini par un dossier de configuration contenant le lootpool (liste d'items possibles avec quantites et rarete) et la texture du bloc. A l'ouverture, <strong>un seul tier de rarete est tire au sort</strong> selon les poids configures, puis N items de ce tier sont selectionnes aleatoirement et propulses en l'air depuis le bloc avec une animation spectaculaire.</p>
+      <p>Les lootbox ne sont <strong>pas craftables</strong>. Ce sont des items premium distribues uniquement par les administrateurs via <code>/give</code>. Elles servent de recompense pour des events, des achats boutique, ou des objectifs de progression.</p>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Spectacle :</strong> L'ouverture d'une lootbox doit etre un moment memorable — animation, particules, sons, items qui volent. Les joueurs a proximite doivent voir l'ouverture.</li>
+        <li><strong>Equite :</strong> Les probabilites par tier sont fixes et transparentes. Pas de manipulation des odds.</li>
+        <li><strong>Extensibilite :</strong> Ajouter un nouveau type de lootbox = creer un dossier avec les fichiers config. Pas de code Java.</li>
+        <li><strong>Securite :</strong> Impossible de dupliquer, recuperer ou manipuler une lootbox en cours d'ouverture.</li>
+      </ul>
+
+      <h3>Ce que le systeme ne fait pas</h3>
+      <ul>
+        <li><strong>Pas de craft :</strong> Aucune recette ne produit de lootbox.</li>
+        <li><strong>Pas d'achat en jeu :</strong> Les lootbox ne s'achetent pas dans un GUI avec une monnaie. Elles sont distribuees par les admins.</li>
+        <li><strong>Pas de preview :</strong> Le joueur ne sait pas ce qu'il va obtenir avant l'ouverture (pas de "roulette" — c'est un tirage instantane avec animation de revelation).</li>
+        <li><strong>Pas d'ouverture depuis l'inventaire :</strong> La lootbox DOIT etre placee en tant que bloc puis ouverte par clic droit. Pas d'ouverture directe depuis la main.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S2 — ARCHITECTURE CONFIG-DRIVEN ═══ -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Architecture Config-Driven</h2>
+
+      <h3 class="first">Arborescence</h3>
+      <p>Au demarrage du serveur, le systeme scanne <code>config/Lootboxes/</code>. Chaque sous-dossier est un <strong>type de lootbox</strong>.</p>
+
+      <div class="ascii-diagram"><span class="ac">config/Lootboxes/</span>
+<span class="av">├── StarterBox/</span>                           <span class="as">&lt;-- Type "StarterBox"</span>
+<span class="av">│   ├── lootbox.info</span>                      <span class="as">&lt;-- Metadonnees du type</span>
+<span class="av">│   ├── lootpool.json</span>                     <span class="as">&lt;-- Pool d'items avec rarete</span>
+<span class="av">│   └── textures/</span>                         <span class="as">&lt;-- TOUTES les textures du modele 3D</span>
+<span class="av">│       ├── corner_cube.png</span>
+<span class="av">│       ├── corner_joint.png</span>
+<span class="av">│       ├── interior_cube.png</span>
+<span class="av">│       ├── logo_animated.png</span>             <span class="as">&lt;-- Peut etre personnalise par type</span>
+<span class="av">│       ├── rarity_top.png</span>
+<span class="av">│       ├── rocks.png</span>
+<span class="av">│       ├── side_cable.png</span>
+<span class="av">│       ├── side_core.png</span>
+<span class="av">│       ├── side_middle_plate.png</span>
+<span class="av">│       ├── side_plate.png</span>
+<span class="av">│       ├── side_plate_core.png</span>
+<span class="av">│       ├── top_pedestral.png</span>
+<span class="av">│       ├── rarity_beam.png</span>               <span class="as">&lt;-- Texture par defaut du beam</span>
+<span class="av">│       ├── rarity_beam_common.png</span>        <span class="as">&lt;-- Textures variables par rarete</span>
+<span class="av">│       ├── rarity_beam_uncommon.png</span>      <span class="as">(appliquees dynamiquement pendant</span>
+<span class="av">│       ├── rarity_beam_rare.png</span>          <span class="as"> l'animation via le callback</span>
+<span class="av">│       ├── rarity_beam_epic.png</span>          <span class="as"> "calculrarity")</span>
+<span class="av">│       ├── rarity_beam_legendary.png</span>
+<span class="av">│       └── rarity_beam_mythic.png</span>
+<span class="av">├── PvPBox/</span>
+<span class="av">│   ├── lootbox.info</span>
+<span class="av">│   ├── lootpool.json</span>
+<span class="av">│   └── textures/</span>
+<span class="av">├── LegendaryBox/</span>
+<span class="av">│   ├── lootbox.info</span>
+<span class="av">│   ├── lootpool.json</span>
+<span class="av">│   └── textures/</span>
+<span class="av">└── EventHalloween/</span>
+<span class="av">    ├── lootbox.info</span>
+<span class="av">    ├── lootpool.json</span>
+<span class="av">    └── textures/</span></div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Modele 3D et animation hardcodes :</strong> Le modele 3D Blockbench (<code>lootbox.json</code>) et le fichier d'animation (<code>lootbox.erianim.json</code>) sont <strong>hardcodes dans le mod</strong> (dans <code>assets/eriniumfaction/models/block/</code> et <code>assets/eriniumfaction/animations/block/</code>). Ils sont identiques pour TOUTES les gammes de lootbox. Seules les <strong>textures</strong> changent d'un type a l'autre — elles sont fournies par le serveur dans le dossier <code>textures/</code> de la config de chaque type. Les textures <code>rarity_beam_XX.png</code> ne sont PAS referencees dans le modele 3D JSON — ce sont des textures <strong>variables</strong> appliquees dynamiquement pendant l'event d'ouverture via le callback <code>calculrarity</code> de l'animation.</div>
+      </div>
+
+      <h3>Cycle de chargement</h3>
+      <ul>
+        <li><strong>1. Scan :</strong> Au FMLServerStartingEvent, scanner <code>config/Lootboxes/</code>.</li>
+        <li><strong>2. Validation :</strong> Chaque dossier doit contenir <code>lootbox.info</code>, <code>lootpool.json</code> et un sous-dossier <code>textures/</code> avec les textures du modele 3D. Les dossiers invalides sont ignores avec un WARNING.</li>
+        <li><strong>3. Registration des blocs :</strong> Le modele 3D Blockbench et l'animation d'ouverture sont <strong>hardcodes dans le mod</strong> (<code>models/block/lootbox.json</code> + <code>animations/block/lootbox.erianim.json</code>). Ils sont identiques pour tous les types de lootbox. Seules les textures (fournies dans le dossier config de chaque type) changent.</li>
+        <li><strong>4. Indexation :</strong> Le <code>LootboxRegistry</code> mappe les IDs vers les metadonnees et lootpools parses.</li>
+        <li><strong>5. Sync client :</strong> Au login, envoyer la liste des types de lootbox disponibles et leurs textures aux clients.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Registration dynamique :</strong> Les blocs Forge doivent etre enregistres au <code>RegistryEvent.Register&lt;Block&gt;</code> (preInit), mais le scan config se fait au ServerStartingEvent (plus tard). Solution : enregistrer un bloc generique <code>BlockLootbox</code> qui utilise les metadonnees de tile entity pour determiner le type. Le registre de blocs ne contient qu'un seul ID : <code>eriniumfaction:lootbox</code>. Le type de lootbox est stocke dans le TileEntity associe au bloc place.</div>
+      </div>
+
+      <h3>Bloc generique vs types multiples</h3>
+      <p>Plutot que d'enregistrer N blocs (un par type de lootbox), on enregistre <strong>un seul bloc</strong> <code>eriniumfaction:lootbox</code> avec un <code>TileEntity</code> qui stocke le type. Avantages :</p>
+      <ul>
+        <li><strong>Registration statique :</strong> Le bloc est enregistre au preInit, avant que la config ne soit lue.</li>
+        <li><strong>Pas de limite de types :</strong> Ajouter un type de lootbox n'ajoute pas un nouveau bloc au registre Forge.</li>
+        <li><strong>Texture dynamique :</strong> Le renderer du bloc lit le type depuis le TileEntity et applique la texture correspondante.</li>
+      </ul>
+      <p>L'item correspondant est aussi un seul <code>ItemBlock</code>. Le type est stocke dans les NBT de l'ItemStack (tag <code>LootboxType</code>). Quand le joueur place le bloc, le type est copie des NBT vers le TileEntity.</p>
+    </section>
+
+    <!-- ═══ S3 — FORMAT DES FICHIERS CONFIG ═══ -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Format des Fichiers Config</h2>
+
+      <h3 class="first">lootbox.info</h3>
+      <div class="code-block"><span class="cm"># config/Lootboxes/StarterBox/lootbox.info</span>
+
+<span class="kw">name_fr</span>=<span class="st">Caisse de Depart</span>
+<span class="kw">name_en</span>=<span class="st">Starter Box</span>
+<span class="kw">weight_common</span>=<span class="nu">50.0</span>
+<span class="kw">weight_uncommon</span>=<span class="nu">25.0</span>
+<span class="kw">weight_rare</span>=<span class="nu">15.0</span>
+<span class="kw">weight_epic</span>=<span class="nu">7.0</span>
+<span class="kw">weight_legendary</span>=<span class="nu">2.5</span>
+<span class="kw">weight_mythic</span>=<span class="nu">0.5</span>
+<span class="kw">qty_common</span>=<span class="nu">5</span>
+<span class="kw">qty_uncommon</span>=<span class="nu">4</span>
+<span class="kw">qty_rare</span>=<span class="nu">3</span>
+<span class="kw">qty_epic</span>=<span class="nu">2</span>
+<span class="kw">qty_legendary</span>=<span class="nu">1</span>
+<span class="kw">qty_mythic</span>=<span class="nu">1</span></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cle</th>
+              <th>Type</th>
+              <th>Obligatoire</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>name_fr</td>
+              <td>String</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Nom affiche de la lootbox en francais</td>
+            </tr>
+            <tr>
+              <td>name_en</td>
+              <td>String</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Nom affiche de la lootbox en anglais</td>
+            </tr>
+            <tr>
+              <td>weight_common</td>
+              <td>float (&gt;0)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Poids de probabilite du tier Common (chance d'etre selectionne a l'ouverture)</td>
+            </tr>
+            <tr>
+              <td>weight_uncommon</td>
+              <td>float (&gt;0)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Poids de probabilite du tier Uncommon</td>
+            </tr>
+            <tr>
+              <td>weight_rare</td>
+              <td>float (&gt;0)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Poids de probabilite du tier Rare</td>
+            </tr>
+            <tr>
+              <td>weight_epic</td>
+              <td>float (&gt;0)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Poids de probabilite du tier Epic</td>
+            </tr>
+            <tr>
+              <td>weight_legendary</td>
+              <td>float (&gt;0)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Poids de probabilite du tier Legendary</td>
+            </tr>
+            <tr>
+              <td>weight_mythic</td>
+              <td>float (&gt;0)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Poids de probabilite du tier Mythic</td>
+            </tr>
+            <tr>
+              <td>qty_common</td>
+              <td>int (&gt;=1)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Nombre d'items tires quand le tier Common est selectionne</td>
+            </tr>
+            <tr>
+              <td>qty_uncommon</td>
+              <td>int (&gt;=1)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Nombre d'items tires quand le tier Uncommon est selectionne</td>
+            </tr>
+            <tr>
+              <td>qty_rare</td>
+              <td>int (&gt;=1)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Nombre d'items tires quand le tier Rare est selectionne</td>
+            </tr>
+            <tr>
+              <td>qty_epic</td>
+              <td>int (&gt;=1)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Nombre d'items tires quand le tier Epic est selectionne</td>
+            </tr>
+            <tr>
+              <td>qty_legendary</td>
+              <td>int (&gt;=1)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Nombre d'items tires quand le tier Legendary est selectionne</td>
+            </tr>
+            <tr>
+              <td>qty_mythic</td>
+              <td>int (&gt;=1)</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Nombre d'items tires quand le tier Mythic est selectionne</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Mecanique de tirage :</strong> A l'ouverture, <strong>un seul tier est selectionne</strong> selon les poids <code>weight_*</code> (tirage pondere). Ensuite, <code>qty_*</code> items sont tires au hasard dans le pool de ce tier. Exemple : avec <code>weight_rare=15.0</code> et <code>qty_rare=3</code>, si le tier Rare est selectionne, le joueur recoit 3 items tires dans le pool rare. Les tiers sans entries dans le lootpool sont automatiquement exclus du tirage de rarete (leur poids est ignore).</div>
+      </div>
+
+      <h3>textures/ (dossier)</h3>
+      <p>Dossier contenant <strong>toutes les textures</strong> du modele 3D Blockbench pour ce type de lootbox. Les 13 textures de base (corner_cube, corner_joint, interior_cube, logo_animated, rarity_top, rocks, side_cable, side_core, side_middle_plate, side_plate, side_plate_core, top_pedestral, rarity_beam) remplacent les textures par defaut du modele. Les textures <code>rarity_beam_*.png</code> sont des variantes appliquees dynamiquement pendant l'animation d'ouverture selon le tier de rarete selectionne. Format PNG, dimensions libres (recommande : 64x64 ou 128x128).</p>
+
+      <h3>lootpool.json</h3>
+      <p>Le fichier JSON definissant le pool d'items disponibles pour ce type de lootbox. Les entries sont groupees par tier de rarete.</p>
+
+      <div class="code-block"><span class="cm">// config/Lootboxes/StarterBox/lootpool.json</span>
+{
+  "<span class="kw">entries</span>": {
+    "<span class="kw">common</span>": [
+      {
+        "<span class="kw">item</span>": "<span class="st">minecraft:iron_sword</span>",
+        "<span class="kw">min</span>": <span class="nu">1</span>,
+        "<span class="kw">max</span>": <span class="nu">1</span>,
+        "<span class="kw">duplicate</span>": <span class="kw">true</span>,
+        "<span class="kw">nbt</span>": <span class="kw">null</span>
+      },
+      {
+        "<span class="kw">item</span>": "<span class="st">minecraft:iron_ingot</span>",
+        "<span class="kw">min</span>": <span class="nu">5</span>,
+        "<span class="kw">max</span>": <span class="nu">15</span>,
+        "<span class="kw">duplicate</span>": <span class="kw">true</span>,
+        "<span class="kw">nbt</span>": <span class="kw">null</span>
+      }
+    ],
+    "<span class="kw">uncommon</span>": [
+      {
+        "<span class="kw">item</span>": "<span class="st">minecraft:diamond</span>",
+        "<span class="kw">min</span>": <span class="nu">1</span>,
+        "<span class="kw">max</span>": <span class="nu">5</span>,
+        "<span class="kw">duplicate</span>": <span class="kw">true</span>,
+        "<span class="kw">nbt</span>": <span class="kw">null</span>
+      }
+    ],
+    "<span class="kw">rare</span>": [
+      {
+        "<span class="kw">item</span>": "<span class="st">minecraft:diamond_sword</span>",
+        "<span class="kw">min</span>": <span class="nu">1</span>,
+        "<span class="kw">max</span>": <span class="nu">1</span>,
+        "<span class="kw">duplicate</span>": <span class="kw">false</span>,
+        "<span class="kw">nbt</span>": "<span class="st">{ench:[{id:16,lvl:5}]}</span>"
+      }
+    ],
+    "<span class="kw">epic</span>": [
+      {
+        "<span class="kw">item</span>": "<span class="st">eriniumfaction:erinium_fragment</span>",
+        "<span class="kw">min</span>": <span class="nu">1</span>,
+        "<span class="kw">max</span>": <span class="nu">3</span>,
+        "<span class="kw">duplicate</span>": <span class="kw">true</span>,
+        "<span class="kw">nbt</span>": <span class="kw">null</span>
+      }
+    ],
+    "<span class="kw">legendary</span>": [
+      {
+        "<span class="kw">item</span>": "<span class="st">eriniumfaction:valterite_chestplate</span>",
+        "<span class="kw">min</span>": <span class="nu">1</span>,
+        "<span class="kw">max</span>": <span class="nu">1</span>,
+        "<span class="kw">duplicate</span>": <span class="kw">false</span>,
+        "<span class="kw">nbt</span>": "<span class="st">{ench:[{id:0,lvl:6}]}</span>"
+      }
+    ],
+    "<span class="kw">mythic</span>": [
+      {
+        "<span class="kw">item</span>": "<span class="st">eriniumfaction:erinium_sword</span>",
+        "<span class="kw">min</span>": <span class="nu">1</span>,
+        "<span class="kw">max</span>": <span class="nu">1</span>,
+        "<span class="kw">duplicate</span>": <span class="kw">false</span>,
+        "<span class="kw">nbt</span>": "<span class="st">{ench:[{id:16,lvl:7},{id:19,lvl:3}]}</span>"
+      }
+    ]
+  }
+}</div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Champ</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>entries</td>
+              <td>Object</td>
+              <td>Map des pools d'items groupes par tier de rarete. Cles : <code>common</code>, <code>uncommon</code>, <code>rare</code>, <code>epic</code>, <code>legendary</code>, <code>mythic</code>. Chaque cle contient un Array d'entries.</td>
+            </tr>
+            <tr>
+              <td>entries.&lt;tier&gt;[].item</td>
+              <td>String</td>
+              <td>Registry name de l'item (ex: <code>minecraft:diamond_sword</code>). Peut inclure un metadata avec <code>:meta</code> (ex: <code>minecraft:dye:4</code> pour le lapis).</td>
+            </tr>
+            <tr>
+              <td>entries.&lt;tier&gt;[].min</td>
+              <td>int (&gt;=1)</td>
+              <td>Quantite minimum de l'item donne</td>
+            </tr>
+            <tr>
+              <td>entries.&lt;tier&gt;[].max</td>
+              <td>int (&gt;=min)</td>
+              <td>Quantite maximum de l'item donne. La quantite reelle est aleatoire entre min et max (inclusif).</td>
+            </tr>
+            <tr>
+              <td>entries.&lt;tier&gt;[].duplicate</td>
+              <td>boolean</td>
+              <td><code>true</code> (defaut) : cette entry peut etre tiree plusieurs fois dans la meme ouverture. <code>false</code> : une fois tiree, l'entry est retiree du pool pour cette ouverture (pas de doublon).</td>
+            </tr>
+            <tr>
+              <td>entries.&lt;tier&gt;[].nbt</td>
+              <td>String / null</td>
+              <td>Optionnel — tag NBT a appliquer a l'item (format SNBT Minecraft). Permet d'ajouter des enchantements, des noms custom, des attributs, etc.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Selection dans un tier :</strong> Quand un tier est selectionne, la lootbox tire <code>qty_*</code> items aleatoirement parmi les entries de ce tier. Le comportement de remise depend du champ <code>duplicate</code> de chaque entry : si <code>duplicate=true</code> (defaut), l'entry peut etre tiree plusieurs fois dans la meme ouverture. Si <code>duplicate=false</code>, l'entry est retiree du pool apres avoir ete tiree (pas de doublon). Si le pool se vide avant d'atteindre le nombre d'items demande, le tirage s'arrete.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S4 — TIERS DE RARETE ═══ -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Tiers de Rarete</h2>
+
+      <h3 class="first">Les 6 tiers</h3>
+      <p>Chaque item dans un lootpool appartient a un tier de rarete. A l'ouverture, <strong>un seul tier est selectionne</strong> par tirage pondere selon les <code>weight_*</code> configures dans <code>lootbox.info</code>. Ensuite, <code>qty_*</code> items sont tires dans le pool de ce tier. Les pourcentages affiches ci-dessous sont les poids par defaut (configurables par type de lootbox).</p>
+
+      <div class="tier-grid six-col">
+        <div class="tier-card" style="border-top: 3px solid var(--common);">
+          <div class="tier-card-name" style="color: var(--common);">Common</div>
+          <div class="tier-card-sub">Tier 1</div>
+          <div class="tier-reduction" style="color: var(--common);">50%</div>
+          <div class="tier-card-stat"><strong>Qty :</strong> 5 items</div>
+          <div class="tier-card-stat"><strong>Couleur :</strong> Vert</div>
+          <div class="tier-card-stat"><strong>Hex :</strong> #2ECC71</div>
+        </div>
+        <div class="tier-card" style="border-top: 3px solid var(--uncommon);">
+          <div class="tier-card-name" style="color: var(--uncommon);">Uncommon</div>
+          <div class="tier-card-sub">Tier 2</div>
+          <div class="tier-reduction" style="color: var(--uncommon);">25%</div>
+          <div class="tier-card-stat"><strong>Qty :</strong> 4 items</div>
+          <div class="tier-card-stat"><strong>Couleur :</strong> Bleu</div>
+          <div class="tier-card-stat"><strong>Hex :</strong> #3498DB</div>
+        </div>
+        <div class="tier-card" style="border-top: 3px solid var(--aetherite);">
+          <div class="tier-card-name" style="color: var(--aetherite);">Rare</div>
+          <div class="tier-card-sub">Tier 3</div>
+          <div class="tier-reduction" style="color: var(--aetherite);">15%</div>
+          <div class="tier-card-stat"><strong>Qty :</strong> 3 items</div>
+          <div class="tier-card-stat"><strong>Couleur :</strong> Violet</div>
+          <div class="tier-card-stat"><strong>Hex :</strong> #9B59B6</div>
+        </div>
+        <div class="tier-card" style="border-top: 3px solid var(--gold);">
+          <div class="tier-card-name" style="color: var(--gold);">Epic</div>
+          <div class="tier-card-sub">Tier 4</div>
+          <div class="tier-reduction" style="color: var(--gold);">7%</div>
+          <div class="tier-card-stat"><strong>Qty :</strong> 2 items</div>
+          <div class="tier-card-stat"><strong>Couleur :</strong> Jaune</div>
+          <div class="tier-card-stat"><strong>Hex :</strong> #F1C40F</div>
+        </div>
+        <div class="tier-card" style="border-top: 3px solid var(--orange);">
+          <div class="tier-card-name" style="color: var(--orange);">Legendary</div>
+          <div class="tier-card-sub">Tier 5</div>
+          <div class="tier-reduction" style="color: var(--orange);">2.5%</div>
+          <div class="tier-card-stat"><strong>Qty :</strong> 1 item</div>
+          <div class="tier-card-stat"><strong>Couleur :</strong> Orange</div>
+          <div class="tier-card-stat"><strong>Hex :</strong> #E67E22</div>
+        </div>
+        <div class="tier-card" style="border-top: 3px solid var(--red);">
+          <div class="tier-card-name" style="color: var(--red);">Mythic</div>
+          <div class="tier-card-sub">Tier 6</div>
+          <div class="tier-reduction" style="color: var(--red);">0.5%</div>
+          <div class="tier-card-stat"><strong>Qty :</strong> 1 item</div>
+          <div class="tier-card-stat"><strong>Couleur :</strong> Rouge</div>
+          <div class="tier-card-stat"><strong>Hex :</strong> #E74C3C</div>
+        </div>
+      </div>
+
+      <h3>Enum LootboxTier</h3>
+      <div class="code-block"><span class="kw">public enum</span> <span class="cl">LootboxTier</span> {
+    <span class="an">COMMON</span>(<span class="st">"common"</span>, <span class="nu">50.0f</span>, <span class="nu">0xFF2ECC71</span>, <span class="st">"Common"</span>),
+    <span class="an">UNCOMMON</span>(<span class="st">"uncommon"</span>, <span class="nu">25.0f</span>, <span class="nu">0xFF3498DB</span>, <span class="st">"Uncommon"</span>),
+    <span class="an">RARE</span>(<span class="st">"rare"</span>, <span class="nu">15.0f</span>, <span class="nu">0xFF9B59B6</span>, <span class="st">"Rare"</span>),
+    <span class="an">EPIC</span>(<span class="st">"epic"</span>, <span class="nu">7.0f</span>, <span class="nu">0xFFF1C40F</span>, <span class="st">"Epic"</span>),
+    <span class="an">LEGENDARY</span>(<span class="st">"legendary"</span>, <span class="nu">2.5f</span>, <span class="nu">0xFFE67E22</span>, <span class="st">"Legendary"</span>),
+    <span class="an">MYTHIC</span>(<span class="st">"mythic"</span>, <span class="nu">0.5f</span>, <span class="nu">0xFFE74C3C</span>, <span class="st">"Mythic"</span>);
+
+    <span class="kw">public final</span> <span class="ty">String</span> configName;      <span class="cm">// Valeur dans lootpool.json / lootbox.info</span>
+    <span class="kw">public final float</span> defaultWeight;   <span class="cm">// Poids par defaut (configurable par type via weight_*)</span>
+    <span class="kw">public final int</span> color;              <span class="cm">// Couleur ARGB pour particules/texte</span>
+    <span class="kw">public final</span> <span class="ty">String</span> displayName;     <span class="cm">// Nom affiche</span>
+}</div>
+    </section>
+
+    <!-- ═══ S5 — BLOC LOOTBOX & REGISTRATION ═══ -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num orange-num">05</span> Bloc Lootbox &amp; Registration</h2>
+
+      <h3 class="first">BlockLootbox</h3>
+      <p>Un seul bloc est enregistre : <code>eriniumfaction:lootbox</code>. Il est associe a un <code>TileEntityLootbox</code> qui stocke le type de lootbox et l'etat d'ouverture.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Propriete</th>
+              <th>Valeur</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Registry name</td>
+              <td><code>eriniumfaction:lootbox</code></td>
+            </tr>
+            <tr>
+              <td>Material</td>
+              <td>IRON</td>
+            </tr>
+            <tr>
+              <td>Hardness</td>
+              <td>-1.0f (incassable sauf en creatif pendant l'ouverture), 2.0f avant ouverture</td>
+            </tr>
+            <tr>
+              <td>Resistance</td>
+              <td>1200.0f (anti-explosion)</td>
+            </tr>
+            <tr>
+              <td>Harvest tool</td>
+              <td>pickaxe, level 0</td>
+            </tr>
+            <tr>
+              <td>TileEntity</td>
+              <td><code>TileEntityLootbox</code></td>
+            </tr>
+            <tr>
+              <td>Drop</td>
+              <td>Ne drop PAS l'item lootbox quand casse. Avant ouverture, le bloc peut etre recupere par le joueur qui l'a pose (Shift+Click gauche). Apres ouverture, le bloc disparait automatiquement.</td>
+            </tr>
+            <tr>
+              <td>Bounding box</td>
+              <td>0.125 - 0.875 (bloc centre, style coffre)</td>
+            </tr>
+            <tr>
+              <td>Opaque</td>
+              <td>false (pas un bloc plein)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>TileEntityLootbox</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">TileEntityLootbox</span> <span class="kw">extends</span> <span class="ty">TileEntity</span> {
+    <span class="kw">private</span> <span class="ty">String</span> lootboxType = <span class="st">""</span>;    <span class="cm">// ID du type (nom du dossier)</span>
+    <span class="kw">private</span> <span class="ty">UUID</span> placedBy = <span class="kw">null</span>;       <span class="cm">// UUID du joueur qui a pose le bloc</span>
+    <span class="kw">private boolean</span> opening = <span class="kw">false</span>;   <span class="cm">// true pendant l'animation d'ouverture</span>
+    <span class="kw">private boolean</span> opened = <span class="kw">false</span>;    <span class="cm">// true apres ouverture (bloc va disparaitre)</span>
+    <span class="kw">private int</span> openTick = <span class="nu">0</span>;           <span class="cm">// Tick counter pendant l'animation</span>
+    <span class="kw">private</span> <span class="ty">LootResult</span> lootResult;     <span class="cm">// Resultat du tirage (tier + items), set par le callback</span>
+
+    <span class="cm">// Serialisation NBT</span>
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="ty">NBTTagCompound</span> <span class="fn">writeToNBT</span>(<span class="ty">NBTTagCompound</span> nbt) { ... }
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">readFromNBT</span>(<span class="ty">NBTTagCompound</span> nbt) { ... }
+}</div>
+
+      <h3>ItemBlock et NBT</h3>
+      <p>L'item lootbox (<code>ItemBlockLootbox</code>) stocke le type dans son NBT :</p>
+      <div class="code-block"><span class="cm">// NBT de l'ItemStack lootbox</span>
+{
+    <span class="st">"LootboxType"</span>: <span class="st">"StarterBox"</span>
+}
+
+<span class="cm">// Quand le joueur place le bloc :</span>
+<span class="cm">// 1. Lire "LootboxType" depuis les NBT de l'item</span>
+<span class="cm">// 2. Creer le TileEntityLootbox avec ce type</span>
+<span class="cm">// 3. Stocker l'UUID du placeur</span></div>
+
+      <h3>Rendu du bloc (client)</h3>
+      <p>Le bloc utilise un <code>TileEntitySpecialRenderer</code> (TESR) pour le rendu. Le modele 3D est un coffre stylise (universel pour tous les types). La texture est chargee dynamiquement depuis le <code>LootboxRegistry</code> en fonction du type stocke dans le TileEntity.</p>
+      <ul>
+        <li><strong>Etat normal :</strong> Le coffre est ferme, avec un subtil effet de particules lumineux autour (couleur basee sur le tier le plus rare ayant des entries dans le lootpool).</li>
+        <li><strong>Etat ouverture :</strong> Animation du couvercle qui s'ouvre, lumiere intense sortant de l'interieur, particules de couleur du tier selectionne.</li>
+        <li><strong>Etat ouvert :</strong> Le bloc disparait avec un fade-out + particules de dispersion.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S6 — MECANIQUE D'OUVERTURE ═══ -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num red-num">06</span> Mecanique d'Ouverture</h2>
+
+      <h3 class="first">Sequence d'ouverture</h3>
+      <p>L'ouverture se declenche quand un joueur fait un <strong>clic droit</strong> sur un bloc lootbox place. La sequence complete est :</p>
+
+      <ul>
+        <li><strong>1. Clic droit (client) :</strong> Le client envoie un <code>PacketLootboxOpen</code> au serveur avec la position du bloc.</li>
+        <li><strong>2. Validation (serveur) :</strong> Le serveur verifie :
+          <ul>
+            <li>Le bloc a la position est bien un <code>BlockLootbox</code> avec un TileEntity valide.</li>
+            <li>Le TileEntity n'est pas deja en cours d'ouverture (<code>opening == false</code>).</li>
+            <li>Le joueur est a moins de 5 blocs du bloc (anti-cheat distance).</li>
+          </ul>
+        </li>
+        <li><strong>3. Determination du loot (serveur) :</strong> Tirer un seul tier de rarete par tirage pondere (<code>weight_*</code>), puis tirer <code>qty_*</code> items aleatoirement dans le pool de ce tier. Generer les ItemStacks avec quantites aleatoires (entre min et max), NBT, et gestion du champ <code>duplicate</code>.</li>
+        <li><strong>4. Marquage ouverture (serveur) :</strong> Mettre <code>opening = true</code> sur le TileEntity. Rendre le bloc incassable (hardness = -1). Envoyer un <code>PacketLootboxOpening</code> a tous les joueurs dans un rayon de 64 blocs (position, type, tier selectionne, items obtenus).</li>
+        <li><strong>5. Animation (client, 3 secondes) :</strong> Tous les clients proches affichent l'animation d'ouverture (couvercle, lumiere, son).</li>
+        <li><strong>6. Ejection des items (serveur, apres 3 sec) :</strong> Apres l'animation, le serveur spawn les <code>EntityItem</code> au-dessus du bloc avec un vecteur de velocite vers le haut (propulsion). Chaque item est ejecte avec un leger decalage temporel (0.1 sec entre chaque) et un angle aleatoire.</li>
+        <li><strong>7. Suppression du bloc (serveur) :</strong> Le bloc est supprime du monde (<code>world.setBlockToAir()</code>).</li>
+      </ul>
+
+      <h3>Formule de velocite des items ejectes</h3>
+      <div class="code-block"><span class="cm">// Velocite de base pour chaque item ejecte</span>
+<span class="kw">double</span> baseY = <span class="nu">0.6</span>;  <span class="cm">// Velocite verticale (vers le haut)</span>
+<span class="kw">double</span> spreadXZ = <span class="nu">0.15</span>; <span class="cm">// Dispersion horizontale aleatoire</span>
+
+<span class="cm">// Pour chaque item :</span>
+<span class="kw">double</span> vx = (random.nextDouble() - <span class="nu">0.5</span>) * spreadXZ;
+<span class="kw">double</span> vy = baseY + random.nextDouble() * <span class="nu">0.2</span>; <span class="cm">// 0.6 a 0.8</span>
+<span class="kw">double</span> vz = (random.nextDouble() - <span class="nu">0.5</span>) * spreadXZ;
+
+<span class="ty">EntityItem</span> entityItem = <span class="kw">new</span> <span class="ty">EntityItem</span>(world, pos.getX() + <span class="nu">0.5</span>, pos.getY() + <span class="nu">1.0</span>, pos.getZ() + <span class="nu">0.5</span>, itemStack);
+entityItem.motionX = vx;
+entityItem.motionY = vy;
+entityItem.motionZ = vz;
+entityItem.setPickupDelay(<span class="nu">40</span>); <span class="cm">// 2 secondes avant ramassage (temps de voir les items)</span>
+world.spawnEntity(entityItem);</div>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Anti-vol :</strong> Les items ejectes ont un <code>pickupDelay</code> de 40 ticks (2 secondes). Pendant ce delai, AUCUN joueur ne peut les ramasser. Apres le delai, les items sont ramassables par n'importe qui (premier arrive, premier servi). Il n'y a PAS de protection "owner only" — c'est un choix delibere pour encourager les joueurs a ouvrir leurs lootbox dans un endroit sur.</div>
+      </div>
+
+      <h3>Recuperation du bloc avant ouverture</h3>
+      <p>Un joueur qui a place une lootbox peut la recuperer (sans l'ouvrir) en faisant <strong>Shift + clic gauche</strong> sur le bloc. Le bloc est casse et l'item lootbox est rendu avec les memes NBT. Seul le joueur qui a pose le bloc (<code>placedBy</code>) peut le recuperer. Les autres joueurs ne peuvent ni casser ni recuperer le bloc.</p>
+    </section>
+
+    <!-- ═══ S7 — ANIMATION & RENDU ═══ -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num cyan-num">07</span> Animation &amp; Rendu — Framework EriAPI</h2>
+
+      <p>Le rendu et l'animation de la lootbox utilisent le module <strong>Animation Blocks 3D d'EriAPI</strong>. Le bloc est rendu via un <code>AnimatedBlockTESR</code> avec un modele Blockbench 3D multi-textures. L'animation d'ouverture est definie dans un fichier <code>.erianim.json</code> et declenchee cote serveur.</p>
+
+      <h3 class="first">Modele 3D</h3>
+      <ul>
+        <li><strong>Fichier :</strong> <code>assets/eriniumfaction/models/block/lootbox.json</code> (export Blockbench, hardcode dans le mod)</li>
+        <li><strong>8 groupes racine :</strong> front, back, left, right, interiorcube, corner, Top, topplate</li>
+        <li><strong>Sous-groupes :</strong> corner &gt; joint &gt; vertical/horizontal, etc.</li>
+        <li><strong>13 textures referencees</strong> dans le modele</li>
+        <li><strong>Identique pour TOUS les types de lootbox</strong> — seules les textures changent (fournies dans le dossier config de chaque type)</li>
+      </ul>
+
+      <h3>Fichier d'animation</h3>
+      <ul>
+        <li><strong>Fichier :</strong> <code>assets/eriniumfaction/animations/block/lootbox.erianim.json</code> (hardcode dans le mod)</li>
+        <li><strong>Animation "Open"</strong> — duree 100 ticks (5 secondes)</li>
+      </ul>
+      <p>Tracks utilises :</p>
+      <ul>
+        <li><strong><code>topplate</code> :</strong> rotate [0, 360, 0] sur 40 ticks + translation [0, -10.426, 0] (le couvercle tourne et descend)</li>
+        <li><strong><code>rocks</code> :</strong> translation vers le bas avec easing elastic + spin Y a 1200 deg/s qui decelere a 0 (les roches descendent et tournent)</li>
+        <li><strong><code>raritybeam</code> :</strong> translation vers le haut avec easing elastic (la colonne de rarete monte)</li>
+      </ul>
+      <p>Event a tick 0 : callback <code>calculrarity</code> — determine la rarete et applique la bonne texture sur le beam.</p>
+
+      <h3>Callback <code>calculrarity</code> — Logique Java</h3>
+      <p>Le callback est enregistre sur le TileEntity et execute au debut de l'animation. Il lit le tier de rarete selectionne depuis le <code>LootResult</code> stocke dans le TileEntity et applique la texture correspondante sur le beam :</p>
+
+      <div class="code-block"><span class="cm">// Enregistrement du callback sur le TileEntity</span>
+te.<span class="fn">setAnimationCallback</span>(<span class="st">"calculrarity"</span>, (tile) <span class="op">-></span> {
+    <span class="ty">String</span> typeId = tile.<span class="fn">getLootboxType</span>();
+    <span class="ty">LootboxType</span> type = <span class="ty">LootboxRegistry</span>.<span class="fn">getInstance</span>().<span class="fn">getType</span>(typeId);
+    <span class="ty">Random</span> rand = <span class="kw">new</span> <span class="ty">Random</span>();
+
+    <span class="cm">// Generer le loot (tire une rarete + les items de ce tier)</span>
+    <span class="ty">LootResult</span> result = type.<span class="fn">generateLoot</span>(rand);
+    tile.<span class="fn">setLootResult</span>(result);  <span class="cm">// Stocker pour la phase de drop</span>
+
+    <span class="cm">// Appliquer la texture du beam selon la rarete selectionnee</span>
+    <span class="ty">String</span> beamTexture = <span class="st">"rarity_beam_"</span> + result.<span class="fn">getSelectedTier</span>().<span class="fn">name</span>().<span class="fn">toLowerCase</span>();
+    tile.<span class="fn">setTexture</span>(<span class="st">"rarity_beam"</span>, beamTexture);
+});</div>
+
+      <h3>Gestion des tiers vides</h3>
+      <p>Certaines lootbox peuvent ne pas avoir d'entries dans tous les tiers de rarete. Lors du tirage de rarete (<code>rollRarity</code>), les tiers sans entries dans le pool sont <strong>automatiquement exclus</strong> : leur poids est ignore et le total est recalcule uniquement sur les tiers qui ont des entries. Si aucun tier n'a d'entries (cas extreme), le tier par defaut <code>COMMON</code> est retourne en fallback.</p>
+
+      <h3>Textures dynamiques</h3>
+      <p>Le systeme de texture dynamique d'EriAPI (<code>tile.setTexture()</code>) est utilise a deux moments :</p>
+      <ul>
+        <li><strong>Au chargement du TileEntity :</strong> les textures du dossier config du type de lootbox sont appliquees sur le modele 3D — elles remplacent les textures par defaut du modele par celles fournies par le serveur dans <code>config/Lootboxes/&lt;type&gt;/textures/</code>.</li>
+        <li><strong>Pendant l'animation :</strong> via le callback <code>calculrarity</code>, la texture <code>rarity_beam</code> est swappee vers la variante du tier selectionne (ex: <code>rarity_beam_legendary.png</code> si le tier Legendary a ete tire).</li>
+      </ul>
+
+      <h3>Registration du bloc</h3>
+      <p>Le bloc est enregistre avec <code>EriBlock</code> en mode TESR-only (pas de rendu par le BlockModelRenderer — tout est fait par le TileEntitySpecialRenderer anime) :</p>
+
+      <div class="code-block"><span class="cm">// Un seul bloc pour tous les types de lootbox</span>
+<span class="ty">EriBlock</span>.<span class="fn">create</span>(<span class="an">MODID</span>, <span class="st">"lootbox"</span>)
+    .<span class="fn">material</span>(<span class="ty">Material</span>.<span class="an">IRON</span>)
+    .<span class="fn">hardness</span>(-<span class="nu">1</span>)  <span class="cm">// Incassable sauf par le serveur</span>
+    .<span class="fn">opaque</span>(<span class="kw">false</span>)
+    .<span class="fn">fullCube</span>(<span class="kw">false</span>)
+    .<span class="fn">tesrOnly</span>(<span class="st">"eriniumfaction:block/lootbox"</span>)
+    .<span class="fn">tileEntity</span>(<span class="ty">TileLootbox</span>.<span class="kw">class</span>)
+    .<span class="fn">onRightClick</span>(ctx <span class="op">-></span> <span class="ty">LootboxManager</span>.<span class="fn">onOpen</span>(ctx.world, ctx.pos, ctx.player))
+    .<span class="fn">register</span>();</div>
+
+      <div class="info-box tip">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Performance rendu :</strong> Le modele 3D est rendu par le <code>AnimatedBlockTESR</code> d'EriAPI qui gere le culling automatique et le batching des draw calls. L'animation ne tick que pendant les 5 secondes d'ouverture — le TileEntity n'a pas de <code>update()</code> permanent. Les textures config sont chargees une seule fois au login et cachees cote client.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S8 — STRUCTURES DE DONNEES ═══ -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num green-num">08</span> Structures de Donnees</h2>
+
+      <h3 class="first">LootboxRegistry (serveur, singleton)</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">LootboxRegistry</span> {
+    <span class="kw">private static</span> <span class="ty">LootboxRegistry</span> INSTANCE;
+
+    <span class="cm">// typeId -> LootboxType</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">LootboxType</span>&gt; types = <span class="kw">new</span> <span class="ty">LinkedHashMap</span>&lt;&gt;();
+
+    <span class="kw">public</span> <span class="ty">LootboxType</span> <span class="fn">getType</span>(<span class="ty">String</span> id) { ... }
+    <span class="kw">public</span> <span class="ty">Collection</span>&lt;<span class="ty">LootboxType</span>&gt; <span class="fn">getAllTypes</span>() { ... }
+    <span class="kw">public void</span> <span class="fn">reload</span>() { ... }
+}</div>
+
+      <h3>LootboxType</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">LootboxType</span> {
+    <span class="kw">private final</span> <span class="ty">String</span> id;           <span class="cm">// "starterbox"</span>
+    <span class="kw">private final</span> <span class="ty">String</span> nameFr;       <span class="cm">// "Caisse de Depart"</span>
+    <span class="kw">private final</span> <span class="ty">String</span> nameEn;       <span class="cm">// "Starter Box"</span>
+    <span class="kw">private final</span> <span class="ty">String</span> texturePath;  <span class="cm">// Chemin absolu vers texture.png</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">LootboxTier</span>, <span class="ty">Float</span>&gt; rarityWeights;    <span class="cm">// Poids par tier (weight_*)</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">LootboxTier</span>, <span class="ty">Integer</span>&gt; qtyPerTier;     <span class="cm">// Nb items par tier selectionne (qty_*)</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">LootboxTier</span>, <span class="ty">List</span>&lt;<span class="ty">LootboxEntry</span>&gt;&gt; entries; <span class="cm">// Entries par tier</span>
+
+    <span class="cm">/**
+     * Tire une rarete au hasard selon les poids configures.
+     * Les tiers sans entries dans le pool sont exclus.
+     */</span>
+    <span class="kw">public</span> <span class="ty">LootboxTier</span> <span class="fn">rollRarity</span>(<span class="ty">Random</span> rand) {
+        <span class="cm">// Calculer le total des poids (en excluant les tiers vides)</span>
+        <span class="kw">float</span> totalWeight = <span class="nu">0</span>;
+        <span class="kw">for</span> (<span class="ty">Map.Entry</span>&lt;<span class="ty">LootboxTier</span>, <span class="ty">Float</span>&gt; e : rarityWeights.entrySet()) {
+            <span class="ty">List</span>&lt;<span class="ty">LootboxEntry</span>&gt; pool = entries.get(e.getKey());
+            <span class="kw">if</span> (pool != <span class="kw">null</span> && !pool.isEmpty()) {
+                totalWeight += e.getValue();
+            }
+        }
+
+        <span class="cm">// Tirage pondere</span>
+        <span class="kw">float</span> roll = rand.nextFloat() * totalWeight;
+        <span class="kw">float</span> cumulative = <span class="nu">0</span>;
+        <span class="kw">for</span> (<span class="ty">Map.Entry</span>&lt;<span class="ty">LootboxTier</span>, <span class="ty">Float</span>&gt; e : rarityWeights.entrySet()) {
+            <span class="ty">List</span>&lt;<span class="ty">LootboxEntry</span>&gt; pool = entries.get(e.getKey());
+            <span class="kw">if</span> (pool == <span class="kw">null</span> || pool.isEmpty()) <span class="kw">continue</span>;
+            cumulative += e.getValue();
+            <span class="kw">if</span> (roll &lt;= cumulative) <span class="kw">return</span> e.getKey();
+        }
+
+        <span class="kw">return</span> <span class="ty">LootboxTier</span>.<span class="an">COMMON</span>; <span class="cm">// fallback</span>
+    }
+
+    <span class="cm">/**
+     * Genere le loot : tire une rarete, puis tire N items de cette rarete.
+     * Respecte le champ duplicate de chaque entry.
+     */</span>
+    <span class="kw">public</span> <span class="ty">LootResult</span> <span class="fn">generateLoot</span>(<span class="ty">Random</span> rand) {
+        <span class="ty">LootboxTier</span> selectedTier = rollRarity(rand);
+        <span class="kw">int</span> qty = qtyPerTier.getOrDefault(selectedTier, <span class="nu">1</span>);
+        <span class="ty">List</span>&lt;<span class="ty">LootboxEntry</span>&gt; pool = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;(entries.get(selectedTier));
+        <span class="ty">List</span>&lt;<span class="ty">ItemStack</span>&gt; items = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; qty && !pool.isEmpty(); i++) {
+            <span class="kw">int</span> idx = rand.nextInt(pool.size());
+            <span class="ty">LootboxEntry</span> entry = pool.get(idx);
+            items.add(entry.<span class="fn">createItemStack</span>(rand));
+
+            <span class="cm">// Si duplicate=false, retirer l'entry du pool pour cette ouverture</span>
+            <span class="kw">if</span> (!entry.<span class="fn">isDuplicate</span>()) {
+                pool.remove(idx);
+            }
+        }
+
+        <span class="kw">return new</span> <span class="ty">LootResult</span>(selectedTier, items);
+    }
+}</div>
+
+      <h3>LootboxEntry</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">LootboxEntry</span> {
+    <span class="kw">private final</span> <span class="ty">String</span> itemRegistryName; <span class="cm">// "minecraft:diamond_sword"</span>
+    <span class="kw">private final int</span> metadata;            <span class="cm">// 0 par defaut, ou valeur apres le 2e ':'</span>
+    <span class="kw">private final int</span> min;                 <span class="cm">// Quantite min</span>
+    <span class="kw">private final int</span> max;                 <span class="cm">// Quantite max</span>
+    <span class="kw">private final boolean</span> duplicate;       <span class="cm">// true = peut etre tire plusieurs fois par ouverture</span>
+    <span class="kw">private final</span> <span class="ty">String</span> nbtString;       <span class="cm">// NBT SNBT ou null</span>
+
+    <span class="kw">public boolean</span> <span class="fn">isDuplicate</span>() { <span class="kw">return</span> duplicate; }
+
+    <span class="kw">public</span> <span class="ty">ItemStack</span> <span class="fn">createItemStack</span>(<span class="ty">Random</span> rand) {
+        <span class="ty">Item</span> item = <span class="ty">Item</span>.getByNameOrId(itemRegistryName);
+        <span class="kw">if</span> (item == <span class="kw">null</span>) <span class="kw">return</span> <span class="ty">ItemStack</span>.EMPTY;
+
+        <span class="kw">int</span> qty = min + (max &gt; min ? rand.nextInt(max - min + <span class="nu">1</span>) : <span class="nu">0</span>);
+        <span class="ty">ItemStack</span> stack = <span class="kw">new</span> <span class="ty">ItemStack</span>(item, qty, metadata);
+
+        <span class="kw">if</span> (nbtString != <span class="kw">null</span>) {
+            <span class="ty">NBTTagCompound</span> nbt = <span class="ty">JsonToNBT</span>.getTagFromJson(nbtString);
+            stack.setTagCompound(nbt);
+        }
+        <span class="kw">return</span> stack;
+    }
+}</div>
+
+      <h3>LootResult</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">LootResult</span> {
+    <span class="kw">private final</span> <span class="ty">LootboxTier</span> selectedTier;  <span class="cm">// Le tier qui a ete tire</span>
+    <span class="kw">private final</span> <span class="ty">List</span>&lt;<span class="ty">ItemStack</span>&gt; items;     <span class="cm">// Les items generes</span>
+
+    <span class="kw">public</span> <span class="cl">LootResult</span>(<span class="ty">LootboxTier</span> selectedTier, <span class="ty">List</span>&lt;<span class="ty">ItemStack</span>&gt; items) {
+        <span class="kw">this</span>.selectedTier = selectedTier;
+        <span class="kw">this</span>.items = items;
+    }
+
+    <span class="kw">public</span> <span class="ty">LootboxTier</span> <span class="fn">getSelectedTier</span>() { <span class="kw">return</span> selectedTier; }
+    <span class="kw">public</span> <span class="ty">List</span>&lt;<span class="ty">ItemStack</span>&gt; <span class="fn">getItems</span>() { <span class="kw">return</span> items; }
+}</div>
+
+    </section>
+
+    <!-- ═══ S9 — PACKETS RESEAU ═══ -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num gold-num">09</span> Packets Reseau</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Packet</th>
+              <th>Direction</th>
+              <th>Declencheur</th>
+              <th>Contenu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>PacketLootboxOpen</td>
+              <td>Client &#8594; Serveur</td>
+              <td>Clic droit sur le bloc lootbox</td>
+              <td>BlockPos du bloc</td>
+            </tr>
+            <tr>
+              <td>PacketLootboxOpening</td>
+              <td>Serveur &#8594; Clients proches</td>
+              <td>Apres validation cote serveur</td>
+              <td>BlockPos, lootboxType, tier selectionne, liste d'itemStacks pour l'animation. Envoye a tous les joueurs dans un rayon de 64 blocs.</td>
+            </tr>
+            <tr>
+              <td>PacketLootboxRegistrySync</td>
+              <td>Serveur &#8594; Client</td>
+              <td>Login du joueur, /lootbox reload</td>
+              <td>Liste des types de lootbox (IDs, noms) + textures (PNG binaire, chunked si necessaire)</td>
+            </tr>
+            <tr>
+              <td>PacketLootboxRetrieve</td>
+              <td>Client &#8594; Serveur</td>
+              <td>Shift+clic gauche sur le bloc lootbox</td>
+              <td>BlockPos du bloc</td>
+            </tr>
+            <tr>
+              <td>PacketLootboxAnnounce</td>
+              <td>Serveur &#8594; Clients proches</td>
+              <td>Un joueur obtient un Legendary ou Mythic</td>
+              <td>Nom du joueur, nom de l'item, tier. Affiche un titre sur les ecrans des joueurs proches (rayon 32 blocs).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>PacketLootboxOpening contenu :</strong> Ce packet contient le tier selectionne et les ItemStacks generes (pour que le client puisse afficher les items dans l'animation avec la couleur du tier). Le client ne les ajoute PAS a l'inventaire — c'est le serveur qui spawn les EntityItem. Le client ne fait qu'afficher l'animation.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S10 — COMMANDES & PERMISSIONS ═══ -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num orange-num">10</span> Commandes &amp; Permissions</h2>
+
+      <h3 class="first">Commandes admin</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Commande</th>
+              <th>Permission</th>
+              <th>Description</th>
+              <th>Auto-completion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/lootbox give &lt;player&gt; &lt;type&gt; [amount]</code></td>
+              <td><code>eriniumfaction.lootbox.give</code></td>
+              <td>Donne un ou plusieurs items lootbox d'un type specifique au joueur. Defaut amount = 1.</td>
+              <td>Joueurs en ligne + IDs de types de lootbox du registre</td>
+            </tr>
+            <tr>
+              <td><code>/lootbox reload</code></td>
+              <td><code>eriniumfaction.lootbox.reload</code></td>
+              <td>Recharge le registre des lootbox depuis config/Lootboxes/. Sync les clients connectes.</td>
+              <td>N/A</td>
+            </tr>
+            <tr>
+              <td><code>/lootbox list</code></td>
+              <td><code>eriniumfaction.lootbox.list</code></td>
+              <td>Affiche la liste de tous les types de lootbox charges, avec le nombre d'entries par tier.</td>
+              <td>N/A</td>
+            </tr>
+            <tr>
+              <td><code>/lootbox preview &lt;type&gt;</code></td>
+              <td><code>eriniumfaction.lootbox.preview</code></td>
+              <td>Affiche le contenu complet du lootpool d'un type de lootbox (items, quantites, tiers).</td>
+              <td>IDs de types de lootbox</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ S11 — CAS LIMITES & SECURITE ═══ -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num">11</span> Cas Limites &amp; Securite</h2>
+
+      <h3 class="first">Duplication de lootbox</h3>
+      <ul>
+        <li><strong>Clic droit pendant l'ouverture :</strong> Rejete — le flag <code>opening</code> est check. Aucun second tirage possible.</li>
+        <li><strong>Casser le bloc pendant l'ouverture :</strong> Impossible — la hardness est mise a -1 (incassable).</li>
+        <li><strong>Piston pendant l'ouverture :</strong> Le bloc est immovable (Material.IRON + override <code>getPushReaction()</code> retourne <code>BLOCK</code>).</li>
+        <li><strong>Explosion pendant l'ouverture :</strong> Resistance a 1200 — aucune explosion vanilla ne peut le detruire.</li>
+        <li><strong>Hopper :</strong> Le bloc n'a pas d'inventaire, les hoppers ne peuvent rien extraire.</li>
+      </ul>
+
+      <h3>Lootbox type inexistant</h3>
+      <p>Si un joueur place un item lootbox dont le type n'existe pas dans le registre (lootbox donnee avant un reload qui a supprime le type) :</p>
+      <ul>
+        <li>Le bloc est place mais le clic droit affiche un message d'erreur en chat : "Ce type de lootbox n'est plus disponible."</li>
+        <li>Le joueur peut recuperer le bloc (Shift+clic gauche) et le conserver — au cas ou le type serait re-ajoute plus tard.</li>
+      </ul>
+
+      <h3>Lootpool vide pour un tier</h3>
+      <p>Si le lootpool n'a aucune entry pour un tier configure dans <code>weight_*</code>, ce tier est <strong>automatiquement exclu</strong> du tirage de rarete (son poids est ignore). Le total des poids est recalcule uniquement sur les tiers qui ont des entries. Un WARNING est logue au chargement : "Lootbox [type] a weight_rare=15.0 mais aucune entry 'rare' dans le lootpool — tier exclu du tirage."</p>
+
+      <h3>Item du lootpool inexistant</h3>
+      <p>Si une entry reference un item qui n'existe pas dans le registre Forge (<code>Item.getByNameOrId()</code> retourne null), cette entry est ignoree lors du tirage. Un WARNING est logue au chargement. Si toutes les entries d'un tier sont invalides, le tier est traite comme un pool vide.</p>
+
+      <h3>NBT invalide</h3>
+      <p>Si le champ <code>nbt</code> d'une entry contient un SNBT invalide (<code>JsonToNBT.getTagFromJson()</code> leve une exception), l'item est genere SANS NBT. Un WARNING est logue.</p>
+
+      <h3>Deconnexion pendant l'ouverture</h3>
+      <p>Si le joueur deconnecte pendant les 3 secondes d'animation :</p>
+      <ul>
+        <li>Le serveur continue la sequence normalement — les items sont spawnes au-dessus du bloc.</li>
+        <li>Les items tombent au sol et peuvent etre ramasses par d'autres joueurs (le pickupDelay expire normalement).</li>
+        <li>Le bloc est supprime.</li>
+        <li>Le joueur ne recoit PAS les items dans son inventaire a la reconnexion — ils sont au sol.</li>
+      </ul>
+
+      <h3>Serveur restart pendant l'ouverture</h3>
+      <p>Si le serveur redémarre pendant une ouverture :</p>
+      <ul>
+        <li>Le TileEntity est sauvegarde avec <code>opening=true</code>.</li>
+        <li>Au redemarrage, le TileEntity detecte <code>opening=true</code> au chargement et finalise l'ouverture : genere le loot, spawn les items, supprime le bloc.</li>
+      </ul>
+
+      <h3>Performance</h3>
+      <ul>
+        <li><strong>Scan async :</strong> Le scan du dossier config se fait en async pour ne pas bloquer le thread serveur.</li>
+        <li><strong>Pas de tick constant :</strong> Le TileEntityLootbox n'a PAS de <code>update()</code> tick permanent. Il ne tick que pendant l'ouverture (3 secondes) et s'arrete apres.</li>
+        <li><strong>Packet broadcast cible :</strong> Les packets d'animation ne sont envoyes qu'aux joueurs dans un rayon de 64 blocs.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S12 — PLAN DE TESTS ═══ -->
+    <section class="section-card" id="s12">
+      <h2><span class="s-num green-num">12</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests fonctionnels — Config</h3>
+      <ul class="checklist">
+        <li>Le dossier config/Lootboxes/ est scanne correctement au demarrage du serveur</li>
+        <li>Un type de lootbox avec lootbox.info, texture.png et lootpool.json valides est charge</li>
+        <li>Un dossier avec un fichier manquant est ignore avec WARNING (pas de crash)</li>
+        <li>Une entry avec un item inexistant est ignoree avec WARNING</li>
+        <li>Une entry avec un NBT invalide produit un item sans NBT avec WARNING</li>
+        <li>/lootbox reload re-scanne et met a jour sans redemarrage</li>
+      </ul>
+
+      <h3>Tests fonctionnels — Bloc</h3>
+      <ul class="checklist">
+        <li>/lootbox give donne un item lootbox avec le bon type dans les NBT</li>
+        <li>Placer l'item cree un bloc avec TileEntity du bon type</li>
+        <li>Shift+clic gauche par le poseur recupere le bloc en item</li>
+        <li>Shift+clic gauche par un autre joueur ne fait rien</li>
+        <li>Le bloc ne peut pas etre pousse par un piston</li>
+        <li>Le bloc resiste aux explosions</li>
+      </ul>
+
+      <h3>Tests fonctionnels — Ouverture</h3>
+      <ul class="checklist">
+        <li>Clic droit declenche l'ouverture avec animation visible par les joueurs proches</li>
+        <li>Un seul tier est selectionne par ouverture, les items generes correspondent au qty_* de ce tier</li>
+        <li>La quantite de chaque item est entre min et max (inclusif)</li>
+        <li>Les items avec NBT ont le bon NBT applique</li>
+        <li>Les items sont propulses vers le haut avec un pickupDelay de 2 sec</li>
+        <li>Le bloc disparait apres l'ouverture</li>
+        <li>Pendant l'ouverture, le bloc est incassable</li>
+        <li>Pendant l'ouverture, un second clic droit est rejete</li>
+        <li>Les entries avec duplicate=false ne sont jamais tirees deux fois dans la meme ouverture</li>
+        <li>Les entries avec duplicate=true (defaut) peuvent etre tirees plusieurs fois</li>
+        <li>Si le pool se vide (toutes entries duplicate=false tirees), le tirage s'arrete avant qty_*</li>
+        <li>Les poids de rarete (weight_*) sont respectes sur un grand nombre d'ouvertures</li>
+        <li>Un tier sans entries dans le lootpool est exclu du tirage meme avec un weight > 0</li>
+        <li>Un item Legendary/Mythic declenche une annonce aux joueurs proches</li>
+      </ul>
+
+      <h3>Tests de securite</h3>
+      <ul class="checklist">
+        <li>Duplication impossible : clic droit spam, piston, explosion pendant ouverture</li>
+        <li>PacketLootboxOpen avec une position invalide (pas un bloc lootbox) : rejete</li>
+        <li>PacketLootboxOpen a plus de 5 blocs de distance : rejete</li>
+        <li>Lootbox avec type supprime du registre : message d'erreur, pas de crash</li>
+        <li>Deconnexion pendant ouverture : items spawnes normalement, pas de dupe</li>
+      </ul>
+
+      <h3>Tests de performance</h3>
+      <ul class="checklist">
+        <li>Scan config avec 50 types de lootbox : &lt; 1 seconde (async)</li>
+        <li>TileEntityLootbox ne tick PAS quand pas en cours d'ouverture</li>
+        <li>Broadcast animation cible (64 blocs), pas a tout le serveur</li>
+        <li>Ouverture simultanee de 10 lootbox par des joueurs differents : pas de lag</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('navToggle');
+  if (toggle) toggle.addEventListener('click', function() { sidebar.classList.toggle('open'); });
+
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        navLinks.forEach(function(link) { link.classList.remove('active'); });
+        const active = document.querySelector('.nav-link[href="#' + entry.target.id + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(function(s) { observer.observe(s); });
+</script>
+</body>
+</html>

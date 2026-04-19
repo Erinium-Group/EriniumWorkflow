@@ -1,0 +1,3 @@
+Pour les GUI genre RPG etc... tout les textes en mod scaletofit mais susceptible d'être très long et illisible, les mettre en taille normal et tronqué
+
+/minage si la région du spawn minage n'existait pas déjà, elle n'est pas créer, faut s'assurer genre au premier joueur qui va au minage que la region existe et est bien poser, sinon la créer au coordonnées mises (je sais pas si c'est spécifier sur le code mais normalement oui sinon j'ai un fichier backup)

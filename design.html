@@ -1,0 +1,2193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EriniumFaction — Design Document</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0A0A0F;
+      --violet: #6B2FA0;
+      --violet-light: #9B59D0;
+      --cyan: #00E5FF;
+      --green: #2ECC71;
+      --red: #E74C3C;
+      --gold: #F1C40F;
+      --text: #F0F2FF;
+      --slate: #8892A4;
+      --card-bg: rgba(14,14,22,0.55);
+      --card-bdr: rgba(255,255,255,0.06);
+      --radius: 18px;
+      --font: 'Inter', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Noise overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.5;
+    }
+
+    /* Background gradient orbs */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 10% 20%, rgba(107,47,160,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 35% at 90% 80%, rgba(0,229,255,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 50% 50%, rgba(107,47,160,0.05) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      min-height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--card-bdr);
+      padding: 32px 0;
+      scrollbar-width: thin;
+      scrollbar-color: var(--violet) transparent;
+    }
+
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 2px; }
+
+    .sidebar-logo {
+      padding: 0 24px 28px;
+      border-bottom: 1px solid var(--card-bdr);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-logo a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--slate);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: color 0.2s;
+      margin-bottom: 16px;
+    }
+
+    .sidebar-logo a:hover { color: var(--cyan); }
+
+    .sidebar-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+
+    .sidebar-subtitle {
+      font-size: 11px;
+      color: var(--slate);
+      margin-top: 4px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .sidebar-nav { padding: 0 12px; }
+
+    .nav-item {
+      display: block;
+      padding: 8px 12px;
+      border-radius: 10px;
+      color: var(--slate);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+      border-left: 2px solid transparent;
+      margin-bottom: 2px;
+    }
+
+    .nav-item:hover {
+      color: var(--text);
+      background: rgba(107,47,160,0.1);
+      border-left-color: var(--violet);
+    }
+
+    .nav-item.active {
+      color: var(--cyan);
+      background: rgba(0,229,255,0.08);
+      border-left-color: var(--cyan);
+    }
+
+    .nav-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: rgba(136,146,164,0.5);
+      padding: 16px 24px 6px;
+    }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      padding: 48px 56px;
+      max-width: 1100px;
+      min-width: 0;
+    }
+
+    /* Page header */
+    .page-header {
+      margin-bottom: 56px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .page-header .tag {
+      display: inline-block;
+      background: rgba(107,47,160,0.25);
+      border: 1px solid rgba(107,47,160,0.5);
+      color: var(--violet-light);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 16px;
+    }
+
+    .page-header h1 {
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1.05;
+      background: linear-gradient(135deg, #fff 0%, var(--violet-light) 50%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    .page-header p {
+      font-size: 16px;
+      color: var(--slate);
+      max-width: 600px;
+      line-height: 1.6;
+    }
+
+    /* Section */
+    .section {
+      margin-bottom: 48px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-title .num {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--violet-light);
+      background: rgba(107,47,160,0.2);
+      border: 1px solid rgba(107,47,160,0.4);
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: 1px;
+    }
+
+    .section-title .accent-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, rgba(107,47,160,0.4), transparent);
+    }
+
+    .subsection-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--violet-light);
+      margin: 24px 0 12px;
+      letter-spacing: -0.2px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-bdr);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(12px);
+    }
+
+    .card-inner {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--card-bdr);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 16px;
+    }
+
+    /* School cards */
+    .school-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-bdr);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 16px;
+      backdrop-filter: blur(12px);
+      border-left-width: 3px;
+      border-left-style: solid;
+    }
+
+    .school-fracture { border-left-color: #9B30FF; }
+    .school-cristallisation { border-left-color: #00E5FF; }
+    .school-corruption { border-left-color: #1B7A20; }
+    .school-resonance { border-left-color: #FFD700; }
+
+    .school-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+
+    .school-fracture .school-title { color: #9B30FF; }
+    .school-cristallisation .school-title { color: #00E5FF; }
+    .school-corruption .school-title { color: #4CAF50; }
+    .school-resonance .school-title { color: #FFD700; }
+
+    .school-desc {
+      font-size: 13px;
+      color: var(--slate);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--card-bdr);
+      margin: 16px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead th {
+      background: rgba(107,47,160,0.2);
+      color: var(--violet-light);
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--card-bdr);
+    }
+
+    tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+    tbody tr:nth-child(odd) { background: rgba(255,255,255,0.0); }
+
+    tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+    tbody td {
+      padding: 10px 16px;
+      color: var(--text);
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      line-height: 1.4;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+
+    .td-cyan { color: var(--cyan); font-weight: 600; }
+    .td-green { color: var(--green); font-weight: 600; }
+    .td-red { color: var(--red); font-weight: 600; }
+    .td-gold { color: var(--gold); font-weight: 600; }
+    .td-violet { color: var(--violet-light); font-weight: 600; }
+    .td-slate { color: var(--slate); }
+
+    /* Code blocks */
+    pre {
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 20px 24px;
+      font-family: 'Fira Mono', 'Consolas', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #C9D1D9;
+      overflow-x: auto;
+      margin: 16px 0;
+      white-space: pre;
+    }
+
+    pre .c-cyan { color: var(--cyan); }
+    pre .c-violet { color: var(--violet-light); }
+    pre .c-green { color: var(--green); }
+    pre .c-gold { color: var(--gold); }
+    pre .c-red { color: var(--red); }
+    pre .c-slate { color: var(--slate); }
+    pre .c-white { color: #fff; font-weight: 700; }
+
+    /* Prose */
+    .prose {
+      font-size: 14px;
+      line-height: 1.75;
+      color: rgba(240,242,255,0.85);
+    }
+
+    .prose p { margin-bottom: 12px; }
+    .prose strong { color: var(--text); font-weight: 700; }
+    .prose em { color: var(--cyan); font-style: normal; font-weight: 500; }
+
+    /* Color swatches */
+    .swatch-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .swatch {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .swatch-color {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+
+    .swatch-info { line-height: 1.4; }
+    .swatch-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .swatch-hex { font-size: 11px; color: var(--slate); font-family: monospace; }
+
+    /* Badges / pills */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-violet { background: rgba(107,47,160,0.3); color: var(--violet-light); border: 1px solid rgba(107,47,160,0.5); }
+    .badge-cyan { background: rgba(0,229,255,0.15); color: var(--cyan); border: 1px solid rgba(0,229,255,0.4); }
+    .badge-green { background: rgba(46,204,113,0.15); color: var(--green); border: 1px solid rgba(46,204,113,0.4); }
+    .badge-red { background: rgba(231,76,60,0.15); color: var(--red); border: 1px solid rgba(231,76,60,0.4); }
+    .badge-gold { background: rgba(241,196,15,0.15); color: var(--gold); border: 1px solid rgba(241,196,15,0.4); }
+
+    /* Info grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .info-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--card-bdr);
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+
+    .info-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--slate);
+      margin-bottom: 6px;
+    }
+
+    .info-value {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--cyan);
+    }
+
+    .info-sub {
+      font-size: 12px;
+      color: var(--slate);
+      margin-top: 2px;
+    }
+
+    /* Perk grid */
+    .perk-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .perk-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--card-bdr);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+
+    .perk-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .perk-desc {
+      font-size: 12px;
+      color: var(--slate);
+      line-height: 1.5;
+    }
+
+    /* Chapter timeline */
+    .chapter-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 16px 0;
+    }
+
+    .chapter-item {
+      display: flex;
+      gap: 20px;
+      position: relative;
+    }
+
+    .chapter-item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 23px;
+      top: 48px;
+      width: 2px;
+      height: calc(100% - 16px);
+      background: linear-gradient(to bottom, var(--violet), transparent);
+    }
+
+    .chapter-num {
+      width: 48px;
+      height: 48px;
+      flex-shrink: 0;
+      background: rgba(107,47,160,0.3);
+      border: 2px solid var(--violet);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--violet-light);
+      position: relative;
+      z-index: 1;
+    }
+
+    .chapter-content {
+      padding-bottom: 28px;
+      flex: 1;
+    }
+
+    .chapter-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+      padding-top: 12px;
+    }
+
+    .chapter-desc {
+      font-size: 13px;
+      color: var(--slate);
+      line-height: 1.5;
+    }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section:nth-child(1) { animation-delay: 0.05s; }
+    .section:nth-child(2) { animation-delay: 0.10s; }
+    .section:nth-child(3) { animation-delay: 0.15s; }
+    .section:nth-child(4) { animation-delay: 0.20s; }
+
+    /* Divider */
+    hr.divider {
+      border: none;
+      border-top: 1px solid var(--card-bdr);
+      margin: 24px 0;
+    }
+
+    /* Blockquote */
+    blockquote {
+      border-left: 3px solid var(--cyan);
+      padding: 12px 20px;
+      background: rgba(0,229,255,0.05);
+      border-radius: 0 8px 8px 0;
+      color: rgba(240,242,255,0.9);
+      font-size: 14px;
+      line-height: 1.7;
+      margin: 16px 0;
+      font-style: italic;
+    }
+
+    /* Reject table */
+    .reject-icon { color: var(--red); font-weight: 700; }
+    .check-icon { color: var(--green); font-weight: 700; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.5); border-radius: 3px; }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="index.html">← Accueil</a>
+      <div class="sidebar-title">EriniumFaction</div>
+      <div class="sidebar-subtitle">Design Document</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Fondations</div>
+      <a class="nav-item" href="#s1">01 — Vision</a>
+      <a class="nav-item" href="#s2">02 — Direction Artistique</a>
+
+      <div class="nav-section-label">Systèmes RPG</div>
+      <a class="nav-item" href="#s3">03 — Système RPG</a>
+      <a class="nav-item" href="#s4">04 — Système de Magie</a>
+
+      <div class="nav-section-label">Monde & Combat</div>
+      <a class="nav-item" href="#s5">05 — Carte & Territoire</a>
+      <a class="nav-item" href="#s6">06 — Combat & Équipement</a>
+      <a class="nav-item" href="#s7">07 — Événements Mondiaux</a>
+
+      <div class="nav-section-label">Meta & Économie</div>
+      <a class="nav-item" href="#s8">08 — Système de Faction</a>
+      <a class="nav-item" href="#s9">09 — Économie</a>
+      <a class="nav-item" href="#s10">10 — Base de Faction</a>
+
+      <div class="nav-section-label">Longévité</div>
+      <a class="nav-item" href="#s11">11 — Saisons</a>
+      <a class="nav-item" href="#s12">12 — Endgame</a>
+
+      <div class="nav-section-label">Vision Produit</div>
+      <a class="nav-item" href="#s13">13 — Ce qu'on ne fait PAS</a>
+      <a class="nav-item" href="#s14">14 — Monétisation</a>
+      <a class="nav-item" href="#s15">15 — Comparaison</a>
+      <a class="nav-item" href="#s16">16 — Stack Technique</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="tag">Design Document v1.0</div>
+      <h1>EriniumFaction</h1>
+      <p>Document de design complet — vision, systèmes, mécaniques, équilibre et direction artistique du mod faction PvP de l'ère de l'Erinium.</p>
+    </div>
+
+    <!-- ============================
+         SECTION 1 : VISION
+         ============================ -->
+    <section class="section" id="s1">
+      <div class="section-title">
+        <span class="num">01</span>
+        Vision
+        <span class="accent-line"></span>
+      </div>
+      <div class="card">
+        <blockquote>
+          EriniumFaction n'est pas "un serveur faction de plus". C'est un univers cohérent où chaque mécanique existe pour une raison narrative et ludique. Là où les concurrents empilent des systèmes de grind déconnectés (métiers, niveaux, quêtes répétitives), nous construisons une expérience où jouer = progresser. Pas de farm robotique, pas de barrières artificielles.
+        </blockquote>
+        <div class="info-grid" style="margin-top:20px;">
+          <div class="info-item">
+            <div class="info-label">Philosophie</div>
+            <div class="info-value" style="font-size:16px;color:var(--violet-light);">Jouer = Progresser</div>
+            <div class="info-sub">Chaque action a du sens</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Positionnement</div>
+            <div class="info-value" style="font-size:16px;color:var(--cyan);">RPG-Faction PvP</div>
+            <div class="info-sub">Unique sur le marché</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Durée de vie</div>
+            <div class="info-value" style="font-size:16px;color:var(--green);">6–8 mois</div>
+            <div class="info-sub">Par saison</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION 2 : DIRECTION ARTISTIQUE
+         ============================ -->
+    <section class="section" id="s2">
+      <div class="section-title">
+        <span class="num">02</span>
+        Direction Artistique — "L'Ère de l'Erinium"
+        <span class="accent-line"></span>
+      </div>
+      <div class="card">
+        <div class="subsection-title">Thème central</div>
+        <div class="prose">
+          <p>Le monde a été fracturé par l'émergence d'un minerai inconnu : <strong>l'Erinium</strong>. Ce cristal sombre aux reflets violets et cyan a percé la croûte terrestre, remodelant le paysage en zones instables. Les factions se battent pour le contrôle de ces gisements, car l'Erinium est <em>la source de tout pouvoir</em>.</p>
+        </div>
+
+        <hr class="divider" />
+
+        <div class="subsection-title">Palette chromatique</div>
+        <div class="swatch-grid">
+          <div class="swatch">
+            <div class="swatch-color" style="background:#6B2FA0;"></div>
+            <div class="swatch-info">
+              <div class="swatch-name">Erinium brut</div>
+              <div class="swatch-hex">#6B2FA0</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#00E5FF;"></div>
+            <div class="swatch-info">
+              <div class="swatch-name">Erinium actif</div>
+              <div class="swatch-hex">#00E5FF</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#1A1A1E;border:1px solid rgba(255,255,255,0.1);"></div>
+            <div class="swatch-info">
+              <div class="swatch-name">Noir charbon</div>
+              <div class="swatch-hex">#1A1A1E</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#3A4050;"></div>
+            <div class="swatch-info">
+              <div class="swatch-name">Gris ardoise</div>
+              <div class="swatch-hex">#3A4050</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#E8E6E3;"></div>
+            <div class="swatch-info">
+              <div class="swatch-name">Texte</div>
+              <div class="swatch-hex">#E8E6E3</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#2ECC71;"></div>
+            <div class="swatch-info">
+              <div class="swatch-name">Positif</div>
+              <div class="swatch-hex">#2ECC71</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#E74C3C;"></div>
+            <div class="swatch-info">
+              <div class="swatch-name">Négatif</div>
+              <div class="swatch-hex">#E74C3C</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#E67E22;"></div>
+            <div class="swatch-info">
+              <div class="swatch-name">Danger</div>
+              <div class="swatch-hex">#E67E22</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#FFD700;"></div>
+            <div class="swatch-info">
+              <div class="swatch-name">Or / Rare</div>
+              <div class="swatch-hex">#FFD700</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#9B59B6;"></div>
+            <div class="swatch-info">
+              <div class="swatch-name">Épique / Impérial</div>
+              <div class="swatch-hex">#9B59B6</div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider" />
+
+        <div class="subsection-title">Identité visuelle</div>
+        <div class="perk-grid">
+          <div class="perk-card">
+            <div class="perk-name" style="color:var(--violet-light);">Géométrie cristalline</div>
+            <div class="perk-desc">Formes hexagonales et fractales inspirées des cristaux d'Erinium. UI angulaire, pas de courbes molles.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-name" style="color:var(--cyan);">Lueur ambiante</div>
+            <div class="perk-desc">Glows violets et cyan autour des éléments d'Erinium. Ambiance sombre ponctuée d'éclats de lumière cristalline.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-name" style="color:var(--gold);">Minimalisme sombre</div>
+            <div class="perk-desc">Pas de texture chargée, pas de couleurs criantes. Chaque couleur a une signification dans le système de design.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-name" style="color:var(--green);">Cohérence sonore</div>
+            <div class="perk-desc">Sons cristallins pour l'Erinium, impacts lourds pour le combat. L'audio renforce l'immersion à chaque interaction.</div>
+          </div>
+        </div>
+
+        <hr class="divider" />
+
+        <div class="subsection-title">Cohérence narrative</div>
+        <div class="perk-grid">
+          <div class="perk-card">
+            <div class="perk-name">Niveau = Expérience de combat</div>
+            <div class="perk-desc">Tu montes en level en te battant, en explorant, en survivant — pas en farmant des blocs. Le level est une mesure de ton vécu dans le monde fracturé.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-name">La magie = absorption d'Erinium</div>
+            <div class="perk-desc">Les sorts ne sont pas de la magie arbitraire — ils canalisent l'énergie des cristaux que tu absorbes en explorant les zones instables.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-name">Les factions = Ordres rivaux</div>
+            <div class="perk-desc">Chaque faction défend une philosophie sur l'usage de l'Erinium : exploitation totale, préservation contrôlée, ou destruction.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-name">L'économie = Contrôle des ressources</div>
+            <div class="perk-desc">L'Erinium est la devise réelle. Les $ sont son équivalent commercial. La guerre est une guerre économique autant que militaire.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION 3 : SYSTÈME RPG
+         ============================ -->
+    <section class="section" id="s3">
+      <div class="section-title">
+        <span class="num">03</span>
+        Système RPG
+        <span class="accent-line"></span>
+      </div>
+
+      <!-- Level & XP -->
+      <div class="card">
+        <div class="subsection-title">Level et XP</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">Level maximum</div>
+            <div class="info-value">50</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Durée estimée</div>
+            <div class="info-value" style="color:var(--violet-light);">4–6 sem.</div>
+            <div class="info-sub">Joueur actif</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Courbe</div>
+            <div class="info-value" style="color:var(--cyan);font-size:15px;">Logarithmique</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Perte à la mort</div>
+            <div class="info-value" style="color:var(--green);">Aucune</div>
+            <div class="info-sub">Pas de risque sur l'XP</div>
+          </div>
+        </div>
+
+        <div class="subsection-title">Courbe d'XP</div>
+        <pre><span class="c-cyan">Level 1–10 </span>  →  ~5–8h    <span class="c-slate">// Progression rapide et gratifiante</span>
+<span class="c-cyan">Level 11–25</span>  →  ~20–30h  <span class="c-slate">// Rythme de croisière</span>
+<span class="c-cyan">Level 26–40</span>  →  ~40–50h  <span class="c-slate">// Engagement soutenu requis</span>
+<span class="c-cyan">Level 41–50</span>  →  ~30–40h  <span class="c-slate">// Prestige et défi final</span>
+<span class="c-white">TOTAL        →  ~100–130h par saison</span></pre>
+
+        <div class="subsection-title">Sources d'XP</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Action</th><th>XP gagnée</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Tuer un joueur</td><td class="td-cyan">150 – 400</td><td class="td-slate">Selon level de la cible</td></tr>
+              <tr><td>Assist (participation)</td><td class="td-cyan">75 – 200</td><td class="td-slate">Si dégâts infligés avant la mort</td></tr>
+              <tr><td>Capturer un PDC</td><td class="td-gold">300</td><td class="td-slate">Point de Contrôle</td></tr>
+              <tr><td>Participer à un Event</td><td class="td-violet">200 – 800</td><td class="td-slate">Selon résultat et durée</td></tr>
+              <tr><td>Tuer un Boss</td><td class="td-gold">500 – 1000</td><td class="td-slate">Boss mondial ou donjon</td></tr>
+              <tr><td>Tuer un mob</td><td class="td-green">5 – 25</td><td class="td-slate">Décroissant (anti-grind)</td></tr>
+              <tr><td>Miner un minerai</td><td class="td-green">2 – 15</td><td class="td-slate">Erinium = max</td></tr>
+              <tr><td>Crafter un item</td><td class="td-green">50 – 150</td><td class="td-slate">Tier de l'item</td></tr>
+              <tr><td>Compléter un défi</td><td class="td-violet">100 – 300</td><td class="td-slate">Défis journaliers</td></tr>
+              <tr><td>Bonus premier kill/event</td><td class="td-gold">+200</td><td class="td-slate">Bonus de la journée</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">Anti-grind — Rendements décroissants</div>
+        <pre><span class="c-slate">// Saturation par type d'action (reset quotidien à minuit)</span>
+<span class="c-cyan">Mobs tués</span>     1–20  → 100% XP
+                21–50  → 50% XP
+                51+    → 10% XP
+
+<span class="c-cyan">Minerais</span>       1–50  → 100% XP
+                51–100 → 60% XP
+                101+   → 20% XP
+
+<span class="c-cyan">Crafts</span>         1–10  → 100% XP
+                11–30  → 50% XP
+                31+    → 0% XP  <span class="c-slate">// Craft industriel = pas d'XP</span></pre>
+
+        <div class="subsection-title">Défis journaliers</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Défi</th><th>XP</th></tr></thead>
+            <tbody>
+              <tr><td>Tuer 5 joueurs différents</td><td class="td-gold">500</td></tr>
+              <tr><td>Capturer 1 Point de Contrôle</td><td class="td-gold">300</td></tr>
+              <tr><td>Participer à un event mondial</td><td class="td-violet">400</td></tr>
+              <tr><td>Crafter 3 items de tier 2+</td><td class="td-green">200</td></tr>
+              <tr><td>Explorer la Warzone 15 min</td><td class="td-cyan">250</td></tr>
+              <tr><td>Atteindre le top 3 d'un event</td><td class="td-gold">600</td></tr>
+              <tr><td>Lancer 50 sorts en combat</td><td class="td-violet">300</td></tr>
+              <tr><td>Tuer un Boss de donjon</td><td class="td-gold">700</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Stats RPG -->
+      <div class="card">
+        <div class="subsection-title">Stats RPG — 6 attributs (49 points à distribuer, cap 25/stat)</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Stat</th><th>Effet par point</th><th>Cap</th><th>Bonus max</th></tr></thead>
+            <tbody>
+              <tr><td class="td-red">Vigueur</td><td>+2% PV max</td><td>25</td><td>+50% PV</td></tr>
+              <tr><td class="td-red">Force</td><td>+1.5% dégâts physiques</td><td>25</td><td>+37.5% dégâts</td></tr>
+              <tr><td class="td-cyan">Résistance</td><td>+1.2% réduction dégâts reçus</td><td>25</td><td>-30% dégâts subis</td></tr>
+              <tr><td class="td-green">Agilité</td><td>+0.8% vitesse de déplacement, +0.5% attack speed</td><td>25</td><td>+20% vitesse</td></tr>
+              <tr><td class="td-gold">Fortune</td><td>+1.5% loot, +1% gains $</td><td>25</td><td>+37.5% loot</td></tr>
+              <tr><td class="td-violet">Arcane</td><td>+2% mana max, +1% puissance des sorts</td><td>25</td><td>+50% mana</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">Builds typiques</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Build</th><th>Vigueur</th><th>Force</th><th>Résistance</th><th>Agilité</th><th>Fortune</th><th>Arcane</th></tr></thead>
+            <tbody>
+              <tr><td class="td-red">Berserker</td><td>5</td><td>25</td><td>3</td><td>10</td><td>3</td><td>3</td></tr>
+              <tr><td class="td-cyan">Tank</td><td>25</td><td>5</td><td>25</td><td>2</td><td>2</td><td>0 — cap dépassé</td></tr>
+              <tr><td class="td-green">Assassin</td><td>2</td><td>15</td><td>0</td><td>25</td><td>5</td><td>2</td></tr>
+              <tr><td>Bruiser</td><td>15</td><td>15</td><td>10</td><td>5</td><td>2</td><td>2</td></tr>
+              <tr><td class="td-violet">Mage pur</td><td>5</td><td>0</td><td>5</td><td>5</td><td>9</td><td>25</td></tr>
+              <tr><td class="td-violet">Battlemage</td><td>10</td><td>10</td><td>5</td><td>4</td><td>5</td><td>15</td></tr>
+              <tr><td class="td-gold">Farmer</td><td>5</td><td>5</td><td>5</td><td>5</td><td>25</td><td>4</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Perks -->
+      <div class="card">
+        <div class="subsection-title">Perks — Déblocage par palier de level</div>
+
+        <div style="margin-bottom:20px;">
+          <div style="display:inline-block;background:rgba(107,47,160,0.2);border:1px solid rgba(107,47,160,0.4);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--violet-light);margin-bottom:12px;">Level 10 — Choisir 1</div>
+          <div class="perk-grid">
+            <div class="perk-card"><div class="perk-name">Instinct du chasseur</div><div class="perk-desc">+20% XP des kills joueurs. Tu vis pour le PvP.</div></div>
+            <div class="perk-card"><div class="perk-name">Second souffle</div><div class="perk-desc">Si tu tombes sous 10% PV, régénère 15% PV instantanément. CD : 3 min.</div></div>
+            <div class="perk-card"><div class="perk-name">Pas légers</div><div class="perk-desc">-30% dégâts de chute, +5% vitesse en sprint.</div></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <div style="display:inline-block;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--cyan);margin-bottom:12px;">Level 20 — Choisir 1</div>
+          <div class="perk-grid">
+            <div class="perk-card"><div class="perk-name">Furie d'Erinium</div><div class="perk-desc">Chaque kill consécutif en 30s donne +5% dégâts (max 3 stacks).</div></div>
+            <div class="perk-card"><div class="perk-name">Bastion</div><div class="perk-desc">+15% réduction dégâts quand PV &lt; 40%. Tu deviens plus dur à tuer dans le rouge.</div></div>
+            <div class="perk-card"><div class="perk-name">Pillard</div><div class="perk-desc">+50% $ et XP volés sur les kills. L'économie te récompense.</div></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <div style="display:inline-block;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--green);margin-bottom:12px;">Level 30 — Choisir 1</div>
+          <div class="perk-grid">
+            <div class="perk-card"><div class="perk-name">Exécution</div><div class="perk-desc">+30% dégâts contre les cibles sous 25% PV. Le coup de grâce est dévastateur.</div></div>
+            <div class="perk-card"><div class="perk-name">Mur d'acier</div><div class="perk-desc">-20% dégâts reçus des joueurs de niveau supérieur au tien.</div></div>
+            <div class="perk-card"><div class="perk-name">Vampirisme</div><div class="perk-desc">Vole 8% des dégâts infligés en PV. Le combat te soigne.</div></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <div style="display:inline-block;background:rgba(241,196,15,0.1);border:1px solid rgba(241,196,15,0.3);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--gold);margin-bottom:12px;">Level 40 — Choisir 1</div>
+          <div class="perk-grid">
+            <div class="perk-card"><div class="perk-name">Frappe d'Erinium</div><div class="perk-desc">Tes attaques ont 15% de chance d'infliger 50% dégâts bonus cristallins.</div></div>
+            <div class="perk-card"><div class="perk-name">Résurgence</div><div class="perk-desc">À la mort, reviens avec 20% PV une fois par 10 min. Tu ne tombes jamais vraiment.</div></div>
+            <div class="perk-card"><div class="perk-name">Lien cristallin</div><div class="perk-desc">+25% puissance des sorts. Résonance parfaite avec l'Erinium.</div></div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:inline-block;background:rgba(155,89,182,0.2);border:1px solid rgba(155,89,182,0.5);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;color:#C39BD3;margin-bottom:12px;">Level 50 — Choisir 1 (Légendaire)</div>
+          <div class="perk-grid">
+            <div class="perk-card" style="border-color:rgba(155,89,182,0.3);">
+              <div class="perk-name" style="color:#C39BD3;">Écho du Noyau</div>
+              <div class="perk-desc">Chaque sort lancé réduit le CD de tous tes autres sorts de 1s. Vitesse de combo magique extrême.</div>
+            </div>
+            <div class="perk-card" style="border-color:rgba(155,89,182,0.3);">
+              <div class="perk-name" style="color:#C39BD3;">Forme cristalline</div>
+              <div class="perk-desc">Pendant 10s (CD 5 min) : immunité totale aux dégâts, tu deviens de l'Erinium pur. Idéal pour capper un PDC.</div>
+            </div>
+            <div class="perk-card" style="border-color:rgba(155,89,182,0.3);">
+              <div class="perk-name" style="color:#C39BD3;">Omniscience</div>
+              <div class="perk-desc">Vois les noms de tous les joueurs en Warzone sur ta minimap. Intel tactique total.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Builds complets -->
+      <div class="card">
+        <div class="subsection-title">Exemples de builds complets</div>
+        <pre><span class="c-white">=== ASSASSIN SILENCIEUX (niveau 50) ===</span>
+<span class="c-cyan">Stats     :</span> Force 15, Agilité 25, Résistance 0, Vigueur 2, Fortune 5, Arcane 2
+<span class="c-violet">Perks     :</span> Pas légers (10) → Pillard (20) → Exécution (30) → Frappe d'Erinium (40) → Omniscience (50)
+<span class="c-gold">Équipement:</span> Tier 3 léger, enchantements vitesse et critique
+<span class="c-green">Style     :</span> Burst DPS, gank, repositionnement constant. Tue en 3 coups ou meurt.
+
+<span class="c-white">=== GARDIEN IMMORTEL (niveau 50) ===</span>
+<span class="c-cyan">Stats     :</span> Vigueur 25, Résistance 25, Force 0, Agilité 0, Fortune 0, Arcane 0 <span class="c-slate">(- 1 point vu le cap)</span>
+<span class="c-violet">Perks     :</span> Second souffle (10) → Bastion (20) → Mur d'acier (30) → Résurgence (40) → Forme cristalline (50)
+<span class="c-gold">Équipement:</span> Tier 3 lourd, enchantements armure et thorn
+<span class="c-green">Style     :</span> Irréductible en PDC. Ne tue pas mais ne meurt jamais. Essentiel en défense.
+
+<span class="c-white">=== ARCHIMAGE (niveau 50) ===</span>
+<span class="c-cyan">Stats     :</span> Arcane 25, Vigueur 10, Force 0, Résistance 5, Agilité 5, Fortune 4
+<span class="c-violet">Perks     :</span> Second souffle (10) → Furie d'Erinium (20) → Vampirisme (30) → Lien cristallin (40) → Écho du Noyau (50)
+<span class="c-gold">Équipement:</span> Bâton d'Erinium, tier 2 corps
+<span class="c-green">Style     :</span> Combo de sorts dévastateur. Écho du Noyau + Lien cristallin = 1v3 possible.</pre>
+
+        <div class="subsection-title">Système de Prestige</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Prestige</th><th>Condition</th><th>Bonus permanent</th><th>Cosmétique</th></tr></thead>
+            <tbody>
+              <tr><td class="td-gold">Prestige 1</td><td>Atteindre level 50</td><td>+2% à toutes les stats</td><td>1 étoile dorée</td></tr>
+              <tr><td class="td-gold">Prestige 2</td><td>Prestige 1 + level 50 à nouveau</td><td>+4% à toutes les stats</td><td>2 étoiles</td></tr>
+              <tr><td class="td-gold">Prestige 3</td><td>Prestige 2 + level 50</td><td>+6% à toutes les stats</td><td>3 étoiles + aura</td></tr>
+              <tr><td class="td-violet">Prestige 4</td><td>Prestige 3 + level 50</td><td>+8% à toutes les stats</td><td>Aura violette</td></tr>
+              <tr><td class="td-cyan">Prestige 5 (MAX)</td><td>Prestige 4 + level 50</td><td>+10% à toutes les stats</td><td>Aura cyan légendaire</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="prose" style="margin-top:12px;">
+          <p>Le Prestige reset le level à 1 mais conserve tous les perks débloqués, les stats distribués, et les cosmétiques. C'est une récompense de prestige pur, pas un grind punitif.</p>
+        </div>
+      </div>
+
+      <!-- Équilibre level 1 vs level 50 -->
+      <div class="card">
+        <div class="subsection-title">Équilibre Level 1 vs Level 50</div>
+        <div class="prose" style="margin-bottom:16px;">
+          <p>Un joueur level 50 ne doit pas être une garantie de victoire contre un level 1. Le système est conçu pour que la compétence prime sur le niveau. Voici un comparatif de scénarios :</p>
+        </div>
+        <pre><span class="c-white">SCÉNARIO : Combat 1v1 équipement identique</span>
+
+<span class="c-green">Joueur A</span> — Level 50, build Berserker, perk Exécution
+         PV: +50% (Vigueur 5 = +10%, mais niveau ne donne pas de PV bonus)
+         Dégâts: +37.5% (Force 25), +30% vs cible &lt;25% PV (Exécution)
+         Avantage: Écrase en burst si la cible est dans le rouge
+
+<span class="c-cyan">Joueur B</span> — Level 1, équipement tier 2 correct
+         Pas de bonus de stats RPG
+         Pas de perks
+         Avantage: Aucun malus, peut fuir ou jouer au kite
+
+<span class="c-slate">→ Level 50 gagne ~70% des duels, mais un joueur B skilled peut fuir,</span>
+<span class="c-slate">  utiliser le terrain, ou rallier des alliés.</span>
+
+<span class="c-white">SCÉNARIO : Capture de PDC (1v1)</span>
+
+<span class="c-green">Joueur C</span> — Level 30, build Tank, perk Mur d'acier
+         Objectif: Défendre le PDC, survivre jusqu'aux renforts
+
+<span class="c-cyan">Joueur D</span> — Level 10, mains nues + équipement basique
+         Objectif: Prendre le PDC rapidement avant les renforts
+
+<span class="c-slate">→ Le niveau donne un avantage substantiel mais pas insurmontable.</span>
+<span class="c-slate">  L'écart est plafonné : jamais x3 dégâts ou x2 PV entre lv1 et lv50.</span>
+<span class="c-slate">  Différentiel max estimé : ~60-70% dégâts, ~30% survie en faveur du haut niveau.</span></pre>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION 4 : MAGIE
+         ============================ -->
+    <section class="section" id="s4">
+      <div class="section-title">
+        <span class="num">04</span>
+        Système de Magie
+        <span class="accent-line"></span>
+      </div>
+
+      <!-- Lore -->
+      <div class="card">
+        <div class="subsection-title">Lore de la Magie</div>
+        <blockquote>
+          L'Erinium n'est pas qu'un minerai — c'est de l'énergie cristallisée, une mémoire ancienne du monde avant la Fracture. Ceux qui apprennent à l'absorber directement dans leur corps peuvent canaliser ses quatre aspects fondamentaux : la Fracture (destruction), la Cristallisation (protection), la Corruption (altération), la Résonance (amplification). La magie ici est viscérale — tu n'es pas un magicien qui lit des sorts. Tu es un réservoir d'énergie qui apprend à ne pas s'autodétruire en la relâchant.
+        </blockquote>
+
+        <div class="subsection-title">Level de Magie</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">Level maximum</div>
+            <div class="info-value">30</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Durée estimée</div>
+            <div class="info-value" style="color:var(--violet-light);">6–8 sem.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Courbe</div>
+            <div class="info-value" style="color:var(--cyan);font-size:15px;">Logarithmique</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Perte à la mort</div>
+            <div class="info-value" style="color:var(--green);">Aucune</div>
+          </div>
+        </div>
+
+        <div class="subsection-title">Sources d'XP Magique</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Action</th><th>XP Magie</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Lancer un sort en combat PvP</td><td class="td-cyan">30 – 80</td><td class="td-slate">Par sort, décroissant après 20 sorts/jour</td></tr>
+              <tr><td>Tuer avec un sort</td><td class="td-gold">150 – 300</td><td class="td-slate">Selon level de la cible</td></tr>
+              <tr><td>Assist magique</td><td class="td-cyan">75 – 150</td><td class="td-slate">Si ton sort a contribué</td></tr>
+              <tr><td>Lancer un sort sur un Boss</td><td class="td-violet">50 – 200</td><td class="td-slate">Par participation</td></tr>
+              <tr><td>Compléter un défi magique</td><td class="td-gold">200 – 500</td><td class="td-slate">Défis dédiés magie</td></tr>
+              <tr><td>Explorer une zone d'Erinium</td><td class="td-green">100</td><td class="td-slate">Une fois par zone/jour</td></tr>
+              <tr><td>Absorber un cristal d'Erinium</td><td class="td-violet">50 – 150</td><td class="td-slate">Décroissant (anti-grind)</td></tr>
+              <tr><td>Participer à un event (magie)</td><td class="td-cyan">200 – 600</td><td class="td-slate">Bonus si sort décisif</td></tr>
+              <tr><td>Synergie de sorts (combo réussi)</td><td class="td-gold">+50 bonus</td><td class="td-slate">Deux sorts qui interagissent</td></tr>
+              <tr><td>Premier sort du jour</td><td class="td-gold">+100 bonus</td><td class="td-slate">Bonus quotidien</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">La Mana</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Paramètre</th><th>Valeur</th></tr></thead>
+            <tbody>
+              <tr><td>Mana de base</td><td class="td-cyan">100</td></tr>
+              <tr><td>Mana max avec Arcane 25</td><td class="td-violet">150</td></tr>
+              <tr><td>Régénération hors combat</td><td class="td-green">2/sec</td></tr>
+              <tr><td>Régénération en combat</td><td class="td-gold">0.5/sec</td></tr>
+              <tr><td>Potions de mana</td><td class="td-red">Aucune</td></tr>
+              <tr><td>Récupération totale hors combat</td><td class="td-cyan">~50–75 sec</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Les 4 Écoles -->
+      <div class="card">
+        <div class="subsection-title">Les 4 Écoles de Magie</div>
+
+        <!-- Fracture -->
+        <div class="school-card school-fracture">
+          <div class="school-title">Fracture</div>
+          <div class="school-desc">L'aspect destructeur de l'Erinium. Tu fractures la réalité autour de ta cible — dégâts bruts, pénétration d'armure, zones de contrôle agressif. L'école des guerriers-mages offensifs.</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Sort</th><th>Level</th><th>Mana</th><th>CD</th><th>Effet</th></tr></thead>
+              <tbody>
+                <tr><td class="td-violet">Éclat de Fracture</td><td>1</td><td>15</td><td>3s</td><td>Projectile rapide, 8 dégâts, pénètre 10% armure</td></tr>
+                <tr><td class="td-violet">Onde de Choc</td><td>5</td><td>25</td><td>8s</td><td>AoE autour du lanceur, 12 dégâts, repousse les ennemis</td></tr>
+                <tr><td class="td-violet">Lance de Fracture</td><td>10</td><td>35</td><td>12s</td><td>Perce jusqu'à 3 ennemis en ligne, 18 dégâts chacun</td></tr>
+                <tr><td class="td-violet">Rift</td><td>18</td><td>50</td><td>25s</td><td>Ouvre un rift 3s qui pull les ennemis proches puis explose (25 dégâts)</td></tr>
+                <tr><td class="td-violet">Annihilation</td><td>25</td><td>80</td><td>60s</td><td>Explosion massive, 50 dégâts en zone 5m, ignore 30% armure</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Cristallisation -->
+        <div class="school-card school-cristallisation">
+          <div class="school-title">Cristallisation</div>
+          <div class="school-desc">L'aspect défensif et protecteur. Tu solidifies l'Erinium autour de toi ou d'alliés — boucliers, ralentissements, immobilisations. L'école des supports-tanks.</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Sort</th><th>Level</th><th>Mana</th><th>CD</th><th>Effet</th></tr></thead>
+              <tbody>
+                <tr><td class="td-cyan">Armure de Cristal</td><td>1</td><td>20</td><td>15s</td><td>Bouclier absorbant 20 dégâts pendant 8s</td></tr>
+                <tr><td class="td-cyan">Prison de Glace</td><td>5</td><td>30</td><td>12s</td><td>Immobilise une cible 2s (rompu si dégâts)</td></tr>
+                <tr><td class="td-cyan">Champ Réfractant</td><td>10</td><td>40</td><td>20s</td><td>AoE 4m, ralentit -40% tous les ennemis proches pendant 4s</td></tr>
+                <tr><td class="td-cyan">Sanctuaire</td><td>18</td><td>60</td><td>45s</td><td>Zone 6m pendant 6s : -30% dégâts subis par alliés, ralentit ennemis</td></tr>
+                <tr><td class="td-cyan">Forteresse Cristalline</td><td>25</td><td>90</td><td>90s</td><td>Toi et 2 alliés proches : immunité 3s + bouclier 40 dégâts ensuite</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Corruption -->
+        <div class="school-card school-corruption">
+          <div class="school-title">Corruption</div>
+          <div class="school-desc">L'aspect altérant et dégradant. DoTs, affaiblissements, malédictions. Idéal pour réduire les soins, affaiblir les tanks, et contrôler le tempo d'un combat prolongé.</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Sort</th><th>Level</th><th>Mana</th><th>CD</th><th>Effet</th></tr></thead>
+              <tbody>
+                <tr><td class="td-green">Poison Cristallin</td><td>1</td><td>15</td><td>6s</td><td>DoT : 3 dégâts/sec pendant 6s, réduit vitesse -10%</td></tr>
+                <tr><td class="td-green">Marque de Faiblesse</td><td>5</td><td>25</td><td>15s</td><td>Cible: -20% dégâts infligés pendant 8s</td></tr>
+                <tr><td class="td-green">Nécrose</td><td>10</td><td>35</td><td>20s</td><td>Réduit les soins reçus par la cible de 60% pendant 6s</td></tr>
+                <tr><td class="td-green">Malédiction de Fragilité</td><td>18</td><td>45</td><td>30s</td><td>Cible: +25% dégâts reçus de toutes sources pendant 5s</td></tr>
+                <tr><td class="td-green">Érosion Totale</td><td>25</td><td>70</td><td>75s</td><td>AoE 5m : -30% armor, -20% dégâts, DoT 5/sec pendant 8s</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Résonance -->
+        <div class="school-card school-resonance">
+          <div class="school-title">Résonance</div>
+          <div class="school-desc">L'aspect amplificateur. Tes sorts résonnent avec l'Erinium ambiant pour des effets de zone, de ricochet, et de buff d'alliés. L'école la plus complexe à maîtriser mais la plus puissante en groupe.</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Sort</th><th>Level</th><th>Mana</th><th>CD</th><th>Effet</th></tr></thead>
+              <tbody>
+                <tr><td class="td-gold">Écho</td><td>1</td><td>20</td><td>10s</td><td>Ton prochain sort est copié et lancé une 2ème fois avec 50% puissance</td></tr>
+                <tr><td class="td-gold">Vague de Résonance</td><td>5</td><td>30</td><td>18s</td><td>AoE, inflige 10 dégâts et amplifie les dégâts subis de +15% pendant 5s</td></tr>
+                <tr><td class="td-gold">Lien Symbiotique</td><td>10</td><td>40</td><td>25s</td><td>Lie deux alliés : ils partagent 20% des soins reçus entre eux pendant 10s</td></tr>
+                <tr><td class="td-gold">Tempête Résonante</td><td>18</td><td>65</td><td>40s</td><td>Zone 8m, 5 éclairs de 8 dégâts qui rebondissent aléatoirement 8s</td></tr>
+                <tr><td class="td-gold">Harmonisation Finale</td><td>25</td><td>100</td><td>120s</td><td>Tous les sorts de l'équipe dans les 8s suivantes font +50% dégâts/effets</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slots & Loadouts -->
+      <div class="card">
+        <div class="subsection-title">Slots de sorts</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Level Magie</th><th>Slots actifs</th></tr></thead>
+            <tbody>
+              <tr><td>1 – 9</td><td class="td-cyan">2 sorts actifs</td></tr>
+              <tr><td>10 – 19</td><td class="td-violet">3 sorts actifs</td></tr>
+              <tr><td>20 – 30</td><td class="td-gold">4 sorts actifs</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">Exemples de loadouts</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Loadout</th><th>Sorts</th><th>Style</th></tr></thead>
+            <tbody>
+              <tr><td class="td-red">Full burst</td><td>Annihilation + Lance de Fracture + Écho + Rift</td><td>One-shot en 1.5s si combo réussit</td></tr>
+              <tr><td class="td-cyan">Support tank</td><td>Forteresse Cristalline + Sanctuaire + Prison de Glace + Armure de Cristal</td><td>Irréductible en PDC</td></tr>
+              <tr><td class="td-green">Contrôle</td><td>Nécrose + Malédiction de Fragilité + Prison de Glace + Champ Réfractant</td><td>Annule un tank en 5s</td></tr>
+              <tr><td class="td-gold">Amplificateur</td><td>Harmonisation Finale + Vague de Résonance + Écho + Tempête Résonante</td><td>Rôle de debuffeur-boosteur</td></tr>
+              <tr><td class="td-violet">Hybride offensif</td><td>Onde de Choc + Poison Cristallin + Écho + Annihilation</td><td>DoT + burst + mobilité</td></tr>
+              <tr><td>Anti-heal</td><td>Nécrose + Poison Cristallin + Marque de Faiblesse + Lance de Fracture</td><td>Contre les builds Vampirisme</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">Synergie RPG + Magie</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Arcane (points)</th><th>Mana max</th><th>Puissance sorts</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>100</td><td>Basique</td></tr>
+              <tr><td>5</td><td>110</td><td>+5%</td></tr>
+              <tr><td>10</td><td>120</td><td>+10%</td></tr>
+              <tr><td>15</td><td>130</td><td>+15%</td></tr>
+              <tr><td>20</td><td>140</td><td>+20%</td></tr>
+              <tr><td>25</td><td>150</td><td>+25%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Triangle & Synergies -->
+      <div class="card">
+        <div class="subsection-title">Triangle des builds</div>
+        <pre>                    <span class="c-cyan">MAGE PUR</span>
+                   (Arcane 25)
+                    / maxi sort \
+                   /  fragile   \
+                  /              \
+<span class="c-red">GUERRIER PUR</span>————————————<span class="c-green">BATTLEMAGE</span>
+(Force/Vigueur)     équilibre    (Force+Arcane)
+ max dégâts phy      hybride      dégâts mixtes
+ zéro magie          coût: moins  moins fort que
+                     spécialisé   chaque pur</pre>
+
+        <div class="subsection-title">Synergies Perks + Magie</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Perk</th><th>Interaction avec la magie</th></tr></thead>
+            <tbody>
+              <tr><td class="td-violet">Furie d'Erinium</td><td>Les kills magiques comptent pour les stacks</td></tr>
+              <tr><td class="td-violet">Lien cristallin</td><td>+25% puissance sorts (stacke avec Arcane)</td></tr>
+              <tr><td class="td-violet">Écho du Noyau</td><td>Chaque sort réduit CD des autres — combo infini</td></tr>
+              <tr><td class="td-violet">Vampirisme</td><td>Les dégâts de sorts vampirisent aussi</td></tr>
+              <tr><td class="td-violet">Exécution</td><td>Sorts sur cible &lt;25% PV = +30% dégâts</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">Progression Magie — Paliers de déblocage</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Level Magie</th><th>Débloqué</th></tr></thead>
+            <tbody>
+              <tr><td class="td-cyan">1</td><td>Sorts tier 1 des 4 écoles + 2 slots</td></tr>
+              <tr><td class="td-cyan">5</td><td>Sorts tier 2 des 4 écoles</td></tr>
+              <tr><td class="td-cyan">10</td><td>Sorts tier 3 + 3ème slot de sort</td></tr>
+              <tr><td class="td-cyan">15</td><td>Spécialisation : peut booster une école (+10% pour l'école choisie)</td></tr>
+              <tr><td class="td-cyan">18</td><td>Sorts tier 4 des 4 écoles</td></tr>
+              <tr><td class="td-cyan">20</td><td>4ème slot de sort</td></tr>
+              <tr><td class="td-cyan">25</td><td>Sorts tier 5 (sorts ultimes) des 4 écoles</td></tr>
+              <tr><td class="td-gold">30</td><td>Maîtrise : titre "Archimage" + aura spéciale + accès aux Reliques magiques</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">Builds complets Magie</div>
+        <pre><span class="c-white">=== ARCHIMAGE DE DESTRUCTION ===</span>
+<span class="c-cyan">Stats RPG :</span> Arcane 25, Vigueur 10, Agilité 5, Résistance 5, Force 4
+<span class="c-violet">Perks     :</span> Second souffle → Furie d'Erinium → Vampirisme → Lien cristallin → Écho du Noyau
+<span class="c-gold">Sorts     :</span> Annihilation, Lance de Fracture, Écho, Rift
+<span class="c-green">Style     :</span> Combo Écho + Annihilation = 75 dégâts en zone en 1 action. Fragile mais dévastateur.
+
+<span class="c-white">=== PALADIN INÉBRANLABLE ===</span>
+<span class="c-cyan">Stats RPG :</span> Vigueur 20, Résistance 15, Arcane 10, Agilité 4
+<span class="c-violet">Perks     :</span> Second souffle → Bastion → Mur d'acier → Résurgence → Forme cristalline
+<span class="c-gold">Sorts     :</span> Forteresse Cristalline, Sanctuaire, Armure de Cristal, Prison de Glace
+<span class="c-green">Style     :</span> Impossible à tuer seul. Nécessite 3 ennemis coordonnés pour être éliminé.
+
+<span class="c-white">=== ASSASSIN DES OMBRES ===</span>
+<span class="c-cyan">Stats RPG :</span> Agilité 25, Force 10, Arcane 10, Vigueur 4
+<span class="c-violet">Perks     :</span> Pas légers → Pillard → Exécution → Frappe d'Erinium → Omniscience
+<span class="c-gold">Sorts     :</span> Poison Cristallin, Marque de Faiblesse, Écho, Éclat de Fracture
+<span class="c-green">Style     :</span> Arrive vite, DoT + Marque, burst physique Exécution. Fuit si raté.
+
+<span class="c-white">=== NÉCROMANCIEN DE CORRUPTION ===</span>
+<span class="c-cyan">Stats RPG :</span> Arcane 20, Vigueur 10, Résistance 10, Fortune 5, Agilité 4
+<span class="c-violet">Perks     :</span> Second souffle → Bastion → Vampirisme → Lien cristallin → Écho du Noyau
+<span class="c-gold">Sorts     :</span> Érosion Totale, Nécrose, Malédiction de Fragilité, Poison Cristallin
+<span class="c-green">Style     :</span> Empile 4 debuffs en 5s. La cible fait -30% dégâts, reçoit +25%, soins bloqués, DoT.</pre>
+
+        <div class="subsection-title">Équilibre Magie vs Physique</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Faiblesse Magie</th><th>Contre-mesure Physique</th></tr></thead>
+            <tbody>
+              <tr><td>Fragile (peu de PV)</td><td>Rushes rapides avant que les sorts soient lancés</td></tr>
+              <tr><td>Mana limité (100–150)</td><td>Engager plusieurs fois force la rupture de mana</td></tr>
+              <tr><td>Cooldowns longs</td><td>Survie la première vague = le mage est vulnérable</td></tr>
+              <tr><td>Sorts à portée limitée</td><td>Corps-à-corps force le mage à quitter sa zone de confort</td></tr>
+              <tr><td>Sorts interrompables</td><td>Stun/knockback casse le combo en cours</td></tr>
+              <tr><td>Mana lente à récupérer en combat</td><td>Combat prolongé vide le mana — usure physique gagne</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">HUD Magie</div>
+        <pre><span class="c-slate">// Schéma du HUD en combat</span>
+┌─────────────────────────────────────────────────────────┐
+│  [♥♥♥♥♥♥♥♥♥♥]  PV 85/100       [Mana ████████░░] 80/100│
+│                                                          │
+│  Sorts actifs:                                           │
+│  <span class="c-violet">[Q] Éclat ──</span>  <span class="c-cyan">[E] Armure 8s</span>  <span class="c-gold">[R] Écho ──</span>  <span class="c-green">[F] Poison 3s</span>│
+│                                                          │
+│  XP Magie: [████████████░░░░░░░░] Lv 14 → 15            │
+└─────────────────────────────────────────────────────────┘
+<span class="c-slate">Les CDs s'affichent en temps réel. La barre de mana pulse en rouge si &lt; 20%.</span></pre>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION 5 : CARTE
+         ============================ -->
+    <section class="section" id="s5">
+      <div class="section-title">
+        <span class="num">05</span>
+        Carte &amp; Territoire
+        <span class="accent-line"></span>
+      </div>
+      <div class="card">
+        <div class="subsection-title">Structure de la carte</div>
+        <pre>┌──────────────────────────────────────────┐
+│              BORDURE DU MONDE             │
+│         (dégâts progressifs, mort)        │
+│  ┌────────────────────────────────────┐  │
+│  │           WILDERNESS               │  │
+│  │  (factions, claim, PvP autorisé)   │  │
+│  │  ┌──────────────────────────────┐ │  │
+│  │  │        WARZONE               │ │  │
+│  │  │  (PvP forcé, PDC, drops)     │ │  │
+│  │  │   ┌──────────────────┐       │ │  │
+│  │  │   │  SPAWN (NEUTRE)  │       │ │  │
+│  │  │   │  PvP désactivé   │       │ │  │
+│  │  │   │  Shops, Banque,  │       │ │  │
+│  │  │   │  Porte d'arène   │       │ │  │
+│  │  │   └──────────────────┘       │ │  │
+│  │  └──────────────────────────────┘ │  │
+│  └────────────────────────────────────┘  │
+└──────────────────────────────────────────┘</pre>
+
+        <div class="subsection-title">Zones</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Zone</th><th>PvP</th><th>Claim</th><th>Drops</th><th>Spécial</th></tr></thead>
+            <tbody>
+              <tr><td class="td-green">Spawn</td><td class="td-green">Off</td><td class="td-red">Interdit</td><td class="td-green">Rien</td><td>Commerce, banque, portails</td></tr>
+              <tr><td class="td-gold">Wilderness</td><td class="td-gold">Autorisé</td><td class="td-green">Oui</td><td class="td-gold">Modéré</td><td>Bases de factions, ressources normales</td></tr>
+              <tr><td class="td-red">Warzone</td><td class="td-red">Forcé</td><td class="td-red">Interdit</td><td class="td-red">Tout</td><td>PDC, Erinium concentré, events</td></tr>
+              <tr><td class="td-red">Bordure</td><td class="td-red">Forcé</td><td class="td-red">Interdit</td><td class="td-red">Tout</td><td>Dégâts escaladants, repoussement</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">Bordure du monde</div>
+        <div class="prose">
+          <p>La bordure rétrécit de 10% par semaine de saison. À la semaine 20 (fin de saison), la warzone représente 80% de la surface totale. Force le contact PvP progressif et empêche les factions de se terrer indéfiniment.</p>
+        </div>
+
+        <div class="subsection-title">Points de Contrôle (PDC)</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Paramètre</th><th>Valeur</th></tr></thead>
+            <tbody>
+              <tr><td>Nombre de PDC</td><td class="td-cyan">5 actifs simultanément</td></tr>
+              <tr><td>Temps de capture</td><td class="td-gold">3 minutes sans interruption</td></tr>
+              <tr><td>Récompense capture</td><td class="td-green">300 XP + 150$ + bonus faction</td></tr>
+              <tr><td>Revenus continus</td><td class="td-gold">10$/min par PDC tenu</td></tr>
+              <tr><td>Bonus evento</td><td class="td-violet">x2 revenus pendant les events</td></tr>
+              <tr><td>Rotation</td><td class="td-slate">Toutes les 2h, emplacement change</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION 6 : COMBAT
+         ============================ -->
+    <section class="section" id="s6">
+      <div class="section-title">
+        <span class="num">06</span>
+        Combat &amp; Équipement
+        <span class="accent-line"></span>
+      </div>
+      <div class="card">
+        <div class="subsection-title">Tiers d'équipement</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tier</th><th>Nom</th><th>Rareté</th><th>Source</th><th>Bonus vs T0</th></tr></thead>
+            <tbody>
+              <tr><td>T0</td><td>Vanilla</td><td class="td-slate">Commun</td><td>Craft vanilla</td><td>—</td></tr>
+              <tr><td>T1</td><td>Forgé</td><td class="td-green">Peu commun</td><td>Craft + ressources Wilderness</td><td>+15% dégâts/armure</td></tr>
+              <tr><td>T2</td><td>Cristallisé</td><td class="td-cyan">Rare</td><td>Craft + Erinium brut</td><td>+35% dégâts/armure</td></tr>
+              <tr><td>T3</td><td>Erinium pur</td><td class="td-violet">Épique</td><td>Craft avancé + Erinium concentré</td><td>+60% dégâts/armure</td></tr>
+              <tr><td>T4</td><td>Relique</td><td class="td-gold">Légendaire</td><td>Donjon + boss + craft spécial</td><td>+90% + effets uniques</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">Enchantements d'Erinium</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Enchantement</th><th>Effet</th><th>Tier requis</th></tr></thead>
+            <tbody>
+              <tr><td class="td-violet">Fissure</td><td>15% de réduire l'armure ennemie de 20% pendant 3s</td><td>T2+</td></tr>
+              <tr><td class="td-cyan">Absorption Cristalline</td><td>+10% PV max, récupère 2 PV/coup reçu</td><td>T2+</td></tr>
+              <tr><td class="td-red">Rupture</td><td>Coup critique : 25% chance de désarmer 1s</td><td>T3+</td></tr>
+              <tr><td class="td-green">Symbiose</td><td>+5% dégâts pour chaque allié à moins de 10m</td><td>T2+</td></tr>
+              <tr><td class="td-gold">Résonnant</td><td>+30% puissance des sorts lancés dans les 5s après un coup physique</td><td>T3+</td></tr>
+              <tr><td class="td-violet">Instable</td><td>Chaque frappe accumule de l'énergie. Au 5ème coup : explosion 20 dégâts AoE</td><td>T3+</td></tr>
+              <tr><td class="td-cyan">Réfraction</td><td>Renvoie 15% des dégâts reçus au corps-à-corps</td><td>T2+</td></tr>
+              <tr><td class="td-gold">Noyau d'Erinium</td><td>Régénère 1 mana/sec. +1 slot de sort.</td><td>T4 uniquement</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">Couches de customisation du build</div>
+        <div class="perk-grid">
+          <div class="perk-card"><div class="perk-name">1 — Stats RPG</div><div class="perk-desc">6 attributs, 49 points. Définit les fondations de ton personnage.</div></div>
+          <div class="perk-card"><div class="perk-name">2 — Perks</div><div class="perk-desc">5 perks déblocables (un par palier). Définit ton style de jeu.</div></div>
+          <div class="perk-card"><div class="perk-name">3 — Sorts</div><div class="perk-desc">Jusqu'à 4 sorts de 4 écoles différentes. Ta boîte à outils magique.</div></div>
+          <div class="perk-card"><div class="perk-name">4 — Équipement</div><div class="perk-desc">Tier 0 à 4, 8 enchantements possibles. Multiplicateurs de stats.</div></div>
+          <div class="perk-card"><div class="perk-name">5 — Artéfacts</div><div class="perk-desc">Objets passifs légendaires. 1 seul équipable à la fois.</div></div>
+        </div>
+
+        <div class="subsection-title">Artéfacts</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Artéfact</th><th>Rareté</th><th>Effet passif</th></tr></thead>
+            <tbody>
+              <tr><td class="td-gold">Cœur de l'Erinium</td><td><span class="badge badge-gold">Légendaire</span></td><td>+20 PV max, 3 PV/sec hors combat, -10% dégâts reçus</td></tr>
+              <tr><td class="td-violet">Éclat du Noyau</td><td><span class="badge badge-violet">Épique</span></td><td>+25% puissance sorts, +20 mana max</td></tr>
+              <tr><td class="td-cyan">Cristal de Hâte</td><td><span class="badge badge-cyan">Rare</span></td><td>+15% vitesse d'attaque, +8% vitesse de déplacement</td></tr>
+              <tr><td class="td-red">Anneau du Berserker</td><td><span class="badge badge-red">Épique</span></td><td>+30% dégâts quand PV &lt; 30%. Risque = récompense.</td></tr>
+              <tr><td class="td-green">Pierre de Fortune</td><td><span class="badge badge-green">Rare</span></td><td>+25% drops, +15% gains $, XP +10%</td></tr>
+              <tr><td class="td-gold">Médaillon des Ombres</td><td><span class="badge badge-gold">Légendaire</span></td><td>Deviens invisible 3s après un kill (CD 30s). Fuite ou repositionnement.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">Drop au PvP</div>
+        <div class="prose">
+          <p>À la mort en PvP : le joueur drop <strong>1 item aléatoire</strong> de son inventaire (pas d'équipement équipé). Si le joueur avait de l'Erinium sur lui, 50% de chances de le drop. Pas de full-drop — le PvP ne doit pas être écrasant pour les nouveaux joueurs.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION 7 : ÉVÉNEMENTS
+         ============================ -->
+    <section class="section" id="s7">
+      <div class="section-title">
+        <span class="num">07</span>
+        Événements Mondiaux
+        <span class="accent-line"></span>
+      </div>
+      <div class="card">
+        <div class="perk-grid">
+          <div class="perk-card">
+            <div class="perk-name" style="color:var(--red);">Éruption d'Erinium</div>
+            <div class="perk-desc">Un gisement massif émerge en Warzone. Toutes les factions se battent pour l'extraire. Celui qui en extrait le plus en 15 min gagne. Récompense : 2000 XP + 500$ + ressources rares.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-name" style="color:var(--gold);">Siège du Noyau</div>
+            <div class="perk-desc">Un boss géant apparaît au centre de la Warzone. Le groupe qui inflige le plus de dégâts total obtient le loot. Récompense de groupe : Artéfact épique + 1000 XP chacun.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-name" style="color:var(--cyan);">Blizzard Cristallin</div>
+            <div class="perk-desc">La map devient gelée. Les sorts de Cristallisation gagnent +50% puissance. Les mouvements sont ralentis. Dure 20 min. Favorise les builds Paladin/Support.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-name" style="color:var(--violet-light);">Guerre des PDC</div>
+            <div class="perk-desc">Tous les PDC sont libérés simultanément. Faction qui en contrôle 4/5 à la fin (30 min) gagne. Récompense : 5000$ faction + buff faction 48h + XP massive pour participants.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION 8 : FACTION
+         ============================ -->
+    <section class="section" id="s8">
+      <div class="section-title">
+        <span class="num">08</span>
+        Système de Faction
+        <span class="accent-line"></span>
+      </div>
+      <div class="card">
+        <div class="subsection-title">Commandes de base</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Commande</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td class="td-cyan">/f create [nom]</td><td>Créer une faction (coût : 500$)</td></tr>
+              <tr><td class="td-cyan">/f invite [joueur]</td><td>Inviter un joueur</td></tr>
+              <tr><td class="td-cyan">/f join [faction]</td><td>Rejoindre une faction (invitation requise)</td></tr>
+              <tr><td class="td-cyan">/f claim</td><td>Revendiquer le chunk actuel (coût en power)</td></tr>
+              <tr><td class="td-cyan">/f unclaim</td><td>Libérer un chunk</td></tr>
+              <tr><td class="td-cyan">/f sethome</td><td>Définir le point de retour de la faction</td></tr>
+              <tr><td class="td-cyan">/f home</td><td>Téléporter à la base (CD 30s, pas en combat)</td></tr>
+              <tr><td class="td-cyan">/f ally [faction]</td><td>Proposer une alliance</td></tr>
+              <tr><td class="td-cyan">/f enemy [faction]</td><td>Déclarer ennemi (friendly fire off vs alliés)</td></tr>
+              <tr><td class="td-cyan">/f map</td><td>Afficher la carte des claims en ASCII</td></tr>
+              <tr><td class="td-cyan">/f info [faction]</td><td>Infos sur une faction</td></tr>
+              <tr><td class="td-cyan">/f top</td><td>Classement des factions</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">Power classique</div>
+        <div class="prose">
+          <p>Chaque joueur a <strong>10 power</strong>. Un claim coûte 1 power de la faction. Si une faction perd du power (morts en PvP : -1 power/mort, max -5 power par joueur), ses chunks surclamés deviennent overclamables par les ennemis. Le power se régénère à 1/heure de jeu actif.</p>
+        </div>
+
+        <div class="subsection-title">Relations</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Relation</th><th>PvP</th><th>Friendly fire</th><th>Accès base</th></tr></thead>
+            <tbody>
+              <tr><td class="td-green">Allié</td><td class="td-green">Off par défaut</td><td class="td-green">Off</td><td class="td-gold">Partiel (autorisé)</td></tr>
+              <tr><td class="td-slate">Neutre</td><td class="td-gold">Autorisé</td><td class="td-gold">Autorisé</td><td class="td-red">Interdit</td></tr>
+              <tr><td class="td-red">Ennemi</td><td class="td-red">Forcé</td><td class="td-red">Forcé</td><td class="td-red">Raid autorisé</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">Raids &amp; Overclaim</div>
+        <div class="prose">
+          <p>Si une faction ennemie a plus de power que la faction défendante, ses chunks peuvent être overclamés. Pour raider une base : briser les blocs de la Faction Core (structure de base, voir section 10) réduit la défense. Les membres doivent défendre physiquement.</p>
+        </div>
+
+        <div class="subsection-title">Intégration avec les systèmes uniques</div>
+        <div class="perk-grid">
+          <div class="perk-card"><div class="perk-name">Level de faction</div><div class="perk-desc">La faction monte en level (1–20) selon les kills, PDC capturés, events gagnés. Chaque level débloque des upgrades de base.</div></div>
+          <div class="perk-card"><div class="perk-name">Trésorerie faction</div><div class="perk-desc">$ faction partagés. Utilisés pour construire les structures de base, payer les claims, financer les guerres.</div></div>
+          <div class="perk-card"><div class="perk-name">Classement faction</div><div class="perk-desc">Score basé sur kills, PDC, events, level. Classement public en temps réel. Récompenses de fin de saison.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION 9 : ÉCONOMIE
+         ============================ -->
+    <section class="section" id="s9">
+      <div class="section-title">
+        <span class="num">09</span>
+        Économie
+        <span class="accent-line"></span>
+      </div>
+      <div class="card">
+        <div class="subsection-title">Le Dollar ($)</div>
+        <div class="prose">
+          <p>Le <strong>$</strong> est la monnaie universelle du serveur. Gagné par le PvP (vol sur kills), les PDC, les ventes entre joueurs et les quêtes. Dépensé pour les structures de faction, le shop, et les enchantements. Il y a une inflation naturelle contrôlée par des sinks réguliers.</p>
+        </div>
+
+        <div class="subsection-title">Commandes économiques</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Commande</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td class="td-cyan">/bal</td><td>Voir son solde personnel</td></tr>
+              <tr><td class="td-cyan">/pay [joueur] [montant]</td><td>Envoyer de l'argent</td></tr>
+              <tr><td class="td-cyan">/shop</td><td>Ouvrir le shop NPC (filet de sécurité)</td></tr>
+              <tr><td class="td-cyan">/ah</td><td>Hôtel des Ventes — marché player-driven</td></tr>
+              <tr><td class="td-cyan">/ah sell [prix]</td><td>Mettre un item en vente</td></tr>
+              <tr><td class="td-cyan">/f deposit [montant]</td><td>Verser dans la trésorerie faction</td></tr>
+              <tr><td class="td-cyan">/f withdraw [montant]</td><td>Retirer de la trésorerie (officiers+)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">Shop player-driven — Hôtel des Ventes</div>
+        <div class="prose">
+          <p>Le marché principal est géré par les joueurs. Ils fixent les prix. L'offre et la demande déterminent la valeur des ressources. Un Erinium concentré peut valoir 10x plus en fin de saison qu'en semaine 1 — car il est plus rare et plus demandé pour les crafts T4.</p>
+        </div>
+
+        <div class="subsection-title">NPC filet de sécurité</div>
+        <div class="prose">
+          <p>Un shop NPC achète et vend à des prix <strong>intentionnellement mauvais</strong> — 40% de la valeur marché. Il empêche le blocage total ("j'ai besoin de X et personne ne vend") sans concurrencer les marchands joueurs.</p>
+        </div>
+
+        <div class="subsection-title">Sinks anti-inflation</div>
+        <div class="perk-grid">
+          <div class="perk-card"><div class="perk-name">Structures de faction</div><div class="perk-desc">Coûteuses en $. La trésorerie est un sink majeur permanent.</div></div>
+          <div class="perk-card"><div class="perk-name">Enchantements</div><div class="perk-desc">Chaque enchantement d'Erinium coûte $ + ressources.</div></div>
+          <div class="perk-card"><div class="perk-name">Taxes PDC</div><div class="perk-desc">Tenir un PDC coûte 5$/min de maintenance. Revenus nets seulement si actif.</div></div>
+          <div class="perk-card"><div class="perk-name">Réinitialisation de stats</div><div class="perk-desc">Réallouer ses stats RPG coûte 200$ par point déplacé.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION 10 : BASE DE FACTION
+         ============================ -->
+    <section class="section" id="s10">
+      <div class="section-title">
+        <span class="num">10</span>
+        Base de Faction
+        <span class="accent-line"></span>
+      </div>
+      <div class="card">
+        <div class="subsection-title">Structures de faction</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Structure</th><th>Coût</th><th>Effet</th><th>Max</th></tr></thead>
+            <tbody>
+              <tr><td class="td-violet">Noyau de Faction</td><td>Gratuit (fondation)</td><td>Point de cœur de la base. Si détruit en raid = base vulnérable</td><td>1</td></tr>
+              <tr><td class="td-cyan">Générateur d'Erinium</td><td>1000$ + 50 Erinium</td><td>Produit 5 Erinium brut/heure passif</td><td>3</td></tr>
+              <tr><td class="td-gold">Forge de Faction</td><td>2000$ + T2 x5</td><td>-20% coût craft pour membres. Accès recettes exclusives.</td><td>1</td></tr>
+              <tr><td class="td-red">Tourelle Défensive</td><td>1500$ + 20 Erinium</td><td>Attaque automatiquement les ennemis dans le claim (15 dégâts/s)</td><td>5</td></tr>
+              <tr><td class="td-cyan">Laboratoire de Sorts</td><td>2500$ + 30 Erinium concentré</td><td>+10% XP Magie pour tous les membres</td><td>1</td></tr>
+              <tr><td class="td-green">Salle de Formation</td><td>1800$ + 20 Erinium</td><td>+10% XP combat pour membres</td><td>1</td></tr>
+              <tr><td class="td-gold">Coffre de Faction</td><td>500$ + 10 Erinium</td><td>Stockage partagé de 9x6 slots protégé</td><td>5</td></tr>
+              <tr><td class="td-violet">Ancre de Téléportation</td><td>3000$ + Erinium concentré x10</td><td>Second point /f home. Utile pour couvrir 2 zones.</td><td>2</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION 11 : SAISONS
+         ============================ -->
+    <section class="section" id="s11">
+      <div class="section-title">
+        <span class="num">11</span>
+        Saisons
+        <span class="accent-line"></span>
+      </div>
+      <div class="card">
+        <div class="subsection-title">Cycle de saison</div>
+        <div class="prose">
+          <p>Chaque saison dure <strong>6 à 8 mois</strong>. La map est réinitialisée, la meta évolue (nouveaux sorts, structures, events). Les joueurs repartent avec les cosmétiques et titres gagnés, mais pas les items.</p>
+        </div>
+
+        <div class="info-grid" style="margin-top:16px;">
+          <div class="info-item">
+            <div class="info-label">Durée saison</div>
+            <div class="info-value">6–8 mois</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Pré-saison</div>
+            <div class="info-value" style="color:var(--violet-light);">2–4 sem.</div>
+          </div>
+        </div>
+
+        <div class="subsection-title">Ce qui reset</div>
+        <div class="perk-grid">
+          <div class="perk-card" style="border-color:rgba(231,76,60,0.3);">
+            <div class="perk-name" style="color:var(--red);">Reset complet</div>
+            <div class="perk-desc">Map, inventaires, factions, niveaux RPG, niveau magie, $ et trésorerie, structures de faction, classements de saison.</div>
+          </div>
+          <div class="perk-card" style="border-color:rgba(46,204,113,0.3);">
+            <div class="perk-name" style="color:var(--green);">Conservé</div>
+            <div class="perk-desc">Cosmétiques, titres de fin de saison, étoiles de Prestige (cosmétique seulement), historique personnel (kills, morts).</div>
+          </div>
+        </div>
+
+        <div class="subsection-title">Récompenses de fin de saison</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Rang final</th><th>Récompense</th></tr></thead>
+            <tbody>
+              <tr><td class="td-gold">#1 Faction</td><td>Bannière dorée exclusive, titre "Conquérants de l'Erinium", skin d'armure</td></tr>
+              <tr><td class="td-slate">#2 Faction</td><td>Bannière argent, titre "Gardiens du Cristal"</td></tr>
+              <tr><td class="td-gold">#3 Faction</td><td>Bannière bronze, titre "Vétérans du Shard"</td></tr>
+              <tr><td class="td-cyan">#1 Joueur Kills</td><td>Titre "Faucheuse" + skin de cape</td></tr>
+              <tr><td class="td-violet">#1 Joueur Magie</td><td>Titre "Archimage de la Fracture" + particules spéciales</td></tr>
+              <tr><td class="td-green">Top 10% saison</td><td>Badge de saison exclusif sur le profil</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">Pré-saison</div>
+        <div class="prose">
+          <p>2 à 4 semaines avant la nouvelle saison : annonce publique du changelog, teaser des nouvelles features, reset progressif (carte rétrécit à 30% pour forcer les derniers combats), tournoi de fin de saison pour les top factions.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION 12 : ENDGAME
+         ============================ -->
+    <section class="section" id="s12">
+      <div class="section-title">
+        <span class="num">12</span>
+        Endgame
+        <span class="accent-line"></span>
+      </div>
+
+      <!-- 12.1 Chapitres -->
+      <div class="card">
+        <div class="subsection-title">12.1 — Chapitres de saison</div>
+        <div class="chapter-timeline">
+          <div class="chapter-item">
+            <div class="chapter-num">I</div>
+            <div class="chapter-content">
+              <div class="chapter-name">L'Éveil (Semaines 1–4)</div>
+              <div class="chapter-desc">Exploration, construction des premières bases, premiers conflits. L'Erinium est abondant, les factions se forment et testent leurs forces. Introduction progressive des mécaniques.</div>
+            </div>
+          </div>
+          <div class="chapter-item">
+            <div class="chapter-num">II</div>
+            <div class="chapter-content">
+              <div class="chapter-name">La Fracture (Semaines 5–10)</div>
+              <div class="chapter-desc">Les premières grandes guerres éclatent. Les PDC deviennent des enjeux critiques. L'Erinium se raréfie légèrement. Les donjons ouvrent et les premiers équipements T3 apparaissent.</div>
+            </div>
+          </div>
+          <div class="chapter-item">
+            <div class="chapter-num">III</div>
+            <div class="chapter-content">
+              <div class="chapter-name">L'Ascension (Semaines 11–17)</div>
+              <div class="chapter-desc">Les factions dominantes émergent. Guerres de Conquête déclenchées. L'Arène Classée ouvre ses portes. Les Reliques apparaissent dans les donjons les plus difficiles.</div>
+            </div>
+          </div>
+          <div class="chapter-item">
+            <div class="chapter-num">IV</div>
+            <div class="chapter-content">
+              <div class="chapter-name">Le Cataclysme (Semaines 18–24)</div>
+              <div class="chapter-desc">La bordure rétrécit agressivement. Events massifs tous les 2 jours. Les Forteresses d'Erinium deviennent les seuls points stratégiques. Tensions maximales, alliances de circonstance.</div>
+            </div>
+          </div>
+          <div class="chapter-item">
+            <div class="chapter-num">V</div>
+            <div class="chapter-content">
+              <div class="chapter-name">La Convergence (Semaines 25–fin)</div>
+              <div class="chapter-desc">Confrontation finale. Le Noyau Central d'Erinium émerge. La faction qui le contrôle 24h remporte la saison. Tout le monde est en Warzone. La map ne fait plus que 30% de sa taille initiale.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 12.2 Guerres -->
+      <div class="card">
+        <div class="subsection-title">12.2 — Guerres de Conquête</div>
+        <div class="prose" style="margin-bottom:16px;">
+          <p>Une Guerre de Conquête est déclenchée quand une faction atteint level 15 et déclare la guerre à une faction de rang proche. La guerre dure 3 jours. L'objectif est de détruire la Faction Core ennemie — ou d'accumuler plus de points de guerre.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Objectif</th><th>Points de guerre</th></tr></thead>
+            <tbody>
+              <tr><td>Kill joueur ennemi</td><td class="td-red">+5 pts</td></tr>
+              <tr><td>Capturer un PDC ennemi</td><td class="td-gold">+20 pts</td></tr>
+              <tr><td>Détruire une structure ennemie</td><td class="td-violet">+50 pts</td></tr>
+              <tr><td>Détruire le Noyau de Faction</td><td class="td-gold">+500 pts (victoire immédiate)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="prose" style="margin-top:12px;">
+          <p><strong>Récompenses victoire :</strong> +2000 XP pour chaque membre, 3000$ de trésorerie ennemie saisie, le claim de la base ennemie est libéré.</p>
+        </div>
+      </div>
+
+      <!-- 12.3 Arène -->
+      <div class="card">
+        <div class="subsection-title">12.3 — Arène Classée</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Format</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>Format</td><td class="td-cyan">2v2 et 3v3</td></tr>
+              <tr><td>Équipement</td><td class="td-slate">Normalisé tier 2 (pas d'avantage équipement)</td></tr>
+              <tr><td>Stats RPG</td><td class="td-gold">Conservées (le niveau compte !)</td></tr>
+              <tr><td>Sorts</td><td class="td-violet">Conservés (loadout normal)</td></tr>
+              <tr><td>Saison d'arène</td><td class="td-cyan">2 semaines (reset ELO)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-wrap" style="margin-top:12px;">
+          <table>
+            <thead><tr><th>Rang</th><th>ELO</th><th>Récompenses</th></tr></thead>
+            <tbody>
+              <tr><td>Bronze</td><td>0 – 1199</td><td>Badge bronze</td></tr>
+              <tr><td class="td-slate">Argent</td><td>1200 – 1399</td><td>Badge argent + 50$</td></tr>
+              <tr><td class="td-gold">Or</td><td>1400 – 1599</td><td>Badge or + 150$ + cosmétique</td></tr>
+              <tr><td class="td-cyan">Platine</td><td>1600 – 1799</td><td>Badge platine + 300$ + particules</td></tr>
+              <tr><td class="td-violet">Diamant</td><td>1800 – 1999</td><td>Diamant + 600$ + aura</td></tr>
+              <tr><td class="td-gold">Légende</td><td>2000+</td><td>Titre permanent + skin exclusif + 1000$</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 12.4 Donjons -->
+      <div class="card">
+        <div class="subsection-title">12.4 — Donjons d'Erinium</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Donjon</th><th>Difficulté</th><th>Joueurs</th><th>Durée</th><th>Loot</th></tr></thead>
+            <tbody>
+              <tr><td class="td-green">Caverne des Éclats</td><td>Facile</td><td>2–3</td><td>~20 min</td><td>T2, Erinium brut x10–20, XP 500</td></tr>
+              <tr><td class="td-cyan">Temple du Cristal</td><td>Intermédiaire</td><td>3–4</td><td>~35 min</td><td>T3, Erinium concentré x5–10, XP 1200</td></tr>
+              <tr><td class="td-violet">Cœur de la Fracture</td><td>Difficile</td><td>4–5</td><td>~50 min</td><td>T4, Artéfact épique, XP 2500</td></tr>
+              <tr><td class="td-gold">Noyau Abyssal</td><td>Légendaire</td><td>5</td><td>~75 min</td><td>Relique légendaire, Erinium abyssal x3, XP 5000</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 12.5 Reliques -->
+      <div class="card">
+        <div class="subsection-title">12.5 — Reliques</div>
+        <div class="prose" style="margin-bottom:16px;">
+          <p>Les Reliques sont supérieures aux Artéfacts. Elles ne se trouvent pas — elles se <strong>craftent</strong> à partir de matériaux obtenus en donjon légendaire. Il en faut des semaines de préparation. Une seule Relique équipable par joueur, comme les Artéfacts.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Relique</th><th>Effet</th><th>Craft</th></tr></thead>
+            <tbody>
+              <tr><td class="td-gold">Épée du Premier Fracturé</td><td>+40% dégâts physiques, chaque coup a 20% de chance de lancer un sort gratuit</td><td>Boss Noyau Abyssal x3 + T4</td></tr>
+              <tr><td class="td-violet">Robe de l'Archimage Abyssal</td><td>+50 mana, -30% CD de tous les sorts, +30% puissance</td><td>Boss Cœur de la Fracture x5</td></tr>
+              <tr><td class="td-cyan">Bouclier de l'Inébranlable</td><td>-40% dégâts reçus, immunité aux DoT, bouclier 30 HP qui se regénère hors combat</td><td>Boss Noyau Abyssal + Temple x5</td></tr>
+              <tr><td class="td-red">Anneau du Conquérant</td><td>+3 power de faction, +20% XP gagnée, +50% drops Erinium</td><td>Tenir 3 PDC simultanément 1h</td></tr>
+              <tr><td class="td-gold">Cape du Pillard Légendaire</td><td>+100% $ volés sur kill, invisible 5s après chaque kill, +25% vitesse</td><td>1000 kills PvP en une saison</td></tr>
+              <tr><td class="td-cyan">Cristal Resonant</td><td>Tes sorts résonnent : chaque sort inflige aussi 20% dégâts aux ennemis proches</td><td>Level Magie 30 + Boss x3</td></tr>
+              <tr><td class="td-violet">Cœur de Faction</td><td>+5% stats à tous les membres de la faction dans un rayon de 30m</td><td>Faction level 20 + trésorerie 10000$</td></tr>
+              <tr><td class="td-gold">Héritage de l'Erinium</td><td>+1 slot de sort bonus, -15% coût mana tous les sorts</td><td>Prestige 3 + Level Magie 30</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 12.6 Classements -->
+      <div class="card">
+        <div class="subsection-title">12.6 — Classements et Prestige</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Classement</th><th>Critère</th><th>Récompense top 3</th></tr></thead>
+            <tbody>
+              <tr><td class="td-violet">Factions</td><td>Score faction (kills + PDC + events)</td><td>Bannières de saison</td></tr>
+              <tr><td class="td-red">Tueurs</td><td>Kills PvP totaux</td><td>Titre + cape</td></tr>
+              <tr><td class="td-cyan">Mages</td><td>XP Magie + kills magiques</td><td>Aura de sort permanente</td></tr>
+              <tr><td class="td-gold">Marchands</td><td>$ gagnés par ventes</td><td>Badge "Magnats"</td></tr>
+              <tr><td class="td-green">Explorateurs</td><td>Zones visitées + donjons complétés</td><td>Skin de bottes</td></tr>
+              <tr><td class="td-violet">Arène</td><td>ELO classé</td><td>Titre de rang permanent</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 12.7 Mutateurs -->
+      <div class="card">
+        <div class="subsection-title">12.7 — Mutateurs hebdomadaires</div>
+        <div class="prose" style="margin-bottom:16px;">
+          <p>Chaque semaine, 2 mutateurs aléatoires s'activent sur le serveur entier. Ils changent la meta temporairement et cassent la routine.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Mutateur</th><th>Effet</th></tr></thead>
+            <tbody>
+              <tr><td class="td-violet">Tempête d'Erinium</td><td>+50% puissance magique, -20% dégâts physiques cette semaine</td></tr>
+              <tr><td class="td-red">Sang et Acier</td><td>+30% dégâts physiques, sorts coûtent +50% mana</td></tr>
+              <tr><td class="td-cyan">Gel Mondial</td><td>Tout le monde se déplace -15%. Les sorts de Cristallisation gagnent +40%.</td></tr>
+              <tr><td class="td-gold">Semaine de Fortune</td><td>+100% drops partout. L'économie explose. Bonne semaine pour farmer.</td></tr>
+              <tr><td class="td-green">XP Rush</td><td>+50% XP de toutes sources. La semaine idéale pour level up.</td></tr>
+              <tr><td class="td-red">Guerre Totale</td><td>PvP activé partout sauf Spawn. La Wilderness devient dangereuse.</td></tr>
+              <tr><td class="td-violet">Brouillard de Guerre</td><td>Les noms des joueurs sont masqués sur la carte. Paranoïa maximale.</td></tr>
+              <tr><td class="td-gold">Double PDC</td><td>10 PDC actifs au lieu de 5. Chaos organisé garanti.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 12.8 Objectifs long terme -->
+      <div class="card">
+        <div class="subsection-title">12.8 — Objectifs long terme</div>
+        <div class="perk-grid">
+          <div class="perk-card">
+            <div class="perk-name" style="color:var(--gold);">Titres de maîtrise</div>
+            <div class="perk-desc">Tuer 500 joueurs → "Faucheuse". Level Magie 30 → "Archimage". Tenir un PDC 24h → "Seigneur de guerre". Chaque titre est cosmétique et permanent.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-name" style="color:var(--cyan);">Collection d'Erinium</div>
+            <div class="perk-desc">Collecter un de chaque variant d'Erinium (brut, concentré, abyssal, corrompu, cristallisé) débloque une Relique cachée et un titre "Collectionneur".</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-name" style="color:var(--violet-light);">Prestige étendu</div>
+            <div class="perk-desc">Au-delà du Prestige 5 : chaque saison supplémentaire à Prestige 5 ajoute un rang de "Légende" (L1 à L10) purement cosmétique.</div>
+          </div>
+          <div class="perk-card">
+            <div class="perk-name" style="color:var(--green);">Cartographe</div>
+            <div class="perk-desc">Visiter 100% des chunks de la map, compléter les 4 donjons, participer aux 4 types d'events → Titre "Explorateur de l'Erinium" + skin de carte.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 12.9 Résumé semaine par semaine -->
+      <div class="card">
+        <div class="subsection-title">12.9 — "Pourquoi tu joues encore au mois 5"</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Semaine</th><th>Motivation principale</th><th>Objectif actif</th></tr></thead>
+            <tbody>
+              <tr><td class="td-cyan">1–2</td><td>Découverte, construction de base</td><td>Level 1–15, T1 craft, rejoindre une faction</td></tr>
+              <tr><td class="td-cyan">3–4</td><td>Premiers PvP, PDC</td><td>Level 15–25, sorts niveau 5–10, T2</td></tr>
+              <tr><td class="td-violet">5–7</td><td>Guerres de faction, donjons</td><td>Level 25–35, T3, premier artéfact</td></tr>
+              <tr><td class="td-violet">8–10</td><td>Arène classée, guerres de Conquête</td><td>Level 35–45, sorts niveau 18–25</td></tr>
+              <tr><td class="td-gold">11–14</td><td>Endgame : Reliques, Noyau Abyssal</td><td>Level 50, sorts niveau 30, reliques</td></tr>
+              <tr><td class="td-gold">15–18</td><td>Domination, Prestige, classements</td><td>Prestige 1–2, top classements</td></tr>
+              <tr><td class="td-red">19–fin</td><td>Convergence, victoire de saison</td><td>Contrôle du Noyau Central, titres de fin</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION 13 : CE QU'ON NE FAIT PAS
+         ============================ -->
+    <section class="section" id="s13">
+      <div class="section-title">
+        <span class="num">13</span>
+        Ce qu'on ne fait PAS
+        <span class="accent-line"></span>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Feature rejetée</th><th>Raison</th></tr></thead>
+            <tbody>
+              <tr><td class="reject-icon">✗ Métiers (forgeron, alchimiste...)</td><td>Grind artificiel déconnecté du PvP. Transforme le serveur en "simulateur de travail".</td></tr>
+              <tr><td class="reject-icon">✗ Quêtes répétitives (kill 20 creepers)</td><td>Farm robotique. L'XP vient du vrai jeu, pas de quêtes scénarisées pour du remplissage.</td></tr>
+              <tr><td class="reject-icon">✗ Potions de mana</td><td>Rend la gestion de ressource triviale. La mana doit avoir du poids décisionnel.</td></tr>
+              <tr><td class="reject-icon">✗ Safe zones en Warzone</td><td>Contre l'esprit du mode. La Warzone doit être dangereuse partout.</td></tr>
+              <tr><td class="reject-icon">✗ Pay-to-win</td><td>Détruit l'équilibre et la confiance. Zéro avantage achetable.</td></tr>
+              <tr><td class="reject-icon">✗ Full drop à la mort</td><td>Trop punitif pour les nouveaux joueurs. Casse l'engagement.</td></tr>
+              <tr><td class="reject-icon">✗ Level reset à la mort (Hardcore)</td><td>Frustration pure. Les joueurs abandonnent. Pas compatible avec la durée de vie.</td></tr>
+              <tr><td class="reject-icon">✗ Plus de 6 stats RPG</td><td>Surcharge cognitive. 6 stats bien pensées valent mieux que 12 obscures.</td></tr>
+              <tr><td class="reject-icon">✗ Sorts de heal direct</td><td>Casserait l'équilibre PvP. Favorise trop les tanks/mages support. Vampirisme suffit.</td></tr>
+              <tr><td class="reject-icon">✗ Monde permanent (pas de saison)</td><td>La méta se fige, les nouveaux joueurs ne peuvent pas rattraper. Les saisons maintiennent la fraîcheur.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION 14 : MONÉTISATION
+         ============================ -->
+    <section class="section" id="s14">
+      <div class="section-title">
+        <span class="num">14</span>
+        Monétisation
+        <span class="accent-line"></span>
+      </div>
+      <div class="card">
+        <blockquote>
+          La monétisation est 100% cosmétique. Aucun avantage gameplay achetable. Point non négociable — c'est la fondation de la confiance des joueurs.
+        </blockquote>
+        <div class="table-wrap" style="margin-top:16px;">
+          <table>
+            <thead><tr><th>Achetable</th><th>Jamais achetable</th></tr></thead>
+            <tbody>
+              <tr><td class="check-icon">✓ Skins d'armure (cosmétique)</td><td class="reject-icon">✗ XP boosts</td></tr>
+              <tr><td class="check-icon">✓ Particules et auras</td><td class="reject-icon">✗ Items de combat</td></tr>
+              <tr><td class="check-icon">✓ Titres cosmétiques</td><td class="reject-icon">✗ Erinium ou ressources</td></tr>
+              <tr><td class="check-icon">✓ Capes et trails</td><td class="reject-icon">✗ $ en jeu</td></tr>
+              <tr><td class="check-icon">✓ Sons de sorts alternatifs</td><td class="reject-icon">✗ Power de faction</td></tr>
+              <tr><td class="check-icon">✓ Couleurs de pseudo</td><td class="reject-icon">✗ Stats RPG</td></tr>
+              <tr><td class="check-icon">✓ Emotes</td><td class="reject-icon">✗ Sorts ou perks</td></tr>
+              <tr><td class="check-icon">✓ Packs de profil</td><td class="reject-icon">✗ Niveaux</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION 15 : COMPARAISON
+         ============================ -->
+    <section class="section" id="s15">
+      <div class="section-title">
+        <span class="num">15</span>
+        Comparaison Concurrence
+        <span class="accent-line"></span>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Aspect</th><th class="td-red">Chez les concurrents</th><th class="td-green">Chez nous</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Progression</td>
+                <td class="td-slate">Quêtes répétitives, farm de mobs</td>
+                <td class="td-green">Jouer = progresser. PvP, events, exploration.</td>
+              </tr>
+              <tr>
+                <td>Magie</td>
+                <td class="td-slate">Potions Minecraft vanilla ou absent</td>
+                <td class="td-cyan">4 écoles, 20 sorts, mana, synergies, lore</td>
+              </tr>
+              <tr>
+                <td>Économie</td>
+                <td class="td-slate">Shop admin fixe, inflation incontrôlée</td>
+                <td class="td-green">Marché player-driven, sinks ciblés</td>
+              </tr>
+              <tr>
+                <td>Endgame</td>
+                <td class="td-slate">Plus grand château, puis ennui</td>
+                <td class="td-violet">Chapitres, guerres de Conquête, Reliques</td>
+              </tr>
+              <tr>
+                <td>Monétisation</td>
+                <td class="td-red">XP boosts, kits P2W fréquents</td>
+                <td class="td-green">100% cosmétique, zéro avantage</td>
+              </tr>
+              <tr>
+                <td>Équipement</td>
+                <td class="td-slate">Vanilla + quelques items custom basiques</td>
+                <td class="td-cyan">5 tiers, 8 enchantements uniques, artéfacts, Reliques</td>
+              </tr>
+              <tr>
+                <td>Durée de vie</td>
+                <td class="td-slate">1–3 semaines avant lassitude</td>
+                <td class="td-green">6–8 mois par saison, toujours quelque chose à faire</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION 16 : STACK TECHNIQUE
+         ============================ -->
+    <section class="section" id="s16">
+      <div class="section-title">
+        <span class="num">16</span>
+        Stack Technique
+        <span class="accent-line"></span>
+      </div>
+      <div class="card">
+        <div class="subsection-title">Technologies utilisées</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Technologie</th><th>Rôle</th><th>Version</th></tr></thead>
+            <tbody>
+              <tr><td class="td-cyan">Minecraft Forge</td><td>Plateforme mod</td><td>1.12.2 — 14.23.5.2864</td></tr>
+              <tr><td class="td-violet">EriAPI</td><td>Framework GUI, data, events, keys, chat, network</td><td>1.0-SNAPSHOT</td></tr>
+              <tr><td class="td-gold">SpongePowered Mixin</td><td>Modification bytecode vanilla (hook bas niveau)</td><td>0.8.7</td></tr>
+              <tr><td class="td-green">MixinBooter</td><td>Chargement précoce des mixins (IEarlyMixinLoader)</td><td>10.7</td></tr>
+              <tr><td class="td-slate">Java</td><td>Langage</td><td>Java 8 (Corretto 1.8.0_482)</td></tr>
+              <tr><td class="td-slate">Gradle</td><td>Build system</td><td>5.6.4</td></tr>
+              <tr><td class="td-slate">ForgeGradle</td><td>Plugin de build Forge</td><td>3.x</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection-title">Architecture du mod</div>
+        <pre><span class="c-cyan">EriniumFaction/</span>
+├── src/main/java/fr/eriniumgroup/eriniumfaction/
+│   ├── <span class="c-gold">EriniumFaction.java</span>           <span class="c-slate">← @Mod principal, constantes</span>
+│   ├── proxy/
+│   │   ├── <span class="c-cyan">CommonProxy.java</span>          <span class="c-slate">← Init serveur (data, events, commands)</span>
+│   │   └── <span class="c-cyan">ClientProxy.java</span>          <span class="c-slate">← Init client (keybinds, GUI)</span>
+│   ├── mixin/
+│   │   ├── <span class="c-violet">MixinLoader.java</span>          <span class="c-slate">← IFMLLoadingPlugin + IEarlyMixinLoader</span>
+│   │   ├── MixinEntityPlayer.java    <span class="c-slate">← Hook stats RPG sur le joueur</span>
+│   │   └── MixinWorld.java           <span class="c-slate">← Hook zones (Warzone, Spawn)</span>
+│   ├── data/
+│   │   ├── <span class="c-gold">FactionPlayerData.java</span>    <span class="c-slate">← @EriData niveau, XP, stats, perks</span>
+│   │   ├── <span class="c-gold">FactionWorldData.java</span>     <span class="c-slate">← @EriData factions, PDC, events</span>
+│   │   └── <span class="c-gold">MagicPlayerData.java</span>      <span class="c-slate">← @EriData level magie, sorts, mana</span>
+│   ├── gui/
+│   │   ├── <span class="c-cyan">FactionMenuGui.java</span>       <span class="c-slate">← Menu principal faction (EriGuiScreen)</span>
+│   │   ├── <span class="c-cyan">StatsGui.java</span>             <span class="c-slate">← Répartition des stats RPG</span>
+│   │   ├── <span class="c-cyan">SpellbookGui.java</span>         <span class="c-slate">← Gestion des sorts équipés</span>
+│   │   └── <span class="c-cyan">HudOverlay.java</span>           <span class="c-slate">← HUD mana, sorts, XP</span>
+│   ├── command/
+│   │   ├── CommandFaction.java       <span class="c-slate">← /f create, claim, ally...</span>
+│   │   └── CommandAdmin.java         <span class="c-slate">← Commandes admin serveur</span>
+│   ├── system/
+│   │   ├── <span class="c-violet">RpgSystem.java</span>            <span class="c-slate">← Calcul XP, level, stats</span>
+│   │   ├── <span class="c-violet">MagicSystem.java</span>          <span class="c-slate">← Gestion mana, sorts, CDs</span>
+│   │   ├── <span class="c-violet">FactionSystem.java</span>         <span class="c-slate">← Power, claims, relations</span>
+│   │   ├── <span class="c-violet">EconomySystem.java</span>        <span class="c-slate">← $, transactions, sinks</span>
+│   │   └── <span class="c-violet">EventSystem.java</span>          <span class="c-slate">← Events mondiaux, PDC</span>
+│   └── content/
+│       ├── EriniumItems.java         <span class="c-slate">← EriItem.create() pour tous les items</span>
+│       └── EriniumBlocks.java        <span class="c-slate">← EriBlock.create() pour les blocs</span>
+└── src/main/resources/
+    ├── mixins.eriniumfaction.json    <span class="c-slate">← Liste des classes mixin</span>
+    └── mcmod.info                    <span class="c-slate">← Métadonnées du mod</span></pre>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="margin-top:64px;padding-top:32px;border-top:1px solid var(--card-bdr);text-align:center;">
+      <div style="font-size:12px;color:var(--slate);">
+        EriniumFaction Design Document — EriniumGroup &copy; 2026
+        <span style="margin:0 8px;color:rgba(136,146,164,0.3);">|</span>
+        <a href="index.html" style="color:var(--violet-light);text-decoration:none;">← Retour à l'accueil</a>
+      </div>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  // Sidebar scroll highlight
+  (function () {
+    var sections = document.querySelectorAll('section[id]');
+    var navItems = document.querySelectorAll('.nav-item');
+
+    function onScroll() {
+      var scrollY = window.scrollY || window.pageYOffset;
+      var active = null;
+
+      sections.forEach(function (section) {
+        var top = section.offsetTop - 120;
+        if (scrollY >= top) {
+          active = section.id;
+        }
+      });
+
+      navItems.forEach(function (item) {
+        var href = item.getAttribute('href');
+        if (href === '#' + active) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+</script>
+</body>
+</html>

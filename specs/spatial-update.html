@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Spatial Update : Planete Erina | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #4AE0E0; --aetherite: #9B59B6; --erinium: #FFD700;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(74,224,224,0.07) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(255,215,0,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, var(--cyan) 40%, var(--erinium) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.35); background: rgba(230,126,34,0.08); }
+  .badge-valterite{ color: var(--valterite);border-color: rgba(74,224,224,0.35); background: rgba(74,224,224,0.08); }
+  .badge-aetherite{ color: var(--aetherite);border-color: rgba(155,89,182,0.35); background: rgba(155,89,182,0.08); }
+  .badge-erinium  { color: var(--erinium);  border-color: rgba(255,215,0,0.35);  background: rgba(255,215,0,0.08); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h2 .s-num.valterite-num { background: linear-gradient(135deg, #1a8080 0%, var(--valterite) 100%); }
+  .section-card h2 .s-num.aetherite-num { background: linear-gradient(135deg, #5c2d6e 0%, var(--aetherite) 100%); }
+  .section-card h2 .s-num.erinium-num   { background: linear-gradient(135deg, #a07800 0%, var(--erinium) 100%); color: #1a1200; }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card h4 { font-size: 13px; font-weight: 600; color: var(--violet-l); margin: 18px 0 8px; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '›'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .tag-val { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(74,224,224,0.10); color: var(--valterite); border: 1px solid rgba(74,224,224,0.25); letter-spacing: 0.05em; }
+  .tag-aeth { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(155,89,182,0.10); color: var(--aetherite); border: 1px solid rgba(155,89,182,0.25); letter-spacing: 0.05em; }
+  .tag-erin { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(255,215,0,0.10); color: var(--erinium); border: 1px solid rgba(255,215,0,0.25); letter-spacing: 0.05em; }
+  .tag-rare { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(52,152,219,0.10); color: var(--rare); border: 1px solid rgba(52,152,219,0.25); letter-spacing: 0.05em; }
+  .tag-comm { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(136,146,164,0.10); color: var(--slate); border: 1px solid rgba(136,146,164,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  .tier-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 20px 0; }
+  .tier-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 22px 20px; }
+  .tier-card.valterite { border-top: 3px solid var(--valterite); }
+  .tier-card.aetherite { border-top: 3px solid var(--aetherite); }
+  .tier-card.erinium   { border-top: 3px solid var(--erinium); }
+  .tier-card.wood      { border-top: 3px solid #A0522D; }
+  .tier-card.iron      { border-top: 3px solid #AAAAAA; }
+  .tier-card.gold      { border-top: 3px solid #F1C40F; }
+  .tier-card.diamond   { border-top: 3px solid #00E5FF; }
+  .tier-card-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .tier-card.valterite .tier-card-name { color: var(--valterite); }
+  .tier-card.aetherite .tier-card-name { color: var(--aetherite); }
+  .tier-card.erinium   .tier-card-name { color: var(--erinium); }
+  .tier-card.wood      .tier-card-name { color: #A0522D; }
+  .tier-card.iron      .tier-card-name { color: #AAAAAA; }
+  .tier-card.gold      .tier-card-name { color: #F1C40F; }
+  .tier-card.diamond   .tier-card-name { color: #00E5FF; }
+  .tier-card-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); margin-bottom: 14px; }
+  .tier-card-stat { font-size: 12px; color: var(--slate); margin: 5px 0; }
+  .tier-card-stat strong { color: var(--text); }
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li::after { content: none; }
+  .checklist li strong { color: var(--text); }
+  .idea-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 20px 24px; margin: 12px 0; border-left: 3px solid var(--violet-l); }
+  .idea-card.cyan  { border-left-color: var(--cyan); }
+  .idea-card.gold  { border-left-color: var(--gold); }
+  .idea-card.green { border-left-color: var(--green); }
+  .idea-card.red   { border-left-color: var(--red); }
+  .idea-card-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .idea-card p { font-size: 13px; color: var(--slate); margin-bottom: 6px; }
+  .idea-card p:last-child { margin-bottom: 0; }
+  .idea-card ul { margin-top: 6px; }
+  .idea-card ul li { font-size: 13px; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .tier-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Vision</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Direction Artistique</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> ErinaWorldGen</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Les 12 Biomes</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Ressources d'Erina</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Fusee &amp; Rocket Maker</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Table de R&amp;D</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Items R&amp;D — Combat</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Items R&amp;D — Defense</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Items R&amp;D — Explosifs</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Features hors R&amp;D</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Architecture &amp; Assets</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges · EriniumFaction</div>
+      <h1>Spatial Update — Planete Erina</h1>
+      <p>L'update majeure mid-endgame d'EriniumFaction. Ajoute une nouvelle dimension alien (Erina), une Table de R&D deblocant des crafts avances via kills PvP, 30+ items et blocs de combat et de defense, et un vehicule de voyage interstellaire : la Fusee.</p>
+      <div class="header-badges">
+        <span class="badge badge-violet">Mid-Endgame</span>
+        <span class="badge badge-cyan">Nouvelle Dimension</span>
+        <span class="badge badge-gold">30+ Items</span>
+        <span class="badge badge-red">Zone PvP Totale</span>
+        <span class="badge badge-orange">Table de R&amp;D</span>
+        <span class="badge badge-slate">Planifie</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & VISION ═══ -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Vision</h2>
+
+      <h3 class="first">Qu'est-ce que la Spatial Update ?</h3>
+      <p>La Spatial Update est l'update majeure de la phase mid-endgame d'EriniumFaction. Elle introduit quatre piliers de contenu interconnectes :</p>
+      <ul>
+        <li><strong>Erina :</strong> une nouvelle dimension (planete alien) avec un worldgen entierement custom, 12 biomes uniques, une atmosphere violette/cyan, des ressources exclusives introuvables dans l'Overworld, et une gravite reduite.</li>
+        <li><strong>Table de R&D :</strong> un systeme de recherche qui debloque des crafts avances via des Points de Recherche (gagnes en kills PvP) et de l'argent. Les deblocages sont personnels — chaque joueur investit ses propres ressources.</li>
+        <li><strong>30+ items et blocs :</strong> outils de combat offensifs (orbes, grappin, bouclier, fumigenes), systemes defensifs (pieges, mines, razor wire, briques blindees), et explosifs moddees (TNT tiers, dynamite).</li>
+        <li><strong>La Fusee :</strong> un vehicule mid-endgame assemble dans un Rocket Maker avec des composants couteux. Seul moyen de rejoindre et de quitter Erina. Destructible par les joueurs ennemis.</li>
+      </ul>
+
+      <h3>Regles fondamentales d'Erina</h3>
+      <ul>
+        <li><strong>Aucun claim possible :</strong> il est impossible de claim un territoire sur Erina. La planete est une zone de non-droit totale.</li>
+        <li><strong>PvP permanent et total :</strong> tout joueur peut attaquer tout autre joueur. Pas de protection de faction, pas de safezone.</li>
+        <li><strong>Mort avec drop d'items :</strong> mourir sur Erina fait tomber tous les items au sol (comportement vanilla PvP). Aucune exception.</li>
+        <li><strong>Ressources exclusives :</strong> les 12 ressources d'Erina sont uniquement disponibles sur la planete. Elles ne peuvent pas generer dans l'Overworld. Ce sont elles qui valent le risque du voyage.</li>
+        <li><strong>Pas d'invincibilite :</strong> aucun systeme du mod ne protege les joueurs contre les degats sur Erina. La zone est dangereuse par design.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Zone de non-droit :</strong> Aucun claim possible sur Erina — tous les joueurs y sont des ennemis potentiels. Le check <code>FactionManager.canClaim(world)</code> doit retourner <code>false</code> pour le DimensionType Erina. Les protections de faction et safezones ne s'appliquent pas dans cette dimension.</div>
+      </div>
+
+      <h3>Philosophie de design</h3>
+      <ul>
+        <li><strong>Haut risque, haute recompense :</strong> les ressources d'Erina sont puissantes mais les obtenir necessite de s'exposer. Un joueur seul avec une fusee est vulnerable. Le teamplay est encourage.</li>
+        <li><strong>Contenu mid-endgame :</strong> la Fusee est deliberement couteuse. Un joueur doit deja avoir une faction solide, des ressources Erinium/Aetherite, et plusieurs Nether Stars avant de pouvoir partir.</li>
+        <li><strong>La Table de R&D recompense le PvP :</strong> les Points de Recherche ne se gagnent QUE par kills joueurs. Un joueur qui evite le PvP ne peut pas debloquer les items avances. C'est une incitation directe au combat.</li>
+        <li><strong>Retour penalise :</strong> rentrer d'Erina necessite la fusee (carburant consomme a chaque voyage) ou un Portail de Retour tres cher. Un joueur bloque sur Erina sans moyen de rentrer doit soit mourir, soit attendre ses coequipiers.</li>
+      </ul>
+
+      <h3>Contrainte performance — 500-1000 joueurs</h3>
+      <p>La dimension Erina est separee de l'Overworld dans le systeme de chunks Forge. Les chunks Erina ne chargent que quand des joueurs y sont presents. En pratique, on estime 50 a 100 joueurs simultanes sur Erina aux heures de pointe.</p>
+      <ul>
+        <li><strong>Worldgen asynchrone :</strong> la generation de chunks Erina ne doit pas bloquer le tick principal. Utiliser les memes patterns que l'Overworld vanilla (generation lors du tick de chargement de chunk).</li>
+        <li><strong>Pas de tick lourd par chunk :</strong> eviter les TileEntities tickants sur chaque chunk. Les blocs de ressources (minerais, cristaux) ne tickent pas.</li>
+        <li><strong>Entites limitees :</strong> les spawns de mobs sur Erina doivent avoir un cap global par dimension (configurable, defaut : 200 mobs total). Utiliser <code>world.getEntities()</code> avec un count avant chaque spawn.</li>
+        <li><strong>Mesure d'impact :</strong> apres implementation, mesurer le ms/tick additionnel avec 50 joueurs actifs sur Erina. Objectif : moins de 2ms/tick supplementaires.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S2 — DIRECTION ARTISTIQUE ═══ -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Direction Artistique d'Erina</h2>
+
+      <h3 class="first">Atmosphere generale</h3>
+      <p>Erina est une planete alien avec une atmosphere dense de couleur violet/cyan. Le joueur arrive sur une surface rocailleuse avec des formations cristallines qui emergent du sol, une lumiere tamisee perpetuelle, et une vegetation bioluminescente qui illumine les alentours. L'impression generale est celle d'un autre monde : beau mais hostile.</p>
+
+      <h3>Ciel et eclairage</h3>
+      <ul>
+        <li><strong>Ciel :</strong> degrade violet sombre en haut vers cyan pale a l'horizon. Pas de nuages classiques — des nappes de brume lumineuse statiques (rendu via SkyRenderer override).</li>
+        <li><strong>Soleil :</strong> plus petit que le soleil Overworld, teinte dore/orange. Meme cycle jour/nuit que l'Overworld (72000 ticks).</li>
+        <li><strong>Luminosite globale :</strong> niveau de lumiere du ciel (sky light) fixe a 10 au lieu de 15. La planete est dans un crepuscule permanent. Implementer via override de <code>getSkyLight()</code> dans <code>WorldProviderErina</code>.</li>
+        <li><strong>Couleur du brouillard :</strong> violet tres dilue (0x1A0A2E avec alpha 0.3) au lieu du bleu vanilla. Configurer dans <code>WorldProviderErina.getFogColor()</code>.</li>
+      </ul>
+
+      <h3>Gravite reduite</h3>
+      <p>La gravite sur Erina est legerement inferieure a celle de l'Overworld. Le joueur beneficie d'un <strong>Jump Boost I permanent</strong> et d'une <strong>reduction des degats de chute de 30%</strong>.</p>
+      <ul>
+        <li>Implementation via Mixin sur <code>EntityPlayer.onUpdate()</code> : si le joueur est dans la dimension Erina, appliquer <code>PotionEffect(MobEffects.JUMP_BOOST, 60, 0, true, false)</code> (ambient=true, showParticles=false) toutes les 40 ticks pour maintenir l'effet en continu.</li>
+        <li>Reduction des degats de chute : Mixin sur <code>Entity.fall(float distance, float damageMultiplier)</code> — si dimension Erina, multiplier la distance effective par 0.7 avant calcul du degat.</li>
+        <li>Ne pas utiliser <code>setGravity()</code> (Forge 1.12.2 ne l'expose pas proprement) — le Jump Boost est suffisant pour simuler la sensation de gravite reduite.</li>
+      </ul>
+
+      <h3>Vegetation bioluminescente</h3>
+      <ul>
+        <li>Toutes les plantes d'Erina emettent de la lumiere. Les blocs herbe/feuilles/champignons ont un <code>getLightValue()</code> entre 4 et 8 selon la plante.</li>
+        <li>Couleurs dominantes : cyan (herbe des Crystal Plains), violet (troncs de la Glow Forest), rose (spores), orange (vegetation toxique).</li>
+        <li>Les grandes zones de vegetation assurent une luminosite suffisante pour jouer sans torche dans la plupart des biomes. Les zones sombres sont intentionnelles (Ash Desert, Crystal Caverns).</li>
+      </ul>
+
+      <h3>Plasma Liquide</h3>
+      <p>L'eau d'Erina est remplacee par un liquide lumineux cyan appele <strong>Plasma Liquide</strong>. Il se comporte comme l'eau (remplissage des cavites, source/courant) mais avec des effets differents.</p>
+      <ul>
+        <li><strong>Enregistrement :</strong> fluid Forge custom (<code>FluidPlasma extends Fluid</code>), enregistre via <code>GameRegistry.register(fluid)</code>. Bloc fluid : <code>BlockFluidPlasma extends BlockFluidClassic</code>.</li>
+        <li><strong>Contact joueur :</strong> applique <code>Slowness II</code> pendant 2s et inflige 0.5 coeur de degat par seconde (1 HP/2 ticks). Implementer dans <code>BlockFluidPlasma.onEntityCollidedWithBlock()</code>.</li>
+        <li><strong>Rendu :</strong> texture animee cyan translucide, light level 8 (eclaire son environnement).</li>
+        <li><strong>Ne bruле pas :</strong> contrairement a la lave, le plasma liquide n'inflige pas l'effet Burning. Il ralentit et damage sans mettre le feu.</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Plasma Liquide :</strong> Le fluid est enregistre via <code>FluidRegistry.registerFluid(plasmaFluid)</code> dans <code>CommonProxy.preInit()</code>. Le bucket custom (<code>ItemPlasma</code>) doit etre enregistre avec <code>FluidRegistry.addBucketForFluid(plasmaFluid, plasmaFluidBucketItem)</code>. Ne pas oublier d'enregistrer la texture du fluid dans <code>ClientProxy.init()</code> via <code>ModelLoader.setBucketModelDefinition()</code>.</div>
+      </div>
+
+      <h3>Ambiance sonore</h3>
+      <ul>
+        <li><strong>Musique :</strong> pas de track custom — la dimension utilise la musique vanilla de Minecraft.</li>
+        <li><strong>Sons de vent alien :</strong> sons ambients aleatoires (<code>eriniumfaction:ambient.erina.wind</code>) joues toutes les 300-600 ticks avec une chance de 10% par tick eligible.</li>
+        <li><strong>Sons de cristaux :</strong> tintements doux (<code>eriniumfaction:ambient.erina.crystal</code>) declenchables par les biomes de cristal.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S3 — ERINAWORLDGEN ═══ -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> ErinaWorldGen</h2>
+
+      <h3 class="first">Architecture globale</h3>
+      <p>Le worldgen d'Erina suit le meme pattern que le worldgen custom de l'Overworld (EriniumBiomeProvider + EriniumGenLayer). Pas de biomes vanilla. 100% custom.</p>
+
+      <div class="code-block"><span class="cm">// Classes principales du worldgen Erina</span>
+<span class="kw">public class</span> <span class="cl">ErinaDimensionType</span> {
+    <span class="kw">public static final int</span> <span class="nu">DIM_ID</span> = <span class="nu">42</span>; <span class="cm">// ID arbitraire non-utilise par d'autres mods</span>
+    <span class="cm">// Enregistrement dans CommonProxy.preInit() :</span>
+    <span class="cm">// DimensionManager.registerDimension(DIM_ID, DimensionType.register("erina", "_erina", DIM_ID, WorldProviderErina.class, false));</span>
+}
+
+<span class="kw">public class</span> <span class="cl">WorldProviderErina</span> <span class="kw">extends</span> <span class="cl">WorldProvider</span> {
+    <span class="an">@Override</span> <span class="kw">public</span> <span class="cl">IChunkGenerator</span> <span class="fn">createChunkGenerator</span>() {
+        <span class="kw">return new</span> <span class="cl">ErinaChunkGenerator</span>(world);
+    }
+    <span class="an">@Override</span> <span class="kw">public</span> <span class="cl">BiomeProvider</span> <span class="fn">getBiomeProvider</span>() {
+        <span class="kw">return new</span> <span class="cl">ErinaBiomeProvider</span>(world.getSeed());
+    }
+    <span class="an">@Override</span> <span class="kw">public boolean</span> <span class="fn">isSurfaceWorld</span>() { <span class="kw">return true</span>; }
+    <span class="an">@Override</span> <span class="kw">public boolean</span> <span class="fn">canRespawnHere</span>() { <span class="kw">return false</span>; } <span class="cm">// Respawn dans l'Overworld</span>
+    <span class="an">@Override</span> <span class="kw">public float</span> <span class="fn">getSunBrightnessFactor</span>(<span class="kw">float</span> par1) { <span class="kw">return</span> <span class="nu">0.65f</span>; }
+}
+
+<span class="kw">public class</span> <span class="cl">ErinaBiomeProvider</span> <span class="kw">extends</span> <span class="cl">BiomeProvider</span> {
+    <span class="cm">// Utilise ErinaGenLayer pour assigner les biomes</span>
+}
+
+<span class="kw">public class</span> <span class="cl">ErinaGenLayer</span> <span class="kw">extends</span> <span class="cl">GenLayer</span> {
+    <span class="cm">// Chain de GenLayer pour disposition des 12 biomes</span>
+}
+
+<span class="kw">public class</span> <span class="cl">ErinaChunkGenerator</span> <span class="kw">implements</span> <span class="cl">IChunkGenerator</span> {
+    <span class="cm">// Terrain generation : heightmap, caves, ore population</span>
+}</div>
+
+      <h3>Terrain generation</h3>
+      <ul>
+        <li><strong>Niveau du plasma :</strong> Y=64 est le niveau de base du plasma liquide (equivalent de l'Y=63 eau Overworld). Toutes les depressions en dessous de Y=64 se remplissent de plasma liquide lors de la population du chunk.</li>
+        <li><strong>Hauteur moyenne :</strong> le terrain moyen se situe entre Y=72 et Y=85. Le generateur utilise un bruit de Perlin 3D pour creer des collines douces avec des plateaux.</li>
+        <li><strong>Pics :</strong> des formations cristallines peuvent atteindre Y=140. Elles se generent dans les biomes Crystal Plains, Floating Plateaus et Void Peaks.</li>
+        <li><strong>Surface de base :</strong> la couche de surface (0-4 blocs) est du <code>BlockErinaSurface</code> (equivalent du grass/dirt). En dessous : <code>BlockErinaStone</code> (equivalent de la stone vanilla).</li>
+      </ul>
+
+      <h3>Systeme de grottes cristallines</h3>
+      <ul>
+        <li>Generation de grottes via algorithme de "worm" (meme principe que les grottes vanilla) mais avec des parametres elargis : rayon plus grand, moins de tortuosite.</li>
+        <li>Dans le biome Crystal Caverns (sous Y=40) : generation de <strong>geodes</strong> — cavernes spheriques de 6-12 blocs de rayon, parois en cristaux multicolores, interieur vide.</li>
+        <li>Les geodes sont les principales sources de minerais rares (Minerai d'Erinite, Void Fragment, Noyau d'Impact).</li>
+        <li>Light level dans les grottes : les cristaux des parois emettent light level 4-6, les geodes sont a moitie eclairees.</li>
+      </ul>
+
+      <h3>Structures generees</h3>
+      <ul>
+        <li><strong>Ruines Alien :</strong> structures 15x10x15 avec blocs de pierre Erina et Crystal. Contiennent des coffres avec ressources d'Erina pre-lootes. Frequence : 1 par 64 chunks.</li>
+        <li><strong>Tours Cristallines :</strong> tours de 20-30 blocs de hauteur entierement en cristaux. Landmark visuel utile pour se reperer. Frequence : 1 par 32 chunks.</li>
+        <li><strong>Nids de Creatures :</strong> creux dans le sol avec un oeuf central. Spawner de mobs d'Erina. Frequence : 1 par 48 chunks.</li>
+        <li>Enregistrement via <code>GameRegistry.registerWorldGenerator(new ErinaStructureGenerator(), 1)</code> dans <code>CommonProxy.init()</code>.</li>
+      </ul>
+
+      <h3>Generation des minerais (ore population)</h3>
+      <p>Toutes les ressources (Section 05) sont generees via <code>WorldGenMinable</code> (ou equivalent custom pour les ressources de surface) appelee dans <code>ErinaChunkGenerator.populate()</code>. Les parametres exacts (taille veine, frequence, profondeur min/max) sont detailles dans la Section 05.</p>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Performance worldgen :</strong> Utiliser des tableaux de bruit pre-calcules (<code>double[] noiseMap</code>) plutot que d'appeler <code>noise.getValue(x, y, z)</code> pour chaque bloc. Une seule passe de bruit pour tout le chunk (16x256x16) est 10x plus rapide que des appels individuels. Meme approche que <code>ChunkGeneratorOverworld</code> vanilla.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S4 — LES 12 BIOMES ═══ -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num valterite-num">04</span> Les 12 Biomes d'Erina</h2>
+
+      <h3 class="first">1. Crystal Plains — Plaines Cristallines</h3>
+      <p>Biome de depart d'Erina. Terrain plat a legerement ondule avec des formations cristallines cyan qui emergent du sol (hauteur 2-5 blocs). L'herbe est bioluminescente cyan, emettant light level 5. C'est le biome le plus accessible et le moins dangereux.</p>
+      <ul>
+        <li><strong>Terrain :</strong> Y=72-80, peu de relief. Predominant dans la zone centrale de la carte biome.</li>
+        <li><strong>Vegetation :</strong> herbe bioluminescente (<code>BlockErinaGrass</code>, light=5), cristaux emergents (<code>BlockCrystalFormation</code>, light=8), petites fleurs cyan.</li>
+        <li><strong>Mobs :</strong> mobs neutres (Crystallite — petite creature de cristal passive). Pas de spawn hostile par defaut.</li>
+        <li><strong>Ressource principale :</strong> <span class="tag-comm">Commun</span> Cristal d'Erina — veine de surface, frequente.</li>
+        <li><strong>Danger :</strong> aucun danger environnemental. Ideal pour s'orienter a l'arrivee.</li>
+      </ul>
+
+      <h3>2. Glow Forest — Foret Bioluminescente</h3>
+      <p>Foret dense avec des arbres geants aux troncs violets (<code>BlockGlowLog</code>) et des feuilles cyan/rose luminescentes (<code>BlockGlowLeaves</code>, light=7). Des champignons geants de 5-8 blocs de hauteur parsement la foret. La visibilite horizontale est reduite a 15-20 blocs a cause de la densite des arbres.</p>
+      <ul>
+        <li><strong>Terrain :</strong> Y=75-88, collines douces. Les arbres poussent de Y=75 jusqu'a Y=110.</li>
+        <li><strong>Vegetation :</strong> arbres Glow (tronc violet, feuilles cyan), champignons geants (<code>BlockGlowMushroom</code>, light=9), lianes lumineuses.</li>
+        <li><strong>Mobs :</strong> Sporeling (creature qui lance des spores, applique Slowness I 3s).</li>
+        <li><strong>Ressource principale :</strong> <span class="tag-comm">Commun</span> Spore Lumineuse — droppee par les champignons geants et les Sporelings.</li>
+        <li><strong>Danger :</strong> visibilite reduite favorise les embuscades PvP. Sporelings appliquent slowness.</li>
+      </ul>
+
+      <h3>3. Echo Canyon — Canyon des Echos</h3>
+      <p>Canyons profonds de 40 a 60 blocs tailles dans la roche Erina. Les parois sont crystallisees et brillent faiblement. L'atmosphere y est etouffee — des particules d'echo flottent dans l'air (effet purement visuel). Les minerais rares affleurent dans les parois.</p>
+      <ul>
+        <li><strong>Terrain :</strong> rebord a Y=85-90, fond de canyon a Y=40-50. Parois verticales.</li>
+        <li><strong>Vegetation :</strong> mousses cristallines sur les parois (light=3).</li>
+        <li><strong>Mobs :</strong> Echolith (creature de roche qui se teleporte par reflection sonore, difficile a fuir).</li>
+        <li><strong>Ressource principale :</strong> <span class="tag-rare">Peu commun</span> Echo Stone — dans les parois des canyons, Y=40-85.</li>
+        <li><strong>Danger :</strong> chutes mortelles de 40+ blocs dans les canyons (meme avec gravite reduite). Les Echoliths desorientation.</li>
+      </ul>
+
+      <h3>4. Plasma Swamp — Marais de Plasma</h3>
+      <p>Zone basse inondee de plasma liquide cyan. Des iles de terre alien emergent du plasma, couvertes de vegetation dense et tentaculaire. Les rives sont instables — des blocs de boue alien (<code>BlockErinaMud</code>) font patiner le joueur.</p>
+      <ul>
+        <li><strong>Terrain :</strong> Y=58-65 dominant (sous le niveau de plasma Y=64). Iles a Y=64-68.</li>
+        <li><strong>Vegetation :</strong> plantes tentaculaires (<code>BlockTentaclePlant</code>), algues flottantes dans le plasma (light=6).</li>
+        <li><strong>Mobs :</strong> Plasma Leech (creature aquatique qui attaque dans le plasma, applique Poison I 3s).</li>
+        <li><strong>Ressource principale :</strong> <span class="tag-rare">Peu commun</span> Plasma Solidifie — collecte au bord du plasma ou via Extracteur de Plasma.</li>
+        <li><strong>Danger :</strong> contact plasma = Slowness II + 0.5 coeurs/sec. Traverser le marais sans equipement est risque.</li>
+      </ul>
+
+      <h3>5. Floating Plateaus — Plateaux Flottants</h3>
+      <p>Iles de terrain flottant entre Y=80 et Y=130, reliees par des ponts naturels de cristal fragile. Le vide entre les plateaux est lethal — une chute depuis Y=100 depasse le seuil de survie meme avec la gravite reduite. C'est le biome le plus dangereux en termes de mobilite.</p>
+      <ul>
+        <li><strong>Terrain :</strong> plateaux de 20-60 blocs de diametre flottant a diverses altitudes. Sous les plateaux : vide ou terrain de base tres bas.</li>
+        <li><strong>Vegetation :</strong> herbe Aerium sur les plateaux (light=4), cristaux d'Aerium qui poussent en bord de plateau.</li>
+        <li><strong>Mobs :</strong> Plateau Drifter (creature volante qui pousse les joueurs, knockback eleve).</li>
+        <li><strong>Ressource principale :</strong> <span class="tag-rare">Rare</span> Aerium — mineral dans la pierre des plateaux flottants.</li>
+        <li><strong>Danger :</strong> chutes letales. Les Plateau Drifters peuvent pousser un joueur dans le vide.</li>
+      </ul>
+
+      <h3>6. Ash Desert — Desert de Cendres</h3>
+      <p>Etendue plate de cendres grises. Des geysers de gaz toxique jaillissent du sol toutes les 40-80 ticks — zone de 2 blocs de rayon autour du geyser actif inflige Poison I 3s. Une legere particule de cendre reduit la visibilite (fog plus dense que la normale).</p>
+      <ul>
+        <li><strong>Terrain :</strong> Y=70-74, tres plat. Surface en <code>BlockErinaAsh</code> (equivalent de sable mais plus lent a traverser).</li>
+        <li><strong>Vegetation :</strong> aucune vegetation normale. Quelques rochers de roche Erina emergent.</li>
+        <li><strong>Mobs :</strong> Ash Lurker (creature qui se cache sous la cendre, emerge quand un joueur passe dessus).</li>
+        <li><strong>Ressource principale :</strong> <span class="tag-comm">Commun</span> Cendre Compacte — mine directement depuis les blocs de sol du biome.</li>
+        <li><strong>Danger :</strong> geysers de gaz (Poison I 3s dans un rayon de 2 blocs). Visibilite reduite. Ash Lurkers par surprise.</li>
+      </ul>
+
+      <h3>7. Crystal Tundra — Toundra Cristalline</h3>
+      <p>Zone froide avec des stalactites de Cryo-Cristal au lieu de glace. Le sol est recouvert de cristaux de glace alien (<code>BlockCryoIce</code>) qui ralentissent le joueur (effet Slowness I passif au contact). Sans Combinaison Spatiale complete, le joueur prend 0.5 coeur de degat toutes les 30 secondes dans ce biome.</p>
+      <ul>
+        <li><strong>Terrain :</strong> Y=75-95, terrain accidente avec des pics de cristal de glace.</li>
+        <li><strong>Vegetation :</strong> cristaux de Cryo pourvus de light level 5 (bleuatre).</li>
+        <li><strong>Mobs :</strong> Frost Crawler (araignee de cristal, applique Slowness II 5s sur attaque).</li>
+        <li><strong>Ressource principale :</strong> <span class="tag-rare">Peu commun</span> Cryo-Cristal — dans le sol et les stalactites du biome.</li>
+        <li><strong>Danger :</strong> degats de froid passifs sans Combinaison Spatiale. Frost Crawlers ralentissent enormement.</li>
+      </ul>
+
+      <h3>8. Toxic Jungle — Jungle Toxique</h3>
+      <p>Vegetation extremement dense de couleurs acides (vert neón, orange brulant). Chaque contact avec la vegetation inflige Poison I 2 secondes. Les mobs de ce biome sont tous venimeux. C'est le biome le plus penalisant sans Combinaison Spatiale.</p>
+      <ul>
+        <li><strong>Terrain :</strong> Y=74-92, collines denses. Les plantes poussent jusqu'a Y=105.</li>
+        <li><strong>Vegetation :</strong> <code>BlockToxicPlant</code> (inflige Poison I 2s au contact, light=6), lianes toxiques (<code>BlockToxicVine</code>).</li>
+        <li><strong>Mobs :</strong> Toxic Crawler (rapide, applique Poison II 4s), Venom Spitter (projectile a distance, Poison II 6s).</li>
+        <li><strong>Ressource principale :</strong> <span class="tag-rare">Rare</span> Toxine d'Erina — droppee par les Toxic Crawlers et les Venom Spitters, ou extraite des plantes avec un outil special.</li>
+        <li><strong>Danger :</strong> Poison constant sans Combinaison Spatiale. Mobs agressifs et venimeux. Visibilite tres reduite.</li>
+      </ul>
+
+      <h3>9. Impact Crater — Cratere d'Impact</h3>
+      <p>Grand cratere circulaire de 150-200 blocs de diametre avec un centre de lave alien (orange/violet, <code>BlockAlienLava</code>) bouillonnant. Les bords du cratere sont plus hauts (Y=90-100), le centre atteint Y=50. C'est la zone la plus hostile de toute la planete — mobs en grande quantite, ressource la plus rare au centre uniquement.</p>
+      <ul>
+        <li><strong>Terrain :</strong> structure circulaire unique. Les bords sont en roche brulee (<code>BlockBurnedErinaStone</code>).</li>
+        <li><strong>Vegetation :</strong> aucune vegetation — trop hostile. Quelques cristaux de roche fondue.</li>
+        <li><strong>Mobs :</strong> Impact Brute (creature massive, 40 HP, degats eleves), Magma Crawler (nage dans la lave alien, jaillit pour attaquer).</li>
+        <li><strong>Ressource principale :</strong> <span class="tag-erin">Tres rare</span> Noyau d'Impact — uniquement dans les 20 blocs centraux du cratere, Y=50-60.</li>
+        <li><strong>Danger :</strong> lave alien (meme comportement que lave vanilla), mobs extremement agressifs et puissants. Zone conseillée en groupe.</li>
+      </ul>
+
+      <h3>10. Crystal Caverns — Grottes de Cristal</h3>
+      <p>Biome souterrain existant uniquement sous Y=40. D'immenses cavernes avec des parois couvertes de geodes de cristaux multicolores (rouge, bleu, vert, jaune). C'est la source principale de tous les minerais rares d'Erina. Les cristaux emettent une lumiere faible (light=4) mais suffisante pour voir dans la caverne sans torche.</p>
+      <ul>
+        <li><strong>Terrain :</strong> cavernes de 10-30 blocs de large sous Y=40. Geodes spheriques de 6-12 blocs de rayon.</li>
+        <li><strong>Vegetation :</strong> cristaux multicolores sur les parois (light=4).</li>
+        <li><strong>Mobs :</strong> Crystal Golem (golem de cristal, immunise aux fleches, faible aux explosifs).</li>
+        <li><strong>Ressource principale :</strong> <span class="tag-erin">Rare</span> Minerai d'Erinite + toutes les ressources rares. C'est ici que se trouve le meilleur loot.</li>
+        <li><strong>Danger :</strong> obscurite meme avec les cristaux. Crystal Golems resistants. Labyrinthe de cavernes (il est facile de se perdre).</li>
+      </ul>
+
+      <h3>11. Void Peaks — Pics du Void</h3>
+      <p>Montagnes extremement hautes (Y=130+) avec une atmosphere rarefie. Au-dessus de Y=140, le joueur sans casque de Combinaison Spatiale prend l'effet Wither I (degats de wither) par manque d'oxygene. C'est le seul endroit ou les Void Fragments spawnent.</p>
+      <ul>
+        <li><strong>Terrain :</strong> Y=110-150, pics aceres en roche Void (<code>BlockVoidStone</code>, tres sombre).</li>
+        <li><strong>Vegetation :</strong> cristaux Void (light=3, coleur noire/violette).</li>
+        <li><strong>Mobs :</strong> Void Shade (creature invisible, revele uniquement avec Flare ou Champignon de Vision).</li>
+        <li><strong>Ressource principale :</strong> <span class="tag-erin">Ultra rare</span> Void Fragment — uniquement a Y=130+, dans les pics. Veine de 1-3 blocs.</li>
+        <li><strong>Danger :</strong> Wither I permanent sans casque spatial au-dessus de Y=140. Void Shades invisibles. Chutes mortelles depuis les pics.</li>
+      </ul>
+
+      <h3>12. Luminous Shore — Rivage Lumineux</h3>
+      <p>Plages de sable scintillant (<code>BlockErinaSand</code>, light=3) le long des lacs de plasma. Coraux alien lumineux poussent dans le plasma peu profond. C'est le biome le plus calme et le plus beau d'Erina — un havre relatif avant de plonger dans les zones plus dangereuses.</p>
+      <ul>
+        <li><strong>Terrain :</strong> Y=63-68, plat. Borde les zones de plasma liquide.</li>
+        <li><strong>Vegetation :</strong> coraux alien dans le plasma (light=7), fleurs de sable (<code>BlockLuminousFlower</code>, light=5).</li>
+        <li><strong>Mobs :</strong> Shore Crab (passif, drop Perle de Plasma).</li>
+        <li><strong>Ressource principale :</strong> <span class="tag-rare">Peu commun</span> Perle de Plasma — droppee par les Shore Crabs et trouvee dans le sable.</li>
+        <li><strong>Danger :</strong> le plasma liquide est toujours dangereux. Peu de mobs hostiles mais zone ouverte exposee aux PvP.</li>
+      </ul>
+
+      <h3>Resume des biomes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Biome</th>
+              <th>Zone layout</th>
+              <th>Ressource principale</th>
+              <th>Danger environnemental</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Crystal Plains</td><td>Centrale, frequente</td><td>Cristal d'Erina</td><td>Aucun</td></tr>
+            <tr><td>Glow Forest</td><td>Frequente</td><td>Spore Lumineuse</td><td>Sporelings (Slowness)</td></tr>
+            <tr><td>Echo Canyon</td><td>Moderee</td><td>Echo Stone</td><td>Chutes de canyon</td></tr>
+            <tr><td>Plasma Swamp</td><td>Moderee</td><td>Plasma Solidifie</td><td>Plasma (Slow + DPS)</td></tr>
+            <tr><td>Floating Plateaus</td><td>Moderee</td><td>Aerium</td><td>Chutes letales</td></tr>
+            <tr><td>Ash Desert</td><td>Moderee</td><td>Cendre Compacte</td><td>Geysers (Poison)</td></tr>
+            <tr><td>Crystal Tundra</td><td>Peu frequente</td><td>Cryo-Cristal</td><td>Froid (sans armure spatiale)</td></tr>
+            <tr><td>Toxic Jungle</td><td>Peu frequente</td><td>Toxine d'Erina</td><td>Poison contact vegetal</td></tr>
+            <tr><td>Impact Crater</td><td>Rare, unique</td><td>Noyau d'Impact</td><td>Lave alien + mobs elites</td></tr>
+            <tr><td>Crystal Caverns</td><td>Souterrain &lt;Y40</td><td>Minerai d'Erinite</td><td>Obscurite + Crystal Golems</td></tr>
+            <tr><td>Void Peaks</td><td>Rare</td><td>Void Fragment</td><td>Wither &gt;Y140 sans casque</td></tr>
+            <tr><td>Luminous Shore</td><td>Cotes des lacs</td><td>Perle de Plasma</td><td>Plasma pres des rives</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ S5 — RESSOURCES D'ERINA ═══ -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num gold-num">05</span> Ressources d'Erina</h2>
+
+      <h3 class="first">Tableau general des ressources</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ressource</th>
+              <th>Biome principal</th>
+              <th>Rarete</th>
+              <th>Profondeur / Condition</th>
+              <th>Veine</th>
+              <th>Usage principal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cristal d'Erina</td>
+              <td>Crystal Plains</td>
+              <td><span class="tag-comm">Commun</span></td>
+              <td>Surface, Y=60-90</td>
+              <td>4-8 blocs</td>
+              <td>Materiau de base, craft Table R&amp;D</td>
+            </tr>
+            <tr>
+              <td>Spore Lumineuse</td>
+              <td>Glow Forest</td>
+              <td><span class="tag-comm">Commun</span></td>
+              <td>Drop champignons, Y=70-100</td>
+              <td>—</td>
+              <td>Orbes de competences, potions</td>
+            </tr>
+            <tr>
+              <td>Echo Stone</td>
+              <td>Echo Canyon</td>
+              <td><span class="tag-rare">Peu commun</span></td>
+              <td>Parois canyon, Y=40-85</td>
+              <td>2-5 blocs</td>
+              <td>Cristal de Telepathie, detecteurs</td>
+            </tr>
+            <tr>
+              <td>Plasma Solidifie</td>
+              <td>Plasma Swamp</td>
+              <td><span class="tag-rare">Peu commun</span></td>
+              <td>Bords plasma, Y=60-66</td>
+              <td>1-3 blocs</td>
+              <td>Bouclier d'Erinium, explosifs</td>
+            </tr>
+            <tr>
+              <td>Aerium</td>
+              <td>Floating Plateaus</td>
+              <td><span class="tag-rare">Rare</span></td>
+              <td>Pierre des plateaux, Y=80-130</td>
+              <td>1-3 blocs</td>
+              <td>Fusee, Grappin, Slime Pad</td>
+            </tr>
+            <tr>
+              <td>Cendre Compacte</td>
+              <td>Ash Desert</td>
+              <td><span class="tag-comm">Commun</span></td>
+              <td>Sol du desert, Y=68-75</td>
+              <td>3-6 blocs</td>
+              <td>Protective Bricks, construction</td>
+            </tr>
+            <tr>
+              <td>Cryo-Cristal</td>
+              <td>Crystal Tundra</td>
+              <td><span class="tag-rare">Peu commun</span></td>
+              <td>Sol et stalactites, Y=70-95</td>
+              <td>2-4 blocs</td>
+              <td>Fumigenes, effets de glace</td>
+            </tr>
+            <tr>
+              <td>Toxine d'Erina</td>
+              <td>Toxic Jungle</td>
+              <td><span class="tag-rare">Rare</span></td>
+              <td>Drop mobs venimeux</td>
+              <td>—</td>
+              <td>Razor Wire Aeherite/Erinium, poison</td>
+            </tr>
+            <tr>
+              <td>Noyau d'Impact</td>
+              <td>Impact Crater</td>
+              <td><span class="tag-erin">Tres rare</span></td>
+              <td>Centre cratere uniquement, Y=50-60</td>
+              <td>1-2 blocs</td>
+              <td>Totems, Table R&amp;D, Portail de Retour</td>
+            </tr>
+            <tr>
+              <td>Void Fragment</td>
+              <td>Void Peaks</td>
+              <td><span class="tag-erin">Ultra rare</span></td>
+              <td>Pics, Y=130+</td>
+              <td>1-3 blocs</td>
+              <td>Bouclier d'Erinium, Grappin Erinium</td>
+            </tr>
+            <tr>
+              <td>Perle de Plasma</td>
+              <td>Luminous Shore</td>
+              <td><span class="tag-rare">Peu commun</span></td>
+              <td>Sable des rives, drops</td>
+              <td>—</td>
+              <td>Decoration, crafts cosmétiques</td>
+            </tr>
+            <tr>
+              <td>Minerai d'Erinite</td>
+              <td>Crystal Caverns</td>
+              <td><span class="tag-rare">Rare</span></td>
+              <td>Sous Y=30, geodes</td>
+              <td>1-4 blocs</td>
+              <td>Ressource premium, Table R&amp;D avancee</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Details des ressources</h3>
+
+      <h4>Cristal d'Erina</h4>
+      <p>Bloc : <code>BlockErinaCrystal</code>. Drop : <code>ItemErinaCrystal</code> (1-3). Veine 4-8. Surface des Crystal Plains, Y=60-90. Texture : cristal hexagonal translucide cyan avec reflets internes, light level 6. Materiau de base de presque tous les crafts Erina — l'ingredient le plus abondant de la dimension.</p>
+
+      <h4>Spore Lumineuse</h4>
+      <p>Item uniquement (pas de bloc ore). Drop des <code>BlockGlowMushroom</code> (50% chance, 1-2 spores) et des mobs Sporeling (70% chance, 1 spore). Texture : petite sphere brillante rose/cyan. Utilisee comme catalyseur dans les Orbes de Competences et les potions Erina.</p>
+
+      <h4>Echo Stone</h4>
+      <p>Bloc : <code>BlockEchoStone</code>. Drop : <code>ItemEchoStone</code> (1). Veine 2-5. Dans les parois des Echo Canyons, Y=40-85. Texture : pierre grise avec des ondes concentriques gravees, light level 3. Utilisee pour des items qui detectent ou transmettent de l'information (Cristal de Telepathie, Drone d'Exploration).</p>
+
+      <h4>Plasma Solidifie</h4>
+      <p>Bloc : <code>BlockSolidPlasma</code>. Drop : <code>ItemSolidPlasma</code> (1-2). Veine 1-3. Aux bords du plasma liquide dans les Plasma Swamps, Y=60-66. Texture : bloc translucide cyan cristallise, light level 7. Utilisee dans le Bouclier d'Erinium et les munitions de certains pieges.</p>
+
+      <h4>Aerium</h4>
+      <p>Bloc : <code>BlockAeriumOre</code>. Drop : <code>ItemAerium</code> (1). Veine 1-3. Dans la pierre des Floating Plateaus, Y=80-130. Texture : mineral avec des bulles d'air visibles et une legere distorsion. Propriete : l'item Aerium flotte lentement si laisse dans un liquide (effet purement cosmétique). Composant cle de la Fusee et du Grappin.</p>
+
+      <h4>Cendre Compacte</h4>
+      <p>Bloc : <code>BlockCompactedAsh</code>. Drop : <code>ItemCompactedAsh</code> (2-4). Veine 3-6. Sol de l'Ash Desert, Y=68-75. Texture : agregat gris dense avec particules de cendre. Materiau de construction resistant utilise dans les Protective Bricks et les structures defensives.</p>
+
+      <h4>Cryo-Cristal</h4>
+      <p>Bloc : <code>BlockCryoCrystal</code>. Drop : <code>ItemCryoCrystal</code> (1). Veine 2-4. Sol et stalactites de Crystal Tundra, Y=70-95. Texture : cristal bleu glacé translucide, light level 5. Utilisee dans les Fumigenes pour les effets de glace/brouillard.</p>
+
+      <h4>Toxine d'Erina</h4>
+      <p>Item uniquement. Drop des Toxic Crawlers (60% chance) et Venom Spitters (80% chance, 1-2). Peut aussi etre obtenu avec un outil specifique (<code>ItemToxinExtractor</code>) en faisant clic droit sur un <code>BlockToxicPlant</code> : consomme 1 charge de l'outil et donne 1-3 Toxines. Texture : flacon vert acide avec des bulles. Ingredient essentiel des Razor Wire Aetherite/Erinium.</p>
+
+      <h4>Noyau d'Impact</h4>
+      <p>Bloc : <code>BlockImpactCore</code>. Drop : <code>ItemImpactCore</code> (1). Veine 1-2. Uniquement dans les 20 blocs centraux du cratere d'Impact, Y=50-60. Texture : sphere dense orange/violet avec une fissure lumineuse. La ressource la plus difficile a obtenir — il faut traverser les mobs elites du cratere. Utilisee dans les Totems d'Erinium, les Table de R&D, et le Portail de Retour.</p>
+
+      <h4>Void Fragment</h4>
+      <p>Bloc : <code>BlockVoidFragment</code>. Drop : <code>ItemVoidFragment</code> (1). Veine 1-3. Uniquement au-dessus de Y=130 dans les Void Peaks. Texture : cristal noir avec des particules void qui s'en echappent, light level 2. Ultra rare — la ressource la plus precieuse d'Erina. Composant du Bouclier d'Erinium (tier Erinium) et du Grappin Erinium.</p>
+
+      <h4>Perle de Plasma</h4>
+      <p>Item uniquement. Drop des Shore Crabs (80% chance, 1 perle) et trouve dans le sable Luminous Shore (10% de chance par bloc mine). Texture : perle sphere translucide cyan avec un coeur lumineux. Utilisee pour des crafts cosmétiques et de decoration. Peut etre placee dans des cadres pour des effets lumineux decoratifs.</p>
+
+      <h4>Minerai d'Erinite</h4>
+      <p>Bloc : <code>BlockEriniteOre</code>. Drop : <code>ItemEriniteGem</code> (1). Veine 1-4. Uniquement sous Y=30 dans les Crystal Caverns, principalement dans les geodes. Texture : mineral vert/dore sombre avec des inclusions cristallines. La ressource premium d'Erina — ingredient dans les crafts de la Table de R&D de haut niveau et dans les composants de la Fusee.</p>
+    </section>
+
+    <!-- ═══ S6 — FUSEE & ROCKET MAKER ═══ -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num orange-num">06</span> Fusee &amp; Rocket Maker</h2>
+
+      <h3 class="first">Rocket Maker — Bloc d'assemblage</h3>
+      <p>Le <strong>Rocket Maker</strong> est un bloc special (modele 3D custom) qui sert d'atelier d'assemblage pour la Fusee. Il ne peut pas etre utilise comme crafting table normale — il a son propre GUI multi-slots dedié.</p>
+
+      <h4>Craft du Rocket Maker</h4>
+      <div class="code-block">Patron de craft shaped (3x3) :
+  E N E
+  D R D
+  E B E
+
+E = Erinium Fragment
+N = Nether Star
+D = Diamond Block
+R = Redstone Block
+B = Blaze Rod</div>
+
+      <h4>Classes Java</h4>
+      <ul>
+        <li><code>BlockRocketMaker</code> — bloc avec orientation FACING (4 directions). <code>hasTileEntity=true</code>. On right-click : ouvre le GUI via <code>player.openGui()</code>.</li>
+        <li><code>TileEntityRocketMaker</code> — stocke les 9 slots de composants + etat d'assemblage. Implémente <code>ITickable</code> pour le timer d'assemblage (200 ticks = 10 secondes).</li>
+        <li><code>GuiRocketMaker</code> (EriGuiScreen) — GUI avec 9 slots de composants, descriptions des ingredients requis par slot, barre de progression d'assemblage.</li>
+        <li><code>ContainerRocketMaker</code> — Container Forge pour la synchronisation des slots serveur↔client.</li>
+      </ul>
+
+      <h4>GUI du Rocket Maker</h4>
+      <p>Le GUI comporte 9 slots organises en 3x3. Chaque slot correspond a un composant specifique. Si un slot contient le mauvais ingredient, il affiche une bordure rouge. Si tous les slots sont corrects, le bouton "Assembler" devient actif et lance l'assemblage (200 ticks de progression visible).</p>
+      <ul>
+        <li>Slots 1-4 : Coques (x4, un slot pour chaque coque)</li>
+        <li>Slot 5 : Reacteur</li>
+        <li>Slot 6 : Reservoir</li>
+        <li>Slot 7 : Systeme de Navigation</li>
+        <li>Slots 8-9 : Sieges (x2)</li>
+      </ul>
+
+      <h3>Les 5 composants de la Fusee</h3>
+
+      <div class="tier-grid">
+        <div class="tier-card erinium">
+          <div class="tier-card-name">Coque de Fusee</div>
+          <div class="tier-card-sub">x4 requises</div>
+          <div class="tier-card-stat"><strong>Craft :</strong> 4 Erinium Block + 4 Iron Block + 1 Aerium</div>
+          <div class="tier-card-stat"><strong>Cout :</strong> ~4 Erinium Blocks par coque</div>
+          <div class="tier-card-stat"><strong>Description :</strong> Enveloppe exterieure resistante de la fusee</div>
+        </div>
+        <div class="tier-card erinium">
+          <div class="tier-card-name">Reacteur</div>
+          <div class="tier-card-sub">x1 requis</div>
+          <div class="tier-card-stat"><strong>Craft :</strong> Nether Star + 4 Blaze Rod + 4 Erinium Fragment</div>
+          <div class="tier-card-stat"><strong>Description :</strong> Moteur de propulsion de la fusee</div>
+        </div>
+        <div class="tier-card erinium">
+          <div class="tier-card-name">Reservoir</div>
+          <div class="tier-card-sub">x1 requis</div>
+          <div class="tier-card-stat"><strong>Craft :</strong> 4 Aetherite Block + 4 Glass + 1 Iron Block</div>
+          <div class="tier-card-stat"><strong>Carburant :</strong> Contient jusqu'a 4 Blaze Rods</div>
+        </div>
+        <div class="tier-card erinium">
+          <div class="tier-card-name">Navigation</div>
+          <div class="tier-card-sub">x1 requis</div>
+          <div class="tier-card-stat"><strong>Craft :</strong> Diamond + Compass + Ender Eye + 2 Erinium Fragment</div>
+          <div class="tier-card-stat"><strong>Description :</strong> Systeme de coordonnees et calcul de trajectoire</div>
+        </div>
+        <div class="tier-card erinium">
+          <div class="tier-card-name">Siege</div>
+          <div class="tier-card-sub">x2 requis</div>
+          <div class="tier-card-stat"><strong>Craft :</strong> 2 Wool + 2 Iron Ingot + 1 Leather</div>
+          <div class="tier-card-stat"><strong>Capacite :</strong> 1 joueur par siege = 2 joueurs max</div>
+        </div>
+      </div>
+
+      <h3>Entite Fusee — EntityRocket</h3>
+      <p><code>EntityRocket extends Entity</code> — entite placeable dans le monde, comme un bateau. Le joueur place la fusee au sol (clic droit avec l'item Fusee) et elle apparat comme une entite 3D visible.</p>
+
+      <h4>Mecanique de voyage</h4>
+      <ul>
+        <li><strong>Embarquement :</strong> clic droit sur la fusee pour monter dedans. Capacite 2 joueurs. Le second joueur a embarquer est passager.</li>
+        <li><strong>Carburant :</strong> la fusee consomme 1 Blaze Rod par voyage (aller ou retour). Un joueur doit avoir du carburant dans son inventaire pour lancer la fusee. Si pas de carburant, le bouton ESPACE ne fait rien et un message d'erreur s'affiche.</li>
+        <li><strong>Decollage :</strong> appuyer sur ESPACE. Sequence de lancement : particules de feu + son de lancement + camera qui tremble 20 ticks + ecran noir 60 ticks + teleportation.</li>
+        <li><strong>Destination :</strong>
+          <ul>
+            <li>Depuis Overworld → Erina : teleportation a X=0, Z=0, Y=80 (spawn fixe d'Erina).</li>
+            <li>Depuis Erina → Overworld : teleportation au point de spawn de la fusee en Overworld (sauvegarde dans le NBT de l'entite a la creation).</li>
+          </ul>
+        </li>
+        <li><strong>La fusee reste sur place :</strong> quand le joueur arrive a Erina, la fusee reste sur la plateforme de lancement en Overworld (ou sur Erina si vol retour). Pour rentrer, il faut retrouver la fusee sur Erina.</li>
+        <li><strong>Durabilite :</strong> 100 HP. La fusee peut etre attaquee par des joueurs (PvP). Si detruite, elle disparait et les joueurs a l'interieur sont ejectes a la position actuelle de la fusee.</li>
+        <li><strong>Destruction en vol :</strong> si la fusee est detruite sur Erina alors qu'un joueur est a l'interieur, le joueur est teleporte au spawn Erina et recoit un message d'avertissement. Il est bloque sur Erina jusqu'a ce qu'une autre fusee arrive ou qu'il meure.</li>
+      </ul>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Fusee destructible :</strong> La fusee est une cible PvP legitime sur Erina. Un ennemi peut detruire la fusee d'une expedition, forcant l'equipe adverse a rester sur Erina. C'est une mechanique intentionnelle de guerilla. La fusee a 100 HP et ne regenere pas.</div>
+      </div>
+
+      <h4>NBT de l'entite Fusee</h4>
+      <div class="code-block"><span class="cm">// Donnees NBT stockees dans EntityRocket :</span>
+<span class="st">"FuelCount"</span>: <span class="nu">1-4</span>         <span class="cm">// nombre de Blaze Rods restants dans le reservoir</span>
+<span class="st">"Health"</span>: <span class="nu">100</span>             <span class="cm">// HP actuels (0-100)</span>
+<span class="st">"OwnerUUID"</span>: <span class="st">"..."</span>       <span class="cm">// UUID du joueur qui a place la fusee</span>
+<span class="st">"FactionId"</span>: <span class="st">"..."</span>       <span class="cm">// ID faction du proprietaire (optionnel)</span>
+<span class="st">"OriginX"</span>, <span class="st">"OriginZ"</span>:   <span class="cm">// coordonnees de depart pour le retour</span>
+<span class="st">"OriginDim"</span>: <span class="nu">0</span>           <span class="cm">// dimension de depart (0 = Overworld)</span></div>
+    </section>
+
+    <!-- ═══ S7 — TABLE DE R&D ═══ -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num red-num">07</span> Table de R&amp;D</h2>
+
+      <h3 class="first">Principe general</h3>
+      <p>La Table de R&D est un bloc special craftable avec des ressources d'Erina qui permet de debloquer des recettes de craft avancees. Le systeme repose sur deux monnaies :</p>
+      <ul>
+        <li><strong>Points de Recherche (PR) :</strong> gagnes UNIQUEMENT par kills de joueurs en PvP (1 kill = 10 PR). Les kills de mobs ne rapportent rien. Stockes dans <code>RnDPlayerData</code>.</li>
+        <li><strong>Argent ($) :</strong> depense depuis le solde EconomyManager du joueur. Integre directement avec le systeme d'economie existant.</li>
+      </ul>
+
+      <h4>Craft de la Table de R&D</h4>
+      <div class="code-block">Patron de craft shaped (3x3) :
+  C E C
+  E N E
+  C E C
+
+C = Cristal d'Erina
+E = Erinium Fragment
+N = Noyau d'Impact</div>
+
+      <h4>Classes Java</h4>
+      <ul>
+        <li><code>BlockRnDTable</code> — bloc indestructible pendant une recherche en cours. Check dans <code>onBlockHarvested()</code> et <code>onBlockDestroyedByPlayer()</code>.</li>
+        <li><code>TileEntityRnDTable</code> — gere l'etat de recherche courante et le joueur qui l'utilise.</li>
+        <li><code>RnDPlayerData</code> — <code>@EriData(scope=PLAYER, persistOnDeath=true)</code>. Champs : <code>int researchPoints</code>, <code>Set&lt;String&gt; unlockedRecipes</code>.</li>
+        <li><code>RnDRecipeRegistry</code> — registre singleton de toutes les recettes R&D disponibles (<code>Map&lt;String, RnDRecipe&gt;</code>).</li>
+        <li><code>ResearchPointManager</code> — ecoute les <code>LivingDeathEvent</code> pour ajouter les PR. Verifie que la cible est un joueur (<code>event.getEntityLiving() instanceof EntityPlayer</code>) et que ce n'est pas un suicide.</li>
+        <li><code>GuiRnDTable</code> (EriGuiScreen) — GUI principal de la Table.</li>
+      </ul>
+
+      <h3>Layout du GUI</h3>
+      <ul>
+        <li><strong>Panneau gauche (280x600px) :</strong> affiche les PR du joueur (avec icone d'epee), son solde $ (avec icone piece), et un fil d'ariane pour retrouver les categories de recettes.</li>
+        <li><strong>Panneau central (600x600px) :</strong> liste scrollable de toutes les recettes R&D. Les recettes verrouillees ont une overlay grisee avec une icone cadenas. Les recettes deja debloquees ont un indicateur vert. Filtrage par categorie (Combat, Defense, Explosifs).</li>
+        <li><strong>Panneau droit (280x600px) :</strong> details de la recette selectionnee — nom, description, cout PR + $, ingredients du craft resultant, bouton "Debloquer" (desactive si PR ou $ insuffisants).</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Deblocages personnels :</strong> Les deblocages R&D sont strictement personnels. Chaque joueur doit investir ses propres PR et $ pour debloquer ses crafts. Un membre de faction ne peut pas debloquer pour un autre. Il n'y a pas de "partage de recherche" au niveau faction. Une fois debloques, les crafts restent permanents — pas de re-verrouillage possible.</div>
+      </div>
+
+      <h3>Regles metier importantes</h3>
+      <ul>
+        <li><strong>Incassable pendant recherche :</strong> si <code>TileEntityRnDTable.isResearching == true</code>, tout appel a <code>onBlockHarvested()</code> ou <code>removedByPlayer()</code> est annule et un message est envoye au joueur.</li>
+        <li><strong>Validation cote serveur :</strong> le bouton "Debloquer" envoie un packet <code>GuiNetworkHandler.sendAction("rnd_unlock", nbt)</code>. Le serveur re-verifie les PR et le solde avant d'appliquer le deblocage. Ne jamais faire confiance au client.</li>
+        <li><strong>Persistence :</strong> les PR sont dans <code>RnDPlayerData</code> avec <code>persistOnDeath=true</code> — ils survivent a la mort sur Erina. Les recettes debloquees aussi.</li>
+        <li><strong>Gain PR :</strong> un message chat (<code>EriChat</code>) est envoye au joueur quand il gagne des PR : <em>"+10 Points de Recherche (kill PvP) — Total : 150 PR"</em>.</li>
+      </ul>
+
+      <h4>Structure RnDRecipe</h4>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">RnDRecipe</span> {
+    <span class="kw">public final</span> <span class="cl">String</span> id;           <span class="cm">// ex: "rnd_fumigene_valterite"</span>
+    <span class="kw">public final</span> <span class="cl">String</span> displayName;
+    <span class="kw">public final</span> <span class="cl">String</span> description;
+    <span class="kw">public final</span> <span class="kw">int</span> costPR;
+    <span class="kw">public final</span> <span class="kw">long</span> costMoney;
+    <span class="kw">public final</span> <span class="cl">ItemStack</span> previewItem;  <span class="cm">// item affiche dans le GUI</span>
+    <span class="kw">public final</span> <span class="cl">String</span> category;      <span class="cm">// "combat", "defense", "explosif"</span>
+}</div>
+    </section>
+
+    <!-- ═══ S8 — ITEMS R&D COMBAT ═══ -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num aetherite-num">08</span> Items R&amp;D — Combat &amp; Utilitaires</h2>
+
+      <h3 class="first">8.1 — Ancre de Resurrection</h3>
+      <p>Bloc consommable posable. Lors de la prochaine mort du joueur dans les 30 minutes suivant la pose, le joueur respawn sur l'ancre au lieu du spawn global. L'ancre est detruite au declenchement (usage unique). Un joueur ne peut avoir qu'une seule ancre posee simultanement.</p>
+      <ul>
+        <li><strong>Cout R&D :</strong> 500 PR + 5 000 $</li>
+        <li><strong>Craft :</strong> <code>4 Erinium Fragment + 1 Nether Star + 4 Obsidian</code></li>
+        <li><strong>Regles :</strong> si une deuxieme ancre est posee, la premiere est automatiquement desactivee (le bloc reste mais ne fonctionne plus). L'ancre ne fonctionne pas si le joueur est en mode combat (CombatManager). Elle fonctionne sur Erina.</li>
+        <li><strong>Implementation :</strong> <code>BlockResurrectionAnchor</code>, detection de mort via <code>LivingDeathEvent</code> dans <code>AnchorDeathHandler</code>. La position de l'ancre est stockee dans <code>RnDPlayerData.anchorPos</code> (nullable).</li>
+      </ul>
+
+      <h3>8.2 — Flare d'Erinium</h3>
+      <p>Item jetable (comme une boule de neige). A l'impact ou apres 60 ticks en l'air, explose en une immense gerbe de particules visible de tres loin. Applique l'effet <code>Glowing</code> pendant 8 secondes a tous les joueurs dans un rayon de 50 blocs de l'explosion.</p>
+      <ul>
+        <li><strong>Cout R&D :</strong> 200 PR + 1 000 $</li>
+        <li><strong>Craft :</strong> <code>1 Erinium Fragment + 2 Glowstone Dust + 1 Gunpowder</code> → 4 flares</li>
+        <li><strong>Stack :</strong> 16 par stack</li>
+        <li><strong>Particules :</strong> explosion en etoile de 200+ particules SPELL_MOB (couleur orange/blanc), visible a 100+ blocs. Son fort au lancement et a l'explosion.</li>
+        <li><strong>Implementation :</strong> <code>EntityFlare extends EntityThrowable</code>. L'explosion est geree dans <code>onImpact()</code>. Chercher tous les <code>EntityPlayer</code> dans un rayon 50 via <code>world.getEntitiesWithinAABB()</code>.</li>
+      </ul>
+
+      <h3>8.3 — Fumigenes (3 tiers)</h3>
+      <p>Throwable qui cree un nuage opaque bloquant la vision. Le nuage persiste sur place pendant la duree definie. Les joueurs a l'interieur subissent Blindness selon le tier.</p>
+
+      <div class="tier-grid">
+        <div class="tier-card valterite">
+          <div class="tier-card-name">Fumigene Valterite</div>
+          <div class="tier-card-sub">Tier 1</div>
+          <div class="tier-card-stat"><strong>Rayon :</strong> 3 blocs</div>
+          <div class="tier-card-stat"><strong>Duree :</strong> 4 secondes</div>
+          <div class="tier-card-stat"><strong>Effet :</strong> vision bloquee uniquement</div>
+          <div class="tier-card-stat"><strong>Cout R&D :</strong> 150 PR + 500 $</div>
+          <div class="tier-card-stat"><strong>Craft :</strong> Valterite Ingot + Cryo-Cristal + Gunpowder → 8</div>
+        </div>
+        <div class="tier-card aetherite">
+          <div class="tier-card-name">Fumigene Aetherite</div>
+          <div class="tier-card-sub">Tier 2</div>
+          <div class="tier-card-stat"><strong>Rayon :</strong> 5 blocs</div>
+          <div class="tier-card-stat"><strong>Duree :</strong> 6 secondes</div>
+          <div class="tier-card-stat"><strong>Effet :</strong> vision bloquee uniquement</div>
+          <div class="tier-card-stat"><strong>Cout R&D :</strong> 300 PR + 1 500 $</div>
+          <div class="tier-card-stat"><strong>Craft :</strong> Aetherite Crystal + Cryo-Cristal + Gunpowder → 8</div>
+        </div>
+        <div class="tier-card erinium">
+          <div class="tier-card-name">Fumigene Erinium</div>
+          <div class="tier-card-sub">Tier 3</div>
+          <div class="tier-card-stat"><strong>Rayon :</strong> 5 blocs</div>
+          <div class="tier-card-stat"><strong>Duree :</strong> 8 secondes</div>
+          <div class="tier-card-stat"><strong>Effet :</strong> Blindness 1s aux joueurs entrant</div>
+          <div class="tier-card-stat"><strong>Cout R&D :</strong> 600 PR + 3 000 $</div>
+          <div class="tier-card-stat"><strong>Craft :</strong> Erinium Fragment + Cryo-Cristal + Gunpowder → 8</div>
+        </div>
+      </div>
+      <p>Stack 8 par stack. Implementation : <code>EntitySmokeBomb extends EntityThrowable</code>. A l'impact, creer une zone de particules (<code>EnumParticleTypes.SMOKE_LARGE</code> en boucle) via un ScheduledTask qui emet des particules chaque tick pendant la duree. Checker les joueurs dans la zone pour appliquer les effets.</p>
+
+      <h3>8.4 — Grappin d'Erinium (3 tiers)</h3>
+      <p>Item avec durabilite. Clic droit pour lancer un crochet dans la direction du regard. Si le crochet touche un bloc solide, il tracte le joueur vers ce point a grande vitesse. Cooldown de 3 secondes entre utilisations.</p>
+
+      <div class="tier-grid">
+        <div class="tier-card valterite">
+          <div class="tier-card-name">Grappin Valterite</div>
+          <div class="tier-card-sub">Tier 1</div>
+          <div class="tier-card-stat"><strong>Portee :</strong> 10 blocs</div>
+          <div class="tier-card-stat"><strong>Durabilite :</strong> 20 utilisations</div>
+          <div class="tier-card-stat"><strong>Vitesse :</strong> normale</div>
+          <div class="tier-card-stat"><strong>Cout R&D :</strong> 300 PR + 2 000 $</div>
+          <div class="tier-card-stat"><strong>Craft :</strong> Valterite Ingot + Tripwire Hook + 4 String</div>
+        </div>
+        <div class="tier-card aetherite">
+          <div class="tier-card-name">Grappin Aetherite</div>
+          <div class="tier-card-sub">Tier 2</div>
+          <div class="tier-card-stat"><strong>Portee :</strong> 15 blocs</div>
+          <div class="tier-card-stat"><strong>Durabilite :</strong> 15 utilisations</div>
+          <div class="tier-card-stat"><strong>Vitesse :</strong> normale</div>
+          <div class="tier-card-stat"><strong>Cout R&D :</strong> 500 PR + 4 000 $</div>
+          <div class="tier-card-stat"><strong>Craft :</strong> Aetherite Crystal + Tripwire Hook + 4 String + Aerium</div>
+        </div>
+        <div class="tier-card erinium">
+          <div class="tier-card-name">Grappin Erinium</div>
+          <div class="tier-card-sub">Tier 3</div>
+          <div class="tier-card-stat"><strong>Portee :</strong> 20 blocs</div>
+          <div class="tier-card-stat"><strong>Durabilite :</strong> 10 utilisations</div>
+          <div class="tier-card-stat"><strong>Vitesse :</strong> rapide (+50%)</div>
+          <div class="tier-card-stat"><strong>Cout R&D :</strong> 800 PR + 8 000 $</div>
+          <div class="tier-card-stat"><strong>Craft :</strong> Erinium Fragment + Void Fragment + Tripwire Hook + 4 String</div>
+        </div>
+      </div>
+      <p>Implementation : <code>EntityGrapplingHook extends EntityThrowable</code>. Au lancement, projectile en ligne droite. A l'impact sur un bloc : ancrage et application d'une velocity sur le joueur vers la position du crochet. Cooldown geré par <code>RnDPlayerData.grapplinCooldownTick</code> (decremente chaque tick). Le crochet disparait apres avoir tracte le joueur ou apres 60 ticks sans impact.</p>
+
+      <h3>8.5 — Bouclier d'Erinium</h3>
+      <p>Item activable (clic droit maintenu). Projette un mur de force 2x3 blocs (2 large, 3 haut) devant le joueur pendant 3 secondes. Le mur bloque les projectiles (fleches, potions jetees, EntitySmokeBomb, EntityFlare) et repousse les joueurs qui s'en approchent (knockback 3 blocs). Le mur ne bloque pas les degats melee directs — un joueur peut traverser le mur mais sera repousse en sortant. Cooldown 20 secondes. 30 utilisations.</p>
+      <ul>
+        <li><strong>Cout R&D :</strong> 600 PR + 5 000 $</li>
+        <li><strong>Craft :</strong> <code>4 Void Fragment + 2 Erinium Fragment + 1 Diamond Block + 2 Plasma Solidifie</code></li>
+        <li><strong>Implementation :</strong> a l'activation, placer des blocs invisibles non-solides (<code>BlockForceField</code>, non-collidable, transparent sauf pour les projectiles) en AABB 2x3 devant le joueur. Mixin sur <code>EntityThrowable.onUpdate()</code> pour detecter collision avec <code>BlockForceField</code> et annuler la velocity. Apres 3 secondes, retirer les blocs et decrementer la durabilite.</li>
+        <li><strong>Visuel :</strong> rendu de particules lumineuses violet/cyan formant le mur chaque tick de duree.</li>
+      </ul>
+
+      <h3>8.6 — Totems d'Erinium (3 tiers)</h3>
+      <p>Items d'inventaire qui remplacent le Totem of Undying vanilla. A usage unique — se consomme a la mort. Le totem fonctionne depuis <strong>n'importe quel slot de l'inventaire</strong> (pas besoin de le tenir — PvP 1.8, pas d'offhand). Le systeme scanne l'inventaire du joueur au moment de la mort et consomme le premier totem trouve (priorite : Erinium > Aetherite > Valterite).</p>
+
+      <div class="tier-grid">
+        <div class="tier-card valterite">
+          <div class="tier-card-name">Totem Valterite</div>
+          <div class="tier-card-sub">Tier 1</div>
+          <div class="tier-card-stat"><strong>HP a la survie :</strong> 3 coeurs</div>
+          <div class="tier-card-stat"><strong>Effet :</strong> Speed II pendant 5s (fuite)</div>
+          <div class="tier-card-stat"><strong>Cout R&D :</strong> 400 PR + 3 000 $</div>
+          <div class="tier-card-stat"><strong>Craft :</strong> Valterite Ingot + Totem of Undying + Noyau d'Impact</div>
+        </div>
+        <div class="tier-card aetherite">
+          <div class="tier-card-name">Totem Aetherite</div>
+          <div class="tier-card-sub">Tier 2</div>
+          <div class="tier-card-stat"><strong>HP a la survie :</strong> 5 coeurs</div>
+          <div class="tier-card-stat"><strong>Effet :</strong> Explosion AoE 3 blocs repoussant les ennemis</div>
+          <div class="tier-card-stat"><strong>Cout R&D :</strong> 700 PR + 6 000 $</div>
+          <div class="tier-card-stat"><strong>Craft :</strong> Aetherite Crystal + Totem of Undying + Noyau d'Impact</div>
+        </div>
+        <div class="tier-card erinium">
+          <div class="tier-card-name">Totem Erinium</div>
+          <div class="tier-card-sub">Tier 3</div>
+          <div class="tier-card-stat"><strong>HP a la survie :</strong> 7 coeurs</div>
+          <div class="tier-card-stat"><strong>Effet :</strong> 3s d'invincibilite (Resistance X)</div>
+          <div class="tier-card-stat"><strong>Cout R&D :</strong> 1 200 PR + 12 000 $</div>
+          <div class="tier-card-stat"><strong>Craft :</strong> Erinium Fragment + Totem of Undying + 2 Noyau d'Impact</div>
+        </div>
+      </div>
+      <p>Implementation : Ecouter <code>LivingDeathEvent</code> sur les joueurs. Avant la mort, scanner l'inventaire complet du joueur (slots 0-35) a la recherche d'un totem. Priorite : Erinium > Aetherite > Valterite. Si trouve, <code>event.setCanceled(true)</code>, restaurer les HP, appliquer les effets du tier, et <code>stack.shrink(1)</code> pour consommer le totem.</p>
+    </section>
+
+    <!-- ═══ S9 — ITEMS R&D DEFENSE ═══ -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num red-num">09</span> Items R&amp;D — Defense &amp; Pieges</h2>
+
+      <h3 class="first">9.1 — Piege a Gravite</h3>
+      <p>Bloc invisible posable uniquement en territoire claim de sa propre faction. Quand un joueur ennemi marche dessus, il est propulse 15 blocs en l'air instantanement (velocity Y = +3.5). Le piege est usage unique — il disparait apres activation. Invisible pour les ennemis (rendu client-side transparent pour les non-membres de la faction). Visible normalement pour les membres de la faction.</p>
+      <ul>
+        <li><strong>Cout R&D :</strong> 250 PR + 2 000 $</li>
+        <li><strong>Craft :</strong> <code>2 Aerium + 1 Piston + 2 Slime Ball + 4 Erinium Fragment</code></li>
+        <li><strong>Placement :</strong> check de territoire faction dans <code>BlockGravityTrap.onBlockPlaced()</code>. Refus si hors claim.</li>
+        <li><strong>Detection :</strong> <code>BlockGravityTrap.onEntityWalk()</code> — detecte <code>EntityPlayer</code>. Verifie que le joueur n'est pas de la meme faction. Applique velocity Y, detruit le bloc.</li>
+        <li><strong>Rendu client :</strong> Mixin sur <code>BlockRendererDispatcher.renderBlock()</code> pour rendre le bloc transparent si le joueur local n'est pas de la faction proprietaire. Le serveur envoie l'info de faction au client via un packet custom.</li>
+      </ul>
+
+      <h3>9.2 — Mine Terrestre</h3>
+      <p>Bloc invisible au niveau du sol posable en territoire faction. Quand un ennemi marche dessus, explosion (power 2, pas de degat bloc) infligeant 4 coeurs + knockback fort. Particle subtile rouge visible uniquement pour les membres de la faction. Maximum 5 mines actives par faction simultanement. Usage unique.</p>
+      <ul>
+        <li><strong>Cout R&D :</strong> 300 PR + 2 500 $</li>
+        <li><strong>Craft :</strong> <code>1 Erinium Fragment + 1 TNT + 1 Stone Pressure Plate + 2 Gunpowder</code></li>
+        <li><strong>Limite :</strong> compteur de mines actives dans <code>FactionData.activeMines</code> (int). Bloque le placement si >= 5.</li>
+        <li><strong>Explosion :</strong> <code>world.createExplosion(null, x, y, z, 2.0f, false)</code> — pas de degat terrain (4eme parametre false). Ajouter les degats player manuellement (<code>player.attackEntityFrom(EXPLOSION, 8.0f)</code>).</li>
+        <li><strong>Particule faction :</strong> chaque 40 ticks, emettre 1 particule DUST rouge minuscule a la position de la mine — seulement visible pour les joueurs de la faction via packet oriente.</li>
+      </ul>
+
+      <h3>9.3 — Razor Wire (7 tiers)</h3>
+      <p>Blocs traversables qui infligent des degats et appliquent Slowness quand un joueur les traverses. Le joueur peut passer a travers (pas de collision solide) mais prend des degats continus et est ralenti.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Tier</th><th>Degats/sec</th><th>Slowness</th><th>Craft (→ 4 blocs)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="tag-comm">Bois</span></td><td>0.5 coeur</td><td>I</td><td>4 Stick + 1 String</td></tr>
+            <tr><td><span class="tag-comm">Fer</span></td><td>1 coeur</td><td>I</td><td>4 Iron Ingot + 1 String</td></tr>
+            <tr><td><span class="tag-comm">Or</span></td><td>1 coeur</td><td>II</td><td>4 Gold Ingot + 1 String</td></tr>
+            <tr><td><span class="tag-val">Diamant</span></td><td>1.5 coeur</td><td>II</td><td>4 Diamond + 1 String</td></tr>
+            <tr><td><span class="tag-val">Valterite</span></td><td>2 coeurs</td><td>II</td><td>4 Valterite Ingot + 1 String</td></tr>
+            <tr><td><span class="tag-aeth">Aetherite</span></td><td>2.5 coeurs</td><td>III</td><td>4 Aetherite Crystal + Toxine d'Erina</td></tr>
+            <tr><td><span class="tag-erin">Erinium</span></td><td>3 coeurs + Wither 1s</td><td>III</td><td>4 Erinium Fragment + Toxine d'Erina</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Tiers Valterite/Aetherite/Erinium necessitent le deblocage R&D (150/300/600 PR + 500/1500/3000 $). Tiers Bois/Fer/Or/Diamant sont disponibles sans R&D. Implementation : <code>BlockRazorWire extends BlockBush</code> avec <code>isFullCube()=false</code>. Degats et effets appliques dans <code>onEntityCollidedWithBlock()</code>.</p>
+
+      <h3>9.4 — Protective Bricks (3 tiers + 7 variantes)</h3>
+      <p>Blocs de construction a HP eleve (systeme BlockHealth). Reference : Obsidian = 300 HP.</p>
+
+      <h4>Briques de base</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tier</th><th>HP</th><th>Craft (3x3 → 1 bloc)</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag-val">Valterite Brick</span></td><td>450 HP</td><td>4 Valterite Ingot + 4 Obsidian + 1 Cendre Compacte</td></tr>
+            <tr><td><span class="tag-aeth">Aetherite Brick</span></td><td>600 HP</td><td>4 Aetherite Crystal + 4 Obsidian + 1 Echo Stone</td></tr>
+            <tr><td><span class="tag-erin">Erinium Brick</span></td><td>900 HP</td><td>4 Erinium Fragment + 4 Obsidian + 1 Noyau d'Impact</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Variantes (30% des HP de la brique de base)</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Variante</th><th>Effet a la destruction</th><th>HP Val</th><th>HP Aeth</th><th>HP Erin</th></tr></thead>
+          <tbody>
+            <tr><td>Lava Brick</td><td>Place un bloc de lave a la position</td><td>135</td><td>180</td><td>270</td></tr>
+            <tr><td>Water Brick</td><td>Place un bloc d'eau a la position</td><td>135</td><td>180</td><td>270</td></tr>
+            <tr><td>Razor Wire Brick</td><td>Place un Razor Wire du tier correspondant</td><td>135</td><td>180</td><td>270</td></tr>
+            <tr><td>Poison Brick</td><td>Poison II 5s aux joueurs dans 3 blocs</td><td>135</td><td>180</td><td>270</td></tr>
+            <tr><td>Wither Brick</td><td>Wither II 3s aux joueurs dans 3 blocs</td><td>135</td><td>180</td><td>270</td></tr>
+            <tr><td>Explosion Brick</td><td>Explosion power 2, pas de degat terrain</td><td>135</td><td>180</td><td>270</td></tr>
+            <tr><td>Repulsive Brick</td><td>Knockback de tous les joueurs dans 4 blocs</td><td>135</td><td>180</td><td>270</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Chaque variante est un bloc distinct enregistre. Les effets sont declenches dans <code>Block.onBlockDestroyedByPlayer()</code> et <code>Block.breakBlock()</code>. Toutes les briques necessitent le deblocage R&D correspondant.</p>
+
+      <h4>Erinium Brick Stick</h4>
+      <p>Item special pour recuperer les briques variantes sans les detruire. Clic droit sur une brique variante : si le joueur a acces au chunk (membre de faction), le bloc est retire et ajoute dans l'inventaire du joueur. Seuls les membres de la faction peuvent l'utiliser sur leur propre territoire. Craft : <code>1 Erinium Fragment + 1 Stick + 1 Leather</code>. Durabilite : 20 utilisations. Necessité R&D (200 PR + 1 500 $).</p>
+
+      <h3>9.5 — Slime Pad</h3>
+      <p>Bloc demi-hauteur (slab) qui propulse le joueur quand il marche dessus. La direction et la force sont configurables via clic droit avec shift (ouvre un mini GUI). Directions : horizontale (N/E/S/W) ou verticale (haut). Force 1-10. Utilisable en dehors du territoire faction (pas de restriction de placement).</p>
+      <ul>
+        <li><strong>Cout R&D :</strong> 200 PR + 1 500 $</li>
+        <li><strong>Craft :</strong> <code>4 Slime Ball + 1 Piston + 4 Aerium</code></li>
+        <li><strong>Implementation :</strong> <code>BlockSlimePad extends BlockSlab</code>. Propulsion dans <code>onEntityWalk()</code> — appliquer velocity correspondante. Mini GUI de configuration sauvegarde dans le NBT du bloc (<code>TileEntitySlimePad</code>).</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S10 — ITEMS R&D EXPLOSIFS ═══ -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num orange-num">10</span> Items R&amp;D — Explosifs &amp; Orbes</h2>
+
+      <h3 class="first">10.1 — TNT Moddees (3 tiers)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>TNT</th><th>Power explosion</th><th>Rayon degats joueur</th><th>Cout R&D</th><th>Craft</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag-val">Valterite TNT</span></td><td>6.0 (vs 4.0 vanilla)</td><td>5 blocs</td><td>300 PR + 2 000 $</td><td>4 Valterite Ingot + 1 TNT + 4 Gunpowder</td></tr>
+            <tr><td><span class="tag-aeth">Aetherite TNT</span></td><td>8.0</td><td>7 blocs</td><td>500 PR + 4 000 $</td><td>4 Aetherite Crystal + 1 TNT + 4 Gunpowder</td></tr>
+            <tr><td><span class="tag-erin">Erinium TNT</span></td><td>12.0</td><td>10 blocs</td><td>800 PR + 8 000 $</td><td>4 Erinium Fragment + 1 TNT + 4 Gunpowder</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Les TNT moddees sont des blocs normaux qui se comportent comme la TNT vanilla mais avec un power superieur. Implementation : <code>BlockModdedTNT</code> qui lors de l'allumage instancie <code>EntityModdedTNTPrimed</code> (extend <code>EntityTNTPrimed</code>) avec un power custom.</p>
+
+      <h3>10.2 — Dynamite</h3>
+      <p>Item jetable (comme une boule de neige). Explose 2 secondes (40 ticks) apres avoir touche une surface (pas en l'air). Power d'explosion : 3.0. Ne necessite PAS de deblocage R&D — craft disponible de base.</p>
+      <ul>
+        <li><strong>Craft :</strong> <code>1 Gunpowder + 1 String + 1 Paper</code> → 4 dynamites</li>
+        <li><strong>Stack :</strong> 16 par stack</li>
+        <li><strong>Implementation :</strong> <code>EntityDynamite extends EntityThrowable</code>. A l'impact (<code>onImpact()</code>), lancer un <code>EriScheduler.delay(40, ...)</code> qui cree une explosion. Particule de fumee pendant les 40 ticks d'attente.</li>
+        <li><strong>Son :</strong> sifflement pendant les 2s d'attente (son custom <code>eriniumfaction:item.dynamite.fuse</code>).</li>
+      </ul>
+
+      <h3>10.3 — Orbes de Competences PvP (8 types)</h3>
+      <p>Items avec durabilite (systeme de "charges"). Chaque activation consomme 1 durabilite. Cooldown par orbe stocke dans <code>RnDPlayerData</code>. Clic droit pour activer.</p>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Implementation des charges :</strong> La durabilite de l'item (<code>ItemStack.setItemDamage()</code>) represente les charges consommees. L'item est detruit quand <code>getItemDamage() >= getMaxDamage()</code>. Le cooldown de chaque orbe est stocke dans <code>RnDPlayerData.orbCooldowns</code> (<code>Map&lt;String, Integer&gt;</code> decrementee chaque tick via <code>PlayerTickEvent</code>).</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Orbe</th><th>Effet</th><th>Duree</th><th>Cooldown</th><th>Charges</th><th>Cout R&D</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Speed Orb</td><td>Speed III au lanceur</td><td>5s</td><td>15s</td><td>5</td><td>100 PR + 500 $</td></tr>
+            <tr><td>Jump Orb</td><td>Propulse 15 blocs haut (velocity Y +4.0), no fall dmg 5s</td><td>Instant</td><td>30s</td><td>3</td><td>200 PR + 1 000 $</td></tr>
+            <tr><td>Heal Orb</td><td>Regenere 8 HP instantanement</td><td>Instant</td><td>20s</td><td>5</td><td>150 PR + 800 $</td></tr>
+            <tr><td>Strength Orb</td><td>Strength II</td><td>5s</td><td>20s</td><td>5</td><td>200 PR + 1 000 $</td></tr>
+            <tr><td>Repulsive Orb</td><td>Repousse joueurs ennemis dans 5 blocs</td><td>Instant</td><td>25s</td><td>3</td><td>250 PR + 1 500 $</td></tr>
+            <tr><td>Disorder Orb</td><td>Melange hotbar ennemis dans 8 blocs</td><td>Instant</td><td>45s</td><td>3</td><td>400 PR + 3 000 $</td></tr>
+            <tr><td>Invisibility Orb</td><td>Invisibilite (armure toujours visible)</td><td>10s</td><td>30s</td><td>3</td><td>300 PR + 2 000 $</td></tr>
+            <tr><td>Dash Orb</td><td>Dash 8 blocs dans direction regard</td><td>Instant</td><td>10s</td><td>10</td><td>100 PR + 500 $</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Notes d'implementation specifiques</h4>
+      <ul>
+        <li><strong>Disorder Orb :</strong> pour melanger la hotbar ennemie, envoyer un packet <code>GuiNetworkHandler</code> custom aux joueurs cibles qui shuffles les slots 0-8 de leur inventaire cote serveur, puis synchro via packet d'inventaire Forge.</li>
+        <li><strong>Invisibility Orb :</strong> appliquer <code>PotionEffect(MobEffects.INVISIBILITY, 200, 0)</code>. L'armure reste visible car Minecraft affiche toujours l'armure meme avec invisibilite (comportement vanilla preserve).</li>
+        <li><strong>Repulsive Orb :</strong> chercher les joueurs ennemis (pas meme faction) dans un AABB de 5 blocs, appliquer velocity vers l'exterieur a chacun.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S11 — FEATURES HORS R&D ═══ -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num green-num">11</span> Features hors R&amp;D</h2>
+      <p>Ces 10 features sont disponibles via craft normal avec des ressources d'Erina — aucun deblocage R&D necessaire.</p>
+
+      <div class="idea-card cyan">
+        <div class="idea-card-title">1. Amplificateur de Drop (Loot Amplifier)</div>
+        <p>Item consommable. Quand active, <strong>double les drops de minerais d'Erina</strong> pendant 5 minutes pour le joueur. Chaque veine minee donne 2x les ressources (doublement du drop, pas du bloc). L'effet ne se cumule pas — activer un deuxieme pendant l'effet ne fait rien. Ideal pour maximiser le rendement d'une expedition sur Erina.</p>
+        <ul>
+          <li><strong>Craft :</strong> 2 Spore Lumineuse + 1 Perle de Plasma + 1 Erinium Fragment</li>
+          <li><strong>Stackable :</strong> par 4</li>
+          <li><strong>Duree :</strong> 5 minutes (6000 ticks)</li>
+          <li><strong>Implementation :</strong> <code>ItemLootAmplifier</code>. A l'activation, ajouter le joueur dans un <code>Set&lt;UUID&gt;</code> avec un timestamp d'expiration. Ecouter <code>BlockEvent.HarvestDropsEvent</code> — si le joueur est dans le set et que le bloc est un minerai d'Erina, dupliquer chaque item dans la drop list. Retirer du set apres 6000 ticks via <code>EriScheduler.delay()</code>.</li>
+        </ul>
+      </div>
+
+      <div class="idea-card violet">
+        <div class="idea-card-title">2. Combinaison Spatiale (armure 4 pieces)</div>
+        <p>Armure speciale 4 pieces craftee avec des ressources d'Erina. Offre des protections contre les dangers environnementaux d'Erina. Stats d'armure inferieures aux armures Erinium mais protections unique a chaque piece.</p>
+        <ul>
+          <li><strong>Casque :</strong> 3 Aerium + 2 Cryo-Cristal + 1 Void Fragment. Protege contre les degats d'altitude (Void Peaks > Y=140).</li>
+          <li><strong>Torse :</strong> 4 Aerium + 3 Plasma Solidifie. Protege contre le Poison de la Toxic Jungle (contact vegetal).</li>
+          <li><strong>Jambières :</strong> 3 Aerium + 2 Cryo-Cristal. Protege contre le froid de la Crystal Tundra.</li>
+          <li><strong>Bottes :</strong> 2 Aerium + 2 Plasma Solidifie. Protege contre les degats du plasma liquide (contact reduit de 80%).</li>
+          <li><strong>Set complet :</strong> bonus additionnel — resistance a tous les effets environnementaux + Feather Falling II passif.</li>
+          <li><strong>Implementation :</strong> check des pieces portees dans <code>PlayerTickEvent</code>. Les protections sont appliquees en annulant les degats / effets selon la piece equipee.</li>
+        </ul>
+      </div>
+
+      <div class="idea-card gold">
+        <div class="idea-card-title">3. Extracteur de Plasma</div>
+        <p>Bloc place a cote d'une source de plasma liquide (adjacent). Raffine automatiquement le plasma en Plasma Solidifie toutes les 60 secondes (1200 ticks). Pas de RF requis. Peut stocker jusqu'a 16 Plasma Solidifie dans son inventaire interne avant de s'arreter.</p>
+        <ul>
+          <li><strong>Craft :</strong> 4 Iron Ingot + 4 Glass + 1 Bucket</li>
+          <li><strong>Implementation :</strong> <code>BlockPlasmaExtractor</code> + <code>TileEntityPlasmaExtractor</code> (<code>ITickable</code>). Chaque 1200 ticks, verifier si un bloc adjacent est du plasma liquide. Si oui et inventaire interne &lt; 16, ajouter 1 Plasma Solidifie.</li>
+        </ul>
+      </div>
+
+      <div class="idea-card red">
+        <div class="idea-card-title">4. Portail de Retour</div>
+        <p>Item a usage unique consommable. Quand active (clic droit), cree un portail violet temporaire pendant 30 secondes a la position du joueur. N'importe quel joueur passant dans ce portail est teleporte dans l'Overworld (au spawn global). Le portail est bidirectionnel pendant sa duree — les joueurs Overworld peuvent aussi entrer et aller sur Erina. Alternative couteuse a la fusee pour le retour d'urgence.</p>
+        <ul>
+          <li><strong>Craft :</strong> 2 Noyau d'Impact + 4 Ender Pearl + 2 Erinium Fragment</li>
+          <li><strong>Implementation :</strong> <code>ItemReturnPortal</code>. A l'activation, placer un <code>BlockPortalReturn</code> (rendu portal personnalise, violet). Declencheur de teleportation via <code>Entity.onEntityCollidedWithBlock()</code>. Apres 600 ticks (<code>EriScheduler.delay(600, () -> bloc.remove())</code>), retirer le bloc.</li>
+        </ul>
+      </div>
+
+      <div class="idea-card cyan">
+        <div class="idea-card-title">5. Drone d'Exploration</div>
+        <p>Item deployable. Lance un drone (<code>EntityDrone</code>) qui vole en ligne droite dans la direction du regard pendant 200 blocs max. Tout joueur croise par le drone recoit <code>Glowing</code> pendant 3 secondes. Le drone est visible et peut etre detruit (1 HP). Cooldown de 2 minutes (2400 ticks).</p>
+        <ul>
+          <li><strong>Craft :</strong> 2 Aerium + 1 Ender Eye + 1 Cristal d'Erina</li>
+          <li><strong>Implementation :</strong> <code>EntityDrone extends Entity</code>. Se deplace de 0.8 bloc/tick dans une direction fixee. Chaque tick, detecte les entites dans 2 blocs et applique Glowing. S'autodestruit apres 200/0.8 = 250 ticks ou quand HP tombe a 0.</li>
+        </ul>
+      </div>
+
+      <div class="idea-card violet">
+        <div class="idea-card-title">6. Brouilleur de Signal (Signal Scrambler)</div>
+        <p>Item consommable. Quand active, cree une <strong>zone de brouillage de 30 blocs de rayon</strong> pendant 60 secondes. Dans cette zone, TOUTES les commandes de teleportation sont bloquees pour TOUS les joueurs : <code>/tpa</code>, <code>/home</code>, <code>/back</code>, <code>/warp</code>, <code>/spawn</code>. Ni le joueur qui l'active ni les ennemis ne peuvent fuir par TP. Force l'engagement PvP — zone de "no escape".</p>
+        <ul>
+          <li><strong>Craft :</strong> 2 Echo Stone + 1 Ender Pearl + 1 Erinium Fragment</li>
+          <li><strong>Stackable :</strong> par 4</li>
+          <li><strong>Duree :</strong> 60 secondes (1200 ticks)</li>
+          <li><strong>Implementation :</strong> <code>ItemSignalScrambler</code>. A l'activation, enregistrer une zone de brouillage dans <code>SignalScramblerManager</code> (position + rayon + expiration). Intercepter TOUTES les commandes de TP dans les handlers de commande — avant execution, verifier si le joueur est dans une zone de brouillage. Si oui, envoyer un message d'erreur et bloquer la commande. Retirer la zone apres 1200 ticks.</li>
+        </ul>
+      </div>
+
+      <div class="idea-card gold">
+        <div class="idea-card-title">7. Conteneur Dimensionnel (Void Container)</div>
+        <p>Un <strong>coffre portable</strong> sous forme d'item avec 27 slots de stockage. Clic droit pour ouvrir comme un ender chest, mais c'est un coffre PHYSIQUE stocke dans les NBT de l'item — si le joueur meurt, le Conteneur tombe au sol avec tout son contenu. Parfait pour ramener du loot d'Erina sans remplir l'inventaire principal. Chaque joueur ne peut avoir qu'un seul Conteneur Dimensionnel.</p>
+        <ul>
+          <li><strong>Craft :</strong> 1 Ender Chest + 4 Void Fragment + 4 Cristal d'Erina</li>
+          <li><strong>Capacite :</strong> 27 slots (comme un coffre simple)</li>
+          <li><strong>Implementation :</strong> <code>ItemVoidContainer</code>. Les 27 slots sont stockes en NBT dans l'ItemStack (<code>NBTTagList</code> de <code>NBTTagCompound</code> par slot). Clic droit ouvre un <code>ContainerVoidContainer</code> + <code>GuiVoidContainer</code> (GuiContainer Forge). A la mort, l'item drop normalement avec tout le NBT intact — le tueur peut le recuperer et acceder au contenu.</li>
+        </ul>
+      </div>
+
+      <div class="idea-card red">
+        <div class="idea-card-title">8. Piege a Ombre</div>
+        <p>Bloc placable uniquement en territoire faction. Quand un ennemi marche dessus, il est teleporte 10 blocs dans une direction aleatoire (horizontale uniquement, pas dans un bloc solide) et recoit Blindness 2 secondes. Desorientant et dangereux. Usage unique. Invisible pour les ennemis.</p>
+        <ul>
+          <li><strong>Craft :</strong> 2 Ender Pearl + 1 Echo Stone + 1 Spore Lumineuse</li>
+          <li><strong>Implementation :</strong> <code>BlockShadowTrap</code>. Detection dans <code>onEntityWalk()</code>. Calcul d'une position aleatoire valide (rayon 10, pas dans un bloc solide, max 20 tentatives). Teleportation via <code>EntityPlayer.setPositionAndUpdate()</code>. Application Blindness + destruction du bloc.</li>
+        </ul>
+      </div>
+
+      <div class="idea-card cyan">
+        <div class="idea-card-title">9. Minerai de Stabilite</div>
+        <p>Minerai rare des Crystal Caverns. Quand mine, donne un Fragment de Stabilite. Utilisation : clic droit avec le Fragment sur un item (arme, armure, outil) pour restaurer 50% de sa durabilite maximale. Chaque item peut etre repare une seule fois par jour reel (24h reel, pas 24h de jeu). Le cooldown est stocke en timestamp dans les NBT de l'item repare.</p>
+        <ul>
+          <li><strong>Bloc :</strong> <code>BlockStabilityOre</code>. Veine 1-2 blocs, uniquement dans les geodes Crystal Caverns.</li>
+          <li><strong>Implementation :</strong> <code>ItemStabilityFragment</code>. <code>onItemRightClick()</code> ouvre un GUI EriAPI avec les slots d'inventaire du joueur. Le joueur clique sur l'item a reparer. Verifier le tag NBT <code>"StabilityLastRepair"</code> — si l'ecart depuis la derniere reparation est &lt; 86400000ms (24h reel), refuser avec message. Sinon, appliquer <code>ItemStack.setItemDamage(stack.getItemDamage() - stack.getMaxDamage() / 2)</code>.</li>
+        </ul>
+      </div>
+
+      <div class="idea-card green">
+        <div class="idea-card-title">10. Champignon de Vision</div>
+        <p>Item comestible qui pousse naturellement dans la Glow Forest (pas de craft). Quand mange : Night Vision pendant 5 minutes. De plus, pendant 10 secondes, le joueur voit l'outline des joueurs dans un rayon de 30 blocs (meme derriere les murs) via l'effet Glowing. Contre-balance : Nausea 3 secondes a la fin des 5 minutes.</p>
+        <ul>
+          <li><strong>Acquisition :</strong> drop naturel des <code>BlockGlowMushroom</code> (30% chance). Non-stackable (maxStackSize=1).</li>
+          <li><strong>Implementation :</strong> <code>ItemVisionMushroom extends ItemFood</code>. Dans <code>onFoodEaten()</code>, appliquer Night Vision 6000 ticks. Programmer via <code>EriScheduler.delay(200, () -> applyGlowing())</code> pour l'effet outline. Pour l'effet Glowing des autres joueurs : appliquer <code>PotionEffect(MobEffects.GLOWING)</code> sur tous les joueurs dans 30 blocs. Pour la Nausea finale : <code>EriScheduler.delay(6200, () -> player.addPotionEffect(NAUSEA 60))</code>.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ═══ S12 — ARCHITECTURE & ASSETS ═══ -->
+    <section class="section-card" id="s12">
+      <h2><span class="s-num cyan-num">12</span> Architecture Technique &amp; Assets</h2>
+
+      <h3 class="first">12.1 — Structure de packages</h3>
+      <div class="code-block">fr.eriniumgroup.eriniumfaction.erina/
+├── dimension/
+│   ├── ErinaDimensionType.java          <span class="cm">// constante DIM_ID + enregistrement</span>
+│   ├── WorldProviderErina.java          <span class="cm">// WorldProvider custom</span>
+│   ├── ErinaBiomeProvider.java          <span class="cm">// BiomeProvider sans biomes vanilla</span>
+│   ├── ErinaGenLayer.java               <span class="cm">// chain GenLayer pour 12 biomes</span>
+│   ├── ErinaChunkGenerator.java         <span class="cm">// IChunkGenerator</span>
+│   └── ErinaSkyRenderer.java            <span class="cm">// rendu ciel custom (Mixin)</span>
+├── biome/
+│   ├── BiomeCrystalPlains.java
+│   ├── BiomeGlowForest.java
+│   ├── BiomeEchoCanyon.java
+│   ├── BiomePlasmaSwamp.java
+│   ├── BiomeFloatingPlateaus.java
+│   ├── BiomeAshDesert.java
+│   ├── BiomeCrystalTundra.java
+│   ├── BiomeToxicJungle.java
+│   ├── BiomeImpactCrater.java
+│   ├── BiomeCrystalCaverns.java
+│   ├── BiomeVoidPeaks.java
+│   └── BiomeLuminousShore.java
+├── gen/
+│   ├── ErinaStructureGenerator.java     <span class="cm">// IWorldGenerator pour structures</span>
+│   ├── ErinaOreGenerator.java           <span class="cm">// WorldGenMinable pour tous les ores</span>
+│   ├── WorldGenCrystalFormation.java    <span class="cm">// formation de cristaux de surface</span>
+│   └── WorldGenGeode.java               <span class="cm">// generation de geodes Crystal Caverns</span>
+├── block/
+│   ├── BlockErinaGrass.java
+│   ├── BlockErinaStone.java
+│   ├── BlockFluidPlasma.java
+│   ├── BlockGlowMushroom.java
+│   └── ... (blocs terrain de chaque biome)
+├── item/
+│   ├── ErinaItems.java                  <span class="cm">// registration de tous les items</span>
+│   └── ... (items des ressources)
+├── rocket/
+│   ├── BlockRocketMaker.java
+│   ├── TileEntityRocketMaker.java
+│   ├── ContainerRocketMaker.java
+│   ├── GuiRocketMaker.java
+│   ├── EntityRocket.java
+│   └── RocketRecipes.java               <span class="cm">// crafts des 5 composants</span>
+├── rnd/
+│   ├── BlockRnDTable.java
+│   ├── TileEntityRnDTable.java
+│   ├── RnDPlayerData.java               <span class="cm">// @EriData persistOnDeath=true</span>
+│   ├── RnDRecipe.java
+│   ├── RnDRecipeRegistry.java
+│   ├── GuiRnDTable.java
+│   ├── ResearchPointManager.java        <span class="cm">// listener LivingDeathEvent → PR</span>
+│   └── RnDPacketHandler.java
+├── combat/
+│   ├── ItemEriniumFlare.java
+│   ├── EntityFlare.java
+│   ├── ItemSmokeBomb.java               <span class="cm">// 3 classes (V/A/E) ou enum tier</span>
+│   ├── EntitySmokeBomb.java
+│   ├── ItemGrapplingHook.java           <span class="cm">// 3 tiers via enum ou 3 classes</span>
+│   ├── EntityGrapplingHook.java
+│   ├── ItemForceShield.java
+│   ├── BlockForceField.java
+│   └── ItemEriniumTotem.java            <span class="cm">// 3 tiers</span>
+├── defense/
+│   ├── BlockGravityTrap.java
+│   ├── BlockLandMine.java
+│   ├── BlockRazorWire.java              <span class="cm">// 7 tiers via enum</span>
+│   ├── BlockProtectiveBrick.java        <span class="cm">// base bricks 3 tiers</span>
+│   ├── BlockVariantBrick.java           <span class="cm">// 7 variantes x 3 tiers</span>
+│   ├── ItemBrickStick.java
+│   └── BlockSlimePad.java
+├── explosive/
+│   ├── BlockModdedTNT.java              <span class="cm">// 3 tiers</span>
+│   ├── EntityModdedTNTPrimed.java
+│   ├── ItemDynamite.java
+│   └── EntityDynamite.java
+├── extra/
+│   ├── BlockFactionBeacon.java
+│   ├── TileEntityFactionBeacon.java
+│   ├── ItemSpaceSuit.java               <span class="cm">// 4 pieces armure</span>
+│   ├── BlockPlasmaExtractor.java
+│   ├── TileEntityPlasmaExtractor.java
+│   ├── ItemReturnPortal.java
+│   ├── BlockPortalReturn.java
+│   ├── EntityDrone.java
+│   ├── ItemTelepathyCrystal.java
+│   ├── ItemDeployableCamp.java
+│   ├── BlockShadowTrap.java
+│   ├── ItemStabilityFragment.java
+│   └── ItemVisionMushroom.java
+├── data/
+│   ├── RnDPlayerData.java               <span class="cm">// PR, unlocked recipes</span>
+│   └── ErinaPlayerData.java             <span class="cm">// hasSpaceSuit, lastVisit</span>
+├── ErinaItems.java                      <span class="cm">// registration centrale items</span>
+├── ErinaBlocks.java                     <span class="cm">// registration centrale blocs</span>
+└── ErinaRecipes.java                    <span class="cm">// toutes les recettes normales</span></div>
+
+      <h3>12.2 — Enregistrement de la dimension</h3>
+      <div class="code-block"><span class="cm">// Dans CommonProxy.preInit() :</span>
+<span class="kw">public static final int</span> <span class="nu">ERINA_DIM_ID</span> = <span class="nu">42</span>;
+
+<span class="cl">DimensionType</span> erinaDimType = <span class="cl">DimensionType</span>.<span class="fn">register</span>(
+    <span class="st">"erina"</span>,
+    <span class="st">"_erina"</span>,
+    <span class="nu">ERINA_DIM_ID</span>,
+    <span class="cl">WorldProviderErina</span>.<span class="kw">class</span>,
+    <span class="kw">false</span> <span class="cm">// keepLoaded = false (decharge quand aucun joueur)</span>
+);
+<span class="cl">DimensionManager</span>.<span class="fn">registerDimension</span>(<span class="nu">ERINA_DIM_ID</span>, erinaDimType);
+
+<span class="cm">// Enregistrement du fluid Plasma :</span>
+<span class="cl">Fluid</span> plasmaFluid = <span class="kw">new</span> <span class="cl">FluidPlasma</span>(<span class="st">"plasma_liquid"</span>);
+<span class="cl">FluidRegistry</span>.<span class="fn">registerFluid</span>(plasmaFluid);
+<span class="cl">FluidRegistry</span>.<span class="fn">addBucketForFluid</span>(plasmaFluid, <span class="kw">new</span> <span class="cl">ItemPlasmaBucket</span>());
+
+<span class="cm">// Enregistrement du worldgen Erina :</span>
+<span class="cl">GameRegistry</span>.<span class="fn">registerWorldGenerator</span>(<span class="kw">new</span> <span class="cl">ErinaStructureGenerator</span>(), <span class="nu">1</span>);
+<span class="cl">GameRegistry</span>.<span class="fn">registerWorldGenerator</span>(<span class="kw">new</span> <span class="cl">ErinaOreGenerator</span>(), <span class="nu">2</span>);</div>
+
+      <h3>12.3 — Structures de donnees</h3>
+      <div class="code-block"><span class="an">@EriData</span>(modId = <span class="st">"eriniumfaction"</span>, scope = <span class="cl">DataScope</span>.PLAYER, persistOnDeath = <span class="kw">true</span>)
+<span class="kw">public class</span> <span class="cl">RnDPlayerData</span> {
+    <span class="an">@Sync</span> <span class="kw">public int</span> researchPoints = <span class="nu">0</span>;
+    <span class="kw">public</span> <span class="cl">Set</span>&lt;<span class="cl">String</span>&gt; unlockedRecipes = <span class="kw">new</span> <span class="cl">HashSet</span>&lt;&gt;();
+    <span class="kw">public</span> <span class="cl">Map</span>&lt;<span class="cl">String</span>, <span class="cl">Integer</span>&gt; orbCooldowns = <span class="kw">new</span> <span class="cl">HashMap</span>&lt;&gt;(); <span class="cm">// orbId → ticks restants</span>
+    <span class="kw">public int</span> grapplinCooldownTick = <span class="nu">0</span>;
+    <span class="kw">public</span> <span class="cl">BlockPos</span> anchorPos = <span class="kw">null</span>;
+}
+
+<span class="an">@EriData</span>(modId = <span class="st">"eriniumfaction"</span>, scope = <span class="cl">DataScope</span>.PLAYER, persistOnDeath = <span class="kw">true</span>)
+<span class="kw">public class</span> <span class="cl">ErinaPlayerData</span> {
+    <span class="an">@Sync</span> <span class="kw">public boolean</span> hasFullSpaceSuit = <span class="kw">false</span>; <span class="cm">// recalcule chaque tick</span>
+    <span class="kw">public long</span> lastErinaVisitTime = <span class="nu">0</span>L;
+    <span class="kw">public</span> <span class="cl">BlockPos</span> deployedCampPos = <span class="kw">null</span>;
+    <span class="kw">public long</span> deployedCampExpiry = <span class="nu">0</span>L; <span class="cm">// timestamp System.currentTimeMillis()</span>
+}</div>
+
+      <h3>12.4 — Liste des assets</h3>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th colspan="2" style="text-align:center;">Textures Blocs (PNG 16&times;16)</th></tr><tr><th>Categorie</th><th>Fichiers</th></tr></thead>
+          <tbody>
+            <tr><td>Terrain (9)</td><td><code>erina_grass_top</code> &middot; <code>erina_grass_side</code> &middot; <code>erina_stone</code> &middot; <code>erina_sand</code> &middot; <code>erina_ash</code> &middot; <code>erina_mud</code> &middot; <code>void_stone</code> &middot; <code>burned_erina_stone</code> &middot; <code>cryo_ice</code></td></tr>
+            <tr><td>Vegetation (8)</td><td><code>glow_log_top</code> &middot; <code>glow_log_side</code> &middot; <code>glow_leaves</code> &middot; <code>glow_mushroom_top</code> &middot; <code>glow_mushroom_side</code> &middot; <code>tentacle_plant</code> &middot; <code>toxic_plant</code> &middot; <code>crystal_formation</code></td></tr>
+            <tr><td>Fluide (2)</td><td><code>plasma_liquid_still</code> <em>(16 frames anime)</em> &middot; <code>plasma_liquid_flow</code> <em>(anime)</em></td></tr>
+            <tr><td>Minerais (8)</td><td><code>erina_crystal_ore</code> &middot; <code>echo_stone_ore</code> &middot; <code>plasma_solidified_ore</code> &middot; <code>aerium_ore</code> &middot; <code>cryo_crystal_ore</code> &middot; <code>impact_core_ore</code> &middot; <code>void_fragment_ore</code> &middot; <code>erinite_ore</code></td></tr>
+            <tr><td>Fonctionnels (5)</td><td><code>rocket_maker_top</code> &middot; <code>rocket_maker_side</code> &middot; <code>rocket_maker_front</code> &middot; <code>rnd_table_top</code> &middot; <code>rnd_table_side</code></td></tr>
+            <tr><td>Defense (28+)</td><td><code>razor_wire_wood</code> &rarr; <code>razor_wire_erinium</code> <em>(7 tiers)</em><br><code>protective_brick_{valterite,aetherite,erinium}</code> + 7 variantes &times; 3 tiers = 21 briques</td></tr>
+            <tr><td>Autres (6)</td><td><code>gravity_trap</code> &middot; <code>land_mine</code> &middot; <code>slime_pad</code> &middot; <code>faction_beacon</code> &middot; <code>plasma_extractor_top</code> &middot; <code>plasma_extractor_side</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th colspan="2" style="text-align:center;">Textures Items (PNG 16&times;16)</th></tr><tr><th>Categorie</th><th>Fichiers</th></tr></thead>
+          <tbody>
+            <tr><td>Ressources (12)</td><td><code>erina_crystal</code> &middot; <code>luminous_spore</code> &middot; <code>echo_stone</code> &middot; <code>solid_plasma</code> &middot; <code>aerium</code> &middot; <code>compact_ash</code> &middot; <code>cryo_crystal</code> &middot; <code>erina_toxin</code> &middot; <code>impact_core</code> &middot; <code>void_fragment</code> &middot; <code>plasma_pearl</code> &middot; <code>erinite_gem</code></td></tr>
+            <tr><td>Combat (11)</td><td><code>erinium_flare</code> &middot; <code>smokebomb_{val,aeth,erin}</code> &middot; <code>grapple_{val,aeth,erin}</code> &middot; <code>force_shield</code> &middot; <code>totem_{val,aeth,erin}</code></td></tr>
+            <tr><td>Orbes (8)</td><td><code>orb_speed</code> &middot; <code>orb_jump</code> &middot; <code>orb_heal</code> &middot; <code>orb_strength</code> &middot; <code>orb_repulsive</code> &middot; <code>orb_disorder</code> &middot; <code>orb_invisibility</code> &middot; <code>orb_dash</code></td></tr>
+            <tr><td>Explosifs (4)</td><td><code>tnt_valterite</code> &middot; <code>tnt_aetherite</code> &middot; <code>tnt_erinium</code> &middot; <code>dynamite</code></td></tr>
+            <tr><td>Armure spatiale (4)</td><td><code>space_helmet</code> &middot; <code>space_chestplate</code> &middot; <code>space_leggings</code> &middot; <code>space_boots</code></td></tr>
+            <tr><td>Composants fusee (5)</td><td><code>rocket_hull</code> &middot; <code>rocket_engine</code> &middot; <code>rocket_tank</code> &middot; <code>rocket_navigation</code> &middot; <code>rocket_seat</code></td></tr>
+            <tr><td>Divers (9)</td><td><code>rocket_item</code> &middot; <code>resurrection_anchor</code> &middot; <code>return_portal</code> &middot; <code>drone</code> &middot; <code>telepathy_crystal</code> &middot; <code>deployable_camp</code> &middot; <code>brick_stick</code> &middot; <code>stability_fragment</code> &middot; <code>vision_mushroom</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th colspan="2" style="text-align:center;">Modeles 3D (JSON / OBJ)</th></tr><tr><th>Fichier</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>rocket_maker.json</code></td><td>Bloc custom 3 faces distinctes (top, side, front)</td></tr>
+            <tr><td><code>entity_rocket.json</code></td><td>Entite fusee 3D visible dans le monde</td></tr>
+            <tr><td><code>rnd_table.json</code></td><td>Bloc Table de R&amp;D custom</td></tr>
+            <tr><td><code>entity_drone.json</code></td><td>Drone quadrotor</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th colspan="2" style="text-align:center;">Sons (.ogg)</th></tr><tr><th>Cle</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td colspan="2" style="color:var(--slate);font-style:italic;">Pas de musique custom — musique vanilla</td></tr>
+            <tr><td><code>ambient.erina.wind</code></td><td>Vent alien (3-5s)</td></tr>
+            <tr><td><code>ambient.erina.crystal</code></td><td>Tintement cristallin (1-2s)</td></tr>
+            <tr><td><code>item.rocket.launch</code></td><td>Lancement fusee (3s)</td></tr>
+            <tr><td><code>item.rocket.land</code></td><td>Atterrissage / arrivee</td></tr>
+            <tr><td><code>item.flare.shoot</code></td><td>Tir de flare</td></tr>
+            <tr><td><code>item.flare.explode</code></td><td>Explosion de flare</td></tr>
+            <tr><td><code>item.grapple.shoot</code></td><td>Lancement grappin</td></tr>
+            <tr><td><code>item.grapple.latch</code></td><td>Accrochage du crochet</td></tr>
+            <tr><td><code>item.orb.activate</code></td><td>Activation orbe (generique)</td></tr>
+            <tr><td><code>item.dynamite.fuse</code></td><td>Sifflement dynamite</td></tr>
+            <tr><td><code>block.plasma.splash</code></td><td>Eclaboussure plasma</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th colspan="2" style="text-align:center;">Traductions (fr_FR.lang + en_US.lang)</th></tr><tr><th>Type</th><th>Format des cles</th></tr></thead>
+          <tbody>
+            <tr><td>Items</td><td><code>item.eriniumfaction.erina_crystal.name</code></td></tr>
+            <tr><td>Blocs</td><td><code>tile.eriniumfaction.erina_grass.name</code></td></tr>
+            <tr><td>Dimension</td><td><code>eriniumfaction.dimension.erina.name</code></td></tr>
+            <tr><td>Biomes</td><td><code>eriniumfaction.biome.crystal_plains.name</code></td></tr>
+            <tr><td>GUI</td><td><code>eriniumfaction.gui.rnd_table.title</code> &middot; <code>eriniumfaction.gui.rocket_maker.assemble</code></td></tr>
+            <tr><td>Messages</td><td><code>eriniumfaction.rnd.pr_gained</code> &middot; <code>eriniumfaction.rocket.no_fuel</code> &middot; <code>eriniumfaction.erina.no_claim</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>12.5 — Plan de Tests</h3>
+
+      <h4>Dimension &amp; Worldgen</h4>
+      <ul class="checklist">
+        <li><strong>Teleportation Overworld → Erina :</strong> la fusee teleporte correctement le joueur a X=0, Z=0, Y=80 dimension Erina</li>
+        <li><strong>Teleportation Erina → Overworld :</strong> retour au point de depart correct</li>
+        <li><strong>Gravite reduite :</strong> Jump Boost I applique en permanence sur Erina, retire en quittant</li>
+        <li><strong>Degats de chute reduits :</strong> chute de 10 blocs inflige 30% moins qu'en Overworld</li>
+        <li><strong>Rendu du ciel :</strong> gradient violet/cyan visible, pas de nuages vanilla</li>
+        <li><strong>Luminosite :</strong> sky light = 10, crepuscule permanent</li>
+        <li><strong>12 biomes generent :</strong> chaque biome est present dans une seed de test apres exploration 2000 blocs</li>
+        <li><strong>12 ressources spawneent :</strong> chaque ressource trouvable dans son biome/profondeur correct</li>
+        <li><strong>Pas de biome vanilla :</strong> aucun biome vanilla ne genere dans la dimension Erina</li>
+        <li><strong>Structures :</strong> ruines, tours et nids generent dans les zones attendues</li>
+      </ul>
+
+      <h4>Fusee &amp; Rocket Maker</h4>
+      <ul class="checklist">
+        <li><strong>GUI Rocket Maker :</strong> 9 slots s'affichent correctement, descriptions des ingredients visibles</li>
+        <li><strong>Assemblage correct :</strong> tous les composants valides → barre de progression → item Fusee genere apres 10s</li>
+        <li><strong>Assemblage invalide :</strong> mauvais ingredient → bordure rouge, pas d'assemblage possible</li>
+        <li><strong>Embarquement :</strong> 2 joueurs max, 3eme refus</li>
+        <li><strong>Consommation carburant :</strong> 1 Blaze Rod consommee par voyage, erreur si vide</li>
+        <li><strong>Destruction PvP :</strong> fusee destructible a 100 HP, disparait a 0 HP</li>
+        <li><strong>Passagers ejectes :</strong> joueurs dans fusee detruite teleportes au spawn Erina</li>
+      </ul>
+
+      <h4>Table de R&D</h4>
+      <ul class="checklist">
+        <li><strong>Gain PR :</strong> kill joueur PvP → +10 PR dans RnDPlayerData</li>
+        <li><strong>Pas de PR pour mobs :</strong> kill mob → 0 PR</li>
+        <li><strong>GUI affiche PR et $ correctement :</strong> valeurs synchronisees avec le serveur</li>
+        <li><strong>Deblocage valide :</strong> PR + $ suffisants → recette debloquee, ressources deduites</li>
+        <li><strong>Deblocage refus :</strong> PR insuffisants → message d'erreur, rien deduit</li>
+        <li><strong>Persistence deblocage :</strong> relog → recette toujours debloquee</li>
+        <li><strong>Persistence mort :</strong> mort sur Erina → PR et deblocages conserves</li>
+        <li><strong>Bloc incassable :</strong> tentative de casser pendant recherche → echec + message</li>
+      </ul>
+
+      <h4>Items (selection)</h4>
+      <ul class="checklist">
+        <li><strong>Ancre de Resurrection :</strong> mort dans les 30min → respawn sur l'ancre, ancre detruite</li>
+        <li><strong>Flare :</strong> explosion de particules massive, Glowing applique dans 50 blocs</li>
+        <li><strong>Fumigenes :</strong> nuage de fumee de la bonne taille et duree par tier</li>
+        <li><strong>Grappin :</strong> portee correct par tier, tracte le joueur, cooldown 3s</li>
+        <li><strong>Bouclier :</strong> mur de force 2x3 bloque les fleches, repousse les joueurs, disparait apres 3s</li>
+        <li><strong>Totems :</strong> survie a la mort avec les bons HP restaures et effets par tier</li>
+        <li><strong>Piege Gravite :</strong> lance le joueur ennemi, invisible pour ennemis, visible pour faction</li>
+        <li><strong>Mine Terrestre :</strong> explosion 4 coeurs, max 5 par faction</li>
+        <li><strong>Razor Wire tous tiers :</strong> degats et slowness corrects par tier</li>
+        <li><strong>Protective Bricks :</strong> HP corrects, effets des 7 variantes au bon moment</li>
+        <li><strong>8 Orbes :</strong> effets corrects, cooldowns respectes, charges decrementees</li>
+        <li><strong>3 TNT moddees :</strong> power explosion correct par tier</li>
+        <li><strong>Dynamite :</strong> explose apres 2s, pas immediatement</li>
+        <li><strong>Combinaison Spatiale :</strong> chaque piece protege contre son danger biome specifique</li>
+        <li><strong>Cristal de Telepathie :</strong> positions des membres faction sur Erina affichees</li>
+        <li><strong>Champignon de Vision :</strong> Night Vision + Glowing ennemis + Nausea finale</li>
+      </ul>
+
+      <h4>Performance</h4>
+      <ul class="checklist">
+        <li><strong>50 joueurs Erina simultanes :</strong> impact TPS inferieur a 2ms/tick</li>
+        <li><strong>Worldgen Erina :</strong> generation d'un chunk inferieur a 50ms</li>
+        <li><strong>Plasma Liquide :</strong> 100 blocs de plasma actifs sans degat TPS notable</li>
+        <li><strong>100 Razor Wire actifs :</strong> pas de degradation TPS (onEntityCollided only when needed)</li>
+        <li><strong>Extracteur de Plasma :</strong> 20 extracteurs actifs simultanement — impact negligeable</li>
+        <li><strong>ResearchPointManager :</strong> LivingDeathEvent handler &lt; 0.1ms par appel</li>
+      </ul>
+
+      <h4>Cas limites</h4>
+      <ul class="checklist">
+        <li><strong>Mort sur Erina :</strong> drop de tous les items, respawn dans l'Overworld</li>
+        <li><strong>Claim sur Erina :</strong> tentative de claim refusee avec message clair</li>
+        <li><strong>Fusee sans passager :</strong> lancement seul OK, comportement normal</li>
+        <li><strong>Fusee detruite sans passager :</strong> disparait proprement, pas d'erreur NullPointer</li>
+        <li><strong>Orbe avec cooldown actif :</strong> activation bloquee, message "X secondes restantes"</li>
+        <li><strong>5 mines actives faction :</strong> 6eme placement refuse avec message</li>
+        <li><strong>R&D deblocage concurrent :</strong> 2 joueurs debloquent en meme temps → pas de race condition</li>
+        <li><strong>Stabilite Fragment :</strong> 2eme reparation dans les 24h → refus avec temps restant affiche</li>
+        <li><strong>Deplacement dimension avec effets :</strong> Jump Boost retire en quittant Erina, pas de persistence</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<script>
+// Highlight nav link on scroll
+var sections = document.querySelectorAll('section[id]');
+var navLinks = document.querySelectorAll('.nav-link');
+function updateNav() {
+  var scrollY = window.scrollY + 120;
+  sections.forEach(function(sec) {
+    var top = sec.offsetTop;
+    var height = sec.offsetHeight;
+    var id = sec.getAttribute('id');
+    if (scrollY >= top && scrollY < top + height) {
+      navLinks.forEach(function(l) { l.classList.remove('active'); });
+      var active = document.querySelector('.nav-link[href="#' + id + '"]');
+      if (active) active.classList.add('active');
+    }
+  });
+}
+window.addEventListener('scroll', updateNav);
+updateNav();
+</script>
+</body>
+</html>

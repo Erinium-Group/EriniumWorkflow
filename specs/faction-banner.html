@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Faction Banner System | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 50% 90%, rgba(241,196,15,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 12px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+
+  /* =========================================================
+     SECTION CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr { background: rgba(107,47,160,0.18); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .tag-opt { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(241,196,15,0.10); color: var(--gold); border: 1px solid rgba(241,196,15,0.25); letter-spacing: 0.05em; }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .cl  { color: #FFCB6B; }
+
+  /* =========================================================
+     ASCII DIAGRAMS
+  ========================================================= */
+  .ascii-diagram {
+    background: rgba(5,5,10,0.75);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 11.5px;
+    line-height: 1.65;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+  }
+
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+
+  /* =========================================================
+     INFO BOXES
+  ========================================================= */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2);   }
+
+  /* =========================================================
+     PIXEL COLOR PALETTE DEMO
+  ========================================================= */
+  .pixel-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0;
+  }
+
+  .pixel-swatch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--slate);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .pixel-swatch .swatch-box {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+
+  /* =========================================================
+     ANIMATIONS + DIVIDER
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-bdr), transparent);
+    margin: 24px 0;
+  }
+
+  /* =========================================================
+     MOBILE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,47,160,0.4);
+    transition: transform .2s;
+  }
+
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 50;
+      width: 260px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+  }
+
+  @media (max-width: 600px) {
+    .section-card { padding: 24px 18px; }
+    .page-header h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+
+    <span class="sidebar-title">Sommaire</span>
+
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Architecture Technique</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Editeur de Banniere</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Format de Donnees</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Rendu Cape</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Rendu Bloc Banniere</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Commandes</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Performance &amp; Cache</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Integrations</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Faction Banner System</h1>
+      <p>Editeur pixel art in-game permettant a une faction niveau 15 de dessiner une banniere 16x24 affichee sur les capes des joueurs et sur les blocs banniere blancs en territoire revendique.</p>
+      <div class="header-badges">
+        <span class="badge badge-gold">Milestone Niv.15</span>
+        <span class="badge badge-violet">Mixin LayerCape</span>
+        <span class="badge badge-cyan">Mixin TileEntityBannerRenderer</span>
+        <span class="badge badge-green">16x24 Pixels</span>
+        <span class="badge badge-orange">DynamicTexture Cache</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <div class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Pourquoi ce systeme ?</h3>
+      <p>Le systeme de niveaux de faction (Faction Enhanced) recompense la progression collective par des deblocages progressifs. Atteindre le niveau 15 est un accomplissement significatif qui merite une recompense visuelle forte et persistante : une identite graphique propre a la faction, visible par tous les joueurs du serveur.</p>
+      <p>La banniere de faction remplit ce role. C'est un embleme cree pixel par pixel par les membres de la faction, affiche fierement sur leurs capes et sur les blocs du monde qu'ils controlent. Elle transforme le territoire en territoire <em>identifie</em>.</p>
+
+      <h3>Milestone Niveau 15</h3>
+      <ul>
+        <li><strong>Prerequis strict :</strong> la faction doit avoir atteint le niveau Enhanced 15 pour deverrouiller l'acces a l'editeur.</li>
+        <li>Avant le niveau 15, toutes les commandes <code>/f banner</code> retournent un message d'erreur indiquant le niveau requis.</li>
+        <li>Une fois deverrouille, la banniere persiste indefiniment meme si la faction repasse sous le niveau 15 (la banniere deja creee reste valide, seule la creation/modification est bloquee).</li>
+      </ul>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Identite visuelle</strong> — chaque faction a une signature graphique unique reconnaissable depuis n'importe quelle cape ou bloc.</li>
+        <li><strong>Engagement collaboratif</strong> — l'editeur est accessible aux Leader et Officier, renforçant la gouvernance de faction.</li>
+        <li><strong>Integration monde</strong> — les blocs banniere blancs en territoire deviennent des marqueurs territoriaux visuels sans modifier de donnees vanilla.</li>
+        <li><strong>Opt-in joueur</strong> — le joueur choisit d'afficher ou non la banniere sur sa cape, preservant la liberte de personnalisation.</li>
+        <li><strong>Performance zero-impact</strong> — texture generee une seule fois et mise en cache ; aucune generation par frame.</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S2 — ARCHITECTURE TECHNIQUE ═══ -->
+    <div class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Architecture Technique</h2>
+
+      <h3 class="first">Vue d'ensemble du flux de donnees</h3>
+      <div class="ascii-diagram"><span class="ag">[ Leader/Officier ]</span>
+         |
+         | ouvre /f banner
+         v
+<span class="ac">[ GuiBannerEditor (EriGuiScreen) ]</span>
+         |
+         | clic Save → GuiNetworkHandler.sendAction("banner_save", nbt)
+         v
+<span class="av">[ BannerNetworkHandler (serveur) ]</span>
+         |
+         | valide niveau 15 + permission
+         | ecrit FactionInfo.factionBanner (384 chars)
+         | DataManager.save()
+         | broadcast aux clients via GuiNetworkHandler.sendData (tous membres)
+         v
+<span class="ac">[ BannerClientHandler (client) ]</span>
+         |
+         | recoit "banner_update" + string 384 chars
+         | appelle BannerTextureCache.invalidate(factionId)
+         v
+<span class="ay">[ BannerTextureCache ]</span>
+         |
+         | genere DynamicTexture 64x32 (cape) depuis les 384 pixels
+         | genere DynamicTexture 64x64 (banner block) depuis les 384 pixels
+         | stocke sous ResourceLocation dynamique
+         v
+<span class="ag">[ MixinLayerCape ]</span>          <span class="ag">[ MixinTileEntityBannerRenderer ]</span>
+  via BannerCapeCallback       via BannerBlockCallback
+  lit texture cape             lit texture bloc
+  si showBannerCape = true     si territoire faction + banniere blanche</div>
+
+      <h3>Regles Mixin absolues (knowissue.md)</h3>
+      <div class="info-box danger">
+        <div class="icon">&#9888;</div>
+        <div class="content">
+          <strong>Ne JAMAIS importer de classes mod dans un Mixin.</strong> Les Mixins sont charges tres tot par MixinBooter, avant que EriAPI ou EriniumFaction soient dans le classpath. Tout import de <code>DataManager</code>, <code>EriCap</code>, ou toute classe du mod provoque un <code>ClassNotFoundException</code> au demarrage.<br><br>
+          <strong>Ne JAMAIS referencer une classe @Mixin directement depuis le mod.</strong> Appel direct → <code>IllegalClassLoadError</code>.
+        </div>
+      </div>
+
+      <h3>Classes callback (pattern impose)</h3>
+      <p>Chaque Mixin delegue son travail a une classe intermediaire normale (non-Mixin) qui contient les champs statiques et la logique. Le Mixin ne fait qu'appeler cette classe via des types generiques ou des primitives.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Classe Mixin</th><th>Classe Callback</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td>MixinLayerCape</td><td>BannerCapeCallback</td><td>Fournit la ResourceLocation de texture cape a substituer</td></tr>
+            <tr><td>MixinTileEntityBannerRenderer</td><td>BannerBlockCallback</td><td>Fournit la ResourceLocation de texture banniere bloc</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Packages et classes cles</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Classe</th><th>Package</th><th>Cote</th></tr></thead>
+          <tbody>
+            <tr><td>GuiBannerEditor</td><td>gui.banner</td><td>Client</td></tr>
+            <tr><td>BannerTextureCache</td><td>client.banner</td><td>Client</td></tr>
+            <tr><td>BannerCapeCallback</td><td>client.banner</td><td>Client</td></tr>
+            <tr><td>BannerBlockCallback</td><td>client.banner</td><td>Client</td></tr>
+            <tr><td>MixinLayerCape</td><td>mixin.client</td><td>Client (JSON: "client")</td></tr>
+            <tr><td>MixinTileEntityBannerRenderer</td><td>mixin.client</td><td>Client (JSON: "client")</td></tr>
+            <tr><td>BannerNetworkHandler</td><td>network.banner</td><td>Serveur</td></tr>
+            <tr><td>BannerCommand</td><td>command</td><td>Commun</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <div class="icon">&#8505;</div>
+        <div class="content">
+          <strong>MixinLayerCape et MixinTileEntityBannerRenderer</strong> doivent etre declares dans la section <code>"client"</code> du fichier <code>mixins.eriniumfaction.json</code>, jamais dans <code>"mixins"</code> (commun), car leurs cibles sont des classes client-only.
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ S3 — EDITEUR DE BANNIERE ═══ -->
+    <div class="section-card" id="s3">
+      <h2><span class="s-num">03</span> Editeur de Banniere</h2>
+
+      <h3 class="first">Layout GUI (1920x1080 design pixels)</h3>
+      <div class="ascii-diagram"><span class="as">┌─────────────────────────────────────────────────────────────────────┐
+│  <span class="ac">EDITEUR DE BANNIERE — [NomFaction]                           [X]</span>    │
+│                                                                     │
+│  <span class="av">┌──────────────────┐</span>  <span class="ag">┌──────────────────────────────────────┐</span>  <span class="ay">┌───────────┐</span> │
+│  <span class="av">│  PALETTE         │</span>  <span class="ag">│                                      │</span>  <span class="ay">│  APERCU   │</span> │
+│  <span class="av">│                  │</span>  <span class="ag">│     CANEVAS 16x24                    │</span>  <span class="ay">│           │</span> │
+│  <span class="av">│  ■ ■ ■ ■  (4/ln) │</span>  <span class="ag">│     (chaque pixel = 24x24 px)        │</span>  <span class="ay">│  ╔══╗     │</span> │
+│  <span class="av">│  ■ ■ ■ ■         │</span>  <span class="ag">│     384×576 px total                 │</span>  <span class="ay">│  ║  ║     │</span> │
+│  <span class="av">│  ■ ■ ■ ■         │</span>  <span class="ag">│                                      │</span>  <span class="ay">│  ║  ║     │</span> │
+│  <span class="av">│  ■ ■ ■ ■  (16 +  │</span>  <span class="ag">│  [grille superposee, toggleable]     │</span>  <span class="ay">│  ╚══╝     │</span> │
+│  <span class="av">│           gomme) │</span>  <span class="ag">│                                      │</span>  <span class="ay">│  Banniere │</span> │
+│  <span class="av">│                  │</span>  <span class="ag">└──────────────────────────────────────┘</span>  <span class="ay">│           │</span> │
+│  <span class="av">│  OUTILS          │</span>                                              <span class="ay">│  ╔══╗     │</span> │
+│  <span class="av">│  [Pinceau]       │</span>  <span class="as">Couleur selectionnee : ████ Blanc         </span>  <span class="ay">│  ╟──╢     │</span> │
+│  <span class="av">│  [Remplissage]   │</span>                                              <span class="ay">│  ║  ║     │</span> │
+│  <span class="av">│  [Tout effacer]  │</span>                                              <span class="ay">│  Cape     │</span> │
+│  <span class="av">│  [Grille ON/OFF] │</span>                                              <span class="ay">└───────────┘</span> │
+│  <span class="av">└──────────────────┘</span>                                                           │
+│                                                                     │
+│                   <span class="ag">[Annuler]</span>              <span class="ac">[Sauvegarder]</span>               │
+└─────────────────────────────────────────────────────────────────────┘</span></div>
+
+      <h3>Dimensions et coordonnees (1920x1080)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Zone</th><th>X</th><th>Y</th><th>Largeur</th><th>Hauteur</th></tr></thead>
+          <tbody>
+            <tr><td>Fond global</td><td>0</td><td>0</td><td>1920</td><td>1080</td></tr>
+            <tr><td>Panneau principal</td><td>100</td><td>60</td><td>1720</td><td>960</td></tr>
+            <tr><td>Palette (gauche)</td><td>140</td><td>120</td><td>220</td><td>700</td></tr>
+            <tr><td>Canevas centre</td><td>440</td><td>120</td><td>384</td><td>576</td></tr>
+            <tr><td>Zone apercu (droite)</td><td>900</td><td>120</td><td>280</td><td>700</td></tr>
+            <tr><td>Couleur selectionnee</td><td>440</td><td>720</td><td>384</td><td>40</td></tr>
+            <tr><td>Bouton Annuler</td><td>640</td><td>960</td><td>200</td><td>50</td></tr>
+            <tr><td>Bouton Sauvegarder</td><td>880</td><td>960</td><td>240</td><td>50</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Palette de couleurs</h3>
+      <p>16 couleurs de teinture Minecraft + 1 gomme (transparent). La couleur selectionnee est mise en evidence avec une bordure lumineuse et un effet de respiration (<code>breathe()</code>).</p>
+      <div class="pixel-palette">
+        <div class="pixel-swatch"><div class="swatch-box" style="background:#1D1D21;"></div>Noir (0)</div>
+        <div class="pixel-swatch"><div class="swatch-box" style="background:#474F52;"></div>Gris (1)</div>
+        <div class="pixel-swatch"><div class="swatch-box" style="background:#9D9D97;"></div>G.clair (2)</div>
+        <div class="pixel-swatch"><div class="swatch-box" style="background:#F9FFFE;"></div>Blanc (3)</div>
+        <div class="pixel-swatch"><div class="swatch-box" style="background:#F9801D;"></div>Orange (4)</div>
+        <div class="pixel-swatch"><div class="swatch-box" style="background:#C74EBD;"></div>Magenta (5)</div>
+        <div class="pixel-swatch"><div class="swatch-box" style="background:#3AB3DA;"></div>Cyan (6)</div>
+        <div class="pixel-swatch"><div class="swatch-box" style="background:#FED83D;"></div>Jaune (7)</div>
+        <div class="pixel-swatch"><div class="swatch-box" style="background:#80C71F;"></div>Vert clair (8)</div>
+        <div class="pixel-swatch"><div class="swatch-box" style="background:#F38BAA;"></div>Rose (9)</div>
+        <div class="pixel-swatch"><div class="swatch-box" style="background:#476C9B;"></div>Bleu ciel (A)</div>
+        <div class="pixel-swatch"><div class="swatch-box" style="background:#8E65F3;"></div>Violet (B)</div>
+        <div class="pixel-swatch"><div class="swatch-box" style="background:#169C9C;"></div>Cyan fonce (C)</div>
+        <div class="pixel-swatch"><div class="swatch-box" style="background:#3C44AA;"></div>Bleu (D)</div>
+        <div class="pixel-swatch"><div class="swatch-box" style="background:#5E7C16;"></div>Vert (E)</div>
+        <div class="pixel-swatch"><div class="swatch-box" style="background:#8B3F24;"></div>Brun (F)</div>
+        <div class="pixel-swatch"><div class="swatch-box" style="background: repeating-conic-gradient(#666 0% 25%, #999 0% 50%) 0 0/8px 8px;"></div>Gomme (G)</div>
+      </div>
+
+      <h3>Outils disponibles</h3>
+      <ul>
+        <li><strong>Pinceau pixel</strong> — clic gauche pose la couleur selectionnee sur le pixel survole. Clic gauche maintenu = peinture continue. Clic droit = gomme temporaire.</li>
+        <li><strong>Remplissage (bucket)</strong> — flood-fill 4-connexe sur le pixel cible. Ne traverse pas les bordures de couleur differente.</li>
+        <li><strong>Tout effacer</strong> — remet tous les pixels en transparent (G). Demande une confirmation via une popup EriAPI.</li>
+        <li><strong>Grille ON/OFF</strong> — affiche/cache les separateurs de pixels pour faciliter le travail fin.</li>
+      </ul>
+
+      <h3>Restrictions d'acces</h3>
+      <ul>
+        <li>Seuls les <strong>Leader</strong> et <strong>Officer</strong> peuvent ouvrir et utiliser l'editeur.</li>
+        <li>Tentative d'un membre simple → message d'erreur EriChat : <em>"Seuls les Officiers et le Leader peuvent modifier la banniere."</em></li>
+        <li>Faction sous niveau 15 → message : <em>"La banniere se deverrouille au niveau 15 (niveau actuel : X)."</em></li>
+      </ul>
+
+      <h3>Flux de sauvegarde</h3>
+      <ul>
+        <li>Clic "Sauvegarder" → encode le tableau 16x24 en chaine 384 chars.</li>
+        <li>Envoie via <code>GuiNetworkHandler.sendAction("banner_save", nbt)</code> avec le champ <code>bannerData</code>.</li>
+        <li>Le serveur valide et persiste. Renvoie un acquittement "banner_saved" au client.</li>
+        <li>Reception → notification <code>NotificationManager</code> succes verte : <em>"Banniere sauvegardee !"</em></li>
+        <li>En cas d'erreur serveur → notification rouge.</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S4 — FORMAT DE DONNEES ═══ -->
+    <div class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Format de Donnees</h2>
+
+      <h3 class="first">Chaine 384 caracteres</h3>
+      <p>La banniere est stockee comme une chaine hexadecimale compacte de <strong>384 caracteres</strong> (16 colonnes × 24 lignes = 384 pixels, 1 char par pixel).</p>
+      <p>Lecture : pixel a l'index <code>i = y * 16 + x</code> (y = ligne 0-23, x = colonne 0-15).</p>
+
+      <h3>Mapping couleur → caractere</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Char</th><th>Couleur</th><th>DyeColor enum</th><th>ARGB approximatif</th></tr></thead>
+          <tbody>
+            <tr><td>0</td><td>Noir</td><td>BLACK</td><td>0xFF1D1D21</td></tr>
+            <tr><td>1</td><td>Gris</td><td>GRAY</td><td>0xFF474F52</td></tr>
+            <tr><td>2</td><td>Gris clair</td><td>SILVER</td><td>0xFF9D9D97</td></tr>
+            <tr><td>3</td><td>Blanc</td><td>WHITE</td><td>0xFFF9FFFE</td></tr>
+            <tr><td>4</td><td>Orange</td><td>ORANGE</td><td>0xFFF9801D</td></tr>
+            <tr><td>5</td><td>Magenta</td><td>MAGENTA</td><td>0xFFC74EBD</td></tr>
+            <tr><td>6</td><td>Bleu ciel</td><td>LIGHT_BLUE</td><td>0xFF3AB3DA</td></tr>
+            <tr><td>7</td><td>Jaune</td><td>YELLOW</td><td>0xFFFED83D</td></tr>
+            <tr><td>8</td><td>Vert clair</td><td>LIME</td><td>0xFF80C71F</td></tr>
+            <tr><td>9</td><td>Rose</td><td>PINK</td><td>0xFFF38BAA</td></tr>
+            <tr><td>A</td><td>Cyan fonce</td><td>CYAN</td><td>0xFF169C9C</td></tr>
+            <tr><td>B</td><td>Violet</td><td>PURPLE</td><td>0xFF8E65F3</td></tr>
+            <tr><td>C</td><td>Bleu</td><td>BLUE</td><td>0xFF3C44AA</td></tr>
+            <tr><td>D</td><td>Brun</td><td>BROWN</td><td>0xFF8B3F24</td></tr>
+            <tr><td>E</td><td>Vert fonce</td><td>GREEN</td><td>0xFF5E7C16</td></tr>
+            <tr><td>F</td><td>Rouge</td><td>RED</td><td>0xFFC21313 (approximatif)</td></tr>
+            <tr><td>G</td><td>Transparent</td><td>—</td><td>0x00000000</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Exemples valides</h3>
+      <div class="code-block"><span class="cm">// Banniere entierement transparente (valeur defaut)</span>
+<span class="st">"GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+ GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+ GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+ GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+ GGGGGGGGGGGGGGGGGGGGGGGGGG"</span>  <span class="cm">// 384 'G'</span>
+
+<span class="cm">// Validation cote serveur</span>
+<span class="kw">if</span> (bannerData.<span class="fn">length</span>() != <span class="nu">384</span>) <span class="kw">return</span> <span class="st">"Chaine invalide"</span>;
+<span class="kw">if</span> (!bannerData.<span class="fn">matches</span>(<span class="st">"[0-9A-FG]{384}"</span>)) <span class="kw">return</span> <span class="st">"Caractere invalide"</span>;</div>
+
+      <h3>Stockage</h3>
+      <ul>
+        <li><strong>FactionInfo.factionBanner</strong> (String, 384 chars) — deja declare comme placeholder dans FactionInfo, a remplir via DataManager.</li>
+        <li><strong>FactionPlayerData.showBannerCape</strong> (boolean, <code>@Sync</code>) — nouveau champ, indique si le joueur accepte d'afficher la banniere sur sa cape. Valeur par defaut : <code>true</code> a la creation de la faction (ou quand la banniere est creee pour la premiere fois).</li>
+      </ul>
+
+      <div class="info-box tip">
+        <div class="icon">&#10003;</div>
+        <div class="content">
+          <strong>Tip :</strong> la chaine vide <code>""</code> ou absente signifie "aucune banniere definie". <code>BannerTextureCache</code> ne genere rien dans ce cas et les Mixins ne substituent pas de texture.
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ S5 — RENDU CAPE ═══ -->
+    <div class="section-card" id="s5">
+      <h2><span class="s-num cyan-num">05</span> Rendu Cape</h2>
+
+      <h3 class="first">Mixin cible</h3>
+      <p>La classe a intercepter est <code>net.minecraft.client.renderer.entity.layers.LayerCape</code>. La methode visee est <code>doRenderLayer</code>. On injecte a <code>HEAD</code> avec <code>cancellable = true</code>.</p>
+
+      <div class="code-block"><span class="an">@Mixin</span>(<span class="cl">LayerCape</span>.<span class="kw">class</span>)
+<span class="kw">public class</span> <span class="cl">MixinLayerCape</span> {
+
+    <span class="an">@Inject</span>(method = <span class="st">"doRenderLayer"</span>, at = <span class="an">@At</span>(<span class="st">"HEAD"</span>), cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">onDoRenderLayer</span>(<span class="cl">AbstractClientPlayer</span> player, <span class="ty">float</span> limbSwing,
+            <span class="ty">float</span> limbSwingAmount, <span class="ty">float</span> partialTicks, <span class="ty">float</span> ageInTicks,
+            <span class="ty">float</span> netHeadYaw, <span class="ty">float</span> headPitch, <span class="ty">float</span> scale,
+            <span class="cl">CallbackInfo</span> ci) {
+        <span class="cm">// Delegue a BannerCapeCallback — AUCUN import mod ici</span>
+        <span class="kw">if</span> (<span class="cl">BannerCapeCallback</span>.<span class="fn">shouldOverrideCape</span>(player.<span class="fn">getUniqueID</span>())) {
+            <span class="cl">ResourceLocation</span> tex = <span class="cl">BannerCapeCallback</span>.<span class="fn">getCapeTexture</span>(player.<span class="fn">getUniqueID</span>());
+            <span class="kw">if</span> (tex != <span class="kw">null</span>) {
+                <span class="cm">// Rendu de la cape avec la texture de faction</span>
+                <span class="cm">// (copie du rendu vanilla en substituant la texture)</span>
+                <span class="cl">BannerCapeCallback</span>.<span class="fn">renderCapeWithTexture</span>(player, tex, limbSwing,
+                    limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch, scale);
+                ci.<span class="fn">cancel</span>(); <span class="cm">// empeche le rendu vanilla de la cape</span>
+            }
+        }
+    }
+}</div>
+
+      <h3>BannerCapeCallback</h3>
+      <ul>
+        <li><code>shouldOverrideCape(UUID)</code> — retourne true si le joueur a une faction avec banniere ET que <code>showBannerCape = true</code>. Lit depuis une Map&lt;UUID, Boolean&gt; mise a jour par les packets @Sync.</li>
+        <li><code>getCapeTexture(UUID)</code> — retourne la <code>ResourceLocation</code> de la texture DynamicTexture generee par BannerTextureCache.</li>
+        <li><code>renderCapeWithTexture(...)</code> — recopie le rendu cape vanilla (bind texture, rendu du ModelCape) en substituant la texture.</li>
+      </ul>
+
+      <h3>Format texture cape (64x32)</h3>
+      <p>Le format standard de cape Minecraft est 64x32 pixels. La banniere 16x24 est centree dans ce format.</p>
+      <div class="ascii-diagram"><span class="as">Texture cape 64x32 :</span>
+<span class="as">┌────────────────────────────────────────────────────────────────┐ y=0
+│                                                                │
+│                   <span class="ag">┌────────────────┐</span>                          │ y=4
+│                   <span class="ag">│  BANNIERE 16x24│</span>  centree : x=24, y=4     │
+│                   <span class="ag">│                │</span>                          │
+│                   <span class="ag">│                │</span>                          │
+│                   <span class="ag">└────────────────┘</span>                          │ y=28
+│                                                                │
+└────────────────────────────────────────────────────────────────┘ y=32</span></div>
+      <ul>
+        <li>Pixels de la banniere places a partir de <strong>x=24, y=4</strong> dans la texture 64x32.</li>
+        <li>Le reste de la texture est transparent (0x00000000).</li>
+        <li>Les pixels "G" (transparent) de la banniere laissent voir la cape skin du joueur en dessous si elle existe, sinon restent transparents.</li>
+      </ul>
+
+      <h3>Toggle joueur</h3>
+      <ul>
+        <li>Commande <code>/f banner cape</code> — inverse <code>FactionPlayerData.showBannerCape</code>.</li>
+        <li>Le champ est <code>@Sync</code> → envoye automatiquement au client du joueur.</li>
+        <li>BannerCapeCallback ecoute les mises a jour @Sync et met a jour sa Map interne.</li>
+        <li>Si le joueur n'a pas de cape skin, la banniere s'affiche seule sur la cape invisible (comportement acceptable).</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S6 — RENDU BLOC BANNIERE ═══ -->
+    <div class="section-card" id="s6">
+      <h2><span class="s-num">06</span> Rendu Bloc Banniere</h2>
+
+      <h3 class="first">Mixin cible</h3>
+      <p>La classe a intercepter est <code>net.minecraft.client.renderer.tileentity.TileEntityBannerRenderer</code>, methode <code>render</code>. Injection a <code>HEAD</code> avec <code>cancellable = true</code>.</p>
+
+      <div class="code-block"><span class="an">@Mixin</span>(<span class="cl">TileEntityBannerRenderer</span>.<span class="kw">class</span>)
+<span class="kw">public class</span> <span class="cl">MixinTileEntityBannerRenderer</span> {
+
+    <span class="an">@Inject</span>(method = <span class="st">"render"</span>,
+            at = <span class="an">@At</span>(value = <span class="st">"INVOKE"</span>,
+                     target = <span class="st">"Lnet/minecraft/client/renderer/GlStateManager;color(FFFF)V"</span>,
+                     ordinal = <span class="nu">0</span>),
+            cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">onRender</span>(<span class="cl">TileEntityBanner</span> te, <span class="ty">double</span> x, <span class="ty">double</span> y, <span class="ty">double</span> z,
+            <span class="ty">float</span> partialTicks, <span class="ty">int</span> destroyStage, <span class="ty">float</span> alpha,
+            <span class="cl">CallbackInfo</span> ci) {
+        <span class="cm">// Delegue a BannerBlockCallback — aucun import mod</span>
+        <span class="ty">long</span> pos = te.<span class="fn">getPos</span>().<span class="fn">toLong</span>();
+        <span class="cl">String</span> tex = <span class="cl">BannerBlockCallback</span>.<span class="fn">getFactionTexturePath</span>(pos);
+        <span class="kw">if</span> (tex != <span class="kw">null</span>) {
+            <span class="cl">BannerBlockCallback</span>.<span class="fn">renderFactionBanner</span>(te, x, y, z, partialTicks, tex);
+            ci.<span class="fn">cancel</span>();
+        }
+    }
+}</div>
+
+      <div class="info-box warn">
+        <div class="icon">&#9888;</div>
+        <div class="content">
+          <strong>Alternative plus robuste :</strong> si l'injection INVOKE s'avere fragile, utiliser <code>@At("HEAD")</code> avec cancellable = true, en verifiant la position dans BannerBlockCallback avant de canceller. Preferer HEAD si possible per les conventions du projet.
+        </div>
+      </div>
+
+      <h3>BannerBlockCallback</h3>
+      <ul>
+        <li><strong>getFactionTexturePath(long blockPos)</strong> — cherche si la position appartient a un territoire de faction ayant une banniere. Retourne le path de ResourceLocation ou null.</li>
+        <li>La Map &lt;Long, String&gt; (position → factionId) est mise a jour par le systeme de territoire a chaque claim/unclaim, via un packet client dedie.</li>
+        <li><strong>renderFactionBanner(...)</strong> — rendu complet du modele de banniere avec la texture de faction substituee. Copie du rendu vanilla sans les patterns de teinture.</li>
+      </ul>
+
+      <h3>Detection banniere blanche sans pattern</h3>
+      <ul>
+        <li>La substitution ne s'applique que si le <code>TileEntityBanner</code> n'a <strong>aucun pattern</strong> (<code>te.getPatterns() == null || te.getPatterns().isEmpty()</code>).</li>
+        <li>La couleur de base doit etre blanche (<code>ItemDye.DyeColor.WHITE</code>).</li>
+        <li>Si le joueur a pose une banniere avec des motifs vanilla, la substitution ne s'applique pas — le rendu vanilla prend le relai.</li>
+      </ul>
+
+      <h3>Portee du rendu</h3>
+      <ul>
+        <li>Client-side uniquement — les donnees du bloc restent 100% vanilla.</li>
+        <li>Le rendu de faction s'affiche pour tous les joueurs dont le client a recu le packet de mapping territoire.</li>
+        <li>Texture bloc : format 64x64, la banniere 16x24 est repetiee ou centree selon le look desire (a definir lors de l'implementation).</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S7 — COMMANDES ═══ -->
+    <div class="section-card" id="s7">
+      <h2><span class="s-num green-num">07</span> Commandes</h2>
+
+      <div class="info-box info">
+        <div class="icon">&#8505;</div>
+        <div class="content">
+          Toutes les sous-commandes banner sont integrees dans le <code>FactionCommand</code> existant sous <code>/f banner [sous-commande]</code>. L'auto-completion est obligatoire pour toutes les sous-commandes.
+        </div>
+      </div>
+
+      <h3 class="first">Tableau des commandes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Permission</th><th>Description</th><th>Conditions</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>/f banner</td>
+              <td>Membre de faction + Leader/Officer</td>
+              <td>Ouvre l'editeur de banniere pixel art</td>
+              <td>Faction niveau &gt;= 15, executeur = Leader ou Officer</td>
+            </tr>
+            <tr>
+              <td>/f banner give</td>
+              <td>Membre de faction</td>
+              <td>Donne au joueur un item banniere blanche avec NBT de faction</td>
+              <td>Faction a une banniere definie (non vide)</td>
+            </tr>
+            <tr>
+              <td>/f banner cape</td>
+              <td>Membre de faction</td>
+              <td>Toggle l'affichage de la banniere sur la cape</td>
+              <td>Faction a une banniere definie</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Comportement detaille</h3>
+      <ul>
+        <li><strong>/f banner</strong> — appelle <code>Minecraft.getMinecraft().displayGuiScreen(new GuiBannerEditor(factionData))</code> cote client. Si execut cote serveur, envoie packet openGui. Les donnees de banniere actuelles sont chargees dans l'editeur pour permettre la modification.</li>
+        <li><strong>/f banner give</strong> — cree un <code>ItemStack</code> de banniere blanche et ajoute un tag NBT <code>FactionBanner: true</code> + <code>FactionId: "xxx"</code>. Donne l'item au joueur. Ce tag est purement decoratif ; le bloc pose se comporte normalement, mais BannerBlockCallback detecte le NBT si besoin.</li>
+        <li><strong>/f banner cape</strong> — lit <code>FactionPlayerData.showBannerCape</code>, l'inverse, sauvegarde, envoie confirmation EriChat : <em>"Banniere sur cape : activee / desactivee."</em></li>
+      </ul>
+
+      <h3>Messages d'erreur</h3>
+      <ul>
+        <li>Joueur sans faction → <em>"Vous n'etes pas dans une faction."</em></li>
+        <li>Faction niveau insuffisant → <em>"La banniere de faction se deverrouille au niveau 15. (Niveau actuel : X)"</em></li>
+        <li>Rang insuffisant pour l'editeur → <em>"Seuls les Officiers et le Leader peuvent modifier la banniere de faction."</em></li>
+        <li>Aucune banniere definie pour /f banner give → <em>"Votre faction n'a pas encore de banniere. Utilisez /f banner pour en creer une."</em></li>
+      </ul>
+    </div>
+
+    <!-- ═══ S8 — PERFORMANCE & CACHE ═══ -->
+    <div class="section-card" id="s8">
+      <h2><span class="s-num orange-num">08</span> Performance &amp; Cache</h2>
+
+      <h3 class="first">BannerTextureCache — cycle de vie</h3>
+      <p>La classe <code>BannerTextureCache</code> (client-side singleton) gere la generation et l'invalidation des <code>DynamicTexture</code> Minecraft.</p>
+
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">BannerTextureCache</span> {
+    <span class="kw">private static final</span> <span class="cl">Map</span>&lt;<span class="cl">String</span>, <span class="cl">ResourceLocation</span>&gt; capeCache    = <span class="kw">new</span> <span class="cl">HashMap</span>&lt;&gt;();
+    <span class="kw">private static final</span> <span class="cl">Map</span>&lt;<span class="cl">String</span>, <span class="cl">ResourceLocation</span>&gt; blockCache   = <span class="kw">new</span> <span class="cl">HashMap</span>&lt;&gt;();
+    <span class="kw">private static final</span> <span class="cl">Map</span>&lt;<span class="cl">String</span>, <span class="cl">DynamicTexture</span>&gt;   capeTextures  = <span class="kw">new</span> <span class="cl">HashMap</span>&lt;&gt;();
+    <span class="kw">private static final</span> <span class="cl">Map</span>&lt;<span class="cl">String</span>, <span class="cl">DynamicTexture</span>&gt;   blockTextures = <span class="kw">new</span> <span class="cl">HashMap</span>&lt;&gt;();
+
+    <span class="kw">public static void</span> <span class="fn">invalidate</span>(<span class="cl">String</span> factionId) {
+        <span class="cm">// Supprimer les DynamicTextures existantes via TextureManager</span>
+        <span class="fn">deleteTexture</span>(capeCache.<span class="fn">remove</span>(factionId));
+        <span class="fn">deleteTexture</span>(blockCache.<span class="fn">remove</span>(factionId));
+        capeTextures.<span class="fn">remove</span>(factionId);
+        blockTextures.<span class="fn">remove</span>(factionId);
+    }
+
+    <span class="kw">public static</span> <span class="cl">ResourceLocation</span> <span class="fn">getCapeTexture</span>(<span class="cl">String</span> factionId, <span class="cl">String</span> bannerData) {
+        <span class="kw">if</span> (!capeCache.<span class="fn">containsKey</span>(factionId)) {
+            <span class="fn">generateCapeTexture</span>(factionId, bannerData); <span class="cm">// genere UNE fois</span>
+        }
+        <span class="kw">return</span> capeCache.<span class="fn">get</span>(factionId);
+    }
+    <span class="cm">// idem pour getBlockTexture(...)</span>
+}</div>
+
+      <h3>Regles de performance</h3>
+      <ul>
+        <li><strong>Generation unique</strong> — la texture est generee une seule fois par faction, lors du premier rendu apres reception des donnees. Jamais en doRenderLayer directement.</li>
+        <li><strong>Invalidation sur update</strong> — a chaque fois que le serveur diffuse un "banner_update", le client appelle <code>BannerTextureCache.invalidate(factionId)</code>. La prochaine frame regenere la texture.</li>
+        <li><strong>Cleanup a la deconnexion</strong> — lors de l'evenement <code>FMLNetworkEvent.ClientDisconnectionFromServerEvent</code>, appeler <code>BannerTextureCache.clearAll()</code> pour liberer toutes les DynamicTextures enregistrees dans le TextureManager.</li>
+        <li><strong>Pas de generation async</strong> — les DynamicTextures Minecraft doivent etre creees sur le thread principal OpenGL. Pas de threading pour cette operation.</li>
+        <li><strong>Limitation</strong> — maximum 1 texture cape (64x32) + 1 texture bloc (64x64) par faction active. En pratique: 50 factions max = 100 DynamicTextures, negligeable en VRAM.</li>
+      </ul>
+
+      <h3>Generation de texture (algorithme)</h3>
+      <div class="code-block"><span class="cm">// Generer la texture cape 64x32 depuis la chaine 384 chars</span>
+<span class="ty">int</span>[] pixels = <span class="kw">new</span> <span class="ty">int</span>[<span class="nu">64</span> * <span class="nu">32</span>]; <span class="cm">// tous transparents</span>
+<span class="kw">for</span> (<span class="ty">int</span> py = <span class="nu">0</span>; py &lt; <span class="nu">24</span>; py++) {
+    <span class="kw">for</span> (<span class="ty">int</span> px = <span class="nu">0</span>; px &lt; <span class="nu">16</span>; px++) {
+        <span class="ty">char</span> c = bannerData.<span class="fn">charAt</span>(py * <span class="nu">16</span> + px);
+        <span class="ty">int</span> argb = <span class="cl">BannerColorMap</span>.<span class="fn">toARGB</span>(c); <span class="cm">// 0x00000000 si 'G'</span>
+        pixels[(<span class="nu">4</span> + py) * <span class="nu">64</span> + (<span class="nu">24</span> + px)] = argb; <span class="cm">// offset x=24, y=4</span>
+    }
+}
+<span class="cl">DynamicTexture</span> dt = <span class="kw">new</span> <span class="cl">DynamicTexture</span>(<span class="nu">64</span>, <span class="nu">32</span>);
+<span class="cl">System</span>.<span class="fn">arraycopy</span>(pixels, <span class="nu">0</span>, dt.<span class="fn">getTextureData</span>(), <span class="nu">0</span>, pixels.<span class="fn">length</span>);
+dt.<span class="fn">updateDynamicTexture</span>();
+<span class="cl">ResourceLocation</span> rl = <span class="cl">Minecraft</span>.<span class="fn">getMinecraft</span>().<span class="fn">getTextureManager</span>()
+    .<span class="fn">getDynamicTextureLocation</span>(<span class="st">"faction_cape_"</span> + factionId, dt);</div>
+    </div>
+
+    <!-- ═══ S9 — INTEGRATIONS ═══ -->
+    <div class="section-card" id="s9">
+      <h2><span class="s-num cyan-num">09</span> Integrations</h2>
+
+      <h3 class="first">FactionEnhancedManager — gate niveau 15</h3>
+      <ul>
+        <li><code>FactionEnhancedManager.getLevel(factionId)</code> est appele dans <code>BannerCommand</code> avant toute action.</li>
+        <li>Si le niveau est inferieur a 15, la commande est rejetee avec un message explicatif.</li>
+        <li>Le level check est serveur-side uniquement ; le GUI peut etre ouvert cote client mais le Save sera refuse par le serveur.</li>
+      </ul>
+
+      <h3>FactionInfo — champ banniere</h3>
+      <ul>
+        <li>Le champ <code>factionBanner</code> existe deja dans <code>FactionInfo</code> comme placeholder. L'implantation le remplira avec la chaine 384 chars.</li>
+        <li>Le champ est <code>@Sync</code> pour que les clients membres recoivent automatiquement la banniere lors de la connexion et lors des mises a jour.</li>
+      </ul>
+
+      <h3>FactionPlayerData — cape toggle</h3>
+      <ul>
+        <li>Nouveau champ : <code>@Sync public boolean showBannerCape = true;</code> — synced au client du joueur, <code>persistOnDeath = true</code> preserve la preference.</li>
+        <li>Ce champ est lu par <code>BannerCapeCallback</code> via la Map UUID → boolean.</li>
+      </ul>
+
+      <h3>Systeme de territoire — bloc banniere</h3>
+      <ul>
+        <li>Chaque fois qu'un chunk est claim ou unclaim, le systeme de territoire envoie un packet de mise a jour au client listant les positions de blocs banniere dans le chunk.</li>
+        <li><code>BannerBlockCallback</code> maintient une Map&lt;Long, String&gt; (blockPos.toLong() → factionId) mise a jour par ces packets.</li>
+        <li>Alternativement : verifier a la volee depuis le TileEntity si sa position est dans un chunk claim (depuis une map statique de claims synchronisee). Choix d'implementation laisse au developpeur.</li>
+      </ul>
+
+      <h3>Anti-exploit</h3>
+      <ul>
+        <li>La validation de permission (Leader/Officer + niveau 15) se fait exclusivement cote <strong>serveur</strong> dans <code>BannerNetworkHandler</code>.</li>
+        <li>Un joueur ne peut pas modifier la banniere d'une autre faction, meme avec un client modifie.</li>
+        <li>Le rendu bloc ne s'applique qu'aux blocs en territoire <strong>revendiqu</strong>e par la faction ; hors territoire, le rendu est vanilla.</li>
+        <li>La texture n'est jamais generee si la chaine banniere est vide ou invalide (protection contre injection de donnees corrompues).</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S10 — PLAN DE TESTS ═══ -->
+    <div class="section-card" id="s10">
+      <h2><span class="s-num green-num">10</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests editeur GUI</h3>
+      <ul>
+        <li>Ouvrir l'editeur en tant que Leader d'une faction niveau 15 → succes.</li>
+        <li>Ouvrir l'editeur en tant que membre simple → message d'erreur.</li>
+        <li>Ouvrir l'editeur avec faction niveau 14 → message niveau insuffisant.</li>
+        <li>Dessiner pixel par pixel avec chaque couleur de la palette → verifier mapping ARGB.</li>
+        <li>Outil remplissage sur zone monochrome → flood-fill correct.</li>
+        <li>Outil remplissage sur zone multi-couleur → n'affecte que la couleur cible.</li>
+        <li>Tout effacer → confirmation demandee, canvas redevient transparent.</li>
+        <li>Toggle grille → affichage/masquage correct.</li>
+        <li>Sauvegarde → chaine 384 chars correctement encodee et recue par le serveur.</li>
+        <li>Chargement d'une banniere existante → pixels correctement decodes et affiches.</li>
+        <li>Apercu en temps reel → le panneau de droite reflate les modifications immediates.</li>
+      </ul>
+
+      <h3>Tests format de donnees</h3>
+      <ul>
+        <li>Chaine avec caracteres invalides → rejetee par la validation regex serveur.</li>
+        <li>Chaine de longueur incorrecte → rejetee.</li>
+        <li>Chaine pleine de 'G' → banner consideree comme vide / non affichee.</li>
+        <li>Round-trip : encode → decode → reencode → chaine identique.</li>
+      </ul>
+
+      <h3>Tests rendu cape</h3>
+      <ul>
+        <li>Joueur avec banniere de faction + showBannerCape = true → cape de faction affichee.</li>
+        <li>Joueur avec banniere de faction + showBannerCape = false → cape vanilla (ou absente).</li>
+        <li>/f banner cape → toggle correct, persistance apres relog.</li>
+        <li>Joueur sans cape skin → banniere seule visible sans artefact.</li>
+        <li>Joueur avec cape skin → banniere superposee a la cape (ou substitution selon implementation).</li>
+        <li>Modification de la banniere → invalidation du cache → nouvelle texture visible sans relog.</li>
+        <li>Deconnexion → clearAll() appele, pas de DynamicTexture residuelle.</li>
+        <li>Rendu a differentes resolutions (720p, 1080p, 4K) → pas de distorsion.</li>
+      </ul>
+
+      <h3>Tests rendu bloc banniere</h3>
+      <ul>
+        <li>Poser un bloc banniere blanche dans un territoire de faction avec banniere → rendu de faction.</li>
+        <li>Poser un bloc banniere blanche hors territoire → rendu vanilla (blanc uni).</li>
+        <li>Poser un bloc banniere blanche avec motifs vanilla dans territoire → rendu vanilla (motifs preserves).</li>
+        <li>Banniere de couleur non blanche dans territoire → rendu vanilla.</li>
+        <li>Modification de la banniere → blocs existants refletes immediatement.</li>
+        <li>Unclaim du territoire → blocs redeviennent vanilla.</li>
+      </ul>
+
+      <h3>Tests performance et cache</h3>
+      <ul>
+        <li>50 factions avec bannieres differentes → 100 DynamicTextures max, FPS stable.</li>
+        <li>Appel doRenderLayer 60x/sec → aucune generation de texture par frame (cache hit).</li>
+        <li>Invalidation forcee → regeneration en 1 frame, pas de texture manquante (frame noire).</li>
+        <li>Stress test : modification rapide de banniere 10x en 10 secondes → pas de fuite memoire GPU.</li>
+      </ul>
+
+      <h3>Tests cas limites</h3>
+      <ul>
+        <li>Faction dissoute apres creation de banniere → textures nettoyees, capes redeviennent normales.</li>
+        <li>Joueur quittant une faction avec banniere → cape redevient normale au prochain login.</li>
+        <li>Serveur sans EriAPI → mod ne charge pas (dependance declaree).</li>
+        <li>Donnees banniere corrompues en NBT → validation serveur rejette, valeur precedente preservee.</li>
+      </ul>
+    </div>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" id="navToggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<script>
+  // Active nav link on scroll
+  const links = document.querySelectorAll('.nav-link');
+  const sections = document.querySelectorAll('.section-card[id]');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector('.nav-link[href="#' + e.target.id + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.35 });
+  sections.forEach(s => obs.observe(s));
+</script>
+
+</body>
+</html>

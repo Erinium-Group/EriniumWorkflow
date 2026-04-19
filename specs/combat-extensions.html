@@ -1,0 +1,2207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Combat Extensions | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+    /* Tier colors */
+    --valterite: #5B9BD5;
+    --aetherite: #A855F7;
+    --erinium:   #F59E0B;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 50% 90%, rgba(245,158,11,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 12px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+
+  /* Tier badges */
+  .badge-valterite { color: var(--valterite); border-color: rgba(91,155,213,0.4); background: rgba(91,155,213,0.1); }
+  .badge-aetherite { color: var(--aetherite); border-color: rgba(168,85,247,0.4); background: rgba(168,85,247,0.1); }
+  .badge-erinium   { color: var(--erinium);   border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.1); }
+
+  /* =========================================================
+     SECTION CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+  .section-card:nth-child(14) { animation-delay: .70s; }
+  .section-card:nth-child(15) { animation-delay: .75s; }
+  .section-card:nth-child(16) { animation-delay: .80s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #7b1a12 0%, var(--red) 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr { background: rgba(107,47,160,0.18); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no   { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .tag-mod  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(0,229,255,0.10); color: var(--cyan); border: 1px solid rgba(0,229,255,0.25); letter-spacing: 0.05em; }
+
+  .tier-valterite { color: var(--valterite); font-weight: 600; }
+  .tier-aetherite { color: var(--aetherite); font-weight: 600; }
+  .tier-erinium   { color: var(--erinium);   font-weight: 600; }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .cl  { color: #FFCB6B; }
+
+  /* =========================================================
+     ASCII DIAGRAMS (recettes)
+  ========================================================= */
+  .ascii-diagram {
+    background: rgba(5,5,10,0.75);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 11.5px;
+    line-height: 1.65;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+  }
+
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+
+  /* =========================================================
+     INFO BOXES
+  ========================================================= */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2);   }
+
+  /* =========================================================
+     TIER CARDS (vue d'ensemble)
+  ========================================================= */
+  .tier-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .tier-card {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    text-align: center;
+  }
+
+  .tier-card.valterite { border-top: 3px solid var(--valterite); }
+  .tier-card.aetherite { border-top: 3px solid var(--aetherite); }
+  .tier-card.erinium   { border-top: 3px solid var(--erinium);   }
+  .tier-card.special   { border-top: 3px solid var(--gold);      }
+
+  .tier-card-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .tier-card.valterite .tier-card-name { color: var(--valterite); }
+  .tier-card.aetherite .tier-card-name { color: var(--aetherite); }
+  .tier-card.erinium   .tier-card-name { color: var(--erinium);   }
+  .tier-card.special   .tier-card-name { color: var(--gold);      }
+
+  .tier-card-tier {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin-bottom: 14px;
+  }
+
+  .tier-card-stat {
+    font-size: 12px;
+    color: var(--slate);
+    margin: 4px 0;
+  }
+
+  .tier-card-stat strong { color: var(--text); }
+
+  /* =========================================================
+     ANIMATIONS + DIVIDER
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-bdr), transparent);
+    margin: 24px 0;
+  }
+
+  /* =========================================================
+     MOBILE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,47,160,0.4);
+    transition: transform .2s;
+  }
+
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 50;
+      width: 260px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .tier-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    .section-card { padding: 24px 18px; }
+    .page-header h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+
+    <span class="sidebar-title">Sommaire</span>
+
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Vue d'ensemble</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Arcs Custom</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Fleches Speciales</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Boucliers</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Set Bonus Armure</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Dagues</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Marteaux de Guerre</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Pommes Custom</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Recettes de Craft</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Architecture Technique</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Integration Existante</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Assets</a>
+    <a class="nav-link" href="#s14"><span class="num">14</span> Configuration</a>
+    <a class="nav-link" href="#s15"><span class="num">15</span> Traductions</a>
+    <a class="nav-link" href="#s16"><span class="num">16</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Combat Extensions</h1>
+      <p>Extension du systeme de combat a 3 tiers : arcs, fleches speciales, boucliers, set bonus armure, dagues, marteaux de guerre et pommes custom. Contexte PvP 1.8 — aucun cooldown d'attaque.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">A faire</span>
+        <span class="badge badge-valterite">Valterite — Tier 2</span>
+        <span class="badge badge-aetherite">Aetherite — Tier 3</span>
+        <span class="badge badge-erinium">Erinium — Tier 4</span>
+        <span class="badge badge-gold">19 nouveaux items</span>
+        <span class="badge badge-orange">4 entites fleches</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <div class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Extension du systeme de combat</h3>
+      <p>Le systeme de base Combat &amp; Equipement definit trois tiers d'equipement (Valterite, Aetherite, Erinium) avec epees, outils et armures standards. Ce cahier des charges etend ce systeme avec de nouveaux types d'armes et d'objets consommables, en conservant la meme hierarchie de progression par tier.</p>
+      <p>L'objectif est d'enrichir le gameplay PvP en proposant des archetypes de combat varies — l'arc pour le combat a distance, la dague pour les joueurs furtifs, le marteau pour les batailles de groupe, le bouclier pour les tanks — sans pour autant creer une surpuissance qui rendrait certains builds obsoletes.</p>
+
+      <h3>Contexte PvP 1.8</h3>
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Regle absolue PvP 1.8</strong> — Le serveur utilise un mod supprimant le cooldown d'attaque vanilla de Minecraft 1.9+. Cela signifie que les joueurs peuvent attaquer aussi vite que leur souris le permet (jitter click). En consequence : <strong>ne JAMAIS coder de bonus ou malus bases sur ATTACK_SPEED</strong>. Toutes les mecaniques de differentiation entre armes sont basees sur les degats, la portee, les effets speciaux et les zones d'effet.</div>
+      </div>
+      <ul>
+        <li><strong>Arcs</strong> — Differencies par les degats bruts, la vitesse de tirage et la velocite des fleches.</li>
+        <li><strong>Dagues</strong> — Moins de degats bruts, mais bonus de backstab important. Reclame du positionnement.</li>
+        <li><strong>Marteaux</strong> — Plus de degats et AoE frontale. Favorise les combats en groupe/donjon.</li>
+        <li><strong>Boucliers</strong> — Reduction de degats via blocage actif. Tier Erinium repousse l'attaquant.</li>
+        <li><strong>Set Bonus</strong> — Recompense passive pour les joueurs ayant un set complet d'un tier.</li>
+        <li><strong>Pommes Custom</strong> — Consommables PvP couteux, alternatif a la Pomme d'Or Enchantee vanilla.</li>
+      </ul>
+
+      <h3>Conventions de developpement</h3>
+      <ul>
+        <li>Tous les items sont crees via <code>EriItem.create()</code> (EriAPI Content Builder). Pas de boilerplate Forge brut.</li>
+        <li>Tous les textes sont dans les fichiers de traduction <code>fr_FR.lang</code> et <code>en_US.lang</code> via les cles <code>item.eriniumfaction.&lt;id&gt;.name</code>.</li>
+        <li>Les event handlers utilisent <code>EriEvents.on()</code> ou <code>@Mod.EventBusSubscriber</code>.</li>
+        <li>Les entites fleches sont enregistrees via <code>EntityRegistry.registerModEntity()</code> dans le CommonProxy.</li>
+        <li>Java 8 uniquement — pas de <code>var</code>, pas de features Java 9+.</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S2 — VUE D'ENSEMBLE ═══ -->
+    <div class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Vue d'ensemble</h2>
+
+      <p>Le systeme ajoute 19 items et 4 entites fleches. Tous les items respectent la progression a 3 tiers existante.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Categorie</th>
+              <th class="tier-valterite">Valterite</th>
+              <th class="tier-aetherite">Aetherite</th>
+              <th class="tier-erinium">Erinium</th>
+              <th>Special</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Arcs</td>
+              <td class="tier-valterite">Arc de Valterite</td>
+              <td class="tier-aetherite">Arc d'Aetherite</td>
+              <td class="tier-erinium">Arc d'Erinium</td>
+              <td>—</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Fleches</td>
+              <td class="tier-valterite">Fleche Valterite</td>
+              <td class="tier-aetherite">Fleche Aetherite</td>
+              <td class="tier-erinium">Fleche Erinium</td>
+              <td style="color:var(--gold)">Fleche Explosive</td>
+              <td>4</td>
+            </tr>
+            <tr>
+              <td>Boucliers</td>
+              <td class="tier-valterite">Bouclier Valterite</td>
+              <td class="tier-aetherite">Bouclier Aetherite</td>
+              <td class="tier-erinium">Bouclier Erinium</td>
+              <td>—</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Dagues</td>
+              <td class="tier-valterite">Dague Valterite</td>
+              <td class="tier-aetherite">Dague Aetherite</td>
+              <td class="tier-erinium">Dague Erinium</td>
+              <td>—</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Marteaux</td>
+              <td class="tier-valterite">Marteau Valterite</td>
+              <td class="tier-aetherite">Marteau Aetherite</td>
+              <td class="tier-erinium">Marteau Erinium</td>
+              <td>—</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Pommes Custom</td>
+              <td class="tier-valterite">Pomme Valterite</td>
+              <td class="tier-aetherite">Pomme Aetherite</td>
+              <td class="tier-erinium">Pomme Erinium</td>
+              <td>—</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Set Bonus</td>
+              <td colspan="4" style="text-align:center;color:var(--slate);font-style:italic;">Aucun item supplementaire — effets passifs sur les armures existantes</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td>Entites fleches</td>
+              <td class="tier-valterite">EntityValteriteArrow</td>
+              <td class="tier-aetherite">EntityAetheriteArrow</td>
+              <td class="tier-erinium">EntityEriniumArrow</td>
+              <td style="color:var(--gold)">EntityExplosiveArrow</td>
+              <td>4</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--text)">Total items</td>
+              <td colspan="4"></td>
+              <td style="font-weight:700;color:var(--text)">19</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Set Bonus Armure</strong> — Le systeme de set bonus ne cree pas de nouveaux items. Il s'appuie sur la detection des armures existantes (valterite_helmet, valterite_chestplate, valterite_leggings, valterite_boots, etc.) dans les slots d'armure du joueur.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S3 — ARCS CUSTOM ═══ -->
+    <div class="section-card" id="s3">
+      <h2><span class="s-num">03</span> Arcs Custom</h2>
+
+      <p>Trois arcs progressifs etendant la classe vanilla <code>ItemBow</code>. La progression se fait sur les degats, la velocite des fleches et la vitesse de tirage. L'arc d'Erinium est clairement superieur en toutes circonstances et represente un investissement de mid-game.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Propriete</th>
+              <th class="tier-valterite">Arc de Valterite</th>
+              <th class="tier-aetherite">Arc d'Aetherite</th>
+              <th class="tier-erinium">Arc d'Erinium</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ID</td>
+              <td>valterite_bow</td>
+              <td>aetherite_bow</td>
+              <td>erinium_bow</td>
+            </tr>
+            <tr>
+              <td>Degats vs arc vanilla</td>
+              <td>+20%</td>
+              <td>+35%</td>
+              <td>+50%</td>
+            </tr>
+            <tr>
+              <td>Vitesse de tirage</td>
+              <td>Identique au vanilla</td>
+              <td>20% plus rapide</td>
+              <td>30% plus rapide</td>
+            </tr>
+            <tr>
+              <td>Velocite de fleche</td>
+              <td>+10%</td>
+              <td>+20%</td>
+              <td>+30%</td>
+            </tr>
+            <tr>
+              <td>Durabilite</td>
+              <td>500</td>
+              <td>750</td>
+              <td>1 200</td>
+            </tr>
+            <tr>
+              <td>Rarete</td>
+              <td>UNCOMMON</td>
+              <td>RARE</td>
+              <td>EPIC + glow</td>
+            </tr>
+            <tr>
+              <td>Textures tirage</td>
+              <td>3 stades + idle</td>
+              <td>3 stades + idle</td>
+              <td>3 stades + idle</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Implementation technique</h3>
+      <ul>
+        <li><strong>Classe de base</strong> — <code>ItemTieredBow extends ItemBow</code>. Le constructeur prend un multiplicateur de degats, un multiplicateur de velocite et un facteur de duree de tirage.</li>
+        <li><strong>Duree de tirage</strong> — Override de <code>getMaxItemUseDuration(ItemStack)</code>. Retourner <code>(int)(72000 / drawSpeedFactor)</code> ou plus simplement reduire la duree en ticks : vanilla = 72 000, Aetherite = 60 000, Erinium = 50 400.</li>
+        <li><strong>Degats et velocite</strong> — Override de <code>onPlayerStoppedUsing(ItemStack, World, EntityLivingBase, int)</code>. Recalculer la charge en appliquant les multiplicateurs avant d'appeler le code de lancer de fleche.</li>
+        <li><strong>Rendu de tirage</strong> — Enregistrer les textures via <code>ModelBakery.registerItemVariants()</code> et implémenter <code>IItemPropertyGetter</code> pour la propriete <code>pull</code>. Le modele JSON reference les textures aux valeurs 0.0, 0.65 et 0.9.</li>
+      </ul>
+
+      <div class="code-block"><span class="cm">// ItemTieredBow — constructeur</span>
+<span class="kw">public</span> <span class="fn">ItemTieredBow</span>(<span class="ty">String</span> tierName, <span class="ty">float</span> damageMultiplier, <span class="ty">float</span> velocityMultiplier,
+                       <span class="ty">float</span> drawSpeedFactor, <span class="ty">int</span> durability) {
+    <span class="kw">this</span>.tierName         = tierName;
+    <span class="kw">this</span>.damageMultiplier  = damageMultiplier;
+    <span class="kw">this</span>.velocityMultiplier = velocityMultiplier;
+    <span class="kw">this</span>.drawSpeedFactor   = drawSpeedFactor;
+    setMaxDamage(durability);
+}
+
+<span class="an">@Override</span>
+<span class="kw">public int</span> <span class="fn">getMaxItemUseDuration</span>(<span class="ty">ItemStack</span> stack) {
+    <span class="cm">// Plus drawSpeedFactor est eleve, plus le tirage est rapide</span>
+    <span class="kw">return</span> (<span class="kw">int</span>) (<span class="nu">72000</span> / drawSpeedFactor);
+}
+
+<span class="an">@Override</span>
+<span class="kw">public void</span> <span class="fn">onPlayerStoppedUsing</span>(<span class="ty">ItemStack</span> stack, <span class="ty">World</span> world, <span class="ty">EntityLivingBase</span> entity, <span class="kw">int</span> timeLeft) {
+    <span class="kw">if</span> (!world.isRemote &amp;&amp; entity <span class="kw">instanceof</span> <span class="ty">EntityPlayer</span>) {
+        <span class="ty">EntityPlayer</span> player = (<span class="ty">EntityPlayer</span>) entity;
+        <span class="kw">int</span> charge = <span class="kw">this</span>.<span class="fn">getMaxItemUseDuration</span>(stack) - timeLeft;
+        <span class="kw">float</span> chargeRatio = <span class="ty">BowCharge</span>.<span class="fn">getArrowVelocity</span>(charge);
+        <span class="kw">if</span> (chargeRatio &gt;= <span class="nu">0.1f</span>) {
+            <span class="ty">EntityArrow</span> arrow = <span class="kw">new</span> <span class="ty">EntityTippedArrow</span>(world, player);
+            <span class="cm">// Appliquer les multiplicateurs du tier</span>
+            arrow.<span class="fn">shoot</span>(player, player.rotationPitch, player.rotationYaw,
+                        <span class="nu">0.0f</span>, chargeRatio * <span class="nu">3.0f</span> * velocityMultiplier, <span class="nu">1.0f</span>);
+            arrow.<span class="fn">setDamage</span>(arrow.<span class="fn">getDamage</span>() * damageMultiplier);
+            world.<span class="fn">spawnEntity</span>(arrow);
+        }
+    }
+}</div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Compatibilite enchantements Power</strong> — L'enchantement Power de l'arc vanilla multiplie les degats de base de l'arc. Puisque nos arcs custom overrident le calcul de degats, s'assurer que l'override prend en compte l'enchantement Power en lisant <code>EnchantmentHelper.getEnchantmentLevel(Enchantments.POWER, stack)</code> et en applicant le bonus additionnel apres le multiplicateur de tier.</div>
+      </div>
+
+      <h3>Modeles JSON et textures de tirage</h3>
+      <p>Chaque arc custom necessite 4 textures : idle (au repos) et 3 stades de tirage (pull0, pull1, pull2). La propriete <code>pull</code> dans le modele JSON reference ces textures.</p>
+      <div class="code-block"><span class="cm">// models/item/valterite_bow.json (extrait)</span>
+{
+    <span class="st">"parent"</span>: <span class="st">"item/bow"</span>,
+    <span class="st">"textures"</span>: { <span class="st">"layer0"</span>: <span class="st">"eriniumfaction:items/valterite_bow"</span> },
+    <span class="st">"overrides"</span>: [
+        { <span class="st">"predicate"</span>: { <span class="st">"pulling"</span>: <span class="nu">1</span>, <span class="st">"pull"</span>: <span class="nu">0.00</span> },
+          <span class="st">"model"</span>: <span class="st">"eriniumfaction:item/valterite_bow_pulling_0"</span> },
+        { <span class="st">"predicate"</span>: { <span class="st">"pulling"</span>: <span class="nu">1</span>, <span class="st">"pull"</span>: <span class="nu">0.65</span> },
+          <span class="st">"model"</span>: <span class="st">"eriniumfaction:item/valterite_bow_pulling_1"</span> },
+        { <span class="st">"predicate"</span>: { <span class="st">"pulling"</span>: <span class="nu">1</span>, <span class="st">"pull"</span>: <span class="nu">0.90</span> },
+          <span class="st">"model"</span>: <span class="st">"eriniumfaction:item/valterite_bow_pulling_2"</span> }
+    ]
+}</div>
+    </div>
+
+    <!-- ═══ S4 — FLECHES SPECIALES ═══ -->
+    <div class="section-card" id="s4">
+      <h2><span class="s-num green-num">04</span> Fleches Speciales</h2>
+
+      <p>Quatre types de fleches custom offrant des effets speciaux a l'impact. Chaque type necessite une classe d'entite distincte heritant de <code>EntityArrow</code>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>ID Item</th>
+              <th>Entite</th>
+              <th>Effet a l'impact</th>
+              <th>Stack</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="tier-valterite">Fleche Valterite</td>
+              <td>valterite_arrow</td>
+              <td>EntityValteriteArrow</td>
+              <td>Lenteur I pendant 2 secondes sur la cible</td>
+              <td>16</td>
+            </tr>
+            <tr>
+              <td class="tier-aetherite">Fleche Aetherite</td>
+              <td>aetherite_arrow</td>
+              <td>EntityAetheriteArrow</td>
+              <td>Ignore 30% de l'armure de la cible</td>
+              <td>16</td>
+            </tr>
+            <tr>
+              <td class="tier-erinium">Fleche Erinium</td>
+              <td>erinium_arrow</td>
+              <td>EntityEriniumArrow</td>
+              <td>Degats doubles, non recuperable (consommee meme si ratee)</td>
+              <td>16</td>
+            </tr>
+            <tr>
+              <td style="color:var(--gold);font-weight:600">Fleche Explosive</td>
+              <td>explosive_arrow</td>
+              <td>EntityExplosiveArrow</td>
+              <td>Petite explosion a l'impact (3 coeurs AoE en 3 blocs, pas de destruction de blocs)</td>
+              <td>8</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Implementation : EntityValteriteArrow</h3>
+      <ul>
+        <li>Override de <code>onHit(RayTraceResult)</code> — si le hit est une entite, appliquer <code>PotionEffect(MobEffects.SLOWNESS, 40, 0)</code> (40 ticks = 2 secondes, amplificateur 0 = niveau I).</li>
+        <li>Appeler <code>super.onHit(result)</code> pour le comportement standard (degats physiques).</li>
+      </ul>
+
+      <h3>Implementation : EntityAetheriteArrow</h3>
+      <ul>
+        <li>La fleche Aetherite n'a pas d'effet de potion. Elle modifie le calcul des degats via un flag interne.</li>
+        <li>Override de <code>attackEntityFrom(DamageSource, float)</code> sur la cible — intercepter dans <code>LivingHurtEvent</code> : si la source de degats est une fleche Aetherite, reduire temporairement l'absorption d'armure de 30%.</li>
+        <li>Implementation recommandee : dans <code>onHit(RayTraceResult)</code>, calculer les degats normaux, puis ajouter les degats bonus <code>baseArmorValue * 0.3f</code> comme degat magique non bloquable par l'armure (<code>DamageSource.causeIndirectMagicDamage()</code>).</li>
+      </ul>
+
+      <h3>Implementation : EntityEriniumArrow</h3>
+      <ul>
+        <li>Override de <code>getDamage()</code> pour retourner <code>super.getDamage() * 2.0</code>.</li>
+        <li>La fleche est consommee inconditionnellement — override de <code>onHit()</code> pour appeler <code>setDead()</code> et ne jamais dropper la fleche, qu'elle touche ou non.</li>
+        <li>Ne pas appeler la logique de recuperation vanilla dans <code>onHitEntity()</code>.</li>
+      </ul>
+
+      <div class="code-block"><span class="cm">// EntityExplosiveArrow — explosion a l'impact sans destruction de blocs</span>
+<span class="an">@Override</span>
+<span class="kw">protected void</span> <span class="fn">onImpact</span>(<span class="ty">RayTraceResult</span> result) {
+    <span class="kw">if</span> (!world.isRemote) {
+        <span class="ty">Entity</span> shooter = <span class="fn">getShooter</span>();
+        <span class="cm">// Pas de destruction de blocs : mobGriefing = false, blockBreaking = false</span>
+        world.<span class="fn">createExplosion</span>(shooter, posX, posY, posZ,
+                             <span class="nu">1.5f</span>,  <span class="cm">// force (1.5 = ~3 coeurs AoE)</span>
+                             <span class="kw">false</span>); <span class="cm">// causesFire = false</span>
+        <span class="cm">// Overrider GameRules pour bloquer la destruction de blocs</span>
+        <span class="cm">// ou utiliser World.newExplosion() avec Explosion.Mode.NONE</span>
+        <span class="fn">setDead</span>();
+    }
+}</div>
+
+      <h3>Enregistrement des entites fleches</h3>
+      <p>Les quatre entites sont enregistrees dans <code>CommonProxy.preInit()</code> via <code>EntityRegistry.registerModEntity()</code>. Les items fleches overrident <code>ItemArrow.createArrow()</code> pour retourner l'entite appropriee.</p>
+
+      <div class="code-block"><span class="cm">// Dans CommonProxy.preInit()</span>
+<span class="ty">EntityRegistry</span>.<span class="fn">registerModEntity</span>(
+    <span class="kw">new</span> <span class="ty">ResourceLocation</span>(<span class="ty">EriniumFaction</span>.MODID, <span class="st">"valterite_arrow"</span>),
+    <span class="ty">EntityValteriteArrow</span>.<span class="kw">class</span>, <span class="st">"valterite_arrow"</span>,
+    <span class="nu">60</span>, <span class="ty">EriniumFaction</span>.INSTANCE, <span class="nu">64</span>, <span class="nu">1</span>, <span class="kw">true</span>
+);
+<span class="cm">// Repeter pour les 3 autres entites (IDs 61, 62, 63)</span></div>
+
+      <h3>Comportement distributeur</h3>
+      <p>Enregistrer le comportement dispenseur pour chaque item fleche via <code>BlockDispenser.DISPENSE_BEHAVIOR_REGISTRY.putObject(item, behavior)</code> dans <code>CommonProxy.init()</code>. Le comportement cree et lance l'entite fleche custom depuis le distributeur.</p>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Detection des fleches speciales par l'arc</strong> — Override de <code>ItemBow.findAmmo(EntityPlayer)</code> ou utiliser <code>ArrowLooseEvent</code> pour verifier si le joueur possede des fleches speciales dans son inventaire. Priorite : Fleche Erinium &gt; Fleche Aetherite &gt; Fleche Valterite &gt; Fleche vanilla.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S5 — BOUCLIERS ═══ -->
+    <div class="section-card" id="s5">
+      <h2><span class="s-num">05</span> Boucliers</h2>
+
+      <p>Trois boucliers par tier avec des pourcentages de blocage differents. Equippables dans l'offhand (main gauche). La mecanique de blocage est basee sur le maintien du clic droit.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Propriete</th>
+              <th class="tier-valterite">Bouclier Valterite</th>
+              <th class="tier-aetherite">Bouclier Aetherite</th>
+              <th class="tier-erinium">Bouclier Erinium</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ID</td>
+              <td>valterite_shield</td>
+              <td>aetherite_shield</td>
+              <td>erinium_shield</td>
+            </tr>
+            <tr>
+              <td>Blocage des degats</td>
+              <td>60%</td>
+              <td>75%</td>
+              <td>90%</td>
+            </tr>
+            <tr>
+              <td>Knockback sur blocage</td>
+              <td>Aucun</td>
+              <td>Aucun</td>
+              <td>Repousse l'attaquant de 2 blocs</td>
+            </tr>
+            <tr>
+              <td>Durabilite</td>
+              <td>400</td>
+              <td>600</td>
+              <td>1 000</td>
+            </tr>
+            <tr>
+              <td>Slot</td>
+              <td>Offhand</td>
+              <td>Offhand</td>
+              <td>Offhand</td>
+            </tr>
+            <tr>
+              <td>Rarete</td>
+              <td>UNCOMMON</td>
+              <td>RARE</td>
+              <td>EPIC + glow</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Implementation technique</h3>
+      <ul>
+        <li><strong>Classe de base</strong> — <code>ItemTieredShield extends ItemShield</code>. Le constructeur prend un pourcentage de blocage et un flag knockback.</li>
+        <li><strong>Detection du blocage</strong> — Dans <code>ShieldBlockHandler</code> (listener <code>LivingHurtEvent</code>) : verifier si la cible est un <code>EntityPlayer</code>, si son item offhand est un <code>ItemTieredShield</code>, et si <code>player.isActiveItemStackBlocking()</code> retourne true.</li>
+        <li><strong>Reduction des degats</strong> — Modifier <code>event.setAmount(event.getAmount() * (1.0f - blockPercentage))</code>. Consommer de la durabilite en consequence.</li>
+        <li><strong>Knockback Erinium</strong> — Pour le bouclier Erinium, apres la reduction de degats, appliquer un vecteur de velocite a l'attaquant en direction opposee a la cible : <code>attacker.addVelocity(dx * 0.5, 0.1, dz * 0.5)</code>.</li>
+      </ul>
+
+      <div class="code-block"><span class="cm">// ShieldBlockHandler — extrait</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onLivingHurt</span>(<span class="ty">LivingHurtEvent</span> event) {
+    <span class="kw">if</span> (!(event.<span class="fn">getEntityLiving</span>() <span class="kw">instanceof</span> <span class="ty">EntityPlayer</span>)) <span class="kw">return</span>;
+    <span class="ty">EntityPlayer</span> target = (<span class="ty">EntityPlayer</span>) event.<span class="fn">getEntityLiving</span>();
+    <span class="ty">ItemStack</span> offhand = target.<span class="fn">getHeldItemOffhand</span>();
+    <span class="kw">if</span> (offhand.<span class="fn">isEmpty</span>() || !(offhand.<span class="fn">getItem</span>() <span class="kw">instanceof</span> <span class="ty">ItemTieredShield</span>)) <span class="kw">return</span>;
+    <span class="kw">if</span> (!target.<span class="fn">isActiveItemStackBlocking</span>()) <span class="kw">return</span>;
+
+    <span class="ty">ItemTieredShield</span> shield = (<span class="ty">ItemTieredShield</span>) offhand.<span class="fn">getItem</span>();
+    <span class="kw">float</span> reduced = event.<span class="fn">getAmount</span>() * (<span class="nu">1.0f</span> - shield.<span class="fn">getBlockPercentage</span>());
+    event.<span class="fn">setAmount</span>(reduced);
+    offhand.<span class="fn">damageItem</span>(<span class="nu">1</span>, target);
+
+    <span class="kw">if</span> (shield.<span class="fn">hasKnockback</span>() &amp;&amp; event.<span class="fn">getSource</span>().<span class="fn">getImmediateSource</span>() <span class="kw">instanceof</span> <span class="ty">EntityLivingBase</span>) {
+        <span class="ty">EntityLivingBase</span> attacker = (<span class="ty">EntityLivingBase</span>) event.<span class="fn">getSource</span>().<span class="fn">getImmediateSource</span>();
+        <span class="ty">Vec3d</span> dir = attacker.<span class="fn">getPositionVector</span>().<span class="fn">subtract</span>(target.<span class="fn">getPositionVector</span>()).<span class="fn">normalize</span>();
+        attacker.<span class="fn">addVelocity</span>(dir.x * <span class="nu">0.6</span>, <span class="nu">0.1</span>, dir.z * <span class="nu">0.6</span>);
+        attacker.<span class="fn">velocityChanged</span> = <span class="kw">true</span>;
+    }
+}</div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>PvP 1.8 — Pas de timing</strong> — Le blocage du bouclier vanilla 1.9+ inclut une mecanique de timing (le bouclier doit etre "charge" avant de bloquer). En PvP 1.8, cette mecanique est inexistante. Notre implementation bloque instantanement des que <code>isActiveItemStackBlocking()</code> est vrai (clic droit maintenu).</div>
+      </div>
+    </div>
+
+    <!-- ═══ S6 — SET BONUS ARMURE ═══ -->
+    <div class="section-card" id="s6">
+      <h2><span class="s-num gold-num">06</span> Set Bonus Armure</h2>
+
+      <p>Bonus passifs accords aux joueurs portant les 4 pieces d'armure du meme tier. Aucun nouvel item n'est cree. Le <code>SetBonusHandler</code> detecte la composition de l'armure et applique/supprime les bonus dynamiquement.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tier</th>
+              <th>Bonus de set complet</th>
+              <th>Implementation</th>
+              <th>Visuel</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="tier-valterite">Valterite</td>
+              <td>Regeneration passive hors-combat : 0.5 coeur toutes les 5 secondes. "Hors-combat" = aucun degat recu ou inflige dans les 5 dernieres secondes.</td>
+              <td><code>player.heal(1.0f)</code> toutes les 100 ticks si timer hors-combat &gt;= 100</td>
+              <td>Particules bleues occasionnelles</td>
+            </tr>
+            <tr>
+              <td class="tier-aetherite">Aetherite</td>
+              <td>+10% de vitesse de deplacement (AttributeModifier persistant)</td>
+              <td><code>SharedMonsterAttributes.MOVEMENT_SPEED</code> modifier UUID fixe, applique/retire selon le set</td>
+              <td>Particules violettes occasionnelles</td>
+            </tr>
+            <tr>
+              <td class="tier-erinium">Erinium</td>
+              <td>-15% de tous les degats recus (reduction plate avant le calcul d'armure)</td>
+              <td>Dans <code>LivingHurtEvent</code> : si set Erinium complet, <code>event.setAmount(amount * 0.85f)</code></td>
+              <td>Particules or/violet occasionnelles</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>SetBonusHandler — Logique de detection</h3>
+      <ul>
+        <li>Verifier les 4 slots d'armure (<code>EntityEquipmentSlot.HEAD, CHEST, LEGS, FEET</code>) a chaque <code>PlayerTickEvent</code> (Phase END, toutes les 20 ticks pour la performance).</li>
+        <li>Pour chaque slot, recuperer le registry name de l'item et le comparer aux prefixes <code>"eriniumfaction:valterite_"</code>, <code>"eriniumfaction:aetherite_"</code>, <code>"eriniumfaction:erinium_"</code>.</li>
+        <li>Si les 4 pieces correspondent au meme tier, activer le bonus correspondant. Sinon, desactiver tous les bonus actifs.</li>
+        <li>Stocker le set actif par UUID : <code>Map&lt;UUID, String&gt; activeSetBonus</code> dans <code>SetBonusHandler</code>.</li>
+      </ul>
+
+      <div class="code-block"><span class="cm">// SetBonusHandler — detection du set complet</span>
+<span class="kw">private</span> <span class="ty">String</span> <span class="fn">detectActiveSet</span>(<span class="ty">EntityPlayer</span> player) {
+    <span class="ty">String</span>[] tiers = { <span class="st">"valterite"</span>, <span class="st">"aetherite"</span>, <span class="st">"erinium"</span> };
+    <span class="kw">for</span> (<span class="ty">String</span> tier : tiers) {
+        <span class="kw">boolean</span> full = <span class="kw">true</span>;
+        <span class="kw">for</span> (<span class="ty">EntityEquipmentSlot</span> slot : <span class="kw">new</span> <span class="ty">EntityEquipmentSlot</span>[]{
+                HEAD, CHEST, LEGS, FEET}) {
+            <span class="ty">ItemStack</span> piece = player.<span class="fn">getItemStackFromSlot</span>(slot);
+            <span class="kw">if</span> (piece.<span class="fn">isEmpty</span>()) { full = <span class="kw">false</span>; <span class="kw">break</span>; }
+            <span class="ty">String</span> name = piece.<span class="fn">getItem</span>().<span class="fn">getRegistryName</span>().<span class="fn">toString</span>();
+            <span class="kw">if</span> (!name.<span class="fn">startsWith</span>(<span class="st">"eriniumfaction:"</span> + tier + <span class="st">"_"</span>)) {
+                full = <span class="kw">false</span>; <span class="kw">break</span>;
+            }
+        }
+        <span class="kw">if</span> (full) <span class="kw">return</span> tier;
+    }
+    <span class="kw">return null</span>;
+}</div>
+
+      <h3>Bonus Aetherite — Gestion de l'AttributeModifier</h3>
+      <p>L'UUID du modifier doit etre fixe et constant pour pouvoir le retirer proprement. Utiliser un UUID derive du modid.</p>
+
+      <div class="code-block"><span class="kw">private static final</span> <span class="ty">UUID</span> SPEED_MODIFIER_UUID =
+    <span class="ty">UUID</span>.<span class="fn">fromString</span>(<span class="st">"a7b3c4d5-e6f7-8901-abcd-ef0123456789"</span>);
+<span class="kw">private static final</span> <span class="ty">String</span> SPEED_MODIFIER_NAME = <span class="st">"EriniumFaction.AetheriteSetSpeed"</span>;
+
+<span class="kw">private void</span> <span class="fn">applyAetheriteSpeed</span>(<span class="ty">EntityPlayer</span> player) {
+    <span class="ty">IAttributeInstance</span> attr = player.<span class="fn">getEntityAttribute</span>(
+        <span class="ty">SharedMonsterAttributes</span>.MOVEMENT_SPEED);
+    <span class="kw">if</span> (attr.<span class="fn">getModifier</span>(SPEED_MODIFIER_UUID) == <span class="kw">null</span>) {
+        attr.<span class="fn">applyModifier</span>(<span class="kw">new</span> <span class="ty">AttributeModifier</span>(
+            SPEED_MODIFIER_UUID, SPEED_MODIFIER_NAME,
+            <span class="nu">0.10</span>, <span class="nu">1</span>)); <span class="cm">// Operation 1 = multiplicatif (baseValue * (1 + 0.10))</span>
+    }
+}
+
+<span class="kw">private void</span> <span class="fn">removeAetheriteSpeed</span>(<span class="ty">EntityPlayer</span> player) {
+    <span class="ty">IAttributeInstance</span> attr = player.<span class="fn">getEntityAttribute</span>(
+        <span class="ty">SharedMonsterAttributes</span>.MOVEMENT_SPEED);
+    <span class="ty">AttributeModifier</span> mod = attr.<span class="fn">getModifier</span>(SPEED_MODIFIER_UUID);
+    <span class="kw">if</span> (mod != <span class="kw">null</span>) attr.<span class="fn">removeModifier</span>(mod);
+}</div>
+
+      <h3>Particules client-side</h3>
+      <p>Les particules decoratives sont spawned cote client uniquement dans <code>PlayerTickEvent</code> (Phase END, world.isRemote == true). Une chance de 5% par tick est suffisante pour un effet visual occasionnel.</p>
+      <ul>
+        <li><strong>Valterite</strong> — <code>EnumParticleTypes.WATER_SPLASH</code> avec teinte bleue.</li>
+        <li><strong>Aetherite</strong> — <code>EnumParticleTypes.PORTAL</code> autour du joueur.</li>
+        <li><strong>Erinium</strong> — <code>EnumParticleTypes.ENCHANTMENT_TABLE</code> avec teinte doree.</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S7 — DAGUES ═══ -->
+    <div class="section-card" id="s7">
+      <h2><span class="s-num">07</span> Dagues</h2>
+
+      <p>Les dagues infligent moins de degats directs que les epees, mais appliquent un bonus de +50% sur les attaques dans le dos. Elles reclament du positionnement et de la mobilite, ce qui les rend particulierement efficaces en 1v1 contre des adversaires qui ne font pas attention a leur positionnement.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Propriete</th>
+              <th class="tier-valterite">Dague Valterite</th>
+              <th class="tier-aetherite">Dague Aetherite</th>
+              <th class="tier-erinium">Dague Erinium</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ID</td>
+              <td>valterite_dagger</td>
+              <td>aetherite_dagger</td>
+              <td>erinium_dagger</td>
+            </tr>
+            <tr>
+              <td>Degats de base</td>
+              <td>4.0 (♥♥)</td>
+              <td>5.0 (♥♥♥)</td>
+              <td>6.0 (♥♥♥)</td>
+            </tr>
+            <tr>
+              <td>Multiplicateur backstab</td>
+              <td>x1.5 (+50%)</td>
+              <td>x1.5 (+50%)</td>
+              <td>x1.5 (+50%)</td>
+            </tr>
+            <tr>
+              <td>Portee</td>
+              <td>Normale</td>
+              <td>Normale</td>
+              <td>Normale</td>
+            </tr>
+            <tr>
+              <td>Durabilite</td>
+              <td>300</td>
+              <td>450</td>
+              <td>700</td>
+            </tr>
+            <tr>
+              <td>Rarete</td>
+              <td>UNCOMMON</td>
+              <td>RARE</td>
+              <td>EPIC + glow</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Detection du backstab — Mathematiques vectorielles</h3>
+      <p>Le backstab est detecte en comparant le vecteur de regard de la cible avec le vecteur allant de l'attaquant vers la cible. Si l'attaquant se trouve dans le dos de la cible (arc de 120 degres derriere), le backstab s'applique.</p>
+
+      <div class="code-block"><span class="cm">// BackstabHandler — detection de la position dans le dos</span>
+<span class="kw">private boolean</span> <span class="fn">isBackstab</span>(<span class="ty">EntityLivingBase</span> attacker, <span class="ty">EntityLivingBase</span> target) {
+    <span class="cm">// Vecteur du regard de la cible (direction ou elle regarde)</span>
+    <span class="ty">Vec3d</span> targetForward = target.<span class="fn">getLookVec</span>();
+
+    <span class="cm">// Vecteur de la cible vers l'attaquant</span>
+    <span class="ty">Vec3d</span> targetToAttacker = attacker.<span class="fn">getPositionVector</span>()
+        .<span class="fn">subtract</span>(target.<span class="fn">getPositionVector</span>())
+        .<span class="fn">normalize</span>();
+
+    <span class="cm">// Produit scalaire : si negatif, l'attaquant est derriere la cible</span>
+    <span class="cm">// dotProduct &lt; -0.5 signifie angle &gt; 120 degres (cos(120°) = -0.5)</span>
+    <span class="kw">double</span> dot = targetForward.<span class="fn">dotProduct</span>(targetToAttacker);
+    <span class="kw">return</span> dot &lt; -<span class="nu">0.5</span>;
+}
+
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onLivingHurt</span>(<span class="ty">LivingHurtEvent</span> event) {
+    <span class="ty">Entity</span> src = event.<span class="fn">getSource</span>().<span class="fn">getImmediateSource</span>();
+    <span class="kw">if</span> (!(src <span class="kw">instanceof</span> <span class="ty">EntityPlayer</span>)) <span class="kw">return</span>;
+    <span class="ty">EntityPlayer</span> attacker = (<span class="ty">EntityPlayer</span>) src;
+    <span class="ty">ItemStack</span> held = attacker.<span class="fn">getHeldItemMainhand</span>();
+    <span class="kw">if</span> (!(held.<span class="fn">getItem</span>() <span class="kw">instanceof</span> <span class="ty">ItemDagger</span>)) <span class="kw">return</span>;
+
+    <span class="kw">if</span> (<span class="fn">isBackstab</span>(attacker, event.<span class="fn">getEntityLiving</span>())) {
+        event.<span class="fn">setAmount</span>(event.<span class="fn">getAmount</span>() * <span class="nu">1.5f</span>);
+        <span class="cm">// Spawn de particules rouges cote client via packet</span>
+        <span class="fn">spawnBackstabParticles</span>(event.<span class="fn">getEntityLiving</span>());
+    }
+}</div>
+
+      <h3>Creation via EriAPI</h3>
+      <p>Les dagues sont creees comme des epees avec des degats inferieurs a ceux des epees de meme tier. La logique de backstab est entierement dans l'event handler, transparente pour <code>EriItem</code>.</p>
+
+      <div class="code-block"><span class="cm">// Dans EriniumItems.register()</span>
+<span class="ty">EriItem</span>.<span class="fn">create</span>(<span class="ty">EriniumFaction</span>.MODID, <span class="st">"valterite_dagger"</span>)
+    .<span class="fn">rarity</span>(<span class="ty">EnumRarity</span>.UNCOMMON)
+    .<span class="fn">creativeTab</span>(<span class="ty">EriniumCreativeTab</span>.TAB)
+    .<span class="fn">tool</span>()
+        .<span class="fn">type</span>(<span class="ty">ItemDefinition</span>.<span class="ty">ToolType</span>.SWORD)
+        .<span class="fn">damage</span>(<span class="nu">2.0f</span>)  <span class="cm">// 2.0 + 4 (base sword) = 6, mais en PvP 1.8 le base est different</span>
+        .<span class="fn">attackSpeed</span>(-<span class="nu">2.4f</span>)  <span class="cm">// ATTACK_SPEED ignoree en PvP 1.8, valeur formelle</span>
+        .<span class="fn">durability</span>(<span class="nu">300</span>)
+        .<span class="fn">enchantability</span>(<span class="nu">12</span>)
+        .<span class="fn">harvestLevel</span>(<span class="nu">3</span>)
+    .<span class="fn">done</span>()
+    .<span class="fn">register</span>();</div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Visuel du backstab</strong> — Lors d'un backstab, spawner des particules <code>CRIT_MAGIC</code> sur la cible et jouer le son <code>SoundEvents.ENTITY_PLAYER_ATTACK_CRIT</code> au client de l'attaquant via un packet custom.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S8 — MARTEAUX DE GUERRE ═══ -->
+    <div class="section-card" id="s8">
+      <h2><span class="s-num cyan-num">08</span> Marteaux de Guerre</h2>
+
+      <p>Les marteaux font plus de degats que les epees et infligent une partie de ces degats aux ennemis adjacents (cone frontal). En contrepartie, chaque frappe impose un <strong>cooldown</strong> avant de pouvoir frapper a nouveau (2s / 2.5s / 3s selon le tier). C'est une arme de timing, pas de spam. Particulierement efficace dans les combats de groupe (sieges, events) et contre les mobs groupes.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Propriete</th>
+              <th class="tier-valterite">Marteau Valterite</th>
+              <th class="tier-aetherite">Marteau Aetherite</th>
+              <th class="tier-erinium">Marteau Erinium</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ID</td>
+              <td>valterite_warhammer</td>
+              <td>aetherite_warhammer</td>
+              <td>erinium_warhammer</td>
+            </tr>
+            <tr>
+              <td>Degats sur la cible principale</td>
+              <td>7.0 (♥♥♥♥)</td>
+              <td>8.5 (♥♥♥♥)</td>
+              <td>10.0 (♥♥♥♥♥)</td>
+            </tr>
+            <tr>
+              <td>Rayon AoE</td>
+              <td>2.0 blocs</td>
+              <td>2.5 blocs</td>
+              <td>3.0 blocs</td>
+            </tr>
+            <tr>
+              <td>Degats AoE</td>
+              <td>60% des degats de la frappe</td>
+              <td>60% des degats de la frappe</td>
+              <td>60% des degats de la frappe</td>
+            </tr>
+            <tr>
+              <td>Zone AoE</td>
+              <td>Cone frontal</td>
+              <td>Cone frontal</td>
+              <td>Cone frontal</td>
+            </tr>
+            <tr>
+              <td>Cooldown entre frappes</td>
+              <td>2.0s (40 ticks)</td>
+              <td>2.5s (50 ticks)</td>
+              <td>3.0s (60 ticks)</td>
+            </tr>
+            <tr>
+              <td>Durabilite</td>
+              <td>400</td>
+              <td>600</td>
+              <td>1 000</td>
+            </tr>
+            <tr>
+              <td>Rarete</td>
+              <td>UNCOMMON</td>
+              <td>RARE</td>
+              <td>EPIC + glow</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Detection du cone frontal AoE</h3>
+      <p>Le cone est calcule depuis la position de l'attaquant dans la direction de son regard. Seules les entites dans un angle de 90 degres de part et d'autre du vecteur de regard sont touchees.</p>
+
+      <div class="code-block"><span class="cm">// HammerAoeHandler — frappe AoE en cone frontal</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onLivingHurt</span>(<span class="ty">LivingHurtEvent</span> event) {
+    <span class="ty">Entity</span> src = event.<span class="fn">getSource</span>().<span class="fn">getImmediateSource</span>();
+    <span class="kw">if</span> (!(src <span class="kw">instanceof</span> <span class="ty">EntityPlayer</span>)) <span class="kw">return</span>;
+    <span class="ty">EntityPlayer</span> attacker = (<span class="ty">EntityPlayer</span>) src;
+    <span class="ty">ItemStack</span> held = attacker.<span class="fn">getHeldItemMainhand</span>();
+    <span class="kw">if</span> (!(held.<span class="fn">getItem</span>() <span class="kw">instanceof</span> <span class="ty">ItemWarHammer</span>)) <span class="kw">return</span>;
+
+    <span class="ty">ItemWarHammer</span> hammer = (<span class="ty">ItemWarHammer</span>) held.<span class="fn">getItem</span>();
+    <span class="kw">float</span> radius = hammer.<span class="fn">getAoeRadius</span>();
+    <span class="kw">float</span> aoeDmg = event.<span class="fn">getAmount</span>() * <span class="nu">0.60f</span>;
+    <span class="ty">EntityLivingBase</span> primaryTarget = event.<span class="fn">getEntityLiving</span>();
+
+    <span class="cm">// AABB elargi autour de l'attaquant</span>
+    <span class="ty">AxisAlignedBB</span> bb = attacker.<span class="fn">getEntityBoundingBox</span>().<span class="fn">grow</span>(radius);
+    <span class="ty">List</span>&lt;<span class="ty">EntityLivingBase</span>&gt; nearby = attacker.world.<span class="fn">getEntitiesWithinAABB</span>(
+        <span class="ty">EntityLivingBase</span>.<span class="kw">class</span>, bb);
+
+    <span class="ty">Vec3d</span> attackerLook = attacker.<span class="fn">getLookVec</span>();
+
+    <span class="kw">for</span> (<span class="ty">EntityLivingBase</span> entity : nearby) {
+        <span class="cm">// Exclure la cible principale et l'attaquant lui-meme</span>
+        <span class="kw">if</span> (entity == primaryTarget || entity == attacker) <span class="kw">continue</span>;
+        <span class="cm">// Exclure les allies (meme faction)</span>
+        <span class="kw">if</span> (<span class="fn">isSameFaction</span>(attacker, entity)) <span class="kw">continue</span>;
+
+        <span class="cm">// Verifier que l'entite est dans le cone frontal (angle &lt; 90 degres)</span>
+        <span class="ty">Vec3d</span> toEntity = entity.<span class="fn">getPositionVector</span>()
+            .<span class="fn">subtract</span>(attacker.<span class="fn">getPositionVector</span>()).<span class="fn">normalize</span>();
+        <span class="kw">double</span> dot = attackerLook.<span class="fn">dotProduct</span>(toEntity);
+        <span class="kw">if</span> (dot &lt; <span class="nu">0.0</span>) <span class="kw">continue</span>; <span class="cm">// dot &lt; 0 = angle &gt; 90 deg = derriere</span>
+
+        entity.<span class="fn">attackEntityFrom</span>(
+            <span class="ty">DamageSource</span>.<span class="fn">causePlayerDamage</span>(attacker), aoeDmg);
+    }
+    <span class="cm">// Particules de balayage (vanilla sweep)</span>
+    attacker.world.<span class="fn">spawnParticle</span>(<span class="ty">EnumParticleTypes</span>.SWEEP_ATTACK,
+        primaryTarget.posX, primaryTarget.posY + primaryTarget.height / <span class="nu">2</span>,
+        primaryTarget.posZ, <span class="nu">0</span>, <span class="nu">0</span>, <span class="nu">0</span>);
+}</div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Protection contre les chaines de degats</strong> — Les degats AoE appliques via <code>attackEntityFrom()</code> declencheront a nouveau <code>LivingHurtEvent</code>. Pour eviter une boucle infinie, ajouter un flag NBT temporaire sur l'entite attaquee (ou un Set&lt;Integer&gt; d'entityId en cours de traitement) et le retirer apres la frappe.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S9 — POMMES CUSTOM ═══ -->
+    <div class="section-card" id="s9">
+      <h2><span class="s-num green-num">09</span> Pommes Custom</h2>
+
+      <p>Trois pommes custom offrant des effets de combat puissants. Leur cout de craft est deliberement eleve pour en faire des consommables de haut niveau. Un cooldown partage de 30 secondes empeche le spam.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Propriete</th>
+              <th class="tier-valterite">Pomme Valterite</th>
+              <th class="tier-aetherite">Pomme Aetherite</th>
+              <th class="tier-erinium">Pomme Erinium</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ID</td>
+              <td>valterite_apple</td>
+              <td>aetherite_apple</td>
+              <td>erinium_apple</td>
+            </tr>
+            <tr>
+              <td>Effets</td>
+              <td>Regeneration II</td>
+              <td>Absorption IV (8 coeurs supplementaires)</td>
+              <td>Regen III + Resistance II + Absorption IV</td>
+            </tr>
+            <tr>
+              <td>Duree des effets</td>
+              <td>10 secondes</td>
+              <td>30 secondes</td>
+              <td>20 secondes</td>
+            </tr>
+            <tr>
+              <td>Stack size</td>
+              <td>1</td>
+              <td>1</td>
+              <td>1</td>
+            </tr>
+            <tr>
+              <td>Cooldown partage</td>
+              <td>30 secondes</td>
+              <td>30 secondes</td>
+              <td>30 secondes</td>
+            </tr>
+            <tr>
+              <td>Toujours mangeable</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Implementation technique</h3>
+      <p>Les pommes custom sont creees comme des items de nourriture avec <code>EriItem.create().food()</code>. Pour appliquer plusieurs effets et gerer le cooldown, override de <code>onItemUseFinish()</code> est preferable a l'API <code>.effect()</code> chainee.</p>
+
+      <div class="code-block"><span class="cm">// ItemTieredApple — onItemUseFinish avec cooldown partage</span>
+<span class="kw">private static final</span> <span class="ty">UUID</span> COOLDOWN_APPLE = <span class="ty">UUID</span>.<span class="fn">randomUUID</span>(); <span class="cm">// UUID fixe</span>
+
+<span class="an">@Override</span>
+<span class="kw">public</span> <span class="ty">ItemStack</span> <span class="fn">onItemUseFinish</span>(<span class="ty">ItemStack</span> stack, <span class="ty">World</span> world, <span class="ty">EntityLivingBase</span> entity) {
+    <span class="kw">if</span> (!world.isRemote &amp;&amp; entity <span class="kw">instanceof</span> <span class="ty">EntityPlayer</span>) {
+        <span class="ty">EntityPlayer</span> player = (<span class="ty">EntityPlayer</span>) entity;
+        <span class="cm">// Appliquer les effets du tier</span>
+        <span class="kw">for</span> (<span class="ty">PotionEffect</span> effect : <span class="kw">this</span>.effects) {
+            player.<span class="fn">addPotionEffect</span>(<span class="kw">new</span> <span class="ty">PotionEffect</span>(effect));
+        }
+        <span class="cm">// Cooldown partage sur tous les items du groupe "custom_apples"</span>
+        player.<span class="fn">getCooldownTracker</span>().<span class="fn">setCooldown</span>(<span class="kw">this</span>, <span class="nu">600</span>); <span class="cm">// 600 ticks = 30 sec</span>
+        <span class="cm">// Appliquer aussi le cooldown sur les autres pommes custom</span>
+        player.<span class="fn">getCooldownTracker</span>().<span class="fn">setCooldown</span>(<span class="ty">EriniumItems</span>.VALTERITE_APPLE, <span class="nu">600</span>);
+        player.<span class="fn">getCooldownTracker</span>().<span class="fn">setCooldown</span>(<span class="ty">EriniumItems</span>.AETHERITE_APPLE, <span class="nu">600</span>);
+        player.<span class="fn">getCooldownTracker</span>().<span class="fn">setCooldown</span>(<span class="ty">EriniumItems</span>.ERINIUM_APPLE, <span class="nu">600</span>);
+        stack.<span class="fn">shrink</span>(<span class="nu">1</span>);
+    }
+    <span class="kw">return</span> stack;
+}</div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Pomme Erinium — ingredient Enchanted Golden Apple</strong> — La Pomme d'Or Enchantee (<code>Items.GOLDEN_APPLE</code> avec metadata 1) est l'ingredient le plus rare du jeu. Ce choix delibere rend la Pomme d'Erinium exceptionnellement couteuse, justifiant ses effets combines (Regen III + Resistance II + Absorption IV) qui donnent un avantage decisif en PvP.</div>
+      </div>
+
+      <h3>Creation via EriAPI</h3>
+      <div class="code-block"><span class="cm">// Pomme Aetherite — Absorption IV pendant 30 secondes</span>
+<span class="ty">EriItem</span>.<span class="fn">create</span>(<span class="ty">EriniumFaction</span>.MODID, <span class="st">"aetherite_apple"</span>)
+    .<span class="fn">rarity</span>(<span class="ty">EnumRarity</span>.RARE)
+    .<span class="fn">creativeTab</span>(<span class="ty">EriniumCreativeTab</span>.TAB)
+    .<span class="fn">maxStackSize</span>(<span class="nu">1</span>)
+    .<span class="fn">food</span>(<span class="nu">0</span>, <span class="nu">0.0f</span>)  <span class="cm">// Pas de faim recuperee (c'est une pomme de combat)</span>
+    .<span class="fn">alwaysEdible</span>() <span class="cm">// Mangeable meme a satiete pleine</span>
+    .<span class="fn">register</span>();
+<span class="cm">// Les effets sont geres dans la classe ItemTieredApple.onItemUseFinish()</span></div>
+    </div>
+
+    <!-- ═══ S10 — RECETTES DE CRAFT ═══ -->
+    <div class="section-card" id="s10">
+      <h2><span class="s-num gold-num">10</span> Recettes de Craft</h2>
+
+      <h3 class="first">Arcs (shaped)</h3>
+      <p>Pattern en forme d'arc avec les lingots du tier remplacant les batons, et la ficelle comme toujours.</p>
+<div class="ascii-diagram"><span class="as">Legende : I = lingot du tier, S = String (ficelle), _ = vide</span>
+
+<span class="av">Arc de Valterite (I = valterite_ingot, S = String)</span>
+<span class="ac">_ I S</span>
+<span class="ac">I _ S</span>
+<span class="ac">_ I S</span>
+
+<span class="av">Arc d'Aetherite (I = aetherite_crystal, S = String)</span>
+<span class="ac">_ I S</span>
+<span class="ac">I _ S</span>
+<span class="ac">_ I S</span>
+
+<span class="av">Arc d'Erinium (I = erinium_fragment, S = String)</span>
+<span class="ac">_ I S</span>
+<span class="ac">I _ S</span>
+<span class="ac">_ I S</span></div>
+
+      <h3>Fleches speciales (shapeless)</h3>
+<div class="ascii-diagram"><span class="av">Fleche de Valterite :</span>   <span class="ac">4x valterite_ingot + 4x Arrow → 4x valterite_arrow</span>
+<span class="av">Fleche d'Aetherite :</span>   <span class="ac">4x aetherite_crystal + 4x Arrow → 4x aetherite_arrow</span>
+<span class="av">Fleche d'Erinium :</span>     <span class="ac">4x erinium_fragment + 4x Arrow → 4x erinium_arrow</span>
+<span class="ay">Fleche Explosive :</span>     <span class="ac">1x erinium_fragment + 1x TNT + 4x Arrow → 4x explosive_arrow</span></div>
+
+      <h3>Boucliers (shaped)</h3>
+      <p>Pattern en forme de bouclier avec une planche de bois au centre (renforce le bouclier).</p>
+<div class="ascii-diagram"><span class="as">Legende : I = lingot du tier, P = Oak Plank (planche), _ = vide</span>
+
+<span class="av">Bouclier de Valterite (I = valterite_ingot)</span>
+<span class="ac">I I I</span>
+<span class="ac">I P I</span>
+<span class="ac">_ I _</span>
+
+<span class="av">Bouclier d'Aetherite (I = aetherite_crystal)</span>
+<span class="ac">I I I</span>
+<span class="ac">I P I</span>
+<span class="ac">_ I _</span>
+
+<span class="av">Bouclier d'Erinium (I = erinium_fragment)</span>
+<span class="ac">I I I</span>
+<span class="ac">I P I</span>
+<span class="ac">_ I _</span></div>
+
+      <h3>Dagues (shaped)</h3>
+      <p>Pattern epee miniature : 2 lingots en colonne + 1 baton, sans le 3e rang de lingot.</p>
+<div class="ascii-diagram"><span class="as">Legende : M = materiau du tier, S = Stick (baton), _ = vide</span>
+
+<span class="av">Dague de Valterite (M = valterite_ingot)</span>
+<span class="ac">_ M _</span>
+<span class="ac">_ M _</span>
+<span class="ac">_ S _</span>
+
+<span class="av">Dague d'Aetherite (M = aetherite_crystal)</span>
+<span class="ac">_ M _</span>
+<span class="ac">_ M _</span>
+<span class="ac">_ S _</span>
+
+<span class="av">Dague d'Erinium (M = erinium_fragment)</span>
+<span class="ac">_ M _</span>
+<span class="ac">_ M _</span>
+<span class="ac">_ S _</span></div>
+
+      <h3>Marteaux de Guerre (shaped)</h3>
+      <p>Pattern en tete de marteau : 3 lingots en barre + 2 batons en poignee.</p>
+<div class="ascii-diagram"><span class="as">Legende : M = materiau du tier, S = Stick (baton), _ = vide</span>
+
+<span class="av">Marteau de Valterite (M = valterite_ingot)</span>
+<span class="ac">M M M</span>
+<span class="ac">_ S _</span>
+<span class="ac">_ S _</span>
+
+<span class="av">Marteau d'Aetherite (M = aetherite_crystal)</span>
+<span class="ac">M M M</span>
+<span class="ac">_ S _</span>
+<span class="ac">_ S _</span>
+
+<span class="av">Marteau d'Erinium (M = erinium_fragment)</span>
+<span class="ac">M M M</span>
+<span class="ac">_ S _</span>
+<span class="ac">_ S _</span></div>
+
+      <h3>Pommes Custom (shaped)</h3>
+      <p>Pattern 3x3 avec la pomme de base au centre, entouree de 8 lingots du tier.</p>
+<div class="ascii-diagram"><span class="as">Legende : M = materiau du tier, A = item central, _ = vide</span>
+
+<span class="av">Pomme de Valterite (M = valterite_ingot, A = Golden Apple)</span>
+<span class="ac">M M M</span>
+<span class="ac">M A M</span>
+<span class="ac">M M M</span>
+
+<span class="av">Pomme d'Aetherite (M = aetherite_crystal, A = Golden Apple)</span>
+<span class="ac">M M M</span>
+<span class="ac">M A M</span>
+<span class="ac">M M M</span>
+
+<span class="ay">Pomme d'Erinium (M = erinium_fragment, A = Enchanted Golden Apple — meta 1)</span>
+<span class="ac">M M M</span>
+<span class="ac">M A M</span>
+<span class="ac">M M M</span></div>
+    </div>
+
+    <!-- ═══ S11 — ARCHITECTURE TECHNIQUE ═══ -->
+    <div class="section-card" id="s11">
+      <h2><span class="s-num">11</span> Architecture Technique</h2>
+
+      <h3 class="first">Structure des packages</h3>
+<div class="code-block">fr.eriniumgroup.eriniumfaction.content/
+├── EriniumItems.java             — MODIFIER : ajouter les 19 nouveaux items
+├── EriniumRecipes.java           — MODIFIER : ajouter les nouvelles recettes
+├── bow/
+│   ├── ItemTieredBow.java        — Classe de base des arcs custom (extends ItemBow)
+│   └── BowRenderHandler.java     — Rendu cote client (pull animation, properties)
+├── arrow/
+│   ├── ItemTieredArrow.java      — Item fleche custom (base)
+│   ├── EntityValteriteArrow.java — Entite fleche Valterite (slowness on hit)
+│   ├── EntityAetheriteArrow.java — Entite fleche Aetherite (armor pierce)
+│   ├── EntityEriniumArrow.java   — Entite fleche Erinium (double damage, no recover)
+│   └── EntityExplosiveArrow.java — Entite fleche explosive (AoE, no block break)
+├── shield/
+│   └── ItemTieredShield.java     — Bouclier custom (extends ItemShield)
+├── weapon/
+│   ├── ItemDagger.java           — Dague (marker class, logique dans event handler)
+│   └── ItemWarHammer.java        — Marteau de guerre (marker class + getAoeRadius())
+├── food/
+│   └── ItemTieredApple.java      — Pomme custom (effets multiples + cooldown partage)
+└── event/
+    ├── SetBonusHandler.java      — Detection set complet + application/retrait des bonus
+    ├── BackstabHandler.java      — Detection backstab (vectoriel) + multiplicateur x1.5
+    ├── HammerAoeHandler.java     — Frappe AoE en cone frontal (60% des degats)
+    └── ShieldBlockHandler.java   — Blocage personnalise + knockback Erinium</div>
+
+      <h3>Enregistrement des event handlers</h3>
+      <p>Tous les event handlers sont enregistres dans <code>CommonProxy.init()</code> via <code>MinecraftForge.EVENT_BUS.register()</code>. Les handlers qui ont besoin d'etre cotes client uniquement (particules) sont enregistres dans <code>ClientProxy.init()</code>.</p>
+
+      <div class="code-block"><span class="cm">// Dans CommonProxy.init()</span>
+<span class="ty">MinecraftForge</span>.EVENT_BUS.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">SetBonusHandler</span>());
+<span class="ty">MinecraftForge</span>.EVENT_BUS.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">BackstabHandler</span>());
+<span class="ty">MinecraftForge</span>.EVENT_BUS.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">HammerAoeHandler</span>());
+<span class="ty">MinecraftForge</span>.EVENT_BUS.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">ShieldBlockHandler</span>());</div>
+
+      <h3>Enregistrement des entites dans CommonProxy</h3>
+<div class="code-block"><span class="cm">// Dans CommonProxy.preInit()</span>
+<span class="kw">int</span> entityId = <span class="nu">60</span>;
+<span class="kw">for</span> (<span class="ty">Class</span>&lt;? <span class="kw">extends</span> <span class="ty">Entity</span>&gt; cls : <span class="kw">new</span> <span class="ty">Class</span>[] {
+        <span class="ty">EntityValteriteArrow</span>.<span class="kw">class</span>,
+        <span class="ty">EntityAetheriteArrow</span>.<span class="kw">class</span>,
+        <span class="ty">EntityEriniumArrow</span>.<span class="kw">class</span>,
+        <span class="ty">EntityExplosiveArrow</span>.<span class="kw">class</span> }) {
+    <span class="ty">String</span> name = cls.<span class="fn">getSimpleName</span>().<span class="fn">toLowerCase</span>()
+                       .<span class="fn">replace</span>(<span class="st">"entity"</span>, <span class="st">""</span>);
+    <span class="ty">EntityRegistry</span>.<span class="fn">registerModEntity</span>(
+        <span class="kw">new</span> <span class="ty">ResourceLocation</span>(<span class="ty">EriniumFaction</span>.MODID, name),
+        cls, name, entityId++, <span class="ty">EriniumFaction</span>.INSTANCE, <span class="nu">64</span>, <span class="nu">1</span>, <span class="kw">true</span>);
+}</div>
+    </div>
+
+    <!-- ═══ S12 — INTEGRATION EXISTANTE ═══ -->
+    <div class="section-card" id="s12">
+      <h2><span class="s-num cyan-num">12</span> Integration avec les systemes existants</h2>
+
+      <h3 class="first">EriniumItems.java</h3>
+      <p>Ajouter les 19 nouveaux items a la fin de la methode <code>register()</code>, en respectant les sections commentees existantes. Creer une section par categorie : <code>// ======================== BOWS ========================</code>, etc.</p>
+
+      <h3>EriniumRecipes.java</h3>
+      <p>Ajouter les nouvelles recettes dans <code>register()</code>. Utiliser les helpers <code>registerToolRecipe()</code> et <code>registerArmorRecipe()</code> existants pour les items simples. Creer des methodes helper specifiques pour les arcs, boucliers et pommes.</p>
+
+      <h3>Integration avec le systeme d'enchantements</h3>
+      <ul>
+        <li><strong>Arcs</strong> — Compatibles avec tous les enchantements d'arc existants (Power, Punch, Flame, Infinity). S'assurer que les calculs de degats custom dans <code>ItemTieredBow</code> prennent en compte <code>EnchantmentHelper</code>.</li>
+        <li><strong>Dagues et Marteaux</strong> — Compatibles avec Sharpness, Fire Aspect, Knockback. Les enchantements speciaux d'Erinium (Backstab Amplifier, Aftershock) seront a definir dans le spec enchantements.</li>
+        <li><strong>Boucliers</strong> — Compatibles avec Unbreaking et Mending. Un futur enchantement "Thorns de bouclier" pourrait remplacer le knockback manuel du bouclier Erinium.</li>
+      </ul>
+
+      <h3>Integration avec le systeme de Gemmes (Sockets)</h3>
+      <ul>
+        <li>Les arcs, dagues et marteaux supportent le systeme de sockets de gemmes defini dans le spec Accessoires &amp; Gemmes.</li>
+        <li>Nombre de sockets par tier : Valterite = 1, Aetherite = 2, Erinium = 3.</li>
+        <li>Les gemmes compatibles : Rubis (degats), Saphir (vitesse/fleche), Topaze (knockback), Onyx (lifesteal).</li>
+        <li>Pour les boucliers : gemmes compatibles = Emeraude (reduction supplementaire), Onyx (lifesteal sur blocage).</li>
+      </ul>
+
+      <h3>Integration avec le systeme RPG</h3>
+      <ul>
+        <li><strong>Stat Force</strong> — S'applique aux degats des dagues et marteaux exactement comme pour les epees.</li>
+        <li><strong>Stat Agilite</strong> — Pourrait modifier la portee de detection du backstab ou le bonus de velocite des arcs.</li>
+        <li><strong>Stat Resistance</strong> — S'applique apres le blocage du bouclier (deux couches de reduction).</li>
+        <li>Le set bonus Aetherite (+10% vitesse) se stack additivement avec le bonus de vitesse de la stat Agilite RPG.</li>
+      </ul>
+
+      <h3>Integration Faction</h3>
+      <ul>
+        <li>La detection des allies dans <code>HammerAoeHandler</code> et <code>ShieldBlockHandler</code> necessite d'interroger le <code>FactionManager</code> pour verifier si deux joueurs sont dans la meme faction ou des factions alliees.</li>
+        <li>Le backstab ne s'applique pas aux membres de la meme faction (friendly fire off par defaut).</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S13 — ASSETS ═══ -->
+    <div class="section-card" id="s13">
+      <h2><span class="s-num gold-num">13</span> Assets — Textures et Modeles</h2>
+
+      <p>Suivre le workflow SVG → PNG defini dans <code>docs/ASSETS_WORKFLOW.md</code>. Toutes les textures d'items sont en 16x16 pixels.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Categorie</th>
+              <th>Textures requises</th>
+              <th>Taille</th>
+              <th>Quantite</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Arcs (idle)</td>
+              <td>valterite_bow.png, aetherite_bow.png, erinium_bow.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Arcs (pull stade 0)</td>
+              <td>valterite_bow_pulling_0.png, aetherite_bow_pulling_0.png, erinium_bow_pulling_0.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Arcs (pull stade 1)</td>
+              <td>valterite_bow_pulling_1.png, aetherite_bow_pulling_1.png, erinium_bow_pulling_1.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Arcs (pull stade 2)</td>
+              <td>valterite_bow_pulling_2.png, aetherite_bow_pulling_2.png, erinium_bow_pulling_2.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Fleches</td>
+              <td>valterite_arrow.png, aetherite_arrow.png, erinium_arrow.png, explosive_arrow.png</td>
+              <td>16x16</td>
+              <td>4</td>
+            </tr>
+            <tr>
+              <td>Boucliers</td>
+              <td>valterite_shield.png, aetherite_shield.png, erinium_shield.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Boucliers (blocking)</td>
+              <td>valterite_shield_blocking.png, aetherite_shield_blocking.png, erinium_shield_blocking.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Dagues</td>
+              <td>valterite_dagger.png, aetherite_dagger.png, erinium_dagger.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Marteaux de Guerre</td>
+              <td>valterite_warhammer.png, aetherite_warhammer.png, erinium_warhammer.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Pommes Custom</td>
+              <td>valterite_apple.png, aetherite_apple.png, erinium_apple.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--text)">Total textures</td>
+              <td></td>
+              <td></td>
+              <td style="font-weight:700;color:var(--text)">31</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Modeles JSON</h3>
+      <ul>
+        <li><strong>Arcs</strong> — 4 modeles JSON par tier (idle + 3 pulling). Modele parent : <code>item/bow</code>. Texture dans le modele idle, overrides vers les modeles pulling.</li>
+        <li><strong>Fleches</strong> — 4 modeles JSON standard. Modele parent : <code>item/generated</code>.</li>
+        <li><strong>Boucliers</strong> — 3 modeles JSON avec override pour l'etat blocking (<code>"blocking": 1</code>). Modele parent : <code>item/shield</code>.</li>
+        <li><strong>Dagues</strong> — 3 modeles JSON. Modele parent : <code>item/handheld</code> (tenu a la main).</li>
+        <li><strong>Marteaux</strong> — 3 modeles JSON. Modele parent : <code>item/handheld</code>.</li>
+        <li><strong>Pommes</strong> — 3 modeles JSON. Modele parent : <code>item/generated</code>.</li>
+      </ul>
+
+      <h3>Direction artistique</h3>
+      <ul>
+        <li><strong>Arcs</strong> — Formes elegantes avec des cristaux du tier incrustés dans le bois. Valterite = bois bleu acier, Aetherite = bois violet lumineux, Erinium = bois dore ambré avec runes.</li>
+        <li><strong>Fleches</strong> — Pointes aux couleurs du tier. La fleche explosive a une tete arrondie rouge avec des rayures d'avertissement.</li>
+        <li><strong>Boucliers</strong> — Symbole cristal du tier grave au centre. Erinium : bordures en or avec gravures runiques.</li>
+        <li><strong>Dagues</strong> — Lames effilees, doubles tranchants. Plus courtes que les epees. Erinium : lame noire avec veines dorées.</li>
+        <li><strong>Marteaux</strong> — Tetes massives avec texture metal lourd. Erinium : tete de marteau enveloppee de brume violette.</li>
+        <li><strong>Pommes</strong> — Forme de pomme standard mais avec une aura du tier. Erinium : pomme noire avec veines dorées lumineuses.</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S14 — CONFIGURATION ═══ -->
+    <div class="section-card" id="s14">
+      <h2><span class="s-num">14</span> Configuration</h2>
+
+      <p>Ajouter les entrees de configuration dans la classe <code>FactionConfig.java</code> existante, dans une nouvelle section <code>// === COMBAT EXTENSIONS ===</code>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cle de configuration</th>
+              <th>Type</th>
+              <th>Defaut</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>combat.bows.enabled</td>
+              <td>boolean</td>
+              <td>true</td>
+              <td>Active/desactive les arcs custom</td>
+            </tr>
+            <tr>
+              <td>combat.arrows.enabled</td>
+              <td>boolean</td>
+              <td>true</td>
+              <td>Active/desactive les fleches speciales</td>
+            </tr>
+            <tr>
+              <td>combat.arrows.explosive.radius</td>
+              <td>float</td>
+              <td>1.5</td>
+              <td>Rayon d'explosion de la fleche explosive</td>
+            </tr>
+            <tr>
+              <td>combat.shields.enabled</td>
+              <td>boolean</td>
+              <td>true</td>
+              <td>Active/desactive les boucliers custom</td>
+            </tr>
+            <tr>
+              <td>combat.setbonus.enabled</td>
+              <td>boolean</td>
+              <td>true</td>
+              <td>Active/desactive tous les set bonus d'armure</td>
+            </tr>
+            <tr>
+              <td>combat.setbonus.valterite.regenInterval</td>
+              <td>int</td>
+              <td>100</td>
+              <td>Ticks entre chaque regen hors-combat (Valterite)</td>
+            </tr>
+            <tr>
+              <td>combat.setbonus.aetherite.speedBonus</td>
+              <td>double</td>
+              <td>0.10</td>
+              <td>Bonus de vitesse du set Aetherite (0.10 = +10%)</td>
+            </tr>
+            <tr>
+              <td>combat.setbonus.erinium.damageReduction</td>
+              <td>float</td>
+              <td>0.15</td>
+              <td>Reduction de degats du set Erinium (0.15 = -15%)</td>
+            </tr>
+            <tr>
+              <td>combat.daggers.enabled</td>
+              <td>boolean</td>
+              <td>true</td>
+              <td>Active/desactive les dagues</td>
+            </tr>
+            <tr>
+              <td>combat.daggers.backstabMultiplier</td>
+              <td>float</td>
+              <td>1.5</td>
+              <td>Multiplicateur de degats backstab</td>
+            </tr>
+            <tr>
+              <td>combat.hammers.enabled</td>
+              <td>boolean</td>
+              <td>true</td>
+              <td>Active/desactive les marteaux de guerre</td>
+            </tr>
+            <tr>
+              <td>combat.hammers.aoeDamageRatio</td>
+              <td>float</td>
+              <td>0.60</td>
+              <td>Ratio des degats AoE vs degats principaux</td>
+            </tr>
+            <tr>
+              <td>combat.apples.enabled</td>
+              <td>boolean</td>
+              <td>true</td>
+              <td>Active/desactive les pommes custom</td>
+            </tr>
+            <tr>
+              <td>combat.apples.sharedCooldown</td>
+              <td>int</td>
+              <td>600</td>
+              <td>Cooldown partage en ticks (600 = 30 sec)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S15 — TRADUCTIONS ═══ -->
+    <div class="section-card" id="s15">
+      <h2><span class="s-num cyan-num">15</span> Traductions I18n</h2>
+
+      <p>Toutes les cles de traduction sont ajoutees aux fichiers <code>fr_FR.lang</code> et <code>en_US.lang</code> existants.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cle I18n</th>
+              <th>Francais (fr_FR)</th>
+              <th>Anglais (en_US)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>item.eriniumfaction.valterite_bow.name</td>
+              <td>Arc de Valterite</td>
+              <td>Valterite Bow</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.aetherite_bow.name</td>
+              <td>Arc d'Aetherite</td>
+              <td>Aetherite Bow</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.erinium_bow.name</td>
+              <td>Arc d'Erinium</td>
+              <td>Erinium Bow</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.valterite_arrow.name</td>
+              <td>Fleche de Valterite</td>
+              <td>Valterite Arrow</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.aetherite_arrow.name</td>
+              <td>Fleche d'Aetherite</td>
+              <td>Aetherite Arrow</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.erinium_arrow.name</td>
+              <td>Fleche d'Erinium</td>
+              <td>Erinium Arrow</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.explosive_arrow.name</td>
+              <td>Fleche Explosive</td>
+              <td>Explosive Arrow</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.valterite_shield.name</td>
+              <td>Bouclier de Valterite</td>
+              <td>Valterite Shield</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.aetherite_shield.name</td>
+              <td>Bouclier d'Aetherite</td>
+              <td>Aetherite Shield</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.erinium_shield.name</td>
+              <td>Bouclier d'Erinium</td>
+              <td>Erinium Shield</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.valterite_dagger.name</td>
+              <td>Dague de Valterite</td>
+              <td>Valterite Dagger</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.aetherite_dagger.name</td>
+              <td>Dague d'Aetherite</td>
+              <td>Aetherite Dagger</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.erinium_dagger.name</td>
+              <td>Dague d'Erinium</td>
+              <td>Erinium Dagger</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.valterite_warhammer.name</td>
+              <td>Marteau de Guerre de Valterite</td>
+              <td>Valterite War Hammer</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.aetherite_warhammer.name</td>
+              <td>Marteau de Guerre d'Aetherite</td>
+              <td>Aetherite War Hammer</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.erinium_warhammer.name</td>
+              <td>Marteau de Guerre d'Erinium</td>
+              <td>Erinium War Hammer</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.valterite_apple.name</td>
+              <td>Pomme de Valterite</td>
+              <td>Valterite Apple</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.aetherite_apple.name</td>
+              <td>Pomme d'Aetherite</td>
+              <td>Aetherite Apple</td>
+            </tr>
+            <tr>
+              <td>item.eriniumfaction.erinium_apple.name</td>
+              <td>Pomme d'Erinium</td>
+              <td>Erinium Apple</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tooltips (cles supplementaires)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cle I18n</th>
+              <th>Francais</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>tooltip.eriniumfaction.backstab</td>
+              <td>Degats de dos : +50%</td>
+            </tr>
+            <tr>
+              <td>tooltip.eriniumfaction.aoe_hammer</td>
+              <td>Frappe en cone : 60% des degats aux ennemis proches</td>
+            </tr>
+            <tr>
+              <td>tooltip.eriniumfaction.shield_block</td>
+              <td>Bloque %s%% des degats recus</td>
+            </tr>
+            <tr>
+              <td>tooltip.eriniumfaction.erinium_shield_kb</td>
+              <td>Repousse l'attaquant lors du blocage</td>
+            </tr>
+            <tr>
+              <td>tooltip.eriniumfaction.apple_cooldown</td>
+              <td>Cooldown partage : 30 secondes</td>
+            </tr>
+            <tr>
+              <td>tooltip.eriniumfaction.arrow_slowness</td>
+              <td>Applique Lenteur I pendant 2s</td>
+            </tr>
+            <tr>
+              <td>tooltip.eriniumfaction.arrow_armor_pierce</td>
+              <td>Ignore 30%% de l'armure de la cible</td>
+            </tr>
+            <tr>
+              <td>tooltip.eriniumfaction.arrow_double_dmg</td>
+              <td>Degats doubles - non recuperable</td>
+            </tr>
+            <tr>
+              <td>tooltip.eriniumfaction.arrow_explosive</td>
+              <td>Explosion a l'impact (sans destruction de blocs)</td>
+            </tr>
+            <tr>
+              <td>tooltip.eriniumfaction.setbonus_valterite</td>
+              <td>Set complet : Regeneration hors-combat</td>
+            </tr>
+            <tr>
+              <td>tooltip.eriniumfaction.setbonus_aetherite</td>
+              <td>Set complet : +10%% vitesse de deplacement</td>
+            </tr>
+            <tr>
+              <td>tooltip.eriniumfaction.setbonus_erinium</td>
+              <td>Set complet : -15%% degats recus</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S16 — PLAN DE TESTS ═══ -->
+    <div class="section-card" id="s16">
+      <h2><span class="s-num green-num">16</span> Plan de Tests — Equilibrage PvP 1.8</h2>
+
+      <h3 class="first">Tests fonctionnels — Arcs</h3>
+      <ul>
+        <li>Verifier que le tirage plus rapide de l'Aetherite est perceptible visuellement (animation pull).</li>
+        <li>Confirmer que les modificateurs de degats et velocite sont corrects avec la valeur de charge maximale.</li>
+        <li>Tester la compatibilite avec Power I a V, Punch, Flame et Infinity.</li>
+        <li>Verifier que l'Infinity fonctionne avec les fleches speciales (elle ne devrait pas — les fleches speciales sont toujours consommees).</li>
+      </ul>
+
+      <h3>Tests fonctionnels — Fleches</h3>
+      <ul>
+        <li>Fleche Valterite : confirmer Lenteur I, 2 secondes exactes, sur joueur et mob.</li>
+        <li>Fleche Aetherite : mesurer les degats avec et sans armure, confirmer la reduction effective de 30%.</li>
+        <li>Fleche Erinium : confirmer qu'elle n'est jamais recuperee, meme sur miss ou bloc.</li>
+        <li>Fleche Explosive : confirmer qu'aucun bloc n'est detruit, rayon correct, degats AoE mesures.</li>
+        <li>Tester le comportement dans les distributeurs (dispenser).</li>
+      </ul>
+
+      <h3>Tests fonctionnels — Boucliers</h3>
+      <ul>
+        <li>Mesurer la reduction effective : 60%/75%/90% sur differentes valeurs de degats entrants.</li>
+        <li>Confirmer que le blocage ne consomme pas plus de durabilite que prevu.</li>
+        <li>Tester le knockback du bouclier Erinium dans differentes configurations (joueur contre mur, vide).</li>
+        <li>Verifier que le bouclier bloque les fleches, les degats de magie et les degats directs.</li>
+      </ul>
+
+      <h3>Tests equilibrage — Dagues vs Epees</h3>
+      <ul>
+        <li><strong>Scenario normal</strong> : Dague Erinium (6.0) face a face vs Epee Valterite (6+3=9 en vanilla). La dague devrait perdre clairement.</li>
+        <li><strong>Scenario backstab</strong> : Dague Erinium backstab = 9.0. Comparable a une epee standard, justifiant le risque de positionnement.</li>
+        <li>Tester le backstab contre des joueurs qui tournent rapidement (PvP 1.8 = rotation rapide). Le cone de 120 degres doit etre assez grand pour etre utilisable mais pas exploit.</li>
+        <li>Verifier que le backstab ne se declenche pas si l'attaquant est devant la cible a quelques degres pres.</li>
+      </ul>
+
+      <h3>Tests equilibrage — Marteaux en combat de groupe</h3>
+      <ul>
+        <li><strong>Scenario 1v1</strong> : Marteau Valterite (7.0) vs Epee Valterite. Le marteau est superieur en degats bruts mais ne justifie pas son cout eleve en 1v1 pur.</li>
+        <li><strong>Scenario 1v3</strong> : Marteau Erinium vs 3 joueurs groups. L'AoE de 3 blocs devrait toucher les 3 si bien positiones.</li>
+        <li>Confirmer qu'aucune boucle infinie ne se produit avec les degats AoE triggering <code>LivingHurtEvent</code> recursivement.</li>
+        <li>Mesurer le DPS total (cible principale + AoE) : ne devrait pas depasser 3x le DPS d'une epee.</li>
+      </ul>
+
+      <h3>Tests equilibrage — Boucliers en PvP</h3>
+      <ul>
+        <li>Un joueur avec Bouclier Erinium (90%) et set Erinium (-15%) = reduction totale de 91.5%. Confirmer que ce n'est pas annulant (verifier qu'un minimum de 5% des degats passe toujours).</li>
+        <li>Tester le cooldown de durabilite du bouclier : a combien de frappes peut-il tenir avant de casser ?</li>
+      </ul>
+
+      <h3>Tests equilibrage — Pommes Custom</h3>
+      <ul>
+        <li>Pomme Erinium (Regen III + Resistance II + Absorption IV) : en PvP, combien de temps survit un joueur sous ses effets ? Ne doit pas rendre le joueur unkillable.</li>
+        <li>Verifier que le cooldown partage de 30 secondes s'applique correctement entre les 3 types de pommes.</li>
+        <li>Tester que <code>alwaysEdible()</code> fonctionne meme avec la faim pleine.</li>
+      </ul>
+
+      <h3>Tests de performance</h3>
+      <ul>
+        <li><code>SetBonusHandler</code> tourne toutes les 20 ticks par joueur : mesurer l'impact sur un serveur avec 50+ joueurs connects.</li>
+        <li><code>HammerAoeHandler</code> avec AABB.grow() sur un serveur charge : s'assurer que la requete n'est pas trop couteuse.</li>
+        <li>Confirmer qu'aucun event handler ne provoque de lag spike visible lors des combats de masse (sieges faction).</li>
+      </ul>
+    </div>
+
+  </main><!-- /main -->
+
+</div><!-- /layout -->
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<script>
+  const sections = document.querySelectorAll('[id^="s"]');
+  const links    = document.querySelectorAll('.nav-link');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

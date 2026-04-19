@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Systeme de Profil Joueur | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #4AE0E0; --aetherite: #9B59B6; --erinium: #FFD700;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(74,224,224,0.09) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(255,215,0,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, #4AE0E0 40%, #FFD700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '>'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .ascii-diagram .ab { color: var(--rare); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Structures de Donnees</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> GUI Profil — Layout General</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Onglet Statistiques</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Onglet Cosmetiques</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Preview 3D du Joueur</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Packets Reseau</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Commandes &amp; Permissions</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Cas Limites</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Systeme de Profil Joueur</h1>
+      <p>Un GUI complet de profil joueur avec deux onglets : statistiques de jeu (kills, deaths, KDA, blocs mines/places) et gestion des cosmetiques (inventaire, equipement, preview 3D en temps reel).</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-violet">GUI EriAPI</span>
+        <span class="badge badge-cyan">Stats PvP</span>
+        <span class="badge badge-gold">Cosmetiques</span>
+        <span class="badge badge-green">Preview 3D</span>
+        <span class="badge badge-orange">Integration Faction</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Vision du systeme</h3>
+      <p>Le profil joueur est un <strong>hub personnel</strong> regroupant toutes les informations et personnalisations liees a un joueur. C'est l'ecran de reference pour consulter ses stats PvP, gerer ses cosmetiques equipes, et voir un apercu de son personnage en temps reel.</p>
+      <p>Le profil est accessible par le joueur lui-meme (keybind ou commande), et peut aussi etre consulte pour d'autres joueurs (commande avec argument). Quand on consulte le profil d'un autre joueur, les stats sont visibles mais les actions de gestion de cosmetiques sont desactivees.</p>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Centralisation :</strong> Un seul endroit pour voir ses stats et gerer ses cosmetiques. Pas de menus disperses.</li>
+        <li><strong>Feedback visuel :</strong> Le joueur voit immediatement l'effet d'un changement de cosmetique sur son modele 3D dans la preview.</li>
+        <li><strong>Fluidite :</strong> Navigation par onglets, transitions animees, chargement instantane (donnees locales @Sync).</li>
+        <li><strong>Social :</strong> Pouvoir consulter le profil d'un autre joueur encourage la competition (stats) et l'exhibition (cosmetiques).</li>
+      </ul>
+
+      <h3>Dependances</h3>
+      <ul>
+        <li><strong>Systeme de cosmetiques :</strong> Le profil depend de <code>CosmeticPlayerData</code> et <code>CosmeticRegistry</code> (voir spec <a href="cosmetics.html">cosmetics.html</a>).</li>
+        <li><strong>EriAPI Data :</strong> Les stats joueur sont stockees via <code>@EriData</code>.</li>
+        <li><strong>EriAPI GUI :</strong> Le GUI utilise <code>EriGuiScreen</code>, <code>TabView</code>, <code>ScrollPanel</code>, <code>GridLayout</code>, etc.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S2 — STRUCTURES DE DONNEES ═══ -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Structures de Donnees</h2>
+
+      <h3 class="first">ProfilePlayerData (@EriData)</h3>
+      <p>Donnees de statistiques du joueur, persistees et synchronisees au client.</p>
+
+      <div class="code-block"><span class="an">@EriData</span>(modId = <span class="st">"eriniumfaction"</span>, scope = <span class="ty">DataScope</span>.PLAYER, persistOnDeath = <span class="kw">true</span>)
+<span class="kw">public class</span> <span class="cl">ProfilePlayerData</span> {
+
+    <span class="cm">// --- Stats PvP ---</span>
+    <span class="an">@Sync</span> <span class="kw">public int</span> kills = <span class="nu">0</span>;           <span class="cm">// Nombre total de kills</span>
+    <span class="an">@Sync</span> <span class="kw">public int</span> deaths = <span class="nu">0</span>;          <span class="cm">// Nombre total de morts</span>
+    <span class="an">@Sync</span> <span class="kw">public int</span> assists = <span class="nu">0</span>;         <span class="cm">// Nombre total d'assists</span>
+
+    <span class="cm">// --- Stats monde ---</span>
+    <span class="an">@Sync</span> <span class="kw">public int</span> blocksMined = <span class="nu">0</span>;     <span class="cm">// Nombre total de blocs mines</span>
+    <span class="an">@Sync</span> <span class="kw">public int</span> blocksPlaced = <span class="nu">0</span>;    <span class="cm">// Nombre total de blocs places</span>
+
+    <span class="cm">// --- Metadata ---</span>
+    <span class="kw">public long</span> firstJoinTime = <span class="nu">0</span>;      <span class="cm">// Timestamp de la premiere connexion</span>
+    <span class="an">@Sync</span> <span class="kw">public long</span> totalPlayTime = <span class="nu">0</span>; <span class="cm">// Temps de jeu total en secondes</span>
+}</div>
+
+      <h3>Champs calcules (non stockes)</h3>
+      <p>Ces valeurs sont calculees a la volee depuis les champs stockes :</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Stat</th>
+              <th>Formule</th>
+              <th>Affichage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>KDA Ratio</td>
+              <td><code>(kills + assists) / max(1, deaths)</code></td>
+              <td>Arrondi a 2 decimales. Ex: "2.45"</td>
+            </tr>
+            <tr>
+              <td>Kill/Death Ratio</td>
+              <td><code>kills / max(1, deaths)</code></td>
+              <td>Arrondi a 2 decimales. Ex: "1.87"</td>
+            </tr>
+            <tr>
+              <td>Temps de jeu formate</td>
+              <td><code>totalPlayTime</code> converti en jours/heures/minutes</td>
+              <td>Ex: "12j 5h 32m"</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tracking des stats</h3>
+      <p>Les stats sont incrementees via des event listeners Forge :</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Stat</th>
+              <th>Event Forge</th>
+              <th>Conditions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>kills</td>
+              <td><code>LivingDeathEvent</code></td>
+              <td>La source de degats est un joueur (verifier <code>event.getSource().getTrueSource() instanceof EntityPlayer</code>). La victime est un autre joueur.</td>
+            </tr>
+            <tr>
+              <td>deaths</td>
+              <td><code>LivingDeathEvent</code></td>
+              <td>L'entite morte est un joueur.</td>
+            </tr>
+            <tr>
+              <td>assists</td>
+              <td><code>LivingDeathEvent</code></td>
+              <td>Un joueur qui a inflige des degats a la victime dans les <strong>10 derniers secondes</strong> avant sa mort, mais qui n'est pas le tueur. Necessite un cache temporaire de derniers dommages (<code>Map&lt;UUID, List&lt;DamageEntry&gt;&gt;</code>).</td>
+            </tr>
+            <tr>
+              <td>blocksMined</td>
+              <td><code>BlockEvent.BreakEvent</code></td>
+              <td>Le joueur casse un bloc en mode survie. Les blocs creatifs ne comptent pas.</td>
+            </tr>
+            <tr>
+              <td>blocksPlaced</td>
+              <td><code>BlockEvent.PlaceEvent</code></td>
+              <td>Le joueur place un bloc en mode survie.</td>
+            </tr>
+            <tr>
+              <td>totalPlayTime</td>
+              <td><code>TickEvent.PlayerTickEvent</code></td>
+              <td>Incremente de 1 toutes les 20 ticks (= 1 seconde). Utiliser un compteur de ticks pour ne PAS verifier chaque tick (perf avec 500+ joueurs).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Performance du tracking :</strong> Le totalPlayTime ne doit PAS incrementer a chaque tick. Utiliser un compteur modulo 20 (<code>if (player.ticksExisted % 20 == 0) totalPlayTime++</code>). Pour les assists, le cache de derniers dommages est nettoye toutes les 200 ticks (10 sec) pour eviter la croissance memoire. Les entrees expirees sont supprimees paresseusement.</div>
+      </div>
+
+      <h3>Systeme de tracking des assists</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">AssistTracker</span> {
+    <span class="cm">// victimUUID -> liste de (attackerUUID, timestamp)</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">UUID</span>, <span class="ty">List</span>&lt;<span class="ty">DamageEntry</span>&gt;&gt; recentDamage = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+
+    <span class="cm">// Appele dans LivingHurtEvent</span>
+    <span class="kw">public void</span> <span class="fn">recordDamage</span>(<span class="ty">UUID</span> victim, <span class="ty">UUID</span> attacker) {
+        recentDamage
+            .computeIfAbsent(victim, k -&gt; <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;())
+            .add(<span class="kw">new</span> <span class="ty">DamageEntry</span>(attacker, System.currentTimeMillis()));
+    }
+
+    <span class="cm">// Appele dans LivingDeathEvent — retourne les UUIDs des assistants</span>
+    <span class="kw">public</span> <span class="ty">Set</span>&lt;<span class="ty">UUID</span>&gt; <span class="fn">getAssists</span>(<span class="ty">UUID</span> victim, <span class="ty">UUID</span> killer) {
+        <span class="ty">List</span>&lt;<span class="ty">DamageEntry</span>&gt; entries = recentDamage.remove(victim);
+        <span class="kw">if</span> (entries == <span class="kw">null</span>) <span class="kw">return</span> Collections.emptySet();
+
+        <span class="kw">long</span> cutoff = System.currentTimeMillis() - <span class="nu">10_000</span>; <span class="cm">// 10 secondes</span>
+        <span class="ty">Set</span>&lt;<span class="ty">UUID</span>&gt; assists = <span class="kw">new</span> <span class="ty">HashSet</span>&lt;&gt;();
+        <span class="kw">for</span> (<span class="ty">DamageEntry</span> e : entries) {
+            <span class="kw">if</span> (e.timestamp &gt;= cutoff &amp;&amp; !e.attacker.equals(killer)) {
+                assists.add(e.attacker);
+            }
+        }
+        <span class="kw">return</span> assists;
+    }
+}
+
+<span class="kw">static class</span> <span class="cl">DamageEntry</span> {
+    <span class="kw">final</span> <span class="ty">UUID</span> attacker;
+    <span class="kw">final long</span> timestamp;
+}</div>
+    </section>
+
+    <!-- ═══ S3 — GUI PROFIL — LAYOUT GENERAL ═══ -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> GUI Profil — Layout General</h2>
+
+      <h3 class="first">Acces</h3>
+      <ul>
+        <li><strong>Keybind :</strong> Touche configurable (defaut : <code>P</code>). Enregistree via <code>EriKeys.create("eriniumfaction.open_profile")</code>, contexte <code>KeyContext.IN_GAME</code>. Ouvre le profil du joueur qui appuie.</li>
+        <li><strong>Commande :</strong> <code>/profile</code> (sans arguments) ouvre le profil du joueur qui tape la commande. <code>/profile &lt;player&gt;</code> ouvre le profil d'un autre joueur (consultation uniquement).</li>
+      </ul>
+
+      <h3>Structure de l'ecran (1920x1080 design pixels)</h3>
+
+      <div class="ascii-diagram"><span class="ac">+==================================================================+</span>
+<span class="ac">|</span>  <span class="ay">PROFIL DE SteveKiller42</span>              <span class="as">Faction : Les Templiers</span>      <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Membre depuis le 15/03/2026</span>          <span class="as">Temps de jeu : 12j 5h 32m</span>  <span class="ac">|</span>
+<span class="ac">+===========================+======================================+</span>
+<span class="ac">|</span>                           <span class="ac">|</span>                                      <span class="ac">|</span>
+<span class="ac">|</span>   <span class="av">+-------------------+</span>   <span class="ac">|</span>   <span class="ab">[  STATISTIQUES  ]</span> <span class="as">[  COSMETIQUES  ]</span>  <span class="ac">|</span>
+<span class="ac">|</span>   <span class="av">|                   |</span>   <span class="ac">|</span>                                      <span class="ac">|</span>
+<span class="ac">|</span>   <span class="av">|    PREVIEW 3D     |</span>   <span class="ac">|</span>   <span class="as">Contenu de l'onglet actif...</span>        <span class="ac">|</span>
+<span class="ac">|</span>   <span class="av">|    DU JOUEUR      |</span>   <span class="ac">|</span>   <span class="as">(voir sections 04 et 05)</span>             <span class="ac">|</span>
+<span class="ac">|</span>   <span class="av">|                   |</span>   <span class="ac">|</span>                                      <span class="ac">|</span>
+<span class="ac">|</span>   <span class="av">|    (rotation au   |</span>   <span class="ac">|</span>                                      <span class="ac">|</span>
+<span class="ac">|</span>   <span class="av">|     drag souris)  |</span>   <span class="ac">|</span>                                      <span class="ac">|</span>
+<span class="ac">|</span>   <span class="av">|                   |</span>   <span class="ac">|</span>                                      <span class="ac">|</span>
+<span class="ac">|</span>   <span class="av">+-------------------+</span>   <span class="ac">|</span>                                      <span class="ac">|</span>
+<span class="ac">|</span>                           <span class="ac">|</span>                                      <span class="ac">|</span>
+<span class="ac">+===========================+======================================+</span></div>
+
+      <h3>Elements structurels</h3>
+      <ul>
+        <li><strong>Header (haut) :</strong> Nom du joueur en grand (scale 2.5), nom de la faction (si applicable), date de premiere connexion, temps de jeu total. Fond violet gradie translucide.</li>
+        <li><strong>Panneau gauche (400px largeur) :</strong> Preview 3D du joueur en pied avec ses cosmetiques equipes. Le joueur peut cliquer-glisser pour faire tourner le modele. Fond sombre avec un cercle lumineux sous les pieds du modele.</li>
+        <li><strong>Panneau droit (reste de la largeur) :</strong> Systeme d'onglets (<code>TabView</code> EriAPI) avec deux onglets : "Statistiques" et "Cosmetiques".</li>
+        <li><strong>Style :</strong> Liquid Glass — panneaux translucides, bordures subtiles, blur d'arriere-plan, animations de transition entre onglets (slideIn/slideOut).</li>
+      </ul>
+
+      <h3>Mode consultation (profil d'un autre joueur)</h3>
+      <p>Quand le joueur consulte le profil d'un autre, le GUI est identique SAUF :</p>
+      <ul>
+        <li>Le header indique "Profil de [NomAutreJoueur]" au lieu du nom du joueur local.</li>
+        <li>L'onglet Cosmetiques est en <strong>lecture seule</strong> : les boutons "Equiper" et "Desequiper" sont absents. Le joueur voit les cosmetiques equipes par l'autre joueur mais ne peut pas les modifier.</li>
+        <li>La preview 3D montre le skin et les cosmetiques de l'autre joueur.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S4 — ONGLET STATISTIQUES ═══ -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Onglet Statistiques</h2>
+
+      <h3 class="first">Layout de l'onglet</h3>
+
+      <div class="ascii-diagram"><span class="ac">+======================================================+</span>
+<span class="ac">|</span>  <span class="ab">[STATISTIQUES]</span> <span class="as">[COSMETIQUES]</span>                            <span class="ac">|</span>
+<span class="ac">+------------------------------------------------------+</span>
+<span class="ac">|</span>                                                      <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">--- COMBAT ---</span>                                      <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">+----------+  +----------+  +----------+  +--------+</span><span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">|   245    |  |    87    |  |    62    |  |  2.45  |</span><span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">|  Kills   |  |  Deaths  |  | Assists  |  |  KDA   |</span><span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">+----------+  +----------+  +----------+  +--------+</span><span class="ac">|</span>
+<span class="ac">|</span>                                                      <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">--- MONDE ---</span>                                       <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">+----------------+  +----------------+</span>              <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">|    12,456      |  |     8,231      |</span>              <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">|  Blocs mines   |  |  Blocs places  |</span>              <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">+----------------+  +----------------+</span>              <span class="ac">|</span>
+<span class="ac">|</span>                                                      <span class="ac">|</span>
+<span class="ac">+======================================================+</span></div>
+
+      <h3>Cartes de statistiques</h3>
+      <p>Chaque statistique est affichee dans une <strong>carte individuelle</strong> (Rectangle arrondi, fond translucide sombre). La valeur numerique est en grand (scale 3.0, couleur cyan pour les positives, rouge pour les negatives). Le label est en dessous en petite police (slate).</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Carte</th>
+              <th>Valeur</th>
+              <th>Couleur</th>
+              <th>Format</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Kills</td>
+              <td><code>ProfilePlayerData.kills</code></td>
+              <td style="color:var(--green)">Vert (#2ECC71)</td>
+              <td>Entier avec separateur de milliers (ex: "1,245")</td>
+            </tr>
+            <tr>
+              <td>Deaths</td>
+              <td><code>ProfilePlayerData.deaths</code></td>
+              <td style="color:#E74C3C">Rouge (#E74C3C)</td>
+              <td>Entier avec separateur de milliers</td>
+            </tr>
+            <tr>
+              <td>Assists</td>
+              <td><code>ProfilePlayerData.assists</code></td>
+              <td style="color:var(--cyan)">Cyan (#00E5FF)</td>
+              <td>Entier avec separateur de milliers</td>
+            </tr>
+            <tr>
+              <td>KDA</td>
+              <td>Calcule : <code>(kills + assists) / max(1, deaths)</code></td>
+              <td style="color:var(--gold)">Or (#F1C40F)</td>
+              <td>Decimal a 2 chiffres (ex: "2.45")</td>
+            </tr>
+            <tr>
+              <td>Blocs mines</td>
+              <td><code>ProfilePlayerData.blocksMined</code></td>
+              <td style="color:var(--cyan)">Cyan (#00E5FF)</td>
+              <td>Entier avec separateur de milliers</td>
+            </tr>
+            <tr>
+              <td>Blocs places</td>
+              <td><code>ProfilePlayerData.blocksPlaced</code></td>
+              <td style="color:var(--cyan)">Cyan (#00E5FF)</td>
+              <td>Entier avec separateur de milliers</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Sections</h3>
+      <ul>
+        <li><strong>"COMBAT" :</strong> Premiere rangee — Kills, Deaths, Assists, KDA. Separateur visuel (ligne horizontale avec label "COMBAT" en lettres capitales, couleur or).</li>
+        <li><strong>"MONDE" :</strong> Deuxieme rangee — Blocs mines, Blocs places. Meme separateur avec label "MONDE".</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Animation a l'ouverture :</strong> Les cartes de stats apparaissent avec un <code>fadeIn(10)</code> + <code>slideIn(Direction.LEFT, 20, 8)</code> en sequence (0.1 sec de decalage entre chaque carte), donnant un effet de cascade visuel.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S5 — ONGLET COSMETIQUES ═══ -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num orange-num">05</span> Onglet Cosmetiques</h2>
+
+      <h3 class="first">Layout de l'onglet</h3>
+
+      <div class="ascii-diagram"><span class="ac">+======================================================+</span>
+<span class="ac">|</span>  <span class="as">[STATISTIQUES]</span> <span class="ab">[COSMETIQUES]</span>                            <span class="ac">|</span>
+<span class="ac">+------------------------------------------------------+</span>
+<span class="ac">|</span>                                                      <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Filtrer par slot :</span> <span class="ag">[Tous]</span> <span class="av">[Casque]</span> <span class="av">[Plastron]</span> ...   <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Filtrer par collection :</span> <span class="ag">[Toutes]</span> <span class="av">[Samourai]</span> ...    <span class="ac">|</span>
+<span class="ac">|</span>                                                      <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">+--------+  +--------+  +--------+  +--------+</span>    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">| Casque |  |Plastron|  |Bottes  |  |Sac a   |</span>    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">|Samourai|  |Samourai|  |Samourai|  |dos     |</span>    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">| (slot) |  | (slot) |  | (slot) |  |Dragon  |</span>    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">|</span><span class="ag">[EQUIPE]</span><span class="av">|  |</span><span class="ab">[EQUIPER]</span><span class="av">|  |</span><span class="ab">[EQUIPER]</span><span class="av">|  |</span><span class="ab">[EQUIPER]</span><span class="av">|</span>    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">+--------+  +--------+  +--------+  +--------+</span>    <span class="ac">|</span>
+<span class="ac">|</span>                                                      <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">(ScrollPanel si beaucoup de cosmetiques)</span>             <span class="ac">|</span>
+<span class="ac">|</span>                                                      <span class="ac">|</span>
+<span class="ac">+======================================================+</span></div>
+
+      <h3>Filtres</h3>
+      <p>Deux barres de filtres en haut de l'onglet :</p>
+      <ul>
+        <li><strong>Filtre par slot :</strong> Boutons radio horizontaux — "Tous", "Casque", "Plastron", "Jambieres", "Bottes", "Sac a dos". Defaut : "Tous". Filtre les cosmetiques affiches par leur slot.</li>
+        <li><strong>Filtre par collection :</strong> Boutons radio horizontaux — "Toutes" + un bouton par collection qui contient au moins 1 cosmetique possede. Defaut : "Toutes".</li>
+      </ul>
+      <p>Les deux filtres sont <strong>cumulatifs</strong>. Selectionner "Casque" et "Samourai" n'affiche que les casques de la collection Samourai que le joueur possede.</p>
+
+      <h3>Grille de cosmetiques</h3>
+      <p>Les cosmetiques sont affiches dans un <code>ScrollPanel</code> contenant un <code>GridLayout</code> (4 colonnes, espacement 16px). Chaque cellule est une carte de cosmetique :</p>
+      <ul>
+        <li><strong>Fond :</strong> Rectangle arrondi translucide (120x160 design pixels).</li>
+        <li><strong>Nom :</strong> Nom du cosmetique (Label, center aligned, scale 1.0).</li>
+        <li><strong>Collection :</strong> Nom de la collection en petit sous le nom (slate, scale 0.8).</li>
+        <li><strong>Slot :</strong> Badge indiquant le slot (ex: "HELMET") en bas a gauche.</li>
+        <li><strong>Bouton action :</strong>
+          <ul>
+            <li>Si le cosmetique est actuellement equipe dans son slot : bouton vert "EQUIPE" (cliquable pour desequiper).</li>
+            <li>Si le cosmetique n'est pas equipe : bouton bleu "EQUIPER" (cliquable pour equiper). Si un autre cosmetique est deja dans ce slot, il est automatiquement remplace.</li>
+          </ul>
+        </li>
+        <li><strong>Hover :</strong> Bordure lumineuse, scale légère (1.02), tooltip avec la description de la collection.</li>
+      </ul>
+
+      <h3>Actions d'equipement</h3>
+      <ul>
+        <li><strong>Equiper :</strong> Cliquer "EQUIPER" envoie un <code>PacketCosmeticEquip</code> (action "equip") au serveur. Le serveur valide (le joueur possede bien ce cosmetique), met a jour <code>equippedCosmetics</code>, sauvegarde, sync au client, et broadcast aux joueurs proches. La preview 3D a gauche se met a jour immediatement.</li>
+        <li><strong>Desequiper :</strong> Cliquer "EQUIPE" (sur un cosmetique deja equipe) envoie un <code>PacketCosmeticEquip</code> (action "unequip"). Le slot est vide, le rendu vanilla est restaure.</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Seuls les cosmetiques possedes :</strong> L'onglet Cosmetiques n'affiche que les cosmetiques que le joueur possede (<code>CosmeticPlayerData.ownedCosmetics</code>). Les cosmetiques non possedes ne sont pas visibles ici — ils sont dans la boutique (voir spec <a href="cosmetics.html">cosmetics.html</a>).</div>
+      </div>
+    </section>
+
+    <!-- ═══ S6 — PREVIEW 3D DU JOUEUR ═══ -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num red-num">06</span> Preview 3D du Joueur</h2>
+
+      <h3 class="first">Principe</h3>
+      <p>Le panneau gauche du GUI affiche un rendu 3D du modele du joueur (ou du joueur consulte) en pied, avec ses cosmetiques equipes. C'est un rendu OpenGL en temps reel dans un <code>ScissorBox</code> delimite au panneau gauche.</p>
+
+      <h3>Fonctionnalites de la preview</h3>
+      <ul>
+        <li><strong>Rotation :</strong> Le joueur peut cliquer-glisser (clic gauche maintenu) pour faire tourner le modele sur l'axe Y (horizontal). La rotation est fluide avec un easing sur le relachement (inertie).</li>
+        <li><strong>Zoom :</strong> La molette de la souris (quand le curseur est sur le panneau) permet de zoomer/dezoomer. Limites : zoom x0.5 a x2.0. Easing sur le zoom.</li>
+        <li><strong>Skin :</strong> Le rendu utilise le skin reel du joueur (texture de peau Mojang). Pour un autre joueur, son skin est charge via le <code>NetworkPlayerInfo</code> disponible cote client.</li>
+        <li><strong>Cosmetiques :</strong> Les cosmetiques equipes sont rendus sur le modele, exactement comme ils apparaissent en jeu. Quand le joueur equipe/desequipe un cosmetique dans l'onglet droite, la preview se met a jour instantanement.</li>
+        <li><strong>Animation idle :</strong> Le modele execute une animation idle legere (balancement lent du corps, respiration subtile) pour donner une impression de vie.</li>
+        <li><strong>Eclairage :</strong> Eclairage fixe (une lumiere directionnelle a 45 degres depuis le haut-gauche + lumiere ambiante douce) pour mettre en valeur les cosmetiques 3D.</li>
+        <li><strong>Socle :</strong> Un cercle lumineux (gradient radial, couleur violet/cyan) sous les pieds du modele, avec un reflet subtil du modele (miroir a faible opacite).</li>
+      </ul>
+
+      <h3>Implementation technique</h3>
+      <div class="code-block"><span class="cm">// Dans le drawScreen() du GUI, apres le rendu des composants</span>
+<span class="cm">// Le rendu du joueur utilise GuiInventory.drawEntityOnScreen() comme base</span>
+<span class="cm">// modifie pour supporter la rotation libre et les cosmetiques</span>
+
+<span class="fn">GlStateManager</span>.enableDepth();
+<span class="fn">GlStateManager</span>.pushMatrix();
+
+<span class="cm">// Scissor pour ne pas deborder du panneau gauche</span>
+<span class="fn">ScissorHelper</span>.enable(panelX, panelY, panelWidth, panelHeight);
+
+<span class="cm">// Translation au centre du panneau</span>
+<span class="kw">float</span> centerX = panelX + panelWidth / <span class="nu">2.0f</span>;
+<span class="kw">float</span> centerY = panelY + panelHeight * <span class="nu">0.85f</span>; <span class="cm">// pieds en bas</span>
+<span class="kw">float</span> scale = <span class="nu">80.0f</span> * zoomFactor; <span class="cm">// taille du modele</span>
+
+<span class="cm">// Rendu de l'entite avec rotation custom</span>
+<span class="fn">drawEntityOnScreen</span>(centerX, centerY, scale, rotationYaw, <span class="nu">-15.0f</span>, entity);
+
+<span class="fn">ScissorHelper</span>.disable();
+<span class="fn">GlStateManager</span>.popMatrix();
+<span class="fn">GlStateManager</span>.disableDepth();</div>
+    </section>
+
+    <!-- ═══ S7 — PACKETS RESEAU ═══ -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num cyan-num">07</span> Packets Reseau</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Packet</th>
+              <th>Direction</th>
+              <th>Declencheur</th>
+              <th>Contenu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>PacketProfileRequest</td>
+              <td>Client &#8594; Serveur</td>
+              <td>Le joueur ouvre le profil d'un autre joueur (<code>/profile &lt;name&gt;</code>)</td>
+              <td>UUID du joueur cible</td>
+            </tr>
+            <tr>
+              <td>PacketProfileData</td>
+              <td>Serveur &#8594; Client</td>
+              <td>Reponse a PacketProfileRequest</td>
+              <td>Toutes les stats du joueur cible (kills, deaths, assists, blocksMined, blocksPlaced, totalPlayTime, firstJoinTime) + cosmetiques equipes + nom de faction</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Profil de soi-meme :</strong> Quand le joueur ouvre son propre profil, aucun packet n'est envoye. Les donnees sont deja disponibles localement grace au <code>@Sync</code> de <code>ProfilePlayerData</code> et <code>CosmeticPlayerData</code>. Le PacketProfileRequest n'est utilise que pour consulter le profil d'un <strong>autre</strong> joueur.</div>
+      </div>
+
+      <h3>Securite des packets</h3>
+      <ul>
+        <li><strong>Rate limiting :</strong> Un joueur ne peut envoyer qu'un <code>PacketProfileRequest</code> toutes les 2 secondes (cooldown serveur). Les requetes excessives sont ignorees.</li>
+        <li><strong>Joueur hors ligne :</strong> Si le joueur cible est hors ligne, le serveur repond avec un packet d'erreur (message chat : "Ce joueur n'est pas en ligne"). Les donnees offline ne sont pas chargees (performance).</li>
+        <li><strong>UUID forge :</strong> Le serveur valide que l'UUID correspond a un joueur connecte avant de repondre.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S8 — COMMANDES & PERMISSIONS ═══ -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num gold-num">08</span> Commandes &amp; Permissions</h2>
+
+      <h3 class="first">Commandes joueur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Commande</th>
+              <th>Permission</th>
+              <th>Description</th>
+              <th>Auto-completion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/profile</code></td>
+              <td>Aucune (tous)</td>
+              <td>Ouvre le profil du joueur</td>
+              <td>N/A</td>
+            </tr>
+            <tr>
+              <td><code>/profile &lt;player&gt;</code></td>
+              <td>Aucune (tous)</td>
+              <td>Ouvre le profil d'un autre joueur (lecture seule)</td>
+              <td>Joueurs en ligne</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Commandes admin</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Commande</th>
+              <th>Permission</th>
+              <th>Description</th>
+              <th>Auto-completion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/profile reset &lt;player&gt;</code></td>
+              <td><code>eriniumfaction.profile.reset</code></td>
+              <td>Remet a zero toutes les stats d'un joueur (kills, deaths, assists, blocksMined, blocksPlaced, totalPlayTime). Ne touche PAS aux cosmetiques.</td>
+              <td>Joueurs en ligne</td>
+            </tr>
+            <tr>
+              <td><code>/profile set &lt;player&gt; &lt;stat&gt; &lt;value&gt;</code></td>
+              <td><code>eriniumfaction.profile.set</code></td>
+              <td>Definit une stat specifique a une valeur exacte. Stats valides : kills, deaths, assists, blocksMined, blocksPlaced.</td>
+              <td>Joueurs en ligne + noms de stats</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ S9 — CAS LIMITES ═══ -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num red-num">09</span> Cas Limites</h2>
+
+      <h3 class="first">Stats a zero</h3>
+      <p>Un nouveau joueur a toutes ses stats a 0. Le KDA est affiche comme "0.00" (pas de division par zero grace au <code>max(1, deaths)</code>). Le temps de jeu est "0h 0m". Les cartes sont quand meme affichees — pas de message "Aucune stat disponible".</p>
+
+      <h3>Joueur sans faction</h3>
+      <p>Si le joueur n'est dans aucune faction, le champ "Faction" dans le header est remplace par "Sans faction" en gris italique.</p>
+
+      <h3>Joueur sans cosmetiques</h3>
+      <p>Si le joueur ne possede aucun cosmetique, l'onglet Cosmetiques affiche un message centre : "Vous ne possedez aucun cosmetique. Visitez la boutique pour en obtenir !" avec un bouton "Ouvrir la boutique" qui ouvre le GUI cosmetic shop.</p>
+
+      <h3>Profil d'un joueur deconnecte pendant la consultation</h3>
+      <p>Si le joueur consulte deconnecte pendant que le GUI est ouvert, les donnees deja chargees restent affichees (pas de fermeture automatique du GUI). Le header affiche un badge "HORS LIGNE" en rouge. Les cosmetiques equipes restent affiches tels qu'ils etaient au moment du chargement.</p>
+
+      <h3>Overflow des compteurs</h3>
+      <p>Les compteurs sont des <code>int</code> (max 2,147,483,647). Un joueur qui mine plus de 2 milliards de blocs est peu probable, mais si cela arrive, le compteur clippe a <code>Integer.MAX_VALUE</code> plutot que de wraparound. Verifier avant l'incrementation : <code>if (data.blocksMined < Integer.MAX_VALUE) data.blocksMined++</code>.</p>
+
+      <h3>Assists : auto-assist</h3>
+      <p>Un joueur ne peut PAS obtenir un assist sur sa propre mort (tomber dans le vide apres avoir ete frappe). Le tueur est explicitement exclus de la liste d'assists. Un joueur qui se suicide (mort sans source de degats joueur) ne genere aucun assist.</p>
+
+      <h3>Cosmetique possede mais supprime du registre</h3>
+      <p>Si un cosmetique possede n'existe plus dans le <code>CosmeticRegistry</code>, il est affiche dans la grille avec un style "indisponible" (grise, barre, tooltip "Ce cosmetique a ete retire"). Le bouton "Equiper" est desactive. Si le cosmetique etait equipe, il a ete desequipe lors du reload (voir spec cosmetics.html).</p>
+    </section>
+
+    <!-- ═══ S10 — PLAN DE TESTS ═══ -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num green-num">10</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests fonctionnels — Stats</h3>
+      <ul class="checklist">
+        <li>Kill d'un joueur incremente kills du tueur et deaths de la victime</li>
+        <li>Un joueur qui inflige des degats dans les 10 sec avant un kill obtient un assist</li>
+        <li>Le tueur ne recoit PAS d'assist sur son propre kill</li>
+        <li>Les degats infliges il y a plus de 10 secondes ne comptent pas comme assist</li>
+        <li>Casser un bloc en mode survie incremente blocksMined</li>
+        <li>Placer un bloc en mode survie incremente blocksPlaced</li>
+        <li>Les blocs casses/places en creatif ne comptent PAS</li>
+        <li>Le totalPlayTime s'incremente de 1 par seconde de jeu en ligne</li>
+        <li>Toutes les stats survivent a la mort du joueur (persistOnDeath)</li>
+        <li>Toutes les stats survivent au redemarrage du serveur</li>
+      </ul>
+
+      <h3>Tests fonctionnels — GUI</h3>
+      <ul class="checklist">
+        <li>Le GUI s'ouvre via keybind (P) et commande (/profile)</li>
+        <li>/profile &lt;name&gt; ouvre le profil d'un autre joueur en lecture seule</li>
+        <li>La preview 3D affiche le skin correct et les cosmetiques equipes</li>
+        <li>La rotation par drag fonctionne fluidement</li>
+        <li>Le zoom par molette fonctionne avec limites</li>
+        <li>L'onglet Statistiques affiche toutes les stats avec les bonnes valeurs</li>
+        <li>Le KDA est calcule correctement (pas de division par zero)</li>
+        <li>L'onglet Cosmetiques n'affiche que les cosmetiques possedes</li>
+        <li>Les filtres par slot et par collection fonctionnent (cumulatifs)</li>
+        <li>Equiper un cosmetique met a jour la preview 3D immediatement</li>
+        <li>Desequiper un cosmetique restaure le rendu vanilla dans la preview</li>
+        <li>Le mode consultation (autre joueur) desactive les boutons Equiper</li>
+      </ul>
+
+      <h3>Tests de performance</h3>
+      <ul class="checklist">
+        <li>Le tracking totalPlayTime utilise un modulo 20, pas de tick inutile</li>
+        <li>Le cache d'assists est nettoye regulierement (pas de fuite memoire)</li>
+        <li>Le PacketProfileRequest a un rate limit de 2 sec</li>
+        <li>Ouvrir le profil avec 200+ cosmetiques possedes : pas de lag</li>
+        <li>La preview 3D ne cause pas de chute de FPS significative</li>
+      </ul>
+
+      <h3>Tests de securite</h3>
+      <ul class="checklist">
+        <li>PacketProfileRequest avec UUID inexistant : rejete avec message d'erreur</li>
+        <li>Spam de PacketProfileRequest : rate limited, pas de surcharge serveur</li>
+        <li>/profile set par un joueur non-admin : permission refusee</li>
+        <li>/profile reset par un joueur non-admin : permission refusee</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('navToggle');
+  if (toggle) toggle.addEventListener('click', function() { sidebar.classList.toggle('open'); });
+
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        navLinks.forEach(function(link) { link.classList.remove('active'); });
+        const active = document.querySelector('.nav-link[href="#' + entry.target.id + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(function(s) { observer.observe(s); });
+</script>
+</body>
+</html>

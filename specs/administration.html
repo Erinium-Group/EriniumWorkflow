@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Administration | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --pink:      #E91E8C;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.16) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(233,30,140,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 60% 10%, rgba(0,229,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet-l) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet-l); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--pink); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 4px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .sidebar-sep { height: 1px; background: var(--card-bdr); margin: 10px 0 4px; }
+
+  /* MAIN */
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* PAGE HEADER */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 50%, var(--pink) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 680px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet { color: var(--violet-l); border-color: rgba(107,47,160,0.4);  background: rgba(107,47,160,0.1); }
+  .badge-cyan   { color: var(--cyan);     border-color: rgba(0,229,255,0.3);    background: rgba(0,229,255,0.07); }
+  .badge-green  { color: var(--green);    border-color: rgba(46,204,113,0.3);   background: rgba(46,204,113,0.07); }
+  .badge-red    { color: var(--red);      border-color: rgba(231,76,60,0.35);   background: rgba(231,76,60,0.08); }
+  .badge-gold   { color: var(--gold);     border-color: rgba(241,196,15,0.3);   background: rgba(241,196,15,0.07); }
+  .badge-pink   { color: var(--pink);     border-color: rgba(233,30,140,0.35);  background: rgba(233,30,140,0.08); }
+  .badge-orange { color: var(--orange);   border-color: rgba(230,126,34,0.35);  background: rgba(230,126,34,0.08); }
+
+  /* SECTION CARDS */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #c0342a 0%, var(--red) 100%); }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a7a40 0%, var(--green) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #c0960a 0%, var(--gold) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #b05a10 0%, var(--orange) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.pink-num   { background: linear-gradient(135deg, #a01060 0%, var(--pink) 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* TABLES */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.16); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.07); }
+
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-crit   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(231,76,60,0.15); color:#E74C3C; border:1px solid rgba(231,76,60,0.3); letter-spacing:.05em; }
+  .tag-high   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(230,126,34,0.15); color:var(--orange); border:1px solid rgba(230,126,34,0.3); letter-spacing:.05em; }
+  .tag-med    { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(241,196,15,0.12); color:var(--gold); border:1px solid rgba(241,196,15,0.3); letter-spacing:.05em; }
+  .tag-low    { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(136,146,164,0.12); color:var(--slate); border:1px solid rgba(136,146,164,0.25); letter-spacing:.05em; }
+  .tag-yes    { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(46,204,113,0.12); color:var(--green); border:1px solid rgba(46,204,113,0.3); letter-spacing:.05em; }
+  .tag-violet { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(107,47,160,0.15); color:var(--violet-l); border:1px solid rgba(107,47,160,0.3); letter-spacing:.05em; }
+  .tag-cyan   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(0,229,255,0.10); color:var(--cyan); border:1px solid rgba(0,229,255,0.25); letter-spacing:.05em; }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+
+  /* INFO BOXES */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.07);  border: 1px solid rgba(231,76,60,0.22);  }
+
+  /* ARCH GRID */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+  }
+
+  .arch-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+  }
+
+  .arch-card-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--violet-l);
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    margin-bottom: 6px;
+  }
+
+  .arch-card-desc {
+    font-size: 12px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  /* CHECKLIST */
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 14px 0;
+  }
+
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  .checklist-item::before {
+    content: '□';
+    color: var(--violet-l);
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .checklist-item strong { color: var(--text); }
+
+  /* COMMAND CARDS */
+  .cmd-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin: 18px 0;
+  }
+
+  .cmd-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 20px 22px;
+  }
+
+  .cmd-card.warn-cmd   { border-left: 3px solid var(--gold); }
+  .cmd-card.mute-cmd   { border-left: 3px solid var(--cyan); }
+  .cmd-card.ban-cmd    { border-left: 3px solid var(--red); }
+  .cmd-card.lookup-cmd { border-left: 3px solid var(--violet-l); }
+  .cmd-card.admin-cmd  { border-left: 3px solid var(--pink); }
+
+  .cmd-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    margin-bottom: 6px;
+  }
+
+  .cmd-perm {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.12);
+    border: 1px solid rgba(107,47,160,0.25);
+    border-radius: 4px;
+    padding: 2px 8px;
+    display: inline-block;
+    margin-bottom: 10px;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+  }
+
+  .cmd-desc {
+    font-size: 13px;
+    color: var(--slate);
+    line-height: 1.6;
+  }
+
+  .cmd-desc ul {
+    margin-top: 8px;
+    gap: 4px;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 32px 24px 60px; }
+    .arch-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a href="../roadmap.html" class="sidebar-back">&#8592; Roadmap</a>
+
+    <div class="sidebar-title">Sections</div>
+    <a href="#contexte"      class="nav-link"><span class="num">01</span>Contexte &amp; Objectifs</a>
+    <a href="#casier"        class="nav-link"><span class="num">02</span>Casier Judiciaire</a>
+    <a href="#warn"          class="nav-link"><span class="num">03</span>Commande /warn</a>
+    <a href="#mute"          class="nav-link"><span class="num">04</span>Commande /mute</a>
+    <a href="#tempban"       class="nav-link"><span class="num">05</span>Commande /tempban</a>
+    <a href="#lookup"        class="nav-link"><span class="num">06</span>Commande /lookup</a>
+    <a href="#clearrecord"   class="nav-link"><span class="num">07</span>Commande /clearrecord</a>
+    <a href="#escalade"      class="nav-link"><span class="num">08</span>Escalade Automatique</a>
+    <a href="#login"         class="nav-link"><span class="num">09</span>Verification au Login</a>
+    <a href="#architecture"  class="nav-link"><span class="num">10</span>Architecture</a>
+    <a href="#config"        class="nav-link"><span class="num">11</span>Configuration</a>
+    <a href="#permissions"   class="nav-link"><span class="num">12</span>Permissions</a>
+    <a href="#performance"   class="nav-link"><span class="num">13</span>Performance</a>
+    <a href="#tests"         class="nav-link"><span class="num">14</span>Plan de Tests</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="eyebrow">EriniumFaction · Cahier des charges</div>
+      <h1>Systeme d'Administration</h1>
+      <p>Outils de moderation en jeu pour gerir les joueurs : avertissements, mutes, bans temporaires et casier judiciaire persistant. Concu pour un serveur de 500-1000 joueurs simultanes.</p>
+      <div class="header-badges">
+        <span class="badge badge-violet">Serveur-side</span>
+        <span class="badge badge-red">Moderation</span>
+        <span class="badge badge-gold">EriData persistant</span>
+        <span class="badge badge-cyan">EriChat pagine</span>
+        <span class="badge badge-pink">Planifie</span>
+      </div>
+    </div>
+
+    <!-- 01. CONTEXTE -->
+    <div class="section-card" id="contexte">
+      <h2><span class="s-num">01</span>Contexte &amp; Objectifs</h2>
+      <h3 class="first">Pourquoi ce systeme</h3>
+      <p>Sur un serveur de 500-1000 joueurs, les modérateurs doivent disposer d'outils rapides, fiables et traçables. Les punitions doivent être persistantes entre les redémarrages, consultables par n'importe quel modérateur, et cohérentes avec les règles du serveur.</p>
+      <p>Le système remplace tout recours aux commandes vanilla (ban, kick) par des outils intégrés qui alimentent un casier judiciaire central par joueur, avec historique complet et escalade automatique configurable.</p>
+      <h3>Objectifs principaux</h3>
+      <ul>
+        <li><strong>Casier judiciaire persistant</strong> — chaque sanction est enregistrée et ne disparaît jamais sauf action admin explicite</li>
+        <li><strong>Escalade automatique</strong> — N warns déclenchent automatiquement un mute ou un ban sans intervention humaine</li>
+        <li><strong>Commandes complètes</strong> — warn, mute, unmute, tempban, unban, lookup, clearrecord</li>
+        <li><strong>Performance</strong> — opérations en mémoire avec persistence NBT, aucune I/O sur le hot path des ticks</li>
+        <li><strong>Intégration chat</strong> — le mute bloque les messages via le ChatManager existant, sans mixin fragile</li>
+      </ul>
+      <div class="info-box info">
+        <span class="icon">ℹ</span>
+        <div class="content"><strong>EriAPI requis :</strong> Ce système utilise <code>EriChat</code> pour les messages de modération riches, <code>ChatPaginator</code> pour /lookup, et le système de permissions du RankManager pour les checks de grade. Le casier judiciaire est stocké en fichier JSON dans <code>config/EriniumFaction/judicial/</code> (hors du monde) pour survivre aux resets de map/saisons.</div>
+      </div>
+    </div>
+
+    <!-- 02. CASIER JUDICIAIRE -->
+    <div class="section-card" id="casier">
+      <h2><span class="s-num red-num">02</span>Casier Judiciaire</h2>
+      <h3 class="first">Structure de donnees</h3>
+      <p>Le casier est stocke dans un fichier JSON par joueur dans <code>config/EriniumFaction/judicial/{uuid}.json</code>. Ce dossier est <strong>hors du monde</strong> — il survit aux resets de map, changements de saison, et suppressions de monde. Il ne s'efface que manuellement via <code>/clearrecord</code>.</p>
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Pourquoi pas @EriData ?</strong> Les données <code>@EriData</code> sont stockées dans le dossier du monde (world/playerdata/). Lors d'un reset de map ou d'une nouvelle saison, le dossier monde est supprimé et le casier serait perdu. En stockant dans <code>config/</code>, les sanctions sont permanentes et indépendantes du monde.</div>
+      </div>
+      <div class="code-block"><span class="cm">// Fichier : config/EriniumFaction/judicial/{uuid}.json</span>
+<span class="cm">// Chargé en mémoire au login, sauvegardé à chaque modification</span>
+<span class="kw">public class</span> <span class="ty">JudicialRecord</span> {
+    <span class="cm">// UUID du joueur (clé primaire)</span>
+    <span class="kw">public</span> String uuid;
+    <span class="kw">public</span> String lastKnownName;
+
+    <span class="cm">// Historique brut — format: "TYPE:raison:staff:timestamp:durée"</span>
+    <span class="kw">public</span> List&lt;String&gt; entries <span class="op">=</span> <span class="kw">new</span> ArrayList&lt;&gt;();
+
+    <span class="cm">// Compteurs rapides (évite de rescanner entries à chaque check)</span>
+    <span class="kw">public int</span> warnCount <span class="op">=</span> <span class="nu">0</span>;
+    <span class="kw">public int</span> muteCount <span class="op">=</span> <span class="nu">0</span>;
+    <span class="kw">public int</span> kickCount <span class="op">=</span> <span class="nu">0</span>;
+    <span class="kw">public int</span> banCount  <span class="op">=</span> <span class="nu">0</span>;
+
+    <span class="cm">// Mute actif (0 = pas de mute, -1 = permanent, >0 = timestamp expiry)</span>
+    <span class="kw">public long</span> muteExpiry <span class="op">=</span> <span class="nu">0L</span>;
+    <span class="kw">public</span> String muteReason <span class="op">=</span> <span class="st">""</span>;
+
+    <span class="cm">// Sérialisation JSON via Gson</span>
+    <span class="kw">public static</span> JudicialRecord <span class="fn">load</span>(UUID uuid) { <span class="cm">/* lit config/EriniumFaction/judicial/uuid.json */</span> }
+    <span class="kw">public void</span> <span class="fn">save</span>() { <span class="cm">/* écrit le fichier JSON */</span> }
+}</div>
+      <h3>Format d'une entree</h3>
+      <p>Chaque entrée dans <code>entries</code> est un <code>String</code> encodé avec le séparateur <code>:</code>. Le champ raison est URL-encodé pour gérer les espaces et les deux-points.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Position</th><th>Champ</th><th>Exemple</th></tr></thead>
+          <tbody>
+            <tr><td>[0]</td><td>Type</td><td>WARN / MUTE / KICK / TEMPBAN</td></tr>
+            <tr><td>[1]</td><td>Raison (URL-encoded)</td><td>Langage+inapproprié</td></tr>
+            <tr><td>[2]</td><td>Staff (username)</td><td>AdminPseudo</td></tr>
+            <tr><td>[3]</td><td>Timestamp UNIX (ms)</td><td>1742000000000</td></tr>
+            <tr><td>[4]</td><td>Durée en secondes (0 = permanent / N/A)</td><td>1800</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Methodes utilitaires sur JudicialRecord</h3>
+      <ul>
+        <li><strong>addEntry(type, reason, staff, durationSeconds)</strong> — ajoute une entrée, incrémente le compteur correspondant</li>
+        <li><strong>isMuted()</strong> — retourne true si <code>muteExpiry == -1</code> ou <code>muteExpiry > System.currentTimeMillis()</code></li>
+        <li><strong>getMuteRemainingSeconds()</strong> — secondes restantes, 0 si expiré, Long.MAX_VALUE si permanent</li>
+        <li><strong>getEntriesByType(String type)</strong> — filtre les entrées par type pour l'affichage</li>
+      </ul>
+      <div class="info-box warn">
+        <span class="icon">⚠</span>
+        <div class="content"><strong>Limite de la liste :</strong> Chaque fichier JSON peut croître indéfiniment. Pour éviter des fichiers trop lourds, le système peut optionnellement archiver les entrées de plus de 90 jours dans un fichier log séparé (<code>config/EriniumFaction/judicial/archive/{uuid}.log</code>, configurable).</div>
+      </div>
+    </div>
+
+    <!-- 03. /warn -->
+    <div class="section-card" id="warn">
+      <h2><span class="s-num gold-num">03</span>Commande /warn</h2>
+      <h3 class="first">Syntaxe</h3>
+      <div class="code-block">/warn &lt;joueur&gt; &lt;raison...&gt;</div>
+      <div class="cmd-grid">
+        <div class="cmd-card warn-cmd">
+          <div class="cmd-title">/warn &lt;joueur&gt; &lt;raison&gt;</div>
+          <div class="cmd-perm">eriniumfaction.mod.warn</div>
+          <div class="cmd-desc">
+            Ajoute un avertissement au casier judiciaire du joueur.
+            <ul>
+              <li>Le joueur reçoit un message rouge : <strong>"[AVERTISSEMENT] Vous avez reçu un avertissement. Raison : {raison}. Avertissements totaux : {N}"</strong></li>
+              <li>L'entrée est ajoutée au casier avec type WARN</li>
+              <li>Le modérateur reçoit confirmation : <strong>"[Admin] Avertissement envoyé à {joueur} (warn #{N})"</strong></li>
+              <li>Si le joueur est hors ligne : le warn est quand même enregistré (sur sa prochaine connexion, il reçoit le message)</li>
+              <li>Après l'enregistrement, vérification de l'escalade automatique</li>
+              <li>Auto-complétion sur l'argument joueur via <code>PlayerArg.of("name")</code></li>
+              <li>Raison multi-mots supportée (tout ce qui suit le pseudo est la raison)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <h3>Messages EriChat</h3>
+      <div class="code-block"><span class="cm">// Message au joueur puni</span>
+EriChat.<span class="fn">create</span>()
+    .text(<span class="st">"[AVERTISSEMENT] "</span>).color(TextFormatting.RED).bold()
+    .text(<span class="st">"Vous avez reçu un avertissement."</span>).color(TextFormatting.WHITE)
+    .text(<span class="st">"\nRaison : "</span>).color(TextFormatting.GRAY)
+    .text(reason).color(TextFormatting.YELLOW)
+    .text(<span class="st">"\nAvertissements totaux : "</span>).color(TextFormatting.GRAY)
+    .text(String.valueOf(record.warnCount)).color(TextFormatting.RED).bold()
+    .to(target);
+
+<span class="cm">// Message au staff</span>
+EriChat.<span class="fn">create</span>()
+    .text(<span class="st">"[Admin] "</span>).color(TextFormatting.DARK_PURPLE).bold()
+    .text(<span class="st">"Avertissement envoyé à "</span>).color(TextFormatting.GRAY)
+    .text(targetName).color(TextFormatting.WHITE)
+    .text(<span class="st">" (warn #"</span> <span class="op">+</span> record.warnCount <span class="op">+</span> <span class="st">")"</span>).color(TextFormatting.GOLD)
+    .to(sender);</div>
+    </div>
+
+    <!-- 04. /mute -->
+    <div class="section-card" id="mute">
+      <h2><span class="s-num cyan-num">04</span>Commandes /mute &amp; /unmute</h2>
+      <h3 class="first">Syntaxe</h3>
+      <div class="code-block">/mute &lt;joueur&gt; &lt;durée&gt; &lt;raison...&gt;
+/unmute &lt;joueur&gt;</div>
+      <div class="cmd-grid">
+        <div class="cmd-card mute-cmd">
+          <div class="cmd-title">/mute &lt;joueur&gt; &lt;durée&gt; &lt;raison&gt;</div>
+          <div class="cmd-perm">eriniumfaction.mod.mute</div>
+          <div class="cmd-desc">
+            Rend muet un joueur pour une durée donnée.
+            <ul>
+              <li><strong>Formats de durée :</strong> <code>30s</code>, <code>5m</code>, <code>1h</code>, <code>6h</code>, <code>1d</code>, <code>7d</code>, <code>30d</code>, <code>permanent</code></li>
+              <li>Le champ <code>muteExpiry</code> est mis à jour dans JudicialRecord : timestamp d'expiration en ms, ou <code>-1</code> si permanent</li>
+              <li>Le champ <code>muteReason</code> est enregistré pour l'affichage quand le joueur essaie de parler</li>
+              <li>L'entrée MUTE est ajoutée au casier (type, raison, staff, timestamp, durée en secondes)</li>
+              <li>Le joueur reçoit un message : <strong>"[MUTE] Vous avez été réduit au silence. Raison : {raison}. Expiration : {date ou Permanent}"</strong></li>
+              <li>Si le joueur est hors ligne : les champs sont mis à jour, actifs à la prochaine connexion</li>
+              <li>Auto-complétion joueur + suggestions de durée (30m, 1h, 6h, 1d, 7d, permanent)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="cmd-card mute-cmd">
+          <div class="cmd-title">/unmute &lt;joueur&gt;</div>
+          <div class="cmd-perm">eriniumfaction.mod.mute</div>
+          <div class="cmd-desc">
+            Retire le mute actif d'un joueur.
+            <ul>
+              <li>Remet <code>muteExpiry = 0</code> et <code>muteReason = ""</code></li>
+              <li>Confirmation au staff : <strong>"[Admin] Mute retiré pour {joueur}"</strong></li>
+              <li>Notification au joueur s'il est en ligne : <strong>"[INFO] Votre mute a été levé."</strong></li>
+              <li>Fonctionne sur joueurs en ligne et hors ligne</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <h3>Integration avec le ChatManager</h3>
+      <p>Dans le handler d'envoi de message chat côté serveur, avant de propager le message, vérifier le statut de mute :</p>
+      <div class="code-block"><span class="cm">// Dans ChatManager.handleChatMessage() ou via @SubscribeEvent sur ServerChatEvent</span>
+<span class="kw">if</span> (AdminManager.<span class="fn">getInstance</span>().<span class="fn">isMuted</span>(player)) {
+    <span class="kw">long</span> remaining <span class="op">=</span> AdminManager.<span class="fn">getInstance</span>().<span class="fn">getMuteRemainingSeconds</span>(player);
+    String expiry <span class="op">=</span> remaining <span class="op">==</span> Long.MAX_VALUE
+        <span class="op">?</span> <span class="st">"Permanent"</span>
+        <span class="op">:</span> <span class="fn">formatDuration</span>(remaining);
+    EriChat.<span class="fn">create</span>()
+        .text(<span class="st">"[MUTE] "</span>).color(TextFormatting.RED).bold()
+        .text(<span class="st">"Vous etes reduit au silence. Expiration : "</span>).color(TextFormatting.GRAY)
+        .text(expiry).color(TextFormatting.YELLOW)
+        .to(player);
+    event.setCanceled(<span class="kw">true</span>);
+}</div>
+      <h3>Parsing de duree</h3>
+      <div class="code-block"><span class="cm">// AdminManager.parseDuration(String input) → secondes, -1 si permanent, 0 si invalide</span>
+<span class="st">"30s"</span>      → <span class="nu">30</span>
+<span class="st">"5m"</span>       → <span class="nu">300</span>
+<span class="st">"1h"</span>       → <span class="nu">3600</span>
+<span class="st">"1d"</span>       → <span class="nu">86400</span>
+<span class="st">"30d"</span>      → <span class="nu">2592000</span>
+<span class="st">"permanent"</span> → <span class="op">-</span><span class="nu">1</span></div>
+    </div>
+
+    <!-- 05. /tempban -->
+    <div class="section-card" id="tempban">
+      <h2><span class="s-num red-num">05</span>Commandes /tempban &amp; /unban</h2>
+      <h3 class="first">Syntaxe</h3>
+      <div class="code-block">/tempban &lt;joueur&gt; &lt;durée&gt; &lt;raison...&gt;
+/unban &lt;joueur&gt;</div>
+      <div class="cmd-grid">
+        <div class="cmd-card ban-cmd">
+          <div class="cmd-title">/tempban &lt;joueur&gt; &lt;durée&gt; &lt;raison&gt;</div>
+          <div class="cmd-perm">eriniumfaction.mod.tempban</div>
+          <div class="cmd-desc">
+            Ban temporaire d'un joueur via la liste de bans vanilla de Minecraft.
+            <ul>
+              <li><strong>Formats de durée :</strong> <code>30m</code>, <code>1h</code>, <code>1d</code>, <code>7d</code>, <code>30d</code>, <code>365d</code></li>
+              <li>Utilise <code>server.getPlayerList().getBannedPlayers()</code> pour ajouter une entrée <code>UserListBansEntry</code> avec la date d'expiration calculée</li>
+              <li>Le joueur connecté est kické immédiatement avec un message formaté : <strong>"Vous avez été banni. Raison : {raison}\nExpiration : {date}"</strong></li>
+              <li>L'entrée TEMPBAN est ajoutée au casier judiciaire</li>
+              <li>Confirmation au staff avec la durée et la raison</li>
+              <li>La vérification au login est assurée par le mécanisme vanilla de UserListBans</li>
+            </ul>
+          </div>
+        </div>
+        <div class="cmd-card ban-cmd">
+          <div class="cmd-title">/unban &lt;joueur&gt;</div>
+          <div class="cmd-perm">eriniumfaction.mod.tempban</div>
+          <div class="cmd-desc">
+            Retire le ban d'un joueur (en ligne ou hors ligne).
+            <ul>
+              <li>Appelle <code>server.getPlayerList().getBannedPlayers().removeEntry(profile)</code></li>
+              <li>Supporte les joueurs hors ligne (recherche par nom dans GameProfile)</li>
+              <li>Confirmation au staff</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <h3>Message de deconnexion</h3>
+      <div class="code-block"><span class="cm">// Message de kick au joueur banni (ITextComponent)</span>
+<span class="st">"§cVous avez été banni de ce serveur.\n"</span>
+<span class="st">"§7Raison : §f{raison}\n"</span>
+<span class="st">"§7Expiration : §e{date formatée}\n"</span>
+<span class="st">"§8Contestation : discord.gg/eriniumgroup"</span></div>
+      <h3>Date d'expiration — formatage</h3>
+      <div class="code-block"><span class="cm">// Format : "22 mars 2026 à 18:30" (Locale française)</span>
+<span class="kw">new</span> <span class="ty">SimpleDateFormat</span>(<span class="st">"d MMMM yyyy 'à' HH:mm"</span>, Locale.<span class="nu">FRENCH</span>)
+    .<span class="fn">format</span>(<span class="kw">new</span> <span class="ty">Date</span>(System.<span class="fn">currentTimeMillis</span>() <span class="op">+</span> durationMs));</div>
+    </div>
+
+    <!-- 06. /lookup -->
+    <div class="section-card" id="lookup">
+      <h2><span class="s-num">06</span>Commande /lookup</h2>
+      <h3 class="first">Syntaxe</h3>
+      <div class="code-block">/lookup &lt;joueur&gt; [page]</div>
+      <div class="cmd-grid">
+        <div class="cmd-card lookup-cmd">
+          <div class="cmd-title">/lookup &lt;joueur&gt; [page]</div>
+          <div class="cmd-perm">eriniumfaction.mod.lookup</div>
+          <div class="cmd-desc">
+            Affiche le casier judiciaire complet d'un joueur via EriChat paginé.
+            <ul>
+              <li>Supporte les joueurs <strong>en ligne et hors ligne</strong> (recherche par nom dans les données sauvegardées)</li>
+              <li>En-tête : pseudo, UUID, statut actuel (en ligne/hors ligne), grade</li>
+              <li>Résumé des sanctions : N warns · N mutes · N kicks · N bans</li>
+              <li>Statut actif : si muté → "MUET — expire dans {durée}", si banni → "BANNI — expire le {date}"</li>
+              <li>Liste paginée des entrées (8 par page), de la plus récente à la plus ancienne</li>
+              <li>Chaque entrée : [TYPE] date — raison — par staff</li>
+              <li>Actions cliquables sur chaque entrée hors ligne (voir /lookup &lt;joueur&gt; &lt;page&gt;)</li>
+              <li>Auto-complétion sur le nom du joueur (joueurs en ligne + cache des joueurs connus)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <h3>Format d'affichage avec ChatPaginator</h3>
+      <div class="code-block"><span class="cm">// En-tête et résumé</span>
+EriChat.<span class="fn">create</span>()
+    .text(<span class="st">"══════ Casier de "</span>).color(TextFormatting.DARK_PURPLE)
+    .text(playerName).color(TextFormatting.WHITE).bold()
+    .text(<span class="st">" ══════"</span>).color(TextFormatting.DARK_PURPLE)
+    .to(sender);
+EriChat.<span class="fn">create</span>()
+    .text(record.warnCount <span class="op">+</span> <span class="st">" avertissements  "</span>).color(TextFormatting.GOLD)
+    .text(record.muteCount <span class="op">+</span> <span class="st">" mutes  "</span>).color(TextFormatting.AQUA)
+    .text(record.banCount  <span class="op">+</span> <span class="st">" bans"</span>).color(TextFormatting.RED)
+    .to(sender);
+
+<span class="cm">// Liste paginée</span>
+<span class="ty">ChatPaginator</span> paginator <span class="op">=</span> ChatPaginator.<span class="fn">create</span>(<span class="st">"/lookup "</span> <span class="op">+</span> playerName)
+    .title(<span class="st">"Historique des sanctions"</span>)
+    .linesPerPage(<span class="nu">8</span>);
+
+<span class="kw">for</span> (String entry : record.entries) {
+    paginator.<span class="fn">add</span>(<span class="fn">formatEntry</span>(entry)); <span class="cm">// TYPE | date | raison (tronquée) | par staff</span>
+}
+paginator.<span class="fn">send</span>(sender, page);</div>
+    </div>
+
+    <!-- 07. /clearrecord -->
+    <div class="section-card" id="clearrecord">
+      <h2><span class="s-num pink-num">07</span>Commande /clearrecord</h2>
+      <h3 class="first">Syntaxe</h3>
+      <div class="code-block">/clearrecord &lt;joueur&gt;</div>
+      <div class="cmd-grid">
+        <div class="cmd-card admin-cmd">
+          <div class="cmd-title">/clearrecord &lt;joueur&gt;</div>
+          <div class="cmd-perm">eriniumfaction.admin.clearrecord</div>
+          <div class="cmd-desc">
+            Efface intégralement le casier judiciaire d'un joueur. Action irréversible.
+            <ul>
+              <li>Remet <code>entries</code> à une liste vide</li>
+              <li>Remet tous les compteurs à 0</li>
+              <li>Remet <code>muteExpiry = 0</code> (retire le mute si actif)</li>
+              <li>Le ban éventuel via UserListBans n'est PAS retiré automatiquement (utiliser /unban séparément)</li>
+              <li>Un message de confirmation est demandé : <strong>"Confirmer ? Tapez /clearrecord {joueur} CONFIRMER"</strong></li>
+              <li>Log serveur : <strong>"[ADMIN] {executeur} a effacé le casier de {joueur}"</strong></li>
+              <li>Supporte joueurs hors ligne</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="info-box danger">
+        <span class="icon">!</span>
+        <div class="content"><strong>Action irréversible :</strong> Le clearrecord supprime définitivement l'historique. Il est recommandé d'implémenter un système de sauvegarde ou d'archive vers fichier avant suppression (optionnel, configurable).</div>
+      </div>
+    </div>
+
+    <!-- 08. ESCALADE AUTOMATIQUE -->
+    <div class="section-card" id="escalade">
+      <h2><span class="s-num orange-num">08</span>Escalade Automatique</h2>
+      <h3 class="first">Principe</h3>
+      <p>Après chaque warn enregistré, le système vérifie le nombre total de warns du joueur et déclenche automatiquement une sanction si un seuil configurable est atteint.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Seuil (warns)</th><th>Action automatique</th><th>Config</th></tr></thead>
+          <tbody>
+            <tr><td>3 warns</td><td>Mute automatique — durée configurable (défaut 30min)</td><td>autoMuteAfterWarns, autoMuteDuration</td></tr>
+            <tr><td>5 warns</td><td>Tempban automatique — durée configurable (défaut 1h)</td><td>autoBanAfterWarns, autoBanDuration</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Implementation</h3>
+      <div class="code-block"><span class="cm">// Dans AdminManager.addWarn() — appelé après toute commande /warn</span>
+<span class="kw">private void</span> <span class="fn">checkEscalation</span>(<span class="ty">EntityPlayerMP</span> target, <span class="ty">JudicialRecord</span> record) {
+    <span class="ty">AdminConfig</span> cfg <span class="op">=</span> AdminConfig.<span class="fn">getInstance</span>();
+
+    <span class="kw">if</span> (record.warnCount <span class="op">==</span> cfg.autoBanAfterWarns) {
+        <span class="fn">applyTempBan</span>(target, cfg.autoBanDuration, <span class="st">"[AUTO] Seuil de warns atteint"</span>, <span class="st">"SYSTEME"</span>);
+        <span class="fn">broadcastToStaff</span>(<span class="st">"[AUTO] "</span> <span class="op">+</span> target.getName() <span class="op">+</span> <span class="st">" banni automatiquement (5 warns)"</span>);
+    } <span class="kw">else if</span> (record.warnCount <span class="op">==</span> cfg.autoMuteAfterWarns) {
+        <span class="fn">applyMute</span>(target, cfg.autoMuteDuration, <span class="st">"[AUTO] Seuil de warns atteint"</span>, <span class="st">"SYSTEME"</span>);
+        <span class="fn">broadcastToStaff</span>(<span class="st">"[AUTO] "</span> <span class="op">+</span> target.getName() <span class="op">+</span> <span class="st">" muté automatiquement (3 warns)"</span>);
+    }
+}</div>
+      <h3>Broadcast staff</h3>
+      <p>Les escalades automatiques sont annoncées à tous les joueurs en ligne ayant la permission <code>eriniumfaction.mod.warn</code> ou supérieure. Le message précise que c'est une action automatique pour distinguer des actions manuelles.</p>
+    </div>
+
+    <!-- 09. VERIFICATION LOGIN -->
+    <div class="section-card" id="login">
+      <h2><span class="s-num">09</span>Verification au Login</h2>
+      <h3 class="first">Mute au reconnect</h3>
+      <p>Lors de l'événement <code>PlayerLoggedInEvent</code>, l'AdminManager vérifie si le joueur qui se connecte a un mute actif. Si oui, il envoie le message de rappel après un court délai (via EriScheduler) pour s'assurer que le joueur a bien reçu les messages de bienvenue.</p>
+      <div class="code-block"><span class="cm">// Dans AdminManager — appelé à chaque PlayerLoggedInEvent</span>
+<span class="kw">public void</span> <span class="fn">onPlayerLogin</span>(<span class="ty">EntityPlayerMP</span> player) {
+    <span class="ty">JudicialRecord</span> record <span class="op">=</span> DataManager.<span class="fn">get</span>(player, JudicialRecord.<span class="kw">class</span>);
+
+    <span class="cm">// Notifier si muet</span>
+    <span class="kw">if</span> (record.<span class="fn">isMuted</span>()) {
+        <span class="ty">EriScheduler</span>.<span class="fn">delay</span>(<span class="nu">60</span>, () <span class="op">-></span> { <span class="cm">// 3 secondes après login</span>
+            EriChat.<span class="fn">create</span>()
+                .text(<span class="st">"[MUTE] "</span>).color(TextFormatting.RED).bold()
+                .text(<span class="st">"Vous etes toujours reduit au silence. Expiration : "</span>).color(TextFormatting.GRAY)
+                .text(<span class="fn">formatExpiry</span>(record.muteExpiry)).color(TextFormatting.YELLOW)
+                .to(player);
+        });
+    }
+
+    <span class="cm">// Notifier les warns reçus hors ligne</span>
+    <span class="cm">// (les warns offline sont marqués d'un flag "notifié" pour éviter le re-notif)</span>
+}</div>
+      <h3>Purge des mutes expires</h3>
+      <p>Un check périodique toutes les 5 minutes (via EriScheduler.repeat) parcourt la liste des joueurs en ligne et nettoie les mutes expirés (met <code>muteExpiry = 0</code> si le timestamp est passé). Cette opération est légère : O(joueurs en ligne), pas O(tous les joueurs).</p>
+    </div>
+
+    <!-- 10. ARCHITECTURE -->
+    <div class="section-card" id="architecture">
+      <h2><span class="s-num">10</span>Architecture</h2>
+      <div class="arch-grid">
+        <div class="arch-card">
+          <div class="arch-card-name">AdminManager</div>
+          <div class="arch-card-desc">Singleton principal. Gère toutes les opérations de sanction, la logique d'escalade, et les vérifications de mute. Point d'entrée unique pour le reste du mod.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">JudicialRecord</div>
+          <div class="arch-card-desc">@EriData PLAYER — casier judiciaire persistant. Stocke entries (List&lt;String&gt;), compteurs, muteExpiry, muteReason.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">AdminCommand</div>
+          <div class="arch-card-desc">EriCommand racine avec sous-commandes warn, mute, unmute, tempban, unban, lookup, clearrecord. Auto-complétion sur tous les arguments.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">AdminConfig</div>
+          <div class="arch-card-desc">Configuration centralisée : seuils d'escalade, durées auto, durées max de sanction.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">DurationParser</div>
+          <div class="arch-card-desc">Utilitaire statique. Convertit "30m", "1h", "7d", "permanent" en secondes (long). Valide le format et lève une exception descriptive si invalide.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">AdminEventHandler</div>
+          <div class="arch-card-desc">@Mod.EventBusSubscriber. Écoute PlayerLoggedInEvent, ServerChatEvent. Injecte les vérifications de mute dans le flux de chat.</div>
+        </div>
+      </div>
+      <h3>Package</h3>
+      <div class="code-block">fr.eriniumgroup.eriniumfaction.admin/
+  AdminManager.java
+  AdminCommand.java
+  AdminConfig.java
+  AdminEventHandler.java
+  DurationParser.java
+  data/
+    JudicialRecord.java</div>
+      <h3>Enregistrement</h3>
+      <div class="code-block"><span class="cm">// Dans CommonProxy.preInit()</span>
+DataManager.<span class="fn">init</span>();
+DataManager.<span class="fn">register</span>(JudicialRecord.<span class="kw">class</span>);
+
+<span class="cm">// Dans CommonProxy.init()</span>
+AdminManager.<span class="fn">getInstance</span>().<span class="fn">init</span>();
+<span class="ty">MinecraftForge</span>.EVENT_BUS.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">AdminEventHandler</span>());
+
+<span class="cm">// Enregistrement des commandes dans FMLServerStartingEvent</span>
+event.<span class="fn">registerServerCommand</span>(<span class="kw">new</span> <span class="ty">AdminCommand</span>());</div>
+    </div>
+
+    <!-- 11. CONFIGURATION -->
+    <div class="section-card" id="config">
+      <h2><span class="s-num">11</span>Configuration</h2>
+      <h3 class="first">AdminConfig.java</h3>
+      <p>Fichier de configuration Forge standard généré dans <code>config/EriniumFaction/admin.cfg</code>.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Clé</th><th>Type</th><th>Defaut</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>maxMuteDays</td><td>int</td><td>30</td><td>Durée maximum de mute autorisée (jours)</td></tr>
+            <tr><td>maxTempbanDays</td><td>int</td><td>365</td><td>Durée maximum de tempban autorisée (jours)</td></tr>
+            <tr><td>autoMuteAfterWarns</td><td>int</td><td>3</td><td>Nombre de warns avant mute automatique</td></tr>
+            <tr><td>autoMuteDurationSeconds</td><td>int</td><td>1800</td><td>Durée du mute auto (secondes, 1800 = 30min)</td></tr>
+            <tr><td>autoBanAfterWarns</td><td>int</td><td>5</td><td>Nombre de warns avant ban automatique</td></tr>
+            <tr><td>autoBanDurationSeconds</td><td>int</td><td>3600</td><td>Durée du ban auto (secondes, 3600 = 1h)</td></tr>
+            <tr><td>archiveAfterDays</td><td>int</td><td>0</td><td>Archiver les entrées de plus de N jours (0 = désactivé)</td></tr>
+            <tr><td>broadcastBansToStaff</td><td>bool</td><td>true</td><td>Annoncer les bans au staff en ligne</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 12. PERMISSIONS -->
+    <div class="section-card" id="permissions">
+      <h2><span class="s-num">12</span>Permissions</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Permission</th><th>Commande(s)</th><th>Niveau suggere</th></tr></thead>
+          <tbody>
+            <tr><td>eriniumfaction.mod.warn</td><td>/warn</td><td>Moderateur</td></tr>
+            <tr><td>eriniumfaction.mod.mute</td><td>/mute, /unmute</td><td>Moderateur</td></tr>
+            <tr><td>eriniumfaction.mod.tempban</td><td>/tempban, /unban</td><td>Modérateur senior</td></tr>
+            <tr><td>eriniumfaction.mod.lookup</td><td>/lookup</td><td>Moderateur</td></tr>
+            <tr><td>eriniumfaction.admin.clearrecord</td><td>/clearrecord</td><td>Admin</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Ces permissions sont vérifiées via <code>RankManager.getInstance().hasPermission(player, permission)</code>. Elles doivent être ajoutées dans <code>docs/permissions.md</code>.</p>
+    </div>
+
+    <!-- 13. PERFORMANCE -->
+    <div class="section-card" id="performance">
+      <h2><span class="s-num">13</span>Performance</h2>
+      <h3 class="first">Contraintes serveur (500-1000 joueurs)</h3>
+      <ul>
+        <li><strong>Aucune I/O sur le hot path</strong> — le check de mute dans ServerChatEvent est O(1) : lecture du champ <code>muteExpiry</code> en mémoire via DataManager.get()</li>
+        <li><strong>Cache mémoire des mutes actifs</strong> — AdminManager maintient un <code>Set&lt;UUID&gt; mutedPlayers</code> en mémoire pour un check ultra-rapide sans accéder au DataManager à chaque message</li>
+        <li><strong>Pas d'itération globale</strong> — aucune boucle sur tous les joueurs connectés dans les ticks. La purge des mutes expirés cible uniquement les joueurs en ligne</li>
+        <li><strong>Persistence asynchrone optionnelle</strong> — les DataManager.save() peuvent être faits sur le thread d'I/O de Forge (déjà géré par EriAPI)</li>
+        <li><strong>Lookup hors ligne</strong> — recherche par nom dans les fichiers de sauvegarde de l'overworld. Opération rare (modération), acceptable en synchrone</li>
+      </ul>
+      <div class="code-block"><span class="cm">// Cache mémoire AdminManager — mis à jour lors des mutes/unmutes/login/logout</span>
+<span class="kw">private final</span> Set&lt;UUID&gt; mutedPlayers <span class="op">=</span> <span class="kw">new</span> HashSet&lt;&gt;();
+
+<span class="kw">public boolean</span> <span class="fn">isMuted</span>(<span class="ty">EntityPlayer</span> player) {
+    <span class="cm">// Check rapide en O(1) sans accès NBT</span>
+    <span class="kw">return</span> mutedPlayers.<span class="fn">contains</span>(player.<span class="fn">getUniqueID</span>());
+}</div>
+    </div>
+
+    <!-- 14. PLAN DE TESTS -->
+    <div class="section-card" id="tests">
+      <h2><span class="s-num">14</span>Plan de Tests</h2>
+      <div class="checklist">
+        <div class="checklist-item"><strong>/warn</strong> — avertir un joueur en ligne, vérifier message reçu et casier mis à jour</div>
+        <div class="checklist-item"><strong>/warn hors ligne</strong> — avertir un joueur absent, vérifier casier et notification à la reconnexion</div>
+        <div class="checklist-item"><strong>Escalade warn→mute</strong> — atteindre le seuil de warns et vérifier le mute automatique</div>
+        <div class="checklist-item"><strong>Escalade warn→ban</strong> — atteindre le seuil de bans et vérifier le kick + ban automatique</div>
+        <div class="checklist-item"><strong>/mute temporaire</strong> — muter un joueur, tester le blocage du chat, attendre expiration et vérifier la levée auto</div>
+        <div class="checklist-item"><strong>/mute permanent</strong> — vérifier que le mute permanent persiste après redémarrage</div>
+        <div class="checklist-item"><strong>/unmute</strong> — vérifier la levée immédiate et la notification au joueur</div>
+        <div class="checklist-item"><strong>/tempban</strong> — vérifier le kick immédiat et le refus de connexion pendant la durée</div>
+        <div class="checklist-item"><strong>/unban</strong> — vérifier la reconnexion possible après unban</div>
+        <div class="checklist-item"><strong>/lookup en ligne</strong> — vérifier affichage complet avec pagination et statut actuel</div>
+        <div class="checklist-item"><strong>/lookup hors ligne</strong> — vérifier que le casier est accessible pour un joueur absent</div>
+        <div class="checklist-item"><strong>/clearrecord</strong> — vérifier la suppression du casier et la confirmation obligatoire</div>
+        <div class="checklist-item"><strong>Persistence</strong> — redémarrer le serveur et vérifier que mutes, casiers et bans survivent</div>
+        <div class="checklist-item"><strong>Performance</strong> — vérifier que le check de mute n'ajoute pas de lag mesurable avec 500+ joueurs actifs dans le chat</div>
+        <div class="checklist-item"><strong>Permissions</strong> — vérifier qu'un joueur sans grade mod ne peut pas exécuter les commandes de modération</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>

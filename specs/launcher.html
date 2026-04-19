@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Launcher ElectronJS | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.09) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(241,196,15,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, var(--cyan) 40%, var(--violet-l) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+  .section-card:nth-child(14) { animation-delay: .70s; }
+  .section-card:nth-child(15) { animation-delay: .75s; }
+  .section-card:nth-child(16) { animation-delay: .80s; }
+  .section-card:nth-child(17) { animation-delay: .85s; }
+  .section-card:nth-child(18) { animation-delay: .90s; }
+  .section-card:nth-child(19) { animation-delay: .95s; }
+  .section-card:nth-child(20) { animation-delay: 1.0s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '>'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  .threat-box { background: rgba(231,76,60,0.06); border: 1px solid rgba(231,76,60,0.2); border-radius: var(--radius-sm); padding: 16px 20px; margin: 14px 0; font-size: 13.5px; color: var(--slate); line-height: 1.6; }
+  .threat-box strong { color: var(--red); }
+  .solution-box { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); border-radius: var(--radius-sm); padding: 16px 20px; margin: 14px 0; font-size: 13.5px; color: var(--slate); line-height: 1.6; }
+  .solution-box strong { color: var(--green); }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; margin-left: 8px; vertical-align: middle; }
+  .tag-launcher { background: rgba(0,229,255,0.1); color: var(--cyan); border: 1px solid rgba(0,229,255,0.25); }
+  .tag-mod { background: rgba(107,47,160,0.15); color: var(--violet-l); border: 1px solid rgba(107,47,160,0.3); }
+  .tag-website { background: rgba(46,204,113,0.1); color: var(--green); border: 1px solid rgba(46,204,113,0.25); }
+  .tag-server { background: rgba(241,196,15,0.1); color: var(--gold); border: 1px solid rgba(241,196,15,0.25); }
+  .priority-critical { color: var(--red); font-weight: 700; }
+  .priority-high { color: var(--gold); font-weight: 700; }
+  .priority-medium { color: var(--cyan); font-weight: 700; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Architecture Technique</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Ecran Splash / Chargement</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Ecran de Connexion</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Ecran Principal</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Panneau Parametres</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Authentification Discord</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Securite &amp; Anti-Tamper</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Lancement du Jeu</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Auto-Updater</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Direction Artistique</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Structure du Projet</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Plan de Tests</a>
+    <span class="sidebar-title">Securite avancee</span>
+    <a class="nav-link" href="#s14"><span class="num">14</span> Modele de Menace</a>
+    <a class="nav-link" href="#s15"><span class="num">15</span> Anti-Bot Inscription</a>
+    <a class="nav-link" href="#s16"><span class="num">16</span> Securite Mod Client</a>
+    <a class="nav-link" href="#s17"><span class="num">17</span> Securite Mod Serveur</a>
+    <a class="nav-link" href="#s18"><span class="num">18</span> Permissions &amp; Detection</a>
+    <a class="nav-link" href="#s19"><span class="num">19</span> Taches Mod &amp; Flow Auth</a>
+    <a class="nav-link" href="#s20"><span class="num">20</span> Notes Techniques</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Launcher ElectronJS</h1>
+      <p>Le launcher est le point d'entree unique pour jouer sur EriniumFaction. Il gere l'authentification Discord OAuth, le telechargement et la verification des fichiers du jeu, la configuration, et le lancement de Minecraft 1.12.2 avec CleanRoom (fork de Forge compatible Java 21+) et le token d'authentification. Le telechargement vanilla est gere par <strong>minecraft-java-core</strong>.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-cyan">ElectronJS</span>
+        <span class="badge badge-violet">Discord OAuth</span>
+        <span class="badge badge-green">Auto-Update</span>
+        <span class="badge badge-gold">Liquid Glass UI</span>
+        <span class="badge badge-orange">Windows / Linux / Mac</span>
+      </div>
+    </div>
+
+    <!-- S1 — CONTEXTE & OBJECTIFS -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Pourquoi un launcher custom</h3>
+      <p>Le serveur fonctionne en <strong>online-mode=false</strong> (crack). Sans launcher custom, n'importe qui peut se connecter avec n'importe quel pseudo. Le launcher est le <strong>verrou d'acces</strong> : il authentifie le joueur via Discord OAuth, collecte son HWID, et injecte un token JWT dans Minecraft. Sans ce token, le mod serveur refuse la connexion.</p>
+
+      <h3>Objectifs</h3>
+      <ul>
+        <li><strong>Authentification securisee</strong> — Discord OAuth comme unique methode de connexion, coherent avec le site web</li>
+        <li><strong>Distribution des mods</strong> — telecharger, verifier et mettre a jour automatiquement tous les mods et configs requis</li>
+        <li><strong>Anti-triche</strong> — empecher l'ajout de mods non autorises, verifier l'integrite des fichiers avant chaque lancement</li>
+        <li><strong>Experience utilisateur premium</strong> — interface Liquid Glass fluide, transitions animees, chargement rapide</li>
+        <li><strong>Multi-plateforme</strong> — Windows (prioritaire), Linux et macOS en secondaire</li>
+        <li><strong>Auto-mise a jour</strong> — le launcher et les fichiers du jeu se mettent a jour automatiquement</li>
+      </ul>
+
+      <h3>Contraintes</h3>
+      <ul>
+        <li><strong>Telechargement initial</strong> — le launcher inclut le runtime Electron (~150-200 Mo). Les fichiers du jeu (MC + CleanRoom + mods) sont telecharges separement apres la premiere connexion</li>
+        <li><strong>RAM minimale</strong> — le launcher lui-meme ne doit pas depasser 200 Mo de RAM</li>
+        <li><strong>Temps de demarrage</strong> — moins de 3 secondes entre le clic sur l'icone et l'affichage de l'ecran splash</li>
+        <li><strong>Compatibilite Java</strong> — CleanRoom supporte Java 21+. Detecter et utiliser Java 21 ou superieur (Corretto/Adoptium). Si absent, proposer l'installation automatique ou laisser minecraft-java-core le telecharger</li>
+      </ul>
+    </section>
+
+    <!-- S2 — ARCHITECTURE TECHNIQUE -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Architecture Technique</h2>
+
+      <h3 class="first">Stack technologique</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Composant</th><th>Technologie</th><th>Version</th></tr></thead>
+          <tbody>
+            <tr><td>Framework</td><td>ElectronJS</td><td>Derniere stable (34+)</td></tr>
+            <tr><td>Renderer</td><td>HTML5 / CSS3 / Vanilla JS</td><td>-</td></tr>
+            <tr><td>Moteur MC vanilla</td><td>minecraft-java-core</td><td>Derniere stable (npm)</td></tr>
+            <tr><td>Modloader</td><td>CleanRoom (fork Forge 1.12.2, Java 21+)</td><td>0.5.7-alpha</td></tr>
+            <tr><td>Build</td><td>electron-builder</td><td>Derniere stable</td></tr>
+            <tr><td>Auto-update</td><td>electron-updater</td><td>Integre a electron-builder</td></tr>
+            <tr><td>Stockage securise</td><td>Electron safeStorage</td><td>Natif Electron</td></tr>
+            <tr><td>HTTP client</td><td>Node.js https / fetch</td><td>Natif</td></tr>
+            <tr><td>Hash</td><td>Node.js crypto (SHA-256)</td><td>Natif</td></tr>
+            <tr><td>Design</td><td>CSS custom (Liquid Glass)</td><td>-</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Architecture IPC (Inter-Process Communication)</h3>
+      <p>Electron separe le <strong>main process</strong> (Node.js, acces systeme complet) et le <strong>renderer process</strong> (page web, sandbox). Toute communication passe par l'IPC bridge :</p>
+      <div class="ascii-diagram"><span class="av">┌─────────────────────┐</span>          <span class="ac">┌──────────────────────┐</span>
+<span class="av">│   MAIN PROCESS      │</span>          <span class="ac">│   RENDERER PROCESS   │</span>
+<span class="av">│   (Node.js)         │</span>  &lt;─IPC─&gt; <span class="ac">│   (HTML/CSS/JS)      │</span>
+<span class="av">│                     │</span>          <span class="ac">│                      │</span>
+<span class="av">│  - Auth Discord     │</span>          <span class="ac">│  - Ecran Splash      │</span>
+<span class="av">│  - HWID collection  │</span>          <span class="ac">│  - Ecran Login       │</span>
+<span class="av">│  - File system      │</span>          <span class="ac">│  - Ecran Principal   │</span>
+<span class="av">│  - Game launch      │</span>          <span class="ac">│  - Parametres        │</span>
+<span class="av">│  - Auto-update      │</span>          <span class="ac">│  - Progression DL    │</span>
+<span class="av">│  - safeStorage      │</span>          <span class="ac">│  - Notifications     │</span>
+<span class="av">│  - Downloads        │</span>          <span class="ac">│  - News feed         │</span>
+<span class="av">└─────────────────────┘</span>          <span class="ac">└──────────────────────┘</span></div>
+
+      <h3>Canaux IPC</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Canal</th><th>Direction</th><th>Donnees</th></tr></thead>
+          <tbody>
+            <tr><td>auth:discord-login</td><td>Renderer → Main</td><td>Demande d'ouverture OAuth Discord</td></tr>
+            <tr><td>auth:token-received</td><td>Main → Renderer</td><td>JWT + infos joueur apres auth reussie</td></tr>
+            <tr><td>auth:error</td><td>Main → Renderer</td><td>Message d'erreur d'authentification</td></tr>
+            <tr><td>auth:logout</td><td>Renderer → Main</td><td>Demande de deconnexion (supprime tokens)</td></tr>
+            <tr><td>auth:check-session</td><td>Renderer → Main</td><td>Verifie si un token valide existe</td></tr>
+            <tr><td>auth:session-status</td><td>Main → Renderer</td><td>Resultat : { valid, user } ou { valid: false }</td></tr>
+            <tr><td>game:launch</td><td>Renderer → Main</td><td>Demande de lancement (avec config RAM, etc.)</td></tr>
+            <tr><td>game:status</td><td>Main → Renderer</td><td>Statut du processus : launching, running, crashed, closed</td></tr>
+            <tr><td>download:start</td><td>Main → Renderer</td><td>Debut du telechargement (nombre de fichiers)</td></tr>
+            <tr><td>download:progress</td><td>Main → Renderer</td><td>{ file, current, total, speed, eta }</td></tr>
+            <tr><td>download:complete</td><td>Main → Renderer</td><td>Telechargement termine</td></tr>
+            <tr><td>download:error</td><td>Main → Renderer</td><td>Erreur de telechargement</td></tr>
+            <tr><td>server:status</td><td>Main → Renderer</td><td>{ online, players, maxPlayers, tps }</td></tr>
+            <tr><td>news:data</td><td>Main → Renderer</td><td>Articles actualites depuis l'API</td></tr>
+            <tr><td>settings:get</td><td>Renderer → Main</td><td>Demande les parametres actuels</td></tr>
+            <tr><td>settings:save</td><td>Renderer → Main</td><td>Sauvegarde des parametres</td></tr>
+            <tr><td>update:available</td><td>Main → Renderer</td><td>Nouvelle version du launcher disponible</td></tr>
+            <tr><td>update:progress</td><td>Main → Renderer</td><td>Progression de la mise a jour launcher</td></tr>
+            <tr><td>hwid:collected</td><td>Main → Renderer</td><td>HWID fingerprint collecte avec succes</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Repertoire de donnees</h3>
+      <div class="code-block"><span class="cm">// Windows</span>
+%APPDATA%/.eriniumfaction/
+  ├── launcher/
+  │   ├── settings.json          <span class="cm">// Parametres utilisateur</span>
+  │   └── cache/                 <span class="cm">// Cache news, avatars</span>
+  ├── minecraft/                 <span class="cm">// Vanilla MC 1.12.2 (gere par minecraft-java-core)</span>
+  │   ├── versions/
+  │   ├── libraries/
+  │   ├── assets/
+  │   └── natives/
+  ├── cleanroom/                 <span class="cm">// CleanRoom modloader (fork Forge, Java 21+)</span>
+  │   ├── cleanroom-0.5.7-alpha-universal.jar
+  │   └── libraries/
+  ├── mods/                      <span class="cm">// Mods telecharges (depuis manifeste/CDN)</span>
+  ├── config/                    <span class="cm">// Configs par defaut</span>
+  ├── resourcepacks/             <span class="cm">// Resource packs</span>
+  ├── manifest.json              <span class="cm">// Manifeste local des fichiers custom</span>
+  ├── logs/
+  │   └── latest.log
+  └── crash-reports/
+
+<span class="cm">// Launcher logs</span>
+%APPDATA%/.eriniumfaction/launcher/launcher.log
+
+<span class="cm">// Linux</span>
+~/.eriniumfaction/
+
+<span class="cm">// macOS</span>
+~/Library/Application Support/.eriniumfaction/</div>
+    </section>
+
+    <!-- S3 — ECRAN SPLASH -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Ecran Splash / Chargement</h2>
+
+      <h3 class="first">Description</h3>
+      <p>Premier ecran affiche au lancement du launcher. Fenetre verticale compacte (<strong>400x600px</strong>), sans barre de titre native. Affiche le logo et l'etat de chargement pendant que le launcher initialise ses systemes.</p>
+
+      <h3>Layout</h3>
+      <div class="ascii-diagram">┌────────────────────────────────┐
+│                                │  400 x 600 px
+│                                │  Pas de barre de titre
+│                                │  Fond : #0A0A12 + gradient
+│         ┌──────────┐           │  violet/cyan subtil
+│         │          │           │
+│         │   LOGO   │           │  Logo centre : ~200x200px
+│         │          │           │  Avec glow effect violet
+│         └──────────┘           │
+│                                │
+│     EriniumFaction             │  Nom du mod sous le logo
+│                                │  Gradient text violet→cyan
+│                                │
+│         ┌──────┐               │
+│         │ ●●●● │               │  Spinner anime ou barre
+│         └──────┘               │  de progression fine
+│                                │
+│   Verification des mises       │  Texte de statut anime
+│   a jour...                    │  (dots qui pulsent)
+│                                │
+│                                │
+│                                │
+│                    v1.0.0      │  Version en bas a droite
+│                                │  Couleur slate, petit
+└────────────────────────────────┘</div>
+
+      <h3>Etapes de chargement</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Etape</th><th>Texte affiche</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>"Demarrage..."</td><td>Initialisation Electron, lecture settings.json</td></tr>
+            <tr><td>2</td><td>"Verification des mises a jour..."</td><td>Appel electron-updater pour verifier si une nouvelle version du launcher existe</td></tr>
+            <tr><td>3</td><td>"Mise a jour en cours..." (si applicable)</td><td>Telechargement et installation de la mise a jour launcher</td></tr>
+            <tr><td>4</td><td>"Verification de la session..."</td><td>Lecture du token JWT dans safeStorage. Si valide → ecran principal. Si expire → tentative refresh. Si echec → ecran login</td></tr>
+            <tr><td>5</td><td>"Chargement..."</td><td>Fetch statut serveur + news en parallele</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Comportement</h3>
+      <ul>
+        <li><strong>Duree</strong> — 2-3 secondes minimum (meme si tout est en cache, pour laisser le temps de voir le logo). Maximum 10 secondes avant timeout</li>
+        <li><strong>Transition</strong> — fadeOut du splash, puis fadeIn de l'ecran suivant (login ou principal)</li>
+        <li><strong>Erreur reseau</strong> — si impossible de verifier les mises a jour, afficher un avertissement mais continuer quand meme. Le launcher doit fonctionner offline (avec les fichiers deja telecharges)</li>
+        <li><strong>Fenetre</strong> — non redimensionnable, centree sur l'ecran, toujours au premier plan pendant le chargement</li>
+      </ul>
+    </section>
+
+    <!-- S4 — ECRAN LOGIN -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Ecran de Connexion</h2>
+
+      <h3 class="first">Description</h3>
+      <p>Ecran affiche quand aucune session valide n'est detectee. Meme dimensions que le splash (<strong>400x600px</strong>, vertical). Interface epuree avec un seul bouton d'action : "Se connecter avec Discord".</p>
+
+      <h3>Layout</h3>
+      <div class="ascii-diagram">┌────────────────────────────────┐
+│                                │  400 x 600 px
+│                                │  Fond identique au splash
+│         ┌──────────┐           │
+│         │          │           │
+│         │   LOGO   │           │  Logo : 150x150px
+│         │          │           │
+│         └──────────┘           │
+│                                │
+│     EriniumFaction             │  Nom gradient
+│                                │
+│     Connectez-vous pour        │  Sous-titre slate
+│     acceder au serveur         │
+│                                │
+│   ┌──────────────────────┐     │
+│   │  ● Se connecter avec │     │  Bouton Discord
+│   │    Discord            │     │  Couleur : #5865F2 (blurple)
+│   └──────────────────────┘     │  Hover : lighten 10%
+│                                │  Icone Discord a gauche
+│                                │
+│   ┌──────────────────────┐     │  (Visible uniquement si
+│   │  Connexion en cours  │     │   auth en cours)
+│   │        ●●●           │     │  Spinner + texte
+│   └──────────────────────┘     │
+│                                │
+│    Erreur : Echec de la        │  Zone d'erreur (rouge)
+│    connexion. Reessayer ?      │  Cachee par defaut
+│    [Reessayer]                 │
+│                                │
+│         [Quitter]              │  Bouton discret en bas
+│                    v1.0.0      │
+└────────────────────────────────┘</div>
+
+      <h3>Flow de connexion</h3>
+      <ul>
+        <li><strong>Clic "Se connecter avec Discord"</strong> — le renderer envoie <code>auth:discord-login</code> au main process</li>
+        <li><strong>Main process</strong> — ouvre le navigateur systeme par defaut vers l'URL Discord OAuth. Demarre simultanement un serveur HTTP local temporaire sur un port aleatoire (49152-65535) pour recevoir le callback</li>
+        <li><strong>Joueur autorise</strong> — Discord redirige vers <code>http://localhost:PORT/callback?code=XXX&state=YYY</code></li>
+        <li><strong>Main process</strong> — recoit le code, l'envoie au site web API (<code>POST /api/auth/discord/callback</code>) avec le HWID. Recoit le JWT + refresh token + infos joueur</li>
+        <li><strong>Stockage</strong> — JWT et refresh token stockes dans <code>safeStorage</code>. Infos joueur en memoire</li>
+        <li><strong>Transition</strong> — la fenetre passe en mode "principal" (redimensionne a 1200x700, horizontal)</li>
+      </ul>
+
+      <h3>Gestion d'erreurs</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Erreur</th><th>Message affiche</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>Timeout OAuth (2 min)</td><td>"La connexion a expire. Reessayez."</td><td>Ferme le serveur local, bouton Reessayer</td></tr>
+            <tr><td>Refus OAuth</td><td>"Connexion annulee."</td><td>Retour a l'ecran login</td></tr>
+            <tr><td>API site indisponible</td><td>"Serveur indisponible. Verifiez votre connexion."</td><td>Bouton Reessayer</td></tr>
+            <tr><td>Compte non enregistre</td><td>"Vous devez d'abord creer un compte sur erinium.fr"</td><td>Lien cliquable vers le site</td></tr>
+            <tr><td>Pseudo MC manquant</td><td>"Choisissez d'abord un pseudo MC sur erinium.fr/dashboard"</td><td>Lien cliquable vers le dashboard</td></tr>
+            <tr><td>Compte banni</td><td>"Votre compte est banni. Contactez le support."</td><td>Lien vers Discord support</td></tr>
+            <tr><td>HWID banni</td><td>"Cet appareil est banni. Contactez le support."</td><td>Lien vers Discord support</td></tr>
+            <tr><td>Compte Discord trop recent</td><td>"Votre compte Discord doit avoir au moins 7 jours."</td><td>Affiche la date d'eligibilite</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- S5 — ECRAN PRINCIPAL -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num">05</span> Ecran Principal</h2>
+
+      <h3 class="first">Description</h3>
+      <p>Ecran principal apres connexion reussie. Fenetre horizontale <strong>1200x700px</strong>, non redimensionnable (ou min 1000x600). Barre de titre custom (pas de frame native), draggable. C'est le hub central du joueur.</p>
+
+      <h3>Layout</h3>
+      <div class="ascii-diagram">┌───────────────────────────────────────────────────────────────────────┐
+│  ─ ■ X   EriniumFaction Launcher                          ─ □ X     │  Titre bar custom
+├──────────────┬────────────────────────────────────────────────────────┤  draggable
+│              │                                                        │
+│   ┌──────┐   │  ┌─ STATUT SERVEUR ────────────────────────────────┐  │
+│   │AVATAR│   │  │  ● En ligne    247 / 1000 joueurs    19.8 TPS  │  │
+│   └──────┘   │  └─────────────────────────────────────────────────┘  │
+│              │                                                        │
+│  PlayerName  │  ┌─ ACTUALITES ────────────────────────────────────┐  │
+│  Rank Badge  │  │                                                  │  │
+│              │  │  ● Mise a jour 2.3 — Nouvelles armes            │  │
+│  ──────────  │  │    Il y a 2 heures                              │  │
+│              │  │                                                  │  │
+│  Faction:    │  │  ● Event PvP ce week-end !                      │  │
+│  Shadow      │  │    Il y a 1 jour                                │  │
+│              │  │                                                  │  │
+│  Kills: 142  │  │  ● Maintenance prevue lundi                     │  │
+│  Deaths: 87  │  │    Il y a 3 jours                               │  │
+│              │  │                                                  │  │
+│  ──────────  │  └─────────────────────────────────────────────────┘  │
+│              │                                                        │
+│  ⚙ Params   │  ┌─────────────────────────────────────────────────┐  │
+│              │  │                                                  │  │
+│  ⇪ Logout   │  │              ▶  J O U E R                       │  │
+│              │  │                                                  │  │
+│              │  └─────────────────────────────────────────────────┘  │
+├──────────────┴────────────────────────────────────────────────────────┤
+│  EriniumFaction v1.0.0  ·  Minecraft 1.12.2 CleanRoom  ·  erinium.fr │  Footer
+└───────────────────────────────────────────────────────────────────────┘</div>
+
+      <h3>Sidebar gauche — Profil joueur</h3>
+      <ul>
+        <li><strong>Avatar</strong> — avatar Discord du joueur (rond, 80x80px, bord gradient violet/cyan)</li>
+        <li><strong>Pseudo MC</strong> — nom Minecraft choisi sur le site, texte blanc bold</li>
+        <li><strong>Badge de rang</strong> — badge colore selon le grade (Joueur, VIP, MVP, Admin). Couleurs et noms depuis l'API</li>
+        <li><strong>Faction</strong> — nom de la faction si le joueur en a une, sinon "Aucune faction"</li>
+        <li><strong>Stats rapides</strong> — kills, deaths, ratio K/D. Donnees depuis l'API</li>
+        <li><strong>Bouton Parametres</strong> — icone engrenage, ouvre le panneau parametres en slide-in</li>
+        <li><strong>Bouton Deconnexion</strong> — supprime les tokens, retour a l'ecran login</li>
+      </ul>
+
+      <h3>Zone centrale — Statut serveur</h3>
+      <ul>
+        <li><strong>Indicateur online/offline</strong> — pastille verte (en ligne) ou rouge (hors ligne) avec texte</li>
+        <li><strong>Compteur joueurs</strong> — "247 / 1000 joueurs" avec barre de progression subtile</li>
+        <li><strong>TPS</strong> — affichage du TPS avec couleur dynamique (vert > 19, jaune > 15, rouge sinon)</li>
+        <li><strong>Rafraichissement</strong> — poll toutes les 30 secondes via <code>GET /api/server/status</code> (API MC port 8081)</li>
+        <li><strong>Mode offline</strong> — si le serveur est injoignable, afficher "Serveur hors ligne" en rouge + desactiver le bouton JOUER</li>
+      </ul>
+
+      <h3>Zone centrale — Actualites</h3>
+      <ul>
+        <li><strong>Source</strong> — <code>GET /api/news</code> depuis l'API Vercel du site web</li>
+        <li><strong>Affichage</strong> — 3 a 5 dernieres actualites, titre + date relative ("Il y a 2 heures")</li>
+        <li><strong>Clic</strong> — ouvre l'article complet dans le navigateur systeme sur le site web</li>
+        <li><strong>Cache</strong> — les news sont cachees localement. Rafraichissement au demarrage et toutes les 5 minutes</li>
+        <li><strong>Scroll</strong> — si plus de 3 articles, scroll vertical avec scrollbar stylisee</li>
+      </ul>
+
+      <h3>Bouton JOUER</h3>
+      <ul>
+        <li><strong>Design</strong> — grand bouton (pleine largeur de la zone centrale, ~60px de haut). Gradient violet → cyan, glow effect, texte "JOUER" en majuscules bold</li>
+        <li><strong>Hover</strong> — intensification du glow, leger scale up (1.02)</li>
+        <li><strong>Clic</strong> — lance la sequence de verification des fichiers → telechargement si necessaire → lancement du jeu</li>
+        <li><strong>Pendant le lancement</strong> — le bouton devient une barre de progression ("Verification des fichiers... 42%", "Telechargement... 3/17 fichiers", "Lancement...")</li>
+        <li><strong>Jeu en cours</strong> — le bouton affiche "En jeu" en gris, desactive. Le launcher peut etre minimise</li>
+        <li><strong>Serveur offline</strong> — bouton grise avec texte "Serveur hors ligne", desactive</li>
+      </ul>
+
+      <h3>Barre de titre custom</h3>
+      <ul>
+        <li><strong>Pas de frame native</strong> — <code>frame: false</code> dans les options BrowserWindow</li>
+        <li><strong>Zone draggable</strong> — toute la barre de titre est draggable (<code>-webkit-app-region: drag</code>)</li>
+        <li><strong>Boutons</strong> — minimiser (trait), maximiser (carre), fermer (croix). Style custom, pas de boutons Windows. Hover effects subtils</li>
+        <li><strong>Titre</strong> — "EriniumFaction Launcher" a gauche, logo petit</li>
+      </ul>
+    </section>
+
+    <!-- S6 — PARAMETRES -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num cyan-num">06</span> Panneau Parametres</h2>
+
+      <h3 class="first">Description</h3>
+      <p>Panneau qui glisse depuis la droite (slide-in) quand le joueur clique sur l'icone engrenage. Fond semi-transparent avec backdrop blur. Fermeture par clic en dehors ou bouton fermer.</p>
+
+      <h3>Parametres disponibles</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Parametre</th><th>Type</th><th>Defaut</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>RAM allouee</td><td>Slider (1-16 Go, step 0.5)</td><td>4 Go</td><td>Memoire allouee a Minecraft (-Xmx). Affiche la RAM totale du systeme comme reference</td></tr>
+            <tr><td>Chemin Java</td><td>Champ texte + bouton parcourir</td><td>Auto-detecte</td><td>Chemin vers javaw.exe. Le launcher detecte automatiquement Java 21+ dans les emplacements courants. minecraft-java-core peut aussi telecharger le runtime</td></tr>
+            <tr><td>Repertoire du jeu</td><td>Champ texte + bouton parcourir</td><td>%APPDATA%/.eriniumfaction</td><td>Dossier ou les fichiers du jeu sont stockes</td></tr>
+            <tr><td>Arguments JVM</td><td>Champ texte multi-ligne</td><td>(vide)</td><td>Arguments JVM supplementaires (avance). Ex: -XX:+UseG1GC</td></tr>
+            <tr><td>Fermer le launcher au lancement</td><td>Toggle</td><td>Non</td><td>Si active, minimise le launcher dans le system tray quand le jeu demarre</td></tr>
+            <tr><td>Demarrer avec Windows</td><td>Toggle</td><td>Non</td><td>Ajoute le launcher au demarrage Windows</td></tr>
+            <tr><td>Notifications</td><td>Toggle</td><td>Oui</td><td>Notifications systeme quand le serveur revient en ligne</td></tr>
+            <tr><td>Langue</td><td>Dropdown</td><td>Francais</td><td>Francais / English (pour le launcher uniquement)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Stockage</h3>
+      <p>Les parametres sont sauvegardes dans <code>%APPDATA%/.eriniumfaction/launcher/settings.json</code> :</p>
+      <div class="code-block">{
+  <span class="st">"ram"</span>: <span class="nu">4</span>,
+  <span class="st">"javaPath"</span>: <span class="st">"C:/Users/killi/.jdks/corretto-21/bin/javaw.exe"</span>,
+  <span class="st">"gameDir"</span>: <span class="st">"C:/Users/killi/AppData/Roaming/.eriniumfaction"</span>,
+  <span class="st">"jvmArgs"</span>: <span class="st">""</span>,
+  <span class="st">"closeOnLaunch"</span>: <span class="kw">false</span>,
+  <span class="st">"startWithWindows"</span>: <span class="kw">false</span>,
+  <span class="st">"notifications"</span>: <span class="kw">true</span>,
+  <span class="st">"language"</span>: <span class="st">"fr"</span>
+}</div>
+
+      <h3>Detection automatique de Java</h3>
+      <ul>
+        <li><strong>Emplacements verifies</strong> — <code>JAVA_HOME</code>, <code>PATH</code>, <code>C:/Program Files/Java/</code>, <code>C:/Program Files/Amazon Corretto/</code>, <code>C:/Program Files/Eclipse Adoptium/</code>, registre Windows</li>
+        <li><strong>Version requise</strong> — Java 21+ (CleanRoom est compatible Java 21 et superieur). Proposer le telechargement de Corretto 21 si aucun Java compatible n'est trouve. minecraft-java-core peut aussi gerer le telechargement du runtime Java</li>
+        <li><strong>Validation</strong> — executer <code>java -version</code> sur le chemin selectionne pour confirmer la version</li>
+      </ul>
+    </section>
+
+    <!-- S7 — AUTH DISCORD -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num green-num">07</span> Authentification Discord OAuth</h2>
+
+      <h3 class="first">Flow detaille</h3>
+      <p>Le launcher utilise le meme flow Discord OAuth que le site web. Le joueur n'a qu'UN seul compte, cree sur le site via Discord. Le launcher est un second client OAuth de la meme application Discord.</p>
+
+      <h3>Etape par etape</h3>
+      <ul>
+        <li><strong>1. Clic "Se connecter avec Discord"</strong> — le renderer envoie <code>auth:discord-login</code> via IPC</li>
+        <li><strong>2. Main process cree un serveur HTTP local</strong> — port aleatoire dans la plage 49152-65535. Le serveur n'ecoute que sur <code>127.0.0.1</code> (pas accessible depuis l'exterieur). Un <code>state</code> aleatoire (32 octets hex) est genere pour la protection CSRF</li>
+        <li><strong>3. Ouverture navigateur systeme</strong> — <code>shell.openExternal(discordOAuthUrl)</code> avec les parametres : <code>client_id</code>, <code>redirect_uri=http://localhost:PORT/callback</code>, <code>scope=identify email</code>, <code>state=RANDOM_STATE</code></li>
+        <li><strong>4. Joueur autorise sur Discord</strong> — Discord redirige vers <code>http://localhost:PORT/callback?code=XXX&state=YYY</code></li>
+        <li><strong>5. Serveur local recoit le callback</strong> — verifie que <code>state</code> correspond. Affiche une page HTML "Connexion reussie, vous pouvez fermer cet onglet" dans le navigateur. Ferme le serveur HTTP local</li>
+        <li><strong>6. Echange du code</strong> — le main process envoie le code OAuth + le HWID au site web API : <code>POST https://erinium.fr/api/auth/discord/callback</code> avec <code>{ code, hwid, source: "launcher", redirect_uri }</code></li>
+        <li><strong>7. Site web API</strong> — echange le code contre un token Discord, recupere les infos joueur, verifie l'email, verifie l'anciennete du compte Discord, verifie que le pseudo MC est defini, genere un JWT + refresh token</li>
+        <li><strong>8. Reponse</strong> — le launcher recoit <code>{ jwt, refreshToken, expiresIn, user: { mcName, discordName, avatar, rank, faction, ... } }</code></li>
+        <li><strong>9. Stockage securise</strong> — JWT et refresh token stockes via <code>safeStorage.encryptString()</code>. Infos joueur gardees en memoire</li>
+        <li><strong>10. Transition</strong> — le renderer est notifie via <code>auth:token-received</code>, la fenetre redimensionne en mode principal (1200x700)</li>
+      </ul>
+
+      <h3>Refresh token</h3>
+      <ul>
+        <li><strong>Duree de vie JWT</strong> — 1 heure. Le launcher verifie l'expiration avant chaque lancement de jeu</li>
+        <li><strong>Duree de vie refresh token</strong> — 30 jours. Stocke dans safeStorage</li>
+        <li><strong>Refresh automatique</strong> — quand le JWT est expire mais le refresh token est valide, appel <code>POST /api/auth/refresh</code> avec <code>{ refreshToken, hwid }</code>. Recoit un nouveau JWT</li>
+        <li><strong>Refresh echoue</strong> — si le refresh token est aussi expire ou invalide → ecran de login Discord</li>
+      </ul>
+
+      <h3>Deconnexion</h3>
+      <ul>
+        <li><strong>Action</strong> — supprime JWT et refresh token du safeStorage, vide les infos joueur en memoire</li>
+        <li><strong>Optionnel</strong> — appel <code>POST /api/auth/logout</code> pour invalider le refresh token cote serveur</li>
+        <li><strong>Transition</strong> — retour a l'ecran login (fenetre redimensionne en 400x600)</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">!</span>
+        <div class="content"><strong>Securite</strong> — le <code>client_secret</code> Discord ne doit JAMAIS etre dans le code du launcher. L'echange code → token se fait via l'API du site web (serveur Vercel) qui detient le secret.</div>
+      </div>
+    </section>
+
+    <!-- S8 — SECURITE -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num red-num">08</span> Securite &amp; Anti-Tamper</h2>
+
+      <h3 class="first">HWID Fingerprint</h3>
+      <p>Le main process collecte un fingerprint hardware unique au demarrage. Ce HWID est envoye avec chaque requete d'authentification et compare cote serveur.</p>
+      <div class="code-block"><span class="kw">const</span> os = <span class="fn">require</span>(<span class="st">'os'</span>);
+<span class="kw">const</span> { execSync } = <span class="fn">require</span>(<span class="st">'child_process'</span>);
+<span class="kw">const</span> crypto = <span class="fn">require</span>(<span class="st">'crypto'</span>);
+
+<span class="kw">function</span> <span class="fn">collectHWID</span>() {
+  <span class="kw">const</span> cpu = os.<span class="fn">cpus</span>()[<span class="nu">0</span>].model;
+  <span class="kw">const</span> interfaces = os.<span class="fn">networkInterfaces</span>();
+  <span class="kw">const</span> mac = Object.<span class="fn">values</span>(interfaces)
+    .<span class="fn">flat</span>()
+    .<span class="fn">find</span>(i =&gt; !i.internal &amp;&amp; i.mac !== <span class="st">'00:00:00:00:00:00'</span>)?.mac;
+
+  <span class="kw">let</span> disk = <span class="st">''</span>;
+  <span class="kw">if</span> (process.platform === <span class="st">'win32'</span>) {
+    disk = <span class="fn">execSync</span>(<span class="st">'wmic diskdrive get serialnumber'</span>)
+      .<span class="fn">toString</span>().<span class="fn">trim</span>().<span class="fn">split</span>(<span class="st">'\n'</span>)[<span class="nu">1</span>]?.<span class="fn">trim</span>() || <span class="st">''</span>;
+  } <span class="kw">else</span> {
+    disk = <span class="fn">execSync</span>(<span class="st">'lsblk --nodeps -no serial /dev/sda'</span>)
+      .<span class="fn">toString</span>().<span class="fn">trim</span>() || <span class="st">''</span>;
+  }
+
+  <span class="kw">const</span> raw = <span class="st">`${cpu}|${os.platform()}${os.arch()}|${mac}|${disk}`</span>;
+  <span class="kw">return</span> crypto.<span class="fn">createHash</span>(<span class="st">'sha256'</span>).<span class="fn">update</span>(raw).<span class="fn">digest</span>(<span class="st">'hex'</span>);
+}</div>
+
+      <h3>safeStorage (stockage chiffre)</h3>
+      <ul>
+        <li><strong>Electron safeStorage</strong> — utilise le keychain OS (Windows DPAPI, macOS Keychain, Linux Secret Service) pour chiffrer les tokens</li>
+        <li><strong>Stockage</strong> — les tokens chiffres sont ecrits dans un fichier local. Sans les credentials OS de l'utilisateur, ils sont illisibles</li>
+        <li><strong>Fallback</strong> — si safeStorage n'est pas disponible (certains Linux), utiliser un chiffrement AES-256 avec une cle derivee du HWID</li>
+      </ul>
+
+      <h3>Protection du token au passage Launcher → Jeu</h3>
+      <ul>
+        <li><strong>Argument JVM obfusque</strong> — le token est passe au process Java via <code>--etk=XXX</code> (nom court, non-evident). Pas <code>--eriniumToken</code> en clair dans les args visibles dans le Task Manager</li>
+        <li><strong>Alternative : variable d'environnement</strong> — au lieu d'un argument JVM (visible dans <code>tasklist /v</code>), passer le token via une variable d'environnement ephemere (<code>process.env.ETK = jwt</code>) qui n'apparait pas dans la ligne de commande du processus. Le mod Java lit <code>System.getenv("ETK")</code></li>
+        <li><strong>Nettoyage apres lecture</strong> — le launcher supprime la variable d'environnement immediatement apres le spawn du process Java (le process fils a deja herite la valeur)</li>
+        <li><strong>Pas de fichier temporaire</strong> — le token ne transite JAMAIS par un fichier sur le disque (pas de <code>/tmp/token.txt</code>)</li>
+      </ul>
+
+      <h3>Anti-tamper du launcher</h3>
+      <ul>
+        <li><strong>Code signing</strong> — le binaire Electron est signe avec un certificat de signature de code. Windows affiche un avertissement si le binaire n'est pas signe</li>
+        <li><strong>ASAR chiffre</strong> — le paquet ASAR (archive du code JS) est chiffre. Empeche la lecture directe du code source</li>
+        <li><strong>Detection DevTools</strong> — si les DevTools Electron sont ouverts (raccourci Ctrl+Shift+I ou F12), afficher un avertissement et logger l'evenement. En production, desactiver completement les DevTools</li>
+        <li><strong>Obfuscation JS</strong> — le code du renderer est minifie et obfusque via webpack + terser. Le code du main process est aussi obfusque (javascript-obfuscator)</li>
+        <li><strong>Integrite du processus</strong> — le mod client peut verifier que le processus parent (launcher) a le bon hash. Si le launcher est modifie, le token sera invalide</li>
+      </ul>
+
+      <h3>Blocage des launchers tiers</h3>
+      <ul>
+        <li><strong>Token obligatoire</strong> — le mod EriniumFaction ne demarre PAS sans un token valide. Un joueur qui met le mod dans CurseForge, MultiMC, Prism ou n'importe quel autre launcher → crash immediat au preInit</li>
+        <li><strong>Pas de contournement</strong> — le token ne peut etre obtenu QUE via notre launcher (Discord OAuth → site API → JWT → safeStorage → passage au process Java). Aucun autre launcher ne connait ce flow</li>
+        <li><strong>HWID lie au token</strong> — meme si un attaquant recupere un token (dump memoire), il est lie au HWID de la machine qui l'a demande. Utilise sur une autre machine → rejete par le serveur</li>
+      </ul>
+
+      <div class="info-box danger">
+        <span class="icon">!</span>
+        <div class="content"><strong>Attention</strong> — la securite du launcher est une couche de dissuasion, pas une protection absolue. Un attaquant motive peut toujours reverse-engineer Electron. La vraie securite est cote serveur (validation JWT, HWID, anti-VPN). Le launcher rend l'attaque plus couteuse en temps et en effort.</div>
+      </div>
+    </section>
+
+    <!-- S9 — LANCEMENT DU JEU -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num orange-num">09</span> Lancement du Jeu</h2>
+
+      <h3 class="first">Sequence de lancement</h3>
+      <p>Quand le joueur clique sur "JOUER", le launcher execute cette sequence :</p>
+      <ul>
+        <li><strong>1. Verifier le token JWT</strong> — si expire, refresh automatique. Si refresh echoue → ecran login</li>
+        <li><strong>2. Verifier Minecraft vanilla</strong> — via minecraft-java-core, verifier le cache MC 1.12.2. Si absent → telechargement (versions, librairies, assets, natives)</li>
+        <li><strong>3. Verifier CleanRoom</strong> — verifier que cleanroom-universal.jar est present et son hash est correct. Si absent ou mismatch → telecharger depuis CDN ou GitHub releases</li>
+        <li><strong>4. Verifier les fichiers custom</strong> — comparer le manifeste local avec le manifeste distant (voir spec game-download.html). Telecharger les fichiers changes/manquants</li>
+        <li><strong>5. Verifier l'integrite</strong> — re-hasher les fichiers critiques (mods) pour confirmer leur integrite</li>
+        <li><strong>6. Construire la commande Java</strong> — assembler le classpath (MC vanilla + CleanRoom + mods) et la ligne de commande complete avec le tweaker CleanRoom</li>
+        <li><strong>7. Lancer le processus</strong> — spawn Java avec les arguments (ou utiliser la methode de lancement de minecraft-java-core)</li>
+        <li><strong>8. Monitorer</strong> — suivre le processus (exit code, stdout/stderr)</li>
+      </ul>
+
+      <h3>Commande Java generee</h3>
+      <div class="code-block"><span class="cm">// Exemple de commande generee (CleanRoom + minecraft-java-core)</span>
+<span class="cm">// Note : minecraft-java-core peut construire et lancer la commande,</span>
+<span class="cm">// ou le launcher peut la construire manuellement :</span>
+"{javaPath}/bin/javaw.exe"
+  -Xmx4G
+  -Xms1G
+  -XX:+UseG1GC
+  -XX:+UnlockExperimentalVMOptions
+  -XX:G1NewSizePercent=20
+  -XX:G1ReservePercent=20
+  -XX:MaxGCPauseMillis=50
+  --eriniumToken=eyJhbGciOiJSUzI1NiIs...
+  -Djava.library.path="{gameDir}/minecraft/natives"
+  -cp "{classpath}"                          <span class="cm">// MC vanilla + CleanRoom + mods</span>
+  net.minecraft.launchwrapper.Launch
+  --username {mcName}
+  --version 1.12.2
+  --gameDir "{gameDir}"
+  --assetsDir "{gameDir}/minecraft/assets"
+  --assetIndex 1.12
+  --uuid {uuid}
+  --tweakClass com.cleanroommc.boot.CleanroomTweaker
+  --tweakClass org.spongepowered.asm.launch.MixinTweaker</div>
+
+      <h3>Monitoring du processus</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Evenement</th><th>Action launcher</th></tr></thead>
+          <tbody>
+            <tr><td>Processus demarre</td><td>Bouton JOUER → "En jeu" (grise). Si option activee, minimise dans le tray</td></tr>
+            <tr><td>Processus termine (code 0)</td><td>Bouton JOUER redevient actif. Notification "Le jeu s'est ferme"</td></tr>
+            <tr><td>Processus crash (code != 0)</td><td>Notification d'erreur. Proposer d'ouvrir les logs. Bouton JOUER reactif</td></tr>
+            <tr><td>Perte de connexion internet</td><td>Pas d'impact sur le jeu en cours. Avertissement dans le launcher</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>System tray</h3>
+      <ul>
+        <li><strong>Icone</strong> — logo EriniumFaction dans la zone de notification Windows</li>
+        <li><strong>Menu clic droit</strong> — "Ouvrir le launcher", "Statut serveur: En ligne (247 joueurs)", separateur, "Quitter"</li>
+        <li><strong>Double-clic</strong> — restaure la fenetre du launcher</li>
+      </ul>
+    </section>
+
+    <!-- S10 — AUTO-UPDATER -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num">10</span> Auto-Updater du Launcher</h2>
+
+      <h3 class="first">Mecanisme</h3>
+      <p>Le launcher utilise <strong>electron-updater</strong> (integre a electron-builder) pour se mettre a jour automatiquement. Les releases sont hebergees sur GitHub Releases (repo prive) ou sur notre propre serveur.</p>
+
+      <h3>Flow de mise a jour</h3>
+      <ul>
+        <li><strong>1. Verification</strong> — au demarrage (ecran splash), appel <code>autoUpdater.checkForUpdates()</code></li>
+        <li><strong>2. Mise a jour disponible</strong> — l'ecran splash affiche "Mise a jour disponible (v1.1.0)..." + barre de progression</li>
+        <li><strong>3. Telechargement</strong> — telechargement automatique en arriere-plan. Progression affichee</li>
+        <li><strong>4. Installation</strong> — une fois telecharge, <code>autoUpdater.quitAndInstall()</code> relance le launcher avec la nouvelle version</li>
+        <li><strong>5. Signature</strong> — la mise a jour est signee. electron-updater verifie automatiquement la signature avant d'appliquer</li>
+      </ul>
+
+      <h3>Versionning</h3>
+      <ul>
+        <li><strong>Format</strong> — Semantic Versioning (X.Y.Z). Majeure = breaking changes, Mineure = nouvelles features, Patch = bugfixes</li>
+        <li><strong>Stockage version</strong> — dans <code>package.json</code> du projet Electron</li>
+        <li><strong>Affichage</strong> — version visible sur l'ecran splash et dans le footer de l'ecran principal</li>
+      </ul>
+    </section>
+
+    <!-- S11 — DIRECTION ARTISTIQUE -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num gold-num">11</span> Direction Artistique</h2>
+
+      <h3 class="first">Style Liquid Glass</h3>
+      <p>Le launcher adopte le meme style visuel que le site web EriniumFaction : <strong>Liquid Glass</strong>, inspire d'iOS 26. Panneaux translucides, effets de flou, bordures subtiles, profondeur visuelle.</p>
+
+      <h3>Palette de couleurs</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nom</th><th>Hex</th><th>Usage</th></tr></thead>
+          <tbody>
+            <tr><td>Background</td><td>#0A0A12</td><td>Fond principal, base sombre</td></tr>
+            <tr><td>Violet</td><td>#6B2FA0</td><td>Accent primaire, boutons, gradients</td></tr>
+            <tr><td>Violet light</td><td>#9B59D0</td><td>Hover states, textes secondaires</td></tr>
+            <tr><td>Cyan</td><td>#00E5FF</td><td>Accent secondaire, liens, indicateurs</td></tr>
+            <tr><td>Green</td><td>#2ECC71</td><td>Succes, serveur en ligne</td></tr>
+            <tr><td>Red</td><td>#E74C3C</td><td>Erreurs, serveur hors ligne</td></tr>
+            <tr><td>Gold</td><td>#F1C40F</td><td>Avertissements, grades premium</td></tr>
+            <tr><td>Slate</td><td>#8892A4</td><td>Texte secondaire, labels</td></tr>
+            <tr><td>White</td><td>#F0F2FF</td><td>Texte principal</td></tr>
+            <tr><td>Discord Blurple</td><td>#5865F2</td><td>Bouton "Se connecter avec Discord"</td></tr>
+            <tr><td>Glass panel</td><td>rgba(14,14,22,0.55)</td><td>Fond des panneaux, avec backdrop-filter: blur(24px)</td></tr>
+            <tr><td>Border</td><td>rgba(255,255,255,0.06)</td><td>Bordures subtiles des panneaux</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Typographie</h3>
+      <ul>
+        <li><strong>Police principale</strong> — Inter (Google Fonts), embarquee dans le launcher (pas de dependance reseau)</li>
+        <li><strong>Titres</strong> — Inter Bold/ExtraBold, gradient text violet → cyan</li>
+        <li><strong>Corps</strong> — Inter Regular, 14px, couleur slate pour le secondaire, white pour le principal</li>
+        <li><strong>Code / Mono</strong> — JetBrains Mono (pour les logs, erreurs techniques)</li>
+      </ul>
+
+      <h3>Animations et effets</h3>
+      <ul>
+        <li><strong>Transitions entre ecrans</strong> — fadeIn/fadeOut avec duree 300ms, easing ease-in-out</li>
+        <li><strong>Hover boutons</strong> — transition background 200ms, scale subtil (1.02), glow box-shadow</li>
+        <li><strong>Bouton JOUER</strong> — gradient anime (shift lent du gradient), glow pulse subtil en idle</li>
+        <li><strong>Loading spinner</strong> — animation CSS pure (pas de GIF), 3 dots pulsant en sequence</li>
+        <li><strong>Slide-in parametres</strong> — translateX avec easing ease-out-cubic, 300ms</li>
+        <li><strong>Barre de progression</strong> — transition width 200ms avec glow sur le front de la barre</li>
+        <li><strong>Pastille serveur</strong> — pulse doux (opacity 0.6 → 1 en boucle) quand en ligne</li>
+      </ul>
+
+      <h3>Assets graphiques</h3>
+      <ul>
+        <li><strong>Logo</strong> — logo EriniumFaction en SVG, avec glow effect violet. Versions : 200x200 (splash/login), 40x40 (titre bar), 16x16 + 32x32 + 256x256 (icone app)</li>
+        <li><strong>Background</strong> — gradient radial CSS (pas d'image), avec noise overlay subtil</li>
+        <li><strong>Icones</strong> — SVG inline pour toutes les icones (engrenage, deconnexion, Discord, etc.). Pas de dependance externe (Font Awesome, etc.)</li>
+      </ul>
+    </section>
+
+    <!-- S12 — STRUCTURE PROJET -->
+    <section class="section-card" id="s12">
+      <h2><span class="s-num cyan-num">12</span> Structure du Projet</h2>
+
+      <h3 class="first">Arborescence</h3>
+      <div class="code-block">launcher/
+├── package.json
+├── electron-builder.yml          <span class="cm">// Config electron-builder</span>
+├── src/
+│   ├── main/
+│   │   ├── main.js               <span class="cm">// Point d'entree Electron (main process)</span>
+│   │   ├── auth.js               <span class="cm">// Logique Discord OAuth + token management</span>
+│   │   ├── hwid.js               <span class="cm">// Collecte HWID</span>
+│   │   ├── downloader.js         <span class="cm">// Telechargement + verification fichiers</span>
+│   │   ├── mc-core.js            <span class="cm">// Integration minecraft-java-core (DL vanilla MC)</span>
+│   │   ├── cleanroom.js          <span class="cm">// Installation et verification CleanRoom</span>
+│   │   ├── game-launcher.js      <span class="cm">// Construction commande Java + spawn process</span>
+│   │   ├── settings.js           <span class="cm">// Lecture/ecriture settings.json</span>
+│   │   ├── updater.js            <span class="cm">// Auto-updater electron-updater</span>
+│   │   ├── server-status.js      <span class="cm">// Poll statut serveur MC</span>
+│   │   ├── ipc-handlers.js       <span class="cm">// Enregistrement de tous les handlers IPC</span>
+│   │   └── logger.js             <span class="cm">// Logging dans fichier + console</span>
+│   ├── renderer/
+│   │   ├── index.html            <span class="cm">// Page HTML unique (SPA)</span>
+│   │   ├── styles/
+│   │   │   ├── base.css          <span class="cm">// Reset, variables, typographie</span>
+│   │   │   ├── splash.css        <span class="cm">// Styles ecran splash</span>
+│   │   │   ├── login.css         <span class="cm">// Styles ecran login</span>
+│   │   │   ├── main.css          <span class="cm">// Styles ecran principal</span>
+│   │   │   ├── settings.css      <span class="cm">// Styles panneau parametres</span>
+│   │   │   └── animations.css    <span class="cm">// Keyframes et transitions</span>
+│   │   ├── scripts/
+│   │   │   ├── app.js            <span class="cm">// Routeur d'ecrans, init</span>
+│   │   │   ├── splash.js         <span class="cm">// Logique ecran splash</span>
+│   │   │   ├── login.js          <span class="cm">// Logique ecran login</span>
+│   │   │   ├── main-screen.js    <span class="cm">// Logique ecran principal</span>
+│   │   │   ├── settings.js       <span class="cm">// Logique panneau parametres</span>
+│   │   │   └── ipc-bridge.js     <span class="cm">// Wrapper IPC renderer-side</span>
+│   │   └── assets/
+│   │       ├── logo.svg          <span class="cm">// Logo EriniumFaction</span>
+│   │       ├── discord-icon.svg  <span class="cm">// Icone Discord</span>
+│   │       └── fonts/            <span class="cm">// Inter + JetBrains Mono (embarques)</span>
+│   └── preload/
+│       └── preload.js            <span class="cm">// Bridge IPC securise (contextBridge)</span>
+├── build/
+│   ├── icon.ico                  <span class="cm">// Icone Windows</span>
+│   ├── icon.icns                 <span class="cm">// Icone macOS</span>
+│   └── icon.png                  <span class="cm">// Icone Linux (256x256)</span>
+└── dist/                         <span class="cm">// Output electron-builder</span></div>
+
+      <h3>Preload script (securite)</h3>
+      <p>Le preload script expose des API securisees au renderer via <code>contextBridge</code>. Le renderer n'a JAMAIS acces direct a Node.js, au filesystem, ou a l'IPC brut :</p>
+      <div class="code-block"><span class="kw">const</span> { contextBridge, ipcRenderer } = <span class="fn">require</span>(<span class="st">'electron'</span>);
+
+contextBridge.<span class="fn">exposeInMainWorld</span>(<span class="st">'erinium'</span>, {
+  auth: {
+    login:        () =&gt; ipcRenderer.<span class="fn">invoke</span>(<span class="st">'auth:discord-login'</span>),
+    checkSession: () =&gt; ipcRenderer.<span class="fn">invoke</span>(<span class="st">'auth:check-session'</span>),
+    logout:       () =&gt; ipcRenderer.<span class="fn">invoke</span>(<span class="st">'auth:logout'</span>),
+    onToken:      (cb) =&gt; ipcRenderer.<span class="fn">on</span>(<span class="st">'auth:token-received'</span>, (e, d) =&gt; <span class="fn">cb</span>(d)),
+    onError:      (cb) =&gt; ipcRenderer.<span class="fn">on</span>(<span class="st">'auth:error'</span>, (e, d) =&gt; <span class="fn">cb</span>(d)),
+  },
+  game: {
+    launch:   (config) =&gt; ipcRenderer.<span class="fn">invoke</span>(<span class="st">'game:launch'</span>, config),
+    onStatus: (cb) =&gt; ipcRenderer.<span class="fn">on</span>(<span class="st">'game:status'</span>, (e, d) =&gt; <span class="fn">cb</span>(d)),
+  },
+  download: {
+    onStart:    (cb) =&gt; ipcRenderer.<span class="fn">on</span>(<span class="st">'download:start'</span>, (e, d) =&gt; <span class="fn">cb</span>(d)),
+    onProgress: (cb) =&gt; ipcRenderer.<span class="fn">on</span>(<span class="st">'download:progress'</span>, (e, d) =&gt; <span class="fn">cb</span>(d)),
+    onComplete: (cb) =&gt; ipcRenderer.<span class="fn">on</span>(<span class="st">'download:complete'</span>, () =&gt; <span class="fn">cb</span>()),
+    onError:    (cb) =&gt; ipcRenderer.<span class="fn">on</span>(<span class="st">'download:error'</span>, (e, d) =&gt; <span class="fn">cb</span>(d)),
+  },
+  server: {
+    onStatus: (cb) =&gt; ipcRenderer.<span class="fn">on</span>(<span class="st">'server:status'</span>, (e, d) =&gt; <span class="fn">cb</span>(d)),
+  },
+  news: {
+    onData: (cb) =&gt; ipcRenderer.<span class="fn">on</span>(<span class="st">'news:data'</span>, (e, d) =&gt; <span class="fn">cb</span>(d)),
+  },
+  settings: {
+    get:  () =&gt; ipcRenderer.<span class="fn">invoke</span>(<span class="st">'settings:get'</span>),
+    save: (s) =&gt; ipcRenderer.<span class="fn">invoke</span>(<span class="st">'settings:save'</span>, s),
+  },
+  update: {
+    onAvailable: (cb) =&gt; ipcRenderer.<span class="fn">on</span>(<span class="st">'update:available'</span>, (e, d) =&gt; <span class="fn">cb</span>(d)),
+    onProgress:  (cb) =&gt; ipcRenderer.<span class="fn">on</span>(<span class="st">'update:progress'</span>, (e, d) =&gt; <span class="fn">cb</span>(d)),
+  },
+  window: {
+    minimize: () =&gt; ipcRenderer.<span class="fn">send</span>(<span class="st">'window:minimize'</span>),
+    maximize: () =&gt; ipcRenderer.<span class="fn">send</span>(<span class="st">'window:maximize'</span>),
+    close:    () =&gt; ipcRenderer.<span class="fn">send</span>(<span class="st">'window:close'</span>),
+  },
+});</div>
+    </section>
+
+    <!-- S13 — PLAN DE TESTS -->
+    <section class="section-card" id="s13">
+      <h2><span class="s-num red-num">13</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests fonctionnels</h3>
+      <ul class="checklist">
+        <li><strong>Splash screen</strong> — s'affiche au demarrage, transitions fluides, version affichee</li>
+        <li><strong>Login Discord</strong> — clic ouvre le navigateur, callback recoit le code, JWT stocke</li>
+        <li><strong>Login erreur</strong> — timeout gere, refus OAuth gere, API down gere</li>
+        <li><strong>Session persistante</strong> — au redemarrage, si token valide → skip login. Si expire → refresh. Si refresh fail → login</li>
+        <li><strong>Ecran principal</strong> — profil affiche, statut serveur poll, news chargees</li>
+        <li><strong>Parametres</strong> — slide-in/out, sauvegarde, reload correct</li>
+        <li><strong>JOUER</strong> — verification fichiers, telechargement, lancement Java, monitoring processus</li>
+        <li><strong>Deconnexion</strong> — tokens supprimes, retour login, fenetre redimensionnee</li>
+      </ul>
+
+      <h3>Tests de securite</h3>
+      <ul class="checklist">
+        <li><strong>HWID</strong> — collecte correcte sur Windows, Linux, macOS. Hash deterministe</li>
+        <li><strong>safeStorage</strong> — tokens chiffres, illisibles sans session OS</li>
+        <li><strong>DevTools</strong> — desactivees en production</li>
+        <li><strong>ASAR</strong> — chiffre, non extractible</li>
+        <li><strong>IPC</strong> — aucun canal non declare accessible depuis le renderer</li>
+        <li><strong>OAuth state</strong> — verifie dans le callback, protection CSRF</li>
+        <li><strong>Pas de client_secret</strong> — verifier que le secret Discord n'est nulle part dans le code client</li>
+      </ul>
+
+      <h3>Tests de performance</h3>
+      <ul class="checklist">
+        <li><strong>Demarrage</strong> — moins de 3 secondes jusqu'au splash</li>
+        <li><strong>RAM</strong> — moins de 200 Mo en idle</li>
+        <li><strong>Telechargement</strong> — 3-5 fichiers en parallele, progression fluide, pas de freeze UI</li>
+        <li><strong>Poll serveur</strong> — pas de fuite memoire sur les polls repetitifs (30s interval)</li>
+      </ul>
+
+      <h3>Tests multi-plateforme</h3>
+      <ul class="checklist">
+        <li><strong>Windows 10/11</strong> — installation, lancement, mise a jour, tray icon</li>
+        <li><strong>Linux (Ubuntu/Debian)</strong> — installation, lancement, HWID, Java detection</li>
+        <li><strong>macOS</strong> — installation, lancement, safeStorage Keychain, code signing</li>
+      </ul>
+    </section>
+
+    <!-- S14 — MODELE DE MENACE -->
+    <section class="section-card" id="s14">
+      <h2><span class="s-num red-num">14</span> Modele de Menace</h2>
+
+      <div class="threat-box">
+        <strong>Attaque identifiee :</strong> Creation automatisee de comptes crack + exploit OP + VPN rotatif<br><br>
+        <strong>Scenario :</strong> Un attaquant scripte la creation de centaines de comptes,
+        se connecte avec des VPN differents a chaque fois (rendant les IP bans inutiles),
+        et exploite une faille pour obtenir les permissions OP. Avec <code>online-mode=false</code>,
+        il n'y a pas de paywall Mojang — l'attaque est gratuite et illimitee.<br><br>
+        <strong>Impact :</strong> Griefing massif, vol de donnees faction, destruction du monde, perte de joueurs.
+      </div>
+
+      <h3>Couches de defense</h3>
+      <p>La securite repose sur un modele en couches. Chaque composant (site web, launcher, mod client, mod serveur) ajoute une barriere supplementaire. Un attaquant doit contourner TOUTES les couches pour reussir.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Couche</th><th>Composant</th><th>Protection</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Site web</td><td>Discord OAuth obligatoire, email verifie, anciennete, rate limit inscription</td></tr>
+            <tr><td>2</td><td>Launcher</td><td>HWID fingerprint, safeStorage, anti-tamper, ASAR chiffre, code signing</td></tr>
+            <tr><td>3</td><td>Mod client</td><td>Token obligatoire au preInit, anti-debug, anti-process scan, crash sans launcher</td></tr>
+            <tr><td>4</td><td>Mod serveur</td><td>Validation JWT RS256, HWID check, anti-VPN, rate limit, timeout auth, triple ban</td></tr>
+            <tr><td>5</td><td>Permissions</td><td>Pas d'OP vanilla, systeme custom, admin auth separee, audit log</td></tr>
+            <tr><td>6</td><td>Detection</td><td>Pattern bot, flood comptes, comportement suspect, action post-connexion</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- S15 — ANTI-BOT INSCRIPTION -->
+    <section class="section-card" id="s15">
+      <h2><span class="s-num green-num">15</span> Anti-Bot Inscription <span class="tag tag-website">WEBSITE</span></h2>
+
+      <div class="solution-box">
+        <strong>Mur anti-bot :</strong> L'inscription passe obligatoirement par Discord OAuth. Un compte Discord verifie (email confirme) est le prerequis minimal. Cela elimine les bots simples car Discord impose ses propres verifications (email, captcha, anciennete potentielle).
+      </div>
+
+      <h3 class="first">Mesures detaillees</h3>
+      <ul>
+        <li><strong>Discord OAuth obligatoire</strong> — pas de formulaire email/mot de passe. Le joueur clique "Se connecter avec Discord", autorise l'application, et est redirige vers le site avec son profil Discord (ID, username, avatar, email verifie)</li>
+        <li><strong>Compte Discord verifie requis</strong> — le scope OAuth inclut <code>identify</code> et <code>email</code>. Seuls les comptes Discord avec un email verifie sont acceptes. Rejeter les comptes sans email verifie</li>
+        <li><strong>Pseudo Minecraft obligatoire</strong> — apres la premiere connexion Discord, le joueur doit choisir un pseudo MC unique (popup sur le site). Pas de pseudo = pas de token = pas de jeu</li>
+        <li><strong>Anciennete Discord optionnelle</strong> — possibilite de rejeter les comptes Discord crees il y a moins de X jours (configurable, defaut : 7 jours). Anti compte jetable</li>
+        <li><strong>A2F optionnelle (TOTP)</strong> — TOTP (Google Authenticator / Authy) propose mais pas impose. Pour ceux qui veulent securiser leur compte. Configure sur le dashboard du site</li>
+        <li><strong>Verification nouvel appareil/IP</strong> — si le compte se connecte depuis un appareil (HWID) ou une IP non reconnus, envoyer un code de verification par email Discord (via DM bot ou notification site). L'appareil/IP est ensuite whiteliste pour ce compte</li>
+        <li><strong>Rate limit inscription</strong> — max 3 comptes par IP/24h, max 1 compte par Discord ID (1 Discord = 1 compte serveur), captcha sur le formulaire si necessaire</li>
+        <li><strong>Honeypot</strong> — champs invisibles dans les formulaires. Les bots les remplissent, les humains non → reject</li>
+      </ul>
+    </section>
+
+    <!-- S16 — SECURITE MOD CLIENT -->
+    <section class="section-card" id="s16">
+      <h2><span class="s-num red-num">16</span> Securite Mod Client <span class="tag tag-mod">MOD</span></h2>
+
+      <div class="threat-box">
+        <strong>Regle absolue :</strong> Le mod NE PEUT PAS fonctionner sans le launcher officiel. Aucun launcher tiers (CurseForge, MultiMC, Prism, TLauncher, etc.) ne doit pouvoir lancer le jeu avec nos mods.
+      </div>
+
+      <h3 class="first">Double verification — 2 niveaux independants</h3>
+
+      <div class="solution-box">
+        <strong>Niveau 1 — Au lancement du jeu (preInit, cote client) :</strong> Le mod verifie qu'un token existe. Si absent → crash immediat. Cela empeche de lancer le jeu sans le launcher officiel — <strong>meme en solo, meme sans serveur</strong>. Le jeu est totalement inutilisable sans le launcher.<br><br>
+        <strong>Niveau 2 — A la connexion serveur (cote serveur) :</strong> Le serveur valide la signature du token, le HWID, l'anti-VPN et les bans. Cela empeche les faux tokens — <strong>meme si quelqu'un fabrique un token bidon pour lancer le jeu, le serveur le rejette</strong>.
+      </div>
+
+      <h3>Niveau 1 : Verification au lancement (preInit)</h3>
+      <p>Ce check se fait <strong>au demarrage du jeu</strong>, dans <code>FMLPreInitializationEvent</code>, AVANT que le menu principal ne s'affiche. C'est le gardien qui empeche toute utilisation du mod hors launcher.</p>
+      <ul>
+        <li><strong>Lecture du token</strong> — lire l'argument JVM <code>--etk=XXX</code> (nom obfusque). Si absent → <strong>crash immediat</strong> avec message "Utilisez le launcher officiel EriniumFaction pour jouer. Telechargez-le sur eriniumfaction.fr"</li>
+        <li><strong>Crash volontaire</strong> — le jeu ne doit PAS demarrer. Pas de menu principal, pas de solo, pas de LAN — crash net avec un ecran d'erreur clair. Utiliser <code>throw new RuntimeException()</code> dans le preInit pour forcer l'arret</li>
+        <li><strong>Validation format</strong> — verifier que le token a le format JWT (3 parties base64 separees par des points). Si format invalide → crash avec message "Token invalide. Relancez le launcher."</li>
+        <li><strong>Verification expiration</strong> — decoder le payload JWT (sans verifier la signature — la cle secrete ne doit JAMAIS etre dans le client) et verifier que <code>exp</code> n'est pas depasse. Si expire → crash avec message "Session expiree. Relancez le launcher."</li>
+        <li><strong>Anti-debug</strong> — detecter si un debugger Java est attache (<code>ManagementFactory.getRuntimeMXBean().getInputArguments()</code> contient <code>-agentlib:jdwp</code>). Si oui → crash immediat</li>
+      </ul>
+
+      <h3>Niveau 2 : Validation serveur (a la connexion)</h3>
+      <p>Ce check se fait <strong>quand le joueur rejoint le serveur</strong>. Le client envoie le token + HWID au serveur qui fait la vraie validation cryptographique. Detaille dans la section S17 (Securite Mod Serveur).</p>
+      <ul>
+        <li><strong>Envoi du token</strong> — a la connexion (<code>FMLNetworkEvent.ClientConnectedToServerEvent</code>), le client envoie un packet custom contenant : JWT + HWID</li>
+        <li><strong>Collecte HWID cote Java</strong> — <code>System.getProperty("os.arch")</code>, <code>Runtime.getRuntime()</code>, <code>NetworkInterface.getHardwareAddress()</code>, disk serial via <code>ProcessBuilder("wmic diskdrive get serialnumber")</code>. Hasher le tout en SHA-256</li>
+        <li><strong>Serveur valide</strong> — signature JWT (RS256), expiration, UUID, HWID match, anti-VPN, rate limit. Si invalide → kick immediat</li>
+      </ul>
+
+      <h3>Protection du token contre la recuperation</h3>
+      <ul>
+        <li><strong>Token en memoire uniquement</strong> — le token est lu depuis les JVM args au preInit puis stocke dans un <code>private static final</code> dans une classe non-exportee. Les JVM args sont ensuite nettoyes de la memoire (remplacer l'entree dans <code>ManagementFactory.getRuntimeMXBean().getInputArguments()</code> est impossible, mais on peut obfusquer le nom de l'argument)</li>
+        <li><strong>Pas de fichier</strong> — le token n'est JAMAIS ecrit sur le disque cote client (pas de log, pas de config, pas de crash report). Les crash reports Minecraft sont filtres pour supprimer les JVM args contenant "eriniumToken"</li>
+        <li><strong>Pas dans les logs</strong> — le Logger du mod filtre toute chaine contenant "eriniumToken" ou ressemblant a un JWT (regex <code>eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+</code>)</li>
+        <li><strong>Obfuscation du nom d'argument</strong> — au lieu de <code>--eriniumToken=XXX</code>, utiliser un nom non-evident comme <code>--etk=XXX</code> ou un argument encode. Un attaquant qui regarde les args JVM dans le Task Manager ne voit pas immediatement que c'est un token d'auth</li>
+        <li><strong>Token a courte duree</strong> — le JWT expire en 1h. Meme si un attaquant recupere le token (dump memoire, etc.), il n'a qu'1h pour l'utiliser. Et le HWID est verifie cote serveur → le token est lie au hardware de la machine qui l'a demande</li>
+        <li><strong>Anti-process scan</strong> — detecter si un outil de dump memoire est en cours d'execution (ex: <code>ProcessBuilder("tasklist")</code> et chercher des processus connus : Cheat Engine, x64dbg, Process Hacker). Si detecte → refuser la connexion au serveur</li>
+      </ul>
+    </section>
+
+    <!-- S17 — SECURITE MOD SERVEUR -->
+    <section class="section-card" id="s17">
+      <h2><span class="s-num red-num">17</span> Securite Mod Serveur <span class="tag tag-server">SERVEUR</span> <span class="tag tag-mod">MOD</span></h2>
+
+      <h3 class="first">Validation et protection</h3>
+      <ul>
+        <li><strong>Validation JWT complete</strong> — verifier signature (RS256 avec cle publique du site), expiration, UUID correspond au joueur qui se connecte</li>
+        <li><strong>Verification HWID</strong> — comparer le HWID envoye avec celui enregistre sur le compte (via API du site ou cache local). Si mismatch → kick + flag le compte</li>
+        <li><strong>Anti-VPN/Proxy</strong> — a la connexion, checker l'IP du joueur contre une base VPN (IPHub API, IP2Proxy, ou base locale). Si VPN detecte → kick avec message "Desactivez votre VPN"</li>
+        <li><strong>Timeout auth</strong> — si le client n'envoie pas le token dans les 5 secondes apres connexion → kick</li>
+        <li><strong>/ban = triple ban</strong> — quand un admin fait <code>/ban joueur</code>, ca ban simultanement : UUID + IP + HWID. Triple securite. Le joueur est banni peu importe s'il change de compte (UUID), de reseau (IP) ou les deux — son hardware est marque</li>
+        <li><strong>/ipban et /hwidban separees</strong> — pour les cas ou on veut ban uniquement une IP (ex: VPN partage) ou uniquement un HWID (ex: cybercafe) sans affecter les autres dimensions</li>
+        <li><strong>Ban check au login</strong> — a <code>PlayerLoggedInEvent</code>, verifier IP et HWID (envoye par le client dans le auth packet) contre la liste des bans. Kick immediat avec message explicatif si banni</li>
+        <li><strong>Rate limit connexion</strong> — max 5 connexions par HWID/heure, max 10 par IP/heure</li>
+      </ul>
+    </section>
+
+    <!-- S18 — PERMISSIONS & DETECTION -->
+    <section class="section-card" id="s18">
+      <h2><span class="s-num gold-num">18</span> Permissions &amp; Detection <span class="tag tag-mod">MOD</span> <span class="tag tag-server">SERVEUR</span></h2>
+
+      <h3 class="first">Permissions — zero exploit OP</h3>
+      <div class="solution-box">
+        <strong>Regle absolue :</strong> aucun joueur ne doit JAMAIS pouvoir devenir OP via le jeu.
+      </div>
+      <ul>
+        <li><strong>Supprimer /op et /deop</strong> — intercepter via Mixin ou event. Ces commandes ne doivent fonctionner QUE depuis la console serveur physique</li>
+        <li><strong>Systeme de permissions custom</strong> — ne PAS utiliser l'OP vanilla. Utiliser notre propre systeme (AdminManager existant) avec des roles granulaires</li>
+        <li><strong>Admin auth separee</strong> — pour les actions admin in-game, exiger un second token (admin token) genere depuis le panel web admin avec A2F</li>
+        <li><strong>Audit log</strong> — logger TOUTE commande admin avec timestamp, joueur, IP, HWID, commande exacte. Stocke en base de donnees, pas en fichier local</li>
+        <li><strong>Command injection audit</strong> — auditer toutes les commandes du mod pour verifier qu'aucune ne permet d'injecter des commandes serveur. Ne jamais <code>eval()</code> ou passer du player input brut a <code>server.commandManager.executeCommand()</code></li>
+        <li><strong>Permission escalation prevention</strong> — aucune commande ne doit permettre de modifier les permissions d'un autre joueur sauf depuis la console ou avec admin token</li>
+      </ul>
+
+      <h3>Detection comportementale</h3>
+      <ul>
+        <li><strong>Pattern bot</strong> — login → action → logout rapide en boucle. Si detecte > 3 fois en 10 min → temp ban 24h</li>
+        <li><strong>Flood de comptes</strong> — si > 5 comptes avec le meme HWID → flag pour review manuelle + bloquer les nouveaux comptes sur ce HWID</li>
+        <li><strong>Mouvement suspect</strong> — vitesse de deplacement anormale, teleportation, reach anormal. L'anticheat existant (CheckCombat, CheckMovement) doit etre renforce</li>
+        <li><strong>Action apres connexion</strong> — si un joueur execute des commandes admin dans les 10 premieres secondes de connexion → auto-kick + flag. Un vrai admin prend son temps</li>
+      </ul>
+    </section>
+
+    <!-- S19 — TACHES MOD & FLOW AUTH -->
+    <section class="section-card" id="s19">
+      <h2><span class="s-num orange-num">19</span> Taches Mod &amp; Flow Auth</h2>
+
+      <h3 class="first">Taches a implementer cote MOD</h3>
+      <p>Les taches suivantes sont a implementer dans le mod Forge (pas dans le launcher/site) :</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tache</th><th>Cote</th><th>Priorite</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Token reader</td><td>Client</td>
+              <td class="priority-critical">CRITIQUE</td>
+              <td>Lire <code>--eriniumToken</code> depuis les JVM args au preInit. Stocker en memoire. Crash si absent.</td>
+            </tr>
+            <tr>
+              <td>Auth packet</td><td>Client + Serveur</td>
+              <td class="priority-critical">CRITIQUE</td>
+              <td>Packet custom envoye par le client des la connexion : JWT + HWID. Le serveur valide et kick si invalide.</td>
+            </tr>
+            <tr>
+              <td>JWT validator</td><td>Serveur</td>
+              <td class="priority-critical">CRITIQUE</td>
+              <td>Valider la signature RS256 du JWT avec la cle publique du site. Verifier expiration, UUID, HWID.</td>
+            </tr>
+            <tr>
+              <td>HWID collector</td><td>Client</td>
+              <td class="priority-high">HAUTE</td>
+              <td>Collecter CPU + GPU + MAC + disk serial, hasher en SHA-256. Envoyer avec le token.</td>
+            </tr>
+            <tr>
+              <td>Anti-VPN checker</td><td>Serveur</td>
+              <td class="priority-high">HAUTE</td>
+              <td>Appel HTTP async vers IPHub/IP2Proxy a chaque connexion. Cache les resultats 1h. Kick si VPN.</td>
+            </tr>
+            <tr>
+              <td>HWID ban system</td><td>Serveur</td>
+              <td class="priority-high">HAUTE</td>
+              <td>Commande <code>/hwidban &lt;player&gt;</code> (console only). Stocke les HWID bannis. Check a la connexion.</td>
+            </tr>
+            <tr>
+              <td>Remove /op /deop</td><td>Serveur</td>
+              <td class="priority-critical">CRITIQUE</td>
+              <td>Mixin ou event handler qui cancel les commandes /op et /deop sauf depuis la console RCON.</td>
+            </tr>
+            <tr>
+              <td>Auth timeout</td><td>Serveur</td>
+              <td class="priority-high">HAUTE</td>
+              <td>Si le client n'envoie pas le auth packet dans les 5s apres connexion → kick.</td>
+            </tr>
+            <tr>
+              <td>Connection rate limiter</td><td>Serveur</td>
+              <td class="priority-medium">MOYENNE</td>
+              <td>Tracker connexions par HWID et par IP. Limiter a 5/HWID/h et 10/IP/h.</td>
+            </tr>
+            <tr>
+              <td>Bot behavior detector</td><td>Serveur</td>
+              <td class="priority-medium">MOYENNE</td>
+              <td>Detecter les patterns login/action/logout rapides. Auto-tempban apres 3 detections.</td>
+            </tr>
+            <tr>
+              <td>Audit logger</td><td>Serveur</td>
+              <td class="priority-medium">MOYENNE</td>
+              <td>Logger toutes les actions admin (commandes, kicks, bans) avec timestamp, IP, HWID dans un fichier/DB.</td>
+            </tr>
+            <tr>
+              <td>Anti-debug check</td><td>Client</td>
+              <td class="priority-medium">MOYENNE</td>
+              <td>Detecter debugger Java attache (<code>-agentlib:jdwp</code>). Refuser la connexion si detecte.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Flow d'authentification complet</h3>
+      <div class="ascii-diagram"><span class="av">┌─────────────┐</span>     <span class="ac">┌──────────────┐</span>     <span class="as">┌──────────────┐</span>     <span class="ag">┌──────────────┐</span>     <span class="ay">┌──────────────┐</span>
+<span class="av">│   JOUEUR    │</span>     <span class="ac">│   LAUNCHER   │</span>     <span class="as">│   DISCORD    │</span>     <span class="ag">│   SITE WEB   │</span>     <span class="ay">│   SERVEUR    │</span>
+<span class="av">│             │</span>     <span class="ac">│  (Electron)  │</span>     <span class="as">│   (OAuth)    │</span>     <span class="ag">│  (Next.js)   │</span>     <span class="ay">│  (Forge MC)  │</span>
+<span class="av">└──────┬──────┘</span>     <span class="ac">└──────┬───────┘</span>     <span class="as">└──────┬───────┘</span>     <span class="ag">└──────┬───────┘</span>     <span class="ay">└──────┬───────┘</span>
+       │                   │                    │                    │                    │
+       │  1. Clic "Se      │                    │                    │                    │
+       │  connecter"       │                    │                    │                    │
+       │──────────────────>│                    │                    │                    │
+       │                   │  2. Ouvre navigateur│                    │                    │
+       │                   │  Discord OAuth URL  │                    │                    │
+       │                   │───────────────────>│                    │                    │
+       │                   │                    │                    │                    │
+       │  3. Joueur autorise l'app Discord      │                    │                    │
+       │──────────────────────────────────────>│                    │                    │
+       │                   │                    │  4. Callback avec  │                    │
+       │                   │                    │  code OAuth        │                    │
+       │                   │                    │───────────────────>│                    │
+       │                   │                    │                    │  5. Echange code   │
+       │                   │                    │                    │  → token Discord   │
+       │                   │                    │                    │  Verifie email     │
+       │                   │                    │                    │  Verifie anciennete│
+       │                   │                    │                    │  Cree/MAJ compte   │
+       │                   │                    │                    │                    │
+       │                   │  6. Redirect vers   │                    │                    │
+       │                   │  localhost:PORT/cb   │                    │                    │
+       │                   │  avec JWT + refresh  │                    │                    │
+       │                   │<────────────────────────────────────────│                    │
+       │                   │                    │                    │                    │
+       │                   │  7. Stocke JWT dans │                    │                    │
+       │                   │  safeStorage +      │                    │                    │
+       │                   │  collecte HWID      │                    │                    │
+       │                   │                    │                    │                    │
+       │                   │  8. POST /api/auth/ │                    │                    │
+       │                   │  hwid-register      │                    │                    │
+       │                   │  JWT + HWID         │                    │                    │
+       │                   │─────────────────────────────────────────>                    │
+       │                   │                    │                    │                    │
+       │                   │  9. Launch MC       │                    │                    │
+       │                   │  --eriniumToken=X   │                    │                    │
+       │                   │  (JVM arg)          │                    │                    │
+       │                   │                    │                    │                    │
+       │         10. Mod reads token at preInit  │                    │                    │
+       │         11. Connect to server           │                    │                    │
+       │                   │──────────────────────────────────────────────────────────────>
+       │                   │                    │                    │  12. Auth packet   │
+       │                   │                    │                    │  JWT + HWID        │
+       │                   │                    │                    │───────────────────>│
+       │                   │                    │                    │                    │ 13. Validate JWT
+       │                   │                    │                    │                    │     Check sig
+       │                   │                    │                    │                    │     Check HWID
+       │                   │                    │                    │                    │     Check VPN
+       │                   │                    │                    │                    │     Check rate
+       │                   │                    │  14. OK / KICK     │                    │
+       │                   │                    │<───────────────────────────────────────│
+       │  15. Play!        │                    │                    │                    │
+       │<──────────────────│                    │                    │                    │</div>
+
+      <h3>Flow de session persistante (demarrage rapide)</h3>
+      <div class="ascii-diagram"><span class="ac">┌──────────────┐</span>     <span class="ag">┌──────────────┐</span>     <span class="ay">┌──────────────┐</span>
+<span class="ac">│   LAUNCHER   │</span>     <span class="ag">│   SITE WEB   │</span>     <span class="ay">│   SERVEUR    │</span>
+<span class="ac">└──────┬───────┘</span>     <span class="ag">└──────┬───────┘</span>     <span class="ay">└──────┬───────┘</span>
+       │                    │                    │
+       │  1. Demarrage      │                    │
+       │  Lire safeStorage  │                    │
+       │  JWT existe ?      │                    │
+       │                    │                    │
+       │  [JWT valide]      │                    │
+       │  → Skip login      │                    │
+       │  → Ecran principal │                    │
+       │                    │                    │
+       │  [JWT expire]      │                    │
+       │  POST /api/auth/   │                    │
+       │  refresh            │                    │
+       │───────────────────>│                    │
+       │  Nouveau JWT       │                    │
+       │<───────────────────│                    │
+       │                    │                    │
+       │  [Refresh echoue]  │                    │
+       │  → Ecran login     │                    │
+       │  Discord OAuth     │                    │</div>
+    </section>
+
+    <!-- S20 — NOTES TECHNIQUES -->
+    <section class="section-card" id="s20">
+      <h2><span class="s-num cyan-num">20</span> Notes Techniques</h2>
+
+      <h3 class="first">Structure JWT</h3>
+      <div class="code-block">{
+  <span class="st">"sub"</span>: <span class="st">"player-uuid-offline"</span>,
+  <span class="st">"username"</span>: <span class="st">"PlayerMCName"</span>,
+  <span class="st">"discordId"</span>: <span class="st">"123456789012345678"</span>,
+  <span class="st">"hwid"</span>: <span class="st">"sha256-hash-of-hardware"</span>,
+  <span class="st">"iat"</span>: <span class="nu">1774463267</span>,
+  <span class="st">"exp"</span>: <span class="nu">1774466867</span>,    <span class="cm">// +1 heure</span>
+  <span class="st">"iss"</span>: <span class="st">"erinium-auth"</span>,
+  <span class="st">"role"</span>: <span class="st">"player"</span>       <span class="cm">// ou "admin" pour les admins</span>
+}</div>
+
+      <h3>Configuration Discord OAuth</h3>
+      <div class="code-block"><span class="cm">// Scopes requis</span>
+scopes: [<span class="st">"identify"</span>, <span class="st">"email"</span>]
+
+<span class="cm">// URL d'autorisation (launcher)</span>
+https://discord.com/api/oauth2/authorize
+  ?client_id=DISCORD_APP_ID
+  &redirect_uri=http://localhost:{PORT}/callback
+  &response_type=code
+  &scope=identify%20email
+  &state={random_state}
+
+<span class="cm">// Callback handler (site web API)</span>
+POST /api/auth/discord/callback
+{
+  <span class="st">"code"</span>: <span class="st">"oauth_code"</span>,
+  <span class="st">"hwid"</span>: <span class="st">"sha256-hash"</span>,
+  <span class="st">"source"</span>: <span class="st">"launcher"</span>   <span class="cm">// distingue launcher vs site web</span>
+}
+→ Response: { <span class="st">"jwt"</span>: <span class="st">"..."</span>, <span class="st">"refreshToken"</span>: <span class="st">"..."</span>, <span class="st">"expiresIn"</span>: <span class="nu">3600</span> }</div>
+
+      <h3>HWID Fingerprint (cote mod Java)</h3>
+      <div class="code-block">String cpu = System.<span class="fn">getenv</span>(<span class="st">"PROCESSOR_IDENTIFIER"</span>);
+String os  = System.<span class="fn">getProperty</span>(<span class="st">"os.name"</span>) + System.<span class="fn">getProperty</span>(<span class="st">"os.arch"</span>);
+<span class="kw">byte</span>[] mac = NetworkInterface.<span class="fn">getByInetAddress</span>(
+                 InetAddress.<span class="fn">getLocalHost</span>()).<span class="fn">getHardwareAddress</span>();
+String disk = <span class="fn">exec</span>(<span class="st">"wmic diskdrive get serialnumber"</span>);  <span class="cm">// Windows</span>
+<span class="cm">// Linux: /sys/block/sda/device/serial ou lsblk --nodeps -no serial</span>
+
+String raw = cpu + <span class="st">"|"</span> + os + <span class="st">"|"</span> + <span class="fn">hex</span>(mac) + <span class="st">"|"</span> + disk.<span class="fn">trim</span>();
+String hwid = <span class="fn">SHA256</span>(raw);</div>
+
+      <h3>HWID Fingerprint (cote launcher Node.js)</h3>
+      <p>Ce code est identique a celui presente dans la section S8. Il est repris ici comme reference pour la correspondance avec le code Java ci-dessus — les deux cotes doivent produire le meme hash pour le meme hardware.</p>
+
+      <h3>Compatibilite CleanRoom</h3>
+      <div class="info-box warn">
+        <span class="icon">!</span>
+        <div class="content"><strong>Toutes les classes de securite doivent rester compatibles Java 8.</strong> Pas de <code>var</code>, pas de <code>HttpClient</code> (Java 11+). Utiliser <code>HttpURLConnection</code> ou Netty pour les appels HTTP. Pas de <code>ProcessHandle</code> (Java 9+) — utiliser <code>ProcessBuilder</code> pour les commandes systeme. C'est CleanRoom qui gere la compatibilite Java 21+, le code source reste en Java 8.</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<script>
+// Active nav link on scroll
+document.addEventListener('scroll', function() {
+  var sections = document.querySelectorAll('.section-card');
+  var links = document.querySelectorAll('.nav-link');
+  var current = '';
+  sections.forEach(function(s) {
+    if (window.scrollY >= s.offsetTop - 120) current = s.id;
+  });
+  links.forEach(function(l) {
+    l.classList.remove('active');
+    if (l.getAttribute('href') === '#' + current) l.classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Accessoires &amp; Gemmes | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #5B9BD5; --aetherite: #A855F7; --erinium: #F59E0B;
+    --ruby: #E74C3C; --sapphire: #3498DB; --emerald: #2ECC71;
+    --amethyst: #9B59B6; --topaz: #F1C40F; --onyx: #7F8C8D;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(245,158,11,0.06) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-valterite { color: var(--valterite); border-color: rgba(91,155,213,0.4); background: rgba(91,155,213,0.1); }
+  .badge-aetherite { color: var(--aetherite); border-color: rgba(168,85,247,0.4); background: rgba(168,85,247,0.1); }
+  .badge-erinium   { color: var(--erinium);   border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.1); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+  .section-card:nth-child(14) { animation-delay: .70s; }
+  .section-card:nth-child(15) { animation-delay: .75s; }
+  .section-card:nth-child(16) { animation-delay: .80s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '›'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .tier-valterite { color: var(--valterite); font-weight: 600; }
+  .tier-aetherite { color: var(--aetherite); font-weight: 600; }
+  .tier-erinium   { color: var(--erinium);   font-weight: 600; }
+  .gem-ruby     { color: var(--ruby);     font-weight: 600; }
+  .gem-sapphire { color: var(--sapphire); font-weight: 600; }
+  .gem-emerald  { color: var(--emerald);  font-weight: 600; }
+  .gem-amethyst { color: var(--amethyst); font-weight: 600; }
+  .gem-topaz    { color: var(--topaz);    font-weight: 600; }
+  .gem-onyx     { color: var(--onyx);     font-weight: 600; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .ascii-diagram .ab { color: var(--sapphire); }
+  .ascii-diagram .am { color: var(--amethyst); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  .tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+  .tier-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 20px; text-align: center; }
+  .tier-card.valterite { border-top: 3px solid var(--valterite); }
+  .tier-card.aetherite { border-top: 3px solid var(--aetherite); }
+  .tier-card.erinium   { border-top: 3px solid var(--erinium); }
+  .tier-card-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .tier-card.valterite .tier-card-name { color: var(--valterite); }
+  .tier-card.aetherite .tier-card-name { color: var(--aetherite); }
+  .tier-card.erinium   .tier-card-name { color: var(--erinium); }
+  .tier-card-tier { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); margin-bottom: 14px; }
+  .tier-card-stat { font-size: 12px; color: var(--slate); margin: 4px 0; }
+  .tier-card-stat strong { color: var(--text); }
+  .gem-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 20px 0; }
+  .gem-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 18px; transition: box-shadow .2s; }
+  .gem-card.ruby      { border-top: 3px solid var(--ruby);     }
+  .gem-card.sapphire  { border-top: 3px solid var(--sapphire); }
+  .gem-card.emerald   { border-top: 3px solid var(--emerald);  }
+  .gem-card.amethyst  { border-top: 3px solid var(--amethyst); }
+  .gem-card.topaz     { border-top: 3px solid var(--topaz);    }
+  .gem-card.onyx      { border-top: 3px solid var(--onyx);     }
+  .gem-card-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .gem-card.ruby .gem-card-name      { color: var(--ruby); }
+  .gem-card.sapphire .gem-card-name  { color: var(--sapphire); }
+  .gem-card.emerald .gem-card-name   { color: var(--emerald); }
+  .gem-card.amethyst .gem-card-name  { color: var(--amethyst); }
+  .gem-card.topaz .gem-card-name     { color: var(--topaz); }
+  .gem-card.onyx .gem-card-name      { color: var(--onyx); }
+  .gem-card-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); margin-bottom: 10px; }
+  .gem-card-stat { font-size: 12px; color: var(--slate); margin: 4px 0; }
+  .gem-card-stat strong { color: var(--text); }
+  .quality-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 20px 0; }
+  .quality-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 20px; text-align: center; }
+  .quality-card.raw     { border-top: 3px solid #7F8C8D; }
+  .quality-card.cut     { border-top: 3px solid var(--cyan); }
+  .quality-card.perfect { border-top: 3px solid var(--gold); }
+  .quality-card-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .quality-card.raw .quality-card-name     { color: #7F8C8D; }
+  .quality-card.cut .quality-card-name     { color: var(--cyan); }
+  .quality-card.perfect .quality-card-name { color: var(--gold); }
+  .quality-card-tier { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); margin-bottom: 14px; }
+  .quality-card-stat { font-size: 12px; color: var(--slate); margin: 4px 0; }
+  .quality-card-stat strong { color: var(--text); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .tier-grid, .gem-grid, .quality-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Dependance Baubles</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Accessoires — Slots &amp; Types</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Accessoires — Stats &amp; Set Bonus</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Accessoires — Recettes</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Gemmes — Types &amp; Proprietes</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Gemmes — Qualites &amp; Raffinage</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Gemmes — Obtention (drops)</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Sertissage — Sockets</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Sertissage — Insertion &amp; Extraction</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> GUI — Interface de Sertissage</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Integration RPG &amp; Combat</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Structures de Donnees</a>
+    <a class="nav-link" href="#s14"><span class="num">14</span> Commandes &amp; Permissions</a>
+    <a class="nav-link" href="#s15"><span class="num">15</span> Assets</a>
+    <a class="nav-link" href="#s16"><span class="num">16</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges · EriniumFaction</div>
+      <h1>Accessoires &amp; Gemmes</h1>
+      <p>Systeme d'accessoires via Baubles API (anneaux, amulettes, bonus de set) et systeme de gemmes avec sertissage dans l'equipement et les accessoires.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">A faire</span>
+        <span class="badge badge-violet">Baubles API</span>
+        <span class="badge badge-valterite">Valterite — Tier 2</span>
+        <span class="badge badge-aetherite">Aetherite — Tier 3</span>
+        <span class="badge badge-erinium">Erinium — Tier 4</span>
+        <span class="badge badge-cyan">6 types de gemmes</span>
+        <span class="badge badge-gold">3 qualites</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <div class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <p>EriniumFaction ajoute deux systemes complementaires qui enrichissent la profondeur de la progression PvP : les <strong>Accessoires</strong> (Baubles API) et les <strong>Gemmes &amp; Sertissage</strong>. Ces deux systemes sont fortement integres l'un dans l'autre et dans le systeme RPG existant.</p>
+
+      <h3 class="first">Pourquoi ces systemes ?</h3>
+      <ul>
+        <li><strong>Accessoires</strong> — Permettre aux joueurs d'equiper des items dans des slots dedies (anneaux, amulette) hors de l'inventaire vanilla, avec des bonus passifs et des synergies de set entre tiers.</li>
+        <li><strong>Gemmes</strong> — Ajouter une couche de personnalisation en encastrant des gemmes dans l'equipement. Chaque gemme apporte un bonus de stat RPG ET un effet de combat distinct.</li>
+        <li><strong>Sertissage</strong> — Systeme de sockets par item (0 a 3 selon le tier) avec une interface GUI dediee, gerant l'insertion et l'extraction des gemmes.</li>
+        <li><strong>Integration RPG</strong> — Tous les bonus (accessoires + gemmes) sont visibles et cumules dans le panneau RPG du joueur, maintenant une source de verite unique sur les stats.</li>
+      </ul>
+
+      <h3>Perimetre technique</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Systeme</th><th>Package principal</th><th>Items total</th><th>Dependances</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Accessoires</td><td><code>fr.eriniumgroup.eriniumfaction.accessory</code></td><td>9 items (3 tiers × 3 types)</td><td>Baubles API, EriAPI, RPG System</td></tr>
+            <tr><td>Gemmes</td><td><code>fr.eriniumgroup.eriniumfaction.gem</code></td><td>18 items (6 types × 3 qualites)</td><td>EriAPI, RPG System, Accessory</td></tr>
+            <tr><td>Sertissage</td><td><code>fr.eriniumgroup.eriniumfaction.gem</code></td><td>1 item special (Extracteur)</td><td>EriAPI GUI, Gem, Accessory, RPG</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Lecture prerequise</strong> — Avant d'implementer ce systeme, lire <code>docs/specs/rpg-system.html</code> (stats RPG, RpgPlayerData, RpgEventHandler) et <code>docs/specs/combat-equipment.html</code> (tiers Valterite/Aetherite/Erinium, lingots, materiaux). Les deux sont des dependances directes de ce cahier des charges.</div>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>PvP 1.8 — ATTACK_SPEED inutile</strong> — L'attribut ATTACK_SPEED est ignore sur tout le projet. Les effets de combat des gemmes et accessoires concernent uniquement : les degats bruts, le knockback, la vitesse de mouvement, le lifesteal, et les chances de drop. Ne jamais coder de mecanique basee sur ATTACK_SPEED.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S2 — DEPENDANCE BAUBLES ═══ -->
+    <div class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Dependance Baubles</h2>
+
+      <h3 class="first">Version et integration Gradle</h3>
+      <p>Baubles est un mod Forge 1.12.2 expose comme API via un jar de dependance. Il fournit les slots d'accessoires additionnels au joueur (hors inventaire vanilla). EriniumFaction declare Baubles comme <code>required-after</code>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Parametre</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Mod ID Baubles</td><td><code>baubles</code></td></tr>
+            <tr><td>Version cible</td><td>1.5.2 (pour Forge 1.12.2)</td></tr>
+            <tr><td>Jar de dependance</td><td><code>libs/Baubles-1.12-1.5.2.jar</code> (compileOnly + runtime)</td></tr>
+            <tr><td>Declaration @Mod</td><td><code>dependencies = "required-after:eriapi;required-after:baubles"</code></td></tr>
+            <tr><td>Package API Baubles</td><td><code>baubles.api</code></td></tr>
+            <tr><td>Interface principale</td><td><code>baubles.api.IBauble</code></td></tr>
+            <tr><td>Enum slots</td><td><code>baubles.api.BaubleType</code></td></tr>
+            <tr><td>Acces inventaire</td><td><code>baubles.api.BaublesApi.getBaublesHandler(player)</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-block"><span class="cm">// build.gradle — ajout dans le bloc dependencies {}</span>
+<span class="fn">compileOnly</span>(<span class="fn">files</span>(<span class="st">"libs/Baubles-1.12-1.5.2.jar"</span>))
+<span class="fn">runtime</span>(<span class="fn">files</span>(<span class="st">"libs/Baubles-1.12-1.5.2.jar"</span>))</div>
+
+      <div class="code-block"><span class="cm">// EriniumFaction.java</span>
+<span class="an">@Mod</span>(
+    modid   = <span class="ty">EriniumFaction</span>.<span class="fn">MODID</span>,
+    name    = <span class="ty">EriniumFaction</span>.<span class="fn">NAME</span>,
+    version = <span class="ty">EriniumFaction</span>.<span class="fn">VERSION</span>,
+    dependencies = <span class="st">"required-after:eriapi;required-after:baubles"</span>
+)</div>
+
+      <h3>Slots Baubles utilises</h3>
+      <p>Baubles propose plusieurs types de slots. EriniumFaction en utilise trois specifiquement, en adequation avec les items prevus (anneaux × 2, amulette × 1).</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>BaubleType</th><th>Nb slots</th><th>Utilise par EriniumFaction</th><th>Item correspondant</th></tr></thead>
+          <tbody>
+            <tr><td>AMULET</td><td>1</td><td><span class="tag-yes">OUI</span></td><td>Amulettes (3 tiers)</td></tr>
+            <tr><td>RING</td><td>2</td><td><span class="tag-yes">OUI</span></td><td>Anneaux (3 tiers, 2 portables)</td></tr>
+            <tr><td>BELT</td><td>1</td><td><span class="tag-no">NON</span></td><td>Reserve pour extension future</td></tr>
+            <tr><td>HEAD</td><td>1</td><td><span class="tag-no">NON</span></td><td>Non utilise</td></tr>
+            <tr><td>BODY</td><td>1</td><td><span class="tag-no">NON</span></td><td>Non utilise</td></tr>
+            <tr><td>CHARM</td><td>1</td><td><span class="tag-no">NON</span></td><td>Non utilise</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Interface IBauble — methodes a implementer</h3>
+      <div class="code-block"><span class="cm">// Chaque accessoire EriniumFaction implements IBauble</span>
+<span class="kw">public interface</span> <span class="ty">IBauble</span> {
+
+    <span class="cm">// Retourne le type de slot accepte par cet item</span>
+    <span class="ty">BaubleType</span> <span class="fn">getBaubleType</span>(<span class="ty">ItemStack</span> itemstack);
+
+    <span class="cm">// Appele quand le joueur equipe l'item dans un slot Baubles</span>
+    <span class="kw">default void</span> <span class="fn">onEquipped</span>(<span class="ty">ItemStack</span> itemstack, <span class="ty">EntityLivingBase</span> player) {}
+
+    <span class="cm">// Appele quand le joueur retire l'item du slot Baubles</span>
+    <span class="kw">default void</span> <span class="fn">onUnequipped</span>(<span class="ty">ItemStack</span> itemstack, <span class="ty">EntityLivingBase</span> player) {}
+
+    <span class="cm">// Appele chaque tick tant que l'item est equipe</span>
+    <span class="kw">default void</span> <span class="fn">onWornTick</span>(<span class="ty">ItemStack</span> itemstack, <span class="ty">EntityLivingBase</span> player) {}
+
+    <span class="cm">// Peut-on equiper l'item ? (validations supplementaires)</span>
+    <span class="kw">default boolean</span> <span class="fn">canEquip</span>(<span class="ty">ItemStack</span> itemstack, <span class="ty">EntityLivingBase</span> player) { <span class="kw">return true</span>; }
+
+    <span class="cm">// Peut-on retirer l'item ?</span>
+    <span class="kw">default boolean</span> <span class="fn">canUnequip</span>(<span class="ty">ItemStack</span> itemstack, <span class="ty">EntityLivingBase</span> player) { <span class="kw">return true</span>; }
+}</div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Pattern a suivre</strong> — Dans <code>onEquipped</code>, appeler <code>AccessoryBonusManager.applyBonus(player, this)</code> qui modifie les stats RPG du joueur via <code>DataManager</code>. Dans <code>onUnequipped</code>, appeler <code>AccessoryBonusManager.removeBonus(player, this)</code> pour les retirer. Ne jamais manipuler directement <code>RpgPlayerData</code> depuis l'item.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S3 — ACCESSOIRES : SLOTS & TYPES ═══ -->
+    <div class="section-card" id="s3">
+      <h2><span class="s-num">03</span> Accessoires — Slots &amp; Types</h2>
+
+      <p>Neuf items d'accessoires en tout, repartis sur trois tiers (Valterite, Aetherite, Erinium) et deux types (Anneau, Amulette). Un joueur peut porter simultanement <strong>2 anneaux + 1 amulette</strong>.</p>
+
+      <div class="tier-grid">
+        <div class="tier-card valterite">
+          <div class="tier-card-name">Tier Valterite</div>
+          <div class="tier-card-tier">Tier 2 — Acier bleu</div>
+          <div class="tier-card-stat"><strong>Anneau de Valterite</strong></div>
+          <div class="tier-card-stat">+2 Vigueur, +1 Resistance</div>
+          <div class="tier-card-stat" style="margin-top:8px"><strong>Amulette de Valterite</strong></div>
+          <div class="tier-card-stat">Regen 0.5 HP / 5s (hors combat)</div>
+        </div>
+        <div class="tier-card aetherite">
+          <div class="tier-card-name">Tier Aetherite</div>
+          <div class="tier-card-tier">Tier 3 — Violet lumineux</div>
+          <div class="tier-card-stat"><strong>Anneau d'Aetherite</strong></div>
+          <div class="tier-card-stat">+2 Force, +1 Agilite</div>
+          <div class="tier-card-stat" style="margin-top:8px"><strong>Amulette d'Aetherite</strong></div>
+          <div class="tier-card-stat">+5% vitesse de deplacement</div>
+        </div>
+        <div class="tier-card erinium">
+          <div class="tier-card-name">Tier Erinium</div>
+          <div class="tier-card-tier">Tier 4 — Or ambre</div>
+          <div class="tier-card-stat"><strong>Anneau d'Erinium</strong></div>
+          <div class="tier-card-stat">+3 Fortune, +2 Arcane</div>
+          <div class="tier-card-stat" style="margin-top:8px"><strong>Amulette d'Erinium</strong></div>
+          <div class="tier-card-stat">+1 a TOUTES les stats</div>
+        </div>
+      </div>
+
+      <h3>Tableau complet des 9 items</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Item ID</th><th>Nom affiche</th><th>Type Baubles</th><th>Tier</th><th>Rarete</th><th>Stackable</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>ring_valterite</code></td><td>Anneau de Valterite</td><td>RING</td><td class="tier-valterite">Valterite</td><td>UNCOMMON</td><td><span class="tag-no">NON</span></td></tr>
+            <tr><td><code>amulet_valterite</code></td><td>Amulette de Valterite</td><td>AMULET</td><td class="tier-valterite">Valterite</td><td>UNCOMMON</td><td><span class="tag-no">NON</span></td></tr>
+            <tr><td><code>ring_aetherite</code></td><td>Anneau d'Aetherite</td><td>RING</td><td class="tier-aetherite">Aetherite</td><td>RARE</td><td><span class="tag-no">NON</span></td></tr>
+            <tr><td><code>amulet_aetherite</code></td><td>Amulette d'Aetherite</td><td>AMULET</td><td class="tier-aetherite">Aetherite</td><td>RARE</td><td><span class="tag-no">NON</span></td></tr>
+            <tr><td><code>ring_erinium</code></td><td>Anneau d'Erinium</td><td>RING</td><td class="tier-erinium">Erinium</td><td>EPIC + glow</td><td><span class="tag-no">NON</span></td></tr>
+            <tr><td><code>amulet_erinium</code></td><td>Amulette d'Erinium</td><td>AMULET</td><td class="tier-erinium">Erinium</td><td>EPIC + glow</td><td><span class="tag-no">NON</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Mixite des tiers</strong> — Le joueur peut porter deux anneaux de tiers differents (ex : un Valterite + un Aetherite). Le bonus de set (Section 4) ne s'active que si l'anneau ET l'amulette sont du <em>meme</em> tier. Pas de restriction technique sur la combinaison des tiers.</div>
+      </div>
+
+      <h3>Architecture des classes d'accessoires</h3>
+      <div class="code-block"><span class="cm">// Classe de base abstraite</span>
+<span class="kw">public abstract class</span> <span class="ty">BaseAccessoryItem</span> <span class="kw">extends</span> <span class="ty">Item</span> <span class="kw">implements</span> <span class="ty">IBauble</span> {
+
+    <span class="kw">private final</span> <span class="ty">BaubleType</span> baubleType;
+    <span class="kw">private final</span> <span class="ty">AccessoryTier</span> tier;
+
+    <span class="kw">protected</span> <span class="fn">BaseAccessoryItem</span>(<span class="ty">BaubleType</span> baubleType, <span class="ty">AccessoryTier</span> tier) {
+        <span class="kw">this</span>.baubleType = baubleType;
+        <span class="kw">this</span>.tier = tier;
+        <span class="fn">setMaxStackSize</span>(<span class="nu">1</span>);
+        <span class="fn">setMaxDamage</span>(<span class="nu">0</span>);
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="ty">BaubleType</span> <span class="fn">getBaubleType</span>(<span class="ty">ItemStack</span> itemstack) { <span class="kw">return this</span>.baubleType; }
+
+    <span class="kw">public</span> <span class="ty">AccessoryTier</span> <span class="fn">getTier</span>() { <span class="kw">return this</span>.tier; }
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">onEquipped</span>(<span class="ty">ItemStack</span> itemstack, <span class="ty">EntityLivingBase</span> entity) {
+        <span class="kw">if</span> (entity <span class="kw">instanceof</span> <span class="ty">EntityPlayerMP</span>) {
+            <span class="ty">AccessoryBonusManager</span>.<span class="fn">getInstance</span>().<span class="fn">applyBonus</span>((<span class="ty">EntityPlayerMP</span>) entity, <span class="kw">this</span>);
+            <span class="ty">SetBonusManager</span>.<span class="fn">getInstance</span>().<span class="fn">checkAndApplySetBonus</span>((<span class="ty">EntityPlayerMP</span>) entity);
+        }
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">onUnequipped</span>(<span class="ty">ItemStack</span> itemstack, <span class="ty">EntityLivingBase</span> entity) {
+        <span class="kw">if</span> (entity <span class="kw">instanceof</span> <span class="ty">EntityPlayerMP</span>) {
+            <span class="ty">AccessoryBonusManager</span>.<span class="fn">getInstance</span>().<span class="fn">removeBonus</span>((<span class="ty">EntityPlayerMP</span>) entity, <span class="kw">this</span>);
+            <span class="ty">SetBonusManager</span>.<span class="fn">getInstance</span>().<span class="fn">checkAndRemoveSetBonus</span>((<span class="ty">EntityPlayerMP</span>) entity);
+        }
+    }
+
+    <span class="cm">// Methodes abstraites implementees par chaque item concret</span>
+    <span class="kw">public abstract</span> <span class="ty">Map</span>&lt;<span class="ty">RpgStat</span>, <span class="ty">Integer</span>&gt; <span class="fn">getStatBonuses</span>();
+    <span class="kw">public abstract void</span> <span class="fn">applyPassiveEffect</span>(<span class="ty">EntityPlayerMP</span> player); <span class="cm">// Appele par onWornTick si besoin</span>
+}
+
+<span class="cm">// Items concrets — exemple Anneau de Valterite</span>
+<span class="kw">public class</span> <span class="ty">RingValteriteItem</span> <span class="kw">extends</span> <span class="ty">BaseAccessoryItem</span> {
+    <span class="kw">public</span> <span class="fn">RingValteriteItem</span>() {
+        <span class="kw">super</span>(<span class="ty">BaubleType</span>.RING, <span class="ty">AccessoryTier</span>.VALTERITE);
+    }
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="ty">Map</span>&lt;<span class="ty">RpgStat</span>, <span class="ty">Integer</span>&gt; <span class="fn">getStatBonuses</span>() {
+        <span class="ty">Map</span>&lt;<span class="ty">RpgStat</span>, <span class="ty">Integer</span>&gt; bonuses = <span class="kw">new</span> <span class="ty">EnumMap</span>&lt;&gt;(<span class="ty">RpgStat</span>.<span class="kw">class</span>);
+        bonuses.<span class="fn">put</span>(<span class="ty">RpgStat</span>.VIGOR, <span class="nu">2</span>);
+        bonuses.<span class="fn">put</span>(<span class="ty">RpgStat</span>.RESISTANCE, <span class="nu">1</span>);
+        <span class="kw">return</span> bonuses;
+    }
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">applyPassiveEffect</span>(<span class="ty">EntityPlayerMP</span> player) { <span class="cm">/* Aucun effet tick pour les anneaux */</span> }
+}</div>
+    </div>
+
+    <!-- ═══ S4 — ACCESSOIRES : STATS & SET BONUS ═══ -->
+    <div class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Accessoires — Stats &amp; Bonus de Set</h2>
+
+      <h3 class="first">Stats par accessoire</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Accessoire</th><th>Stat 1</th><th>Stat 2</th><th>Effet passif (onWornTick)</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="tier-valterite">Anneau de Valterite</td>
+              <td>+2 Vigueur</td>
+              <td>+1 Resistance</td>
+              <td>Aucun</td>
+            </tr>
+            <tr>
+              <td class="tier-aetherite">Anneau d'Aetherite</td>
+              <td>+2 Force</td>
+              <td>+1 Agilite</td>
+              <td>Aucun</td>
+            </tr>
+            <tr>
+              <td class="tier-erinium">Anneau d'Erinium</td>
+              <td>+3 Fortune</td>
+              <td>+2 Arcane</td>
+              <td>Aucun</td>
+            </tr>
+            <tr>
+              <td class="tier-valterite">Amulette de Valterite</td>
+              <td>—</td>
+              <td>—</td>
+              <td>Regen 0.5 HP toutes les 5s (100 ticks) si pas en combat (aucun degat recu depuis 5s)</td>
+            </tr>
+            <tr>
+              <td class="tier-aetherite">Amulette d'Aetherite</td>
+              <td>—</td>
+              <td>—</td>
+              <td>+5% vitesse de mouvement permanent (applique via AttributeModifier)</td>
+            </tr>
+            <tr>
+              <td class="tier-erinium">Amulette d'Erinium</td>
+              <td>+1 a toutes les stats (Force, Vigueur, Agilite, Resistance, Fortune, Arcane)</td>
+              <td>—</td>
+              <td>Aucun tick — tout est applique en onEquipped</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Detection "hors combat" pour l'Amulette Valterite</strong> — Stocker dans <code>RpgPlayerData</code> un champ <code>long lastDamageReceivedTick</code>. L'amulette verifie dans <code>onWornTick</code> que <code>world.getTotalWorldTime() - lastDamageReceivedTick &gt;= 100</code> avant de soigner. Ce champ est mis a jour dans <code>RpgEventHandler.onLivingHurt</code>.</div>
+      </div>
+
+      <h3>Bonus de Set (Synergies de tier)</h3>
+      <p>Porter l'anneau ET l'amulette du meme tier active un bonus de set supplementaire. La verification se fait dans <code>SetBonusManager</code> qui inspecte les slots Baubles du joueur a chaque equip/desequip.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Set</th><th>Condition</th><th>Bonus de Set</th><th>Implementation</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="tier-valterite">Set Valterite</td>
+              <td>Anneau de Valterite + Amulette de Valterite</td>
+              <td>+10% HP max</td>
+              <td>Multiplier les HP max via AttributeModifier sur <code>generic.maxHealth</code></td>
+            </tr>
+            <tr>
+              <td class="tier-aetherite">Set Aetherite</td>
+              <td>Anneau d'Aetherite + Amulette d'Aetherite</td>
+              <td>+8% degats infliges</td>
+              <td>Modificateur sur <code>RpgPlayerData.damageMultiplier</code> consulte dans <code>RpgEventHandler.onLivingHurt</code></td>
+            </tr>
+            <tr>
+              <td class="tier-erinium">Set Erinium</td>
+              <td>Anneau d'Erinium + Amulette d'Erinium</td>
+              <td>+15% gain XP</td>
+              <td>Modificateur sur <code>RpgPlayerData.xpMultiplier</code> consulte dans <code>RpgEventHandler.onExperienceDrop</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>SetBonusManager — logique de verification</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">SetBonusManager</span> {
+    <span class="kw">private static final</span> <span class="ty">SetBonusManager</span> INSTANCE = <span class="kw">new</span> <span class="ty">SetBonusManager</span>();
+    <span class="kw">public static</span> <span class="ty">SetBonusManager</span> <span class="fn">getInstance</span>() { <span class="kw">return</span> INSTANCE; }
+
+    <span class="kw">public void</span> <span class="fn">checkAndApplySetBonus</span>(<span class="ty">EntityPlayerMP</span> player) {
+        <span class="ty">IItemHandler</span> baubles = <span class="ty">BaublesApi</span>.<span class="fn">getBaublesHandler</span>(player);
+        <span class="kw">for</span> (<span class="ty">AccessoryTier</span> tier : <span class="ty">AccessoryTier</span>.<span class="fn">values</span>()) {
+            <span class="kw">boolean</span> hasRing   = <span class="fn">hasBaubleOfTier</span>(baubles, tier, <span class="ty">BaubleType</span>.RING);
+            <span class="kw">boolean</span> hasAmulet = <span class="fn">hasBaubleOfTier</span>(baubles, tier, <span class="ty">BaubleType</span>.AMULET);
+            <span class="kw">if</span> (hasRing &amp;&amp; hasAmulet) {
+                <span class="fn">applySetBonus</span>(player, tier);
+            }
+        }
+    }
+
+    <span class="kw">public void</span> <span class="fn">checkAndRemoveSetBonus</span>(<span class="ty">EntityPlayerMP</span> player) {
+        <span class="ty">IItemHandler</span> baubles = <span class="ty">BaublesApi</span>.<span class="fn">getBaublesHandler</span>(player);
+        <span class="kw">for</span> (<span class="ty">AccessoryTier</span> tier : <span class="ty">AccessoryTier</span>.<span class="fn">values</span>()) {
+            <span class="kw">boolean</span> hasRing   = <span class="fn">hasBaubleOfTier</span>(baubles, tier, <span class="ty">BaubleType</span>.RING);
+            <span class="kw">boolean</span> hasAmulet = <span class="fn">hasBaubleOfTier</span>(baubles, tier, <span class="ty">BaubleType</span>.AMULET);
+            <span class="kw">if</span> (!hasRing || !hasAmulet) {
+                <span class="fn">removeSetBonus</span>(player, tier);
+            }
+        }
+    }
+
+    <span class="kw">private boolean</span> <span class="fn">hasBaubleOfTier</span>(<span class="ty">IItemHandler</span> baubles, <span class="ty">AccessoryTier</span> tier, <span class="ty">BaubleType</span> type) {
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; baubles.<span class="fn">getSlots</span>(); i++) {
+            <span class="ty">ItemStack</span> stack = baubles.<span class="fn">getStackInSlot</span>(i);
+            <span class="kw">if</span> (!stack.<span class="fn">isEmpty</span>() &amp;&amp; stack.<span class="fn">getItem</span>() <span class="kw">instanceof</span> <span class="ty">BaseAccessoryItem</span>) {
+                <span class="ty">BaseAccessoryItem</span> item = (<span class="ty">BaseAccessoryItem</span>) stack.<span class="fn">getItem</span>();
+                <span class="kw">if</span> (item.<span class="fn">getTier</span>() == tier &amp;&amp; item.<span class="fn">getBaubleType</span>(stack) == type)
+                    <span class="kw">return true</span>;
+            }
+        }
+        <span class="kw">return false</span>;
+    }
+
+    <span class="kw">private void</span> <span class="fn">applySetBonus</span>(<span class="ty">EntityPlayerMP</span> player, <span class="ty">AccessoryTier</span> tier) {
+        <span class="ty">RpgPlayerData</span> data = <span class="ty">DataManager</span>.<span class="fn">get</span>(player, <span class="ty">RpgPlayerData</span>.<span class="kw">class</span>);
+        <span class="kw">if</span> (!data.activeSetBonuses.<span class="fn">contains</span>(tier.<span class="fn">name</span>())) {
+            data.activeSetBonuses.<span class="fn">add</span>(tier.<span class="fn">name</span>());
+            <span class="cm">// Appliquer le bonus specifique du tier</span>
+            tier.<span class="fn">getSetBonus</span>().<span class="fn">apply</span>(player, data);
+            <span class="ty">DataManager</span>.<span class="fn">save</span>(player, <span class="ty">RpgPlayerData</span>.<span class="kw">class</span>);
+        }
+    }
+}</div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Double anneau et set bonus</strong> — Deux anneaux du meme tier NE declenchent PAS le bonus de set. Il faut obligatoirement anneau + amulette du meme tier. Deux anneaux de tiers differents cumulent simplement leurs stats individuelles.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S5 — ACCESSOIRES : RECETTES ═══ -->
+    <div class="section-card" id="s5">
+      <h2><span class="s-num green-num">05</span> Accessoires — Recettes de Craft</h2>
+
+      <h3 class="first">Pattern general</h3>
+      <ul>
+        <li><strong>Anneaux</strong> — 4 lingots du tier en losange (pattern diamond) + 1 gemme taillee au centre</li>
+        <li><strong>Amulettes</strong> — 3 lingots du tier en arc (haut-gauche, haut-centre, haut-droit) + 1 gemme taillee (centre) + 1 string (bas-centre)</li>
+      </ul>
+
+      <h3>Patterns visuels (grille 3x3)</h3>
+      <div class="ascii-diagram"><span class="ac">ANNEAU — Pattern losange (4 lingots + 1 gemme)</span>
+
+<span class="as">┌───┬───┬───┐</span>
+<span class="as">│</span>   <span class="as">│</span> <span class="av">L</span> <span class="as">│</span>   <span class="as">│</span>   rangee 1
+<span class="as">├───┼───┼───┤</span>
+<span class="as">│</span> <span class="av">L</span> <span class="as">│</span> <span class="ay">G</span> <span class="as">│</span> <span class="av">L</span> <span class="as">│</span>   rangee 2
+<span class="as">├───┼───┼───┤</span>
+<span class="as">│</span>   <span class="as">│</span> <span class="av">L</span> <span class="as">│</span>   <span class="as">│</span>   rangee 3
+<span class="as">└───┴───┴───┘</span>
+  <span class="av">L</span> = Lingot du tier    <span class="ay">G</span> = Gemme taillee du tier (ex: rubis taille pour Valterite)
+
+<span class="ac">AMULETTE — Pattern arc + ficelle</span>
+
+<span class="as">┌───┬───┬───┐</span>
+<span class="as">│</span> <span class="av">L</span> <span class="as">│</span> <span class="av">L</span> <span class="as">│</span> <span class="av">L</span> <span class="as">│</span>   rangee 1
+<span class="as">├───┼───┼───┤</span>
+<span class="as">│</span>   <span class="as">│</span> <span class="ay">G</span> <span class="as">│</span>   <span class="as">│</span>   rangee 2
+<span class="as">├───┼───┼───┤</span>
+<span class="as">│</span>   <span class="as">│</span> <span class="ag">S</span> <span class="as">│</span>   <span class="as">│</span>   rangee 3
+<span class="as">└───┴───┴───┘</span>
+  <span class="av">L</span> = Lingot du tier    <span class="ay">G</span> = Gemme taillee    <span class="ag">S</span> = String (ficelle vanilla)</div>
+
+      <h3>Detail par tier</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Accessoire</th><th>Lingot</th><th>Gemme taillee requise</th><th>Resultat</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="tier-valterite">Anneau de Valterite</td><td>valterite_ingot × 4</td><td>N'importe quelle gemme taillee</td><td>ring_valterite × 1</td></tr>
+            <tr><td class="tier-valterite">Amulette de Valterite</td><td>valterite_ingot × 3</td><td>N'importe quelle gemme taillee</td><td>amulet_valterite × 1</td></tr>
+            <tr><td class="tier-aetherite">Anneau d'Aetherite</td><td>aetherite_ingot × 4</td><td>N'importe quelle gemme taillee</td><td>ring_aetherite × 1</td></tr>
+            <tr><td class="tier-aetherite">Amulette d'Aetherite</td><td>aetherite_ingot × 3</td><td>N'importe quelle gemme taillee</td><td>amulet_aetherite × 1</td></tr>
+            <tr><td class="tier-erinium">Anneau d'Erinium</td><td>erinium_ingot × 4</td><td>N'importe quelle gemme taillee</td><td>ring_erinium × 1</td></tr>
+            <tr><td class="tier-erinium">Amulette d'Erinium</td><td>erinium_ingot × 3</td><td>N'importe quelle gemme taillee</td><td>amulet_erinium × 1</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Gemme libre dans les recettes</strong> — La recette accepte n'importe quelle gemme taillee (le NBT de type n'est pas verifie dans la recette). Cela permet de choisir le type de gemme en amont du craft. L'accessoire craft n'a pas de gemme pre-sertie : il faut sertir separement via le GUI (Section 11).</div>
+      </div>
+
+      <h3>Enregistrement via EriAPI Content Builder</h3>
+      <div class="code-block"><span class="cm">// Exemple : recette de l'Anneau de Valterite</span>
+<span class="ty">EriRecipe</span>.<span class="fn">shaped</span>(<span class="st">"eriniumfaction"</span>, <span class="st">"ring_valterite_recipe"</span>)
+    .<span class="fn">pattern</span>(<span class="st">" L "</span>, <span class="st">"LGL"</span>, <span class="st">" L "</span>)
+    .<span class="fn">key</span>(<span class="st">'L'</span>, <span class="ty">EriniumItems</span>.VALTERITE_INGOT)
+    .<span class="fn">key</span>(<span class="st">'G'</span>, <span class="ty">GemItems</span>.<span class="fn">anyGemCut</span>())  <span class="cm">// ingredient acceptant tous les items du tag #gems_cut</span>
+    .<span class="fn">output</span>(<span class="kw">new</span> <span class="ty">ItemStack</span>(<span class="ty">AccessoryItems</span>.RING_VALTERITE))
+    .<span class="fn">register</span>();
+
+<span class="cm">// Exemple : recette de l'Amulette de Valterite</span>
+<span class="ty">EriRecipe</span>.<span class="fn">shaped</span>(<span class="st">"eriniumfaction"</span>, <span class="st">"amulet_valterite_recipe"</span>)
+    .<span class="fn">pattern</span>(<span class="st">"LLL"</span>, <span class="st">" G "</span>, <span class="st">" S "</span>)
+    .<span class="fn">key</span>(<span class="st">'L'</span>, <span class="ty">EriniumItems</span>.VALTERITE_INGOT)
+    .<span class="fn">key</span>(<span class="st">'G'</span>, <span class="ty">GemItems</span>.<span class="fn">anyGemCut</span>())
+    .<span class="fn">key</span>(<span class="st">'S'</span>, <span class="ty">Items</span>.STRING)
+    .<span class="fn">output</span>(<span class="kw">new</span> <span class="ty">ItemStack</span>(<span class="ty">AccessoryItems</span>.AMULET_VALTERITE))
+    .<span class="fn">register</span>();</div>
+    </div>
+
+    <!-- ═══ S6 — GEMMES : TYPES & PROPRIETES ═══ -->
+    <div class="section-card" id="s6">
+      <h2><span class="s-num">06</span> Gemmes — Types &amp; Proprietes</h2>
+
+      <p>Six types de gemmes, chacun lie a une stat RPG specifique et porteur d'un effet de combat unique actif en combat PvP 1.8.</p>
+
+      <div class="gem-grid">
+        <div class="gem-card ruby">
+          <div class="gem-card-name">Rubis</div>
+          <div class="gem-card-sub">RUBY</div>
+          <div class="gem-card-stat"><strong>Couleur :</strong> #E74C3C (rouge)</div>
+          <div class="gem-card-stat"><strong>Stat :</strong> +Force</div>
+          <div class="gem-card-stat"><strong>Effet combat :</strong> Lifesteal 2% des degats infliges</div>
+        </div>
+        <div class="gem-card sapphire">
+          <div class="gem-card-name">Saphir</div>
+          <div class="gem-card-sub">SAPPHIRE</div>
+          <div class="gem-card-stat"><strong>Couleur :</strong> #3498DB (bleu)</div>
+          <div class="gem-card-stat"><strong>Stat :</strong> +Vigueur</div>
+          <div class="gem-card-stat"><strong>Effet combat :</strong> +2 HP max par gemme equipee</div>
+        </div>
+        <div class="gem-card emerald">
+          <div class="gem-card-name">Emeraude</div>
+          <div class="gem-card-sub">EMERALD</div>
+          <div class="gem-card-stat"><strong>Couleur :</strong> #2ECC71 (vert)</div>
+          <div class="gem-card-stat"><strong>Stat :</strong> +Fortune</div>
+          <div class="gem-card-stat"><strong>Effet combat :</strong> +5% chance de drop rare sur kill</div>
+        </div>
+        <div class="gem-card amethyst">
+          <div class="gem-card-name">Amethyste</div>
+          <div class="gem-card-sub">AMETHYST</div>
+          <div class="gem-card-stat"><strong>Couleur :</strong> #9B59B6 (violet)</div>
+          <div class="gem-card-stat"><strong>Stat :</strong> +Arcane</div>
+          <div class="gem-card-stat"><strong>Effet combat :</strong> +3% regeneration de mana</div>
+        </div>
+        <div class="gem-card topaz">
+          <div class="gem-card-name">Topaze</div>
+          <div class="gem-card-sub">TOPAZ</div>
+          <div class="gem-card-stat"><strong>Couleur :</strong> #F1C40F (jaune)</div>
+          <div class="gem-card-stat"><strong>Stat :</strong> +Agilite</div>
+          <div class="gem-card-stat"><strong>Effet combat :</strong> +3% vitesse de mouvement</div>
+        </div>
+        <div class="gem-card onyx">
+          <div class="gem-card-name">Onyx</div>
+          <div class="gem-card-sub">ONYX</div>
+          <div class="gem-card-stat"><strong>Couleur :</strong> #2C3E50 (noir)</div>
+          <div class="gem-card-stat"><strong>Stat :</strong> +Resistance</div>
+          <div class="gem-card-stat"><strong>Effet combat :</strong> -2% degats recus</div>
+        </div>
+      </div>
+
+      <h3>Enum GemType</h3>
+      <div class="code-block"><span class="kw">public enum</span> <span class="ty">GemType</span> {
+    RUBY     (<span class="st">"rubis"</span>,      <span class="nu">0xE74C3C</span>, <span class="ty">RpgStat</span>.STRENGTH,   <span class="st">"gem.ruby.combat"</span>),
+    SAPPHIRE (<span class="st">"saphir"</span>,     <span class="nu">0x3498DB</span>, <span class="ty">RpgStat</span>.VIGOR,      <span class="st">"gem.sapphire.combat"</span>),
+    EMERALD  (<span class="st">"emeraude"</span>,   <span class="nu">0x2ECC71</span>, <span class="ty">RpgStat</span>.FORTUNE,    <span class="st">"gem.emerald.combat"</span>),
+    AMETHYST (<span class="st">"amethyste"</span>,  <span class="nu">0x9B59B6</span>, <span class="ty">RpgStat</span>.ARCANE,     <span class="st">"gem.amethyst.combat"</span>),
+    TOPAZ    (<span class="st">"topaze"</span>,     <span class="nu">0xF1C40F</span>, <span class="ty">RpgStat</span>.AGILITY,    <span class="st">"gem.topaz.combat"</span>),
+    ONYX     (<span class="st">"onyx"</span>,       <span class="nu">0x2C3E50</span>, <span class="ty">RpgStat</span>.RESISTANCE, <span class="st">"gem.onyx.combat"</span>);
+
+    <span class="kw">public final</span> <span class="ty">String</span> displayName;
+    <span class="kw">public final</span> <span class="kw">int</span>    color;        <span class="cm">// Couleur ARGB pour le rendu GUI</span>
+    <span class="kw">public final</span> <span class="ty">RpgStat</span> linkedStat; <span class="cm">// Stat RPG associee</span>
+    <span class="kw">public final</span> <span class="ty">String</span> combatEffectKey; <span class="cm">// Cle dans CombatEffectRegistry</span>
+
+    <span class="ty">GemType</span>(<span class="ty">String</span> displayName, <span class="kw">int</span> color, <span class="ty">RpgStat</span> linkedStat, <span class="ty">String</span> combatEffectKey) {
+        <span class="kw">this</span>.displayName = displayName;
+        <span class="kw">this</span>.color = color;
+        <span class="kw">this</span>.linkedStat = linkedStat;
+        <span class="kw">this</span>.combatEffectKey = combatEffectKey;
+    }
+}</div>
+
+      <h3>Tableau recapitulatif des effets de combat</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Gemme</th><th>Effet (Brute)</th><th>Effet (Taillee)</th><th>Effet (Parfaite)</th><th>Stacking</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="gem-ruby">Rubis</td><td>Lifesteal 1%</td><td>Lifesteal 2%</td><td>Lifesteal 4% + heal visuel rouge</td><td>Additif, diminishing &gt;4</td></tr>
+            <tr><td class="gem-sapphire">Saphir</td><td>+1 HP max</td><td>+2 HP max</td><td>+4 HP max + glow bleu</td><td>Additif sans diminishing</td></tr>
+            <tr><td class="gem-emerald">Emeraude</td><td>+2.5% drop rare</td><td>+5% drop rare</td><td>+10% drop rare + loot bonus</td><td>Additif, cap a +30%</td></tr>
+            <tr><td class="gem-amethyst">Amethyste</td><td>+1.5% mana regen</td><td>+3% mana regen</td><td>+6% mana regen + burst</td><td>Additif, diminishing &gt;4</td></tr>
+            <tr><td class="gem-topaz">Topaze</td><td>+1.5% vitesse</td><td>+3% vitesse</td><td>+6% vitesse + sprint boost</td><td>Additif, cap a +15%</td></tr>
+            <tr><td class="gem-onyx">Onyx</td><td>-1% degats recus</td><td>-2% degats recus</td><td>-4% degats recus + absorb</td><td>Additif, cap a -20%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S7 — GEMMES : QUALITES & RAFFINAGE ═══ -->
+    <div class="section-card" id="s7">
+      <h2><span class="s-num cyan-num">07</span> Gemmes — Qualites &amp; Raffinage</h2>
+
+      <p>Chaque type de gemme existe en trois qualites progressives. Les qualites superieures s'obtiennent par craft a partir de la qualite inferieure.</p>
+
+      <div class="quality-grid">
+        <div class="quality-card raw">
+          <div class="quality-card-name">Brute</div>
+          <div class="quality-card-tier">RAW — Drop direct</div>
+          <div class="quality-card-stat"><strong>Obtention :</strong> Drop minier aleatoire</div>
+          <div class="quality-card-stat"><strong>Bonus stat :</strong> +1 a la stat liee</div>
+          <div class="quality-card-stat"><strong>Effet combat :</strong> Version reduite (voir Section 6)</div>
+          <div class="quality-card-stat"><strong>Texture :</strong> Pierre brute, couleur terne</div>
+        </div>
+        <div class="quality-card cut">
+          <div class="quality-card-name">Taillee</div>
+          <div class="quality-card-tier">CUT — Craft artisanal</div>
+          <div class="quality-card-stat"><strong>Obtention :</strong> 1 brute + 1 silex sur crafting table</div>
+          <div class="quality-card-stat"><strong>Bonus stat :</strong> +2 a la stat liee</div>
+          <div class="quality-card-stat"><strong>Effet combat :</strong> Version standard (voir Section 6)</div>
+          <div class="quality-card-stat"><strong>Texture :</strong> Facettes regulieres, brillant</div>
+        </div>
+        <div class="quality-card perfect">
+          <div class="quality-card-name">Parfaite</div>
+          <div class="quality-card-tier">PERFECT — Craft avance</div>
+          <div class="quality-card-stat"><strong>Obtention :</strong> 4 taillees en carre 2x2</div>
+          <div class="quality-card-stat"><strong>Bonus stat :</strong> +4 a la stat liee</div>
+          <div class="quality-card-stat"><strong>Effet combat :</strong> Version amelioree (voir Section 6)</div>
+          <div class="quality-card-stat"><strong>Texture :</strong> Eclat lumineux, effet glow</div>
+        </div>
+      </div>
+
+      <h3>Recipes de raffinage</h3>
+      <div class="ascii-diagram"><span class="ac">BRUTE → TAILLEE : gemme brute + silex (shaped 2x1)</span>
+
+<span class="as">┌───┬───┐</span>
+<span class="as">│</span> <span class="ay">G</span> <span class="as">│</span> <span class="ag">F</span> <span class="as">│</span>   G = Gemme brute (ex: rubis_raw)
+<span class="as">└───┴───┘</span>   <span class="ag">F</span> = Flint (silex vanilla)
+  → <span class="ac">1x gemme_taillee</span>
+
+<span class="ac">TAILLEE → PARFAITE : 4 taillees en carre 2x2 (shapeless 2x2)</span>
+
+<span class="as">┌───┬───┐</span>
+<span class="as">│</span> <span class="ac">G</span> <span class="as">│</span> <span class="ac">G</span> <span class="as">│</span>   G = Gemme taillee (meme type)
+<span class="as">├───┼───┤</span>
+<span class="as">│</span> <span class="ac">G</span> <span class="as">│</span> <span class="ac">G</span> <span class="as">│</span>
+<span class="as">└───┴───┘</span>
+  → <span class="ac">1x gemme_parfaite</span></div>
+
+      <h3>Enum GemQuality</h3>
+      <div class="code-block"><span class="kw">public enum</span> <span class="ty">GemQuality</span> {
+    RAW     (<span class="st">"brute"</span>,   <span class="nu">1</span>, <span class="nu">1.0f</span>),   <span class="cm">// +1 stat, effet combat x1.0</span>
+    CUT     (<span class="st">"taillee"</span>, <span class="nu">2</span>, <span class="nu">1.0f</span>),   <span class="cm">// +2 stat, effet combat x1.0 (valeur de reference)</span>
+    PERFECT (<span class="st">"parfaite"</span>, <span class="nu">4</span>, <span class="nu">2.0f</span>);  <span class="cm">// +4 stat, effet combat x2.0</span>
+
+    <span class="kw">public final</span> <span class="ty">String</span> displaySuffix; <span class="cm">// Suffixe affiche dans le nom de l'item</span>
+    <span class="kw">public final</span> <span class="kw">int</span>    statBonus;      <span class="cm">// Points de stat accordes</span>
+    <span class="kw">public final</span> <span class="kw">float</span>  combatMultiplier;<span class="cm">// Multiplicateur de l'effet de combat base</span>
+
+    <span class="ty">GemQuality</span>(<span class="ty">String</span> displaySuffix, <span class="kw">int</span> statBonus, <span class="kw">float</span> combatMultiplier) {
+        <span class="kw">this</span>.displaySuffix = displaySuffix;
+        <span class="kw">this</span>.statBonus = statBonus;
+        <span class="kw">this</span>.combatMultiplier = combatMultiplier;
+    }
+}</div>
+
+      <h3>GemItem — classe item generique</h3>
+      <p>Plutot que de creer 18 classes separees, on utilise une seule classe <code>GemItem</code> parametree par type et qualite.</p>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">GemItem</span> <span class="kw">extends</span> <span class="ty">Item</span> {
+    <span class="kw">private final</span> <span class="ty">GemType</span>    type;
+    <span class="kw">private final</span> <span class="ty">GemQuality</span> quality;
+
+    <span class="kw">public</span> <span class="fn">GemItem</span>(<span class="ty">GemType</span> type, <span class="ty">GemQuality</span> quality) {
+        <span class="kw">this</span>.type = type;
+        <span class="kw">this</span>.quality = quality;
+        <span class="fn">setMaxStackSize</span>(<span class="nu">64</span>);
+        <span class="fn">setMaxDamage</span>(<span class="nu">0</span>);
+        <span class="cm">// Nom affiche : "Rubis Taille", "Saphir Parfait", etc.</span>
+        <span class="fn">setUnlocalizedName</span>(<span class="st">"gem_"</span> + type.<span class="fn">name</span>().<span class="fn">toLowerCase</span>() + <span class="st">"_"</span> + quality.<span class="fn">name</span>().<span class="fn">toLowerCase</span>());
+        <span class="cm">// Rarity selon qualite</span>
+        <span class="kw">if</span> (quality == <span class="ty">GemQuality</span>.PERFECT) <span class="fn">setRarity</span>(<span class="ty">EnumRarity</span>.RARE);
+    }
+
+    <span class="kw">public</span> <span class="ty">GemType</span>    <span class="fn">getGemType</span>()    { <span class="kw">return</span> type; }
+    <span class="kw">public</span> <span class="ty">GemQuality</span> <span class="fn">getGemQuality</span>() { <span class="kw">return</span> quality; }
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">addInformation</span>(<span class="ty">ItemStack</span> stack, <span class="ty">World</span> world,
+                               <span class="ty">List</span>&lt;<span class="ty">String</span>&gt; tooltip, <span class="ty">ITooltipFlag</span> flag) {
+        tooltip.<span class="fn">add</span>(<span class="ty">TextFormatting</span>.GRAY + <span class="st">"Stat : "</span> + <span class="ty">TextFormatting</span>.WHITE + <span class="st">"+"</span> + quality.statBonus + <span class="st">" "</span> + type.linkedStat.displayName);
+        tooltip.<span class="fn">add</span>(<span class="ty">TextFormatting</span>.GRAY + <span class="st">"Effet : "</span> + <span class="ty">CombatEffectRegistry</span>.<span class="fn">getDescription</span>(type, quality));
+    }
+}
+
+<span class="cm">// Enregistrement de tous les items gemme dans GemItems</span>
+<span class="kw">public class</span> <span class="ty">GemItems</span> {
+    <span class="kw">public static final</span> <span class="ty">GemItem</span>[] ALL = <span class="kw">new</span> <span class="ty">GemItem</span>[<span class="nu">18</span>];
+    <span class="kw">static</span> {
+        <span class="kw">int</span> idx = <span class="nu">0</span>;
+        <span class="kw">for</span> (<span class="ty">GemType</span> t : <span class="ty">GemType</span>.<span class="fn">values</span>())
+            <span class="kw">for</span> (<span class="ty">GemQuality</span> q : <span class="ty">GemQuality</span>.<span class="fn">values</span>())
+                ALL[idx++] = <span class="kw">new</span> <span class="ty">GemItem</span>(t, q);
+    }
+}</div>
+    </div>
+
+    <!-- ═══ S8 — GEMMES : OBTENTION ═══ -->
+    <div class="section-card" id="s8">
+      <h2><span class="s-num gold-num">08</span> Gemmes — Obtention (drops miniers)</h2>
+
+      <p>Les gemmes brutes se trouvent principalement en minant des minerais. Chaque bloc de minerai a une chance de lacher une gemme brute aleatoire en plus du drop normal.</p>
+
+      <h3 class="first">Chances de drop par minerai</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Minerai</th><th>Chance base</th><th>+Fortune Ench. I</th><th>+Fortune Ench. II</th><th>+Fortune Ench. III</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Charbon (Coal)</td><td>2%</td><td>4%</td><td>6%</td><td>8%</td></tr>
+            <tr><td>Fer (Iron)</td><td>4%</td><td>6%</td><td>8%</td><td>10%</td></tr>
+            <tr><td>Or (Gold)</td><td>6%</td><td>8%</td><td>10%</td><td>12%</td></tr>
+            <tr><td>Lapis</td><td>5%</td><td>7%</td><td>9%</td><td>11%</td></tr>
+            <tr><td>Redstone</td><td>5%</td><td>7%</td><td>9%</td><td>11%</td></tr>
+            <tr><td>Diamant</td><td>10%</td><td>12%</td><td>15%</td><td>18%</td></tr>
+            <tr><td>Emeraude vanilla</td><td>12%</td><td>14%</td><td>17%</td><td>20%</td></tr>
+            <tr><td class="tier-valterite">Valterite</td><td>8%</td><td>10%</td><td>12%</td><td>15%</td></tr>
+            <tr><td class="tier-aetherite">Aetherite</td><td>12%</td><td>15%</td><td>18%</td><td>22%</td></tr>
+            <tr><td class="tier-erinium">Erinium</td><td>18%</td><td>21%</td><td>25%</td><td>30%</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Formule Fortune enchantment</strong> — <code>chance = base + (fortuneLevel * 2%)</code>. La stat RPG Fortune du joueur ajoute egalement <code>+0.5% par point</code>. La formule finale est : <code>finalChance = baseChance + (fortuneEnchLevel * 2) + (rpgFortune * 0.5)</code>. La chance est capee a 50% pour tout minerai.</div>
+      </div>
+
+      <h3>Gemme droppee : selection aleatoire</h3>
+      <p>Quand un drop de gemme est declenche, le type de gemme est choisi aleatoirement parmi les 6 types avec probabilites egales (1/6 chacun). La qualite est toujours BRUTE pour les drops.</p>
+
+      <div class="code-block"><span class="cm">// Implementation dans RpgEventHandler (listener sur HarvestDropsEvent)</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onHarvestDrops</span>(<span class="ty">BlockEvent</span>.<span class="ty">HarvestDropsEvent</span> event) {
+    <span class="kw">if</span> (event.<span class="fn">getHarvester</span>() == <span class="kw">null</span>) <span class="kw">return</span>; <span class="cm">// Pas de joueur</span>
+    <span class="ty">EntityPlayerMP</span> player = (<span class="ty">EntityPlayerMP</span>) event.<span class="fn">getHarvester</span>();
+    <span class="ty">Block</span> block = event.<span class="fn">getState</span>().<span class="fn">getBlock</span>();
+
+    <span class="kw">float</span> baseChance = <span class="ty">GemDropTable</span>.<span class="fn">getChance</span>(block);
+    <span class="kw">if</span> (baseChance &lt;= <span class="nu">0</span>) <span class="kw">return</span>;
+
+    <span class="kw">int</span> fortuneLevel = <span class="ty">EnchantmentHelper</span>.<span class="fn">getEnchantmentLevel</span>(
+        <span class="ty">Enchantments</span>.FORTUNE, player.<span class="fn">getHeldItemMainhand</span>());
+    <span class="ty">RpgPlayerData</span> data = <span class="ty">DataManager</span>.<span class="fn">get</span>(player, <span class="ty">RpgPlayerData</span>.<span class="kw">class</span>);
+
+    <span class="kw">float</span> finalChance = <span class="ty">Math</span>.<span class="fn">min</span>(<span class="nu">50f</span>,
+        baseChance + (fortuneLevel * <span class="nu">2f</span>) + (data.fortune * <span class="nu">0.5f</span>));
+
+    <span class="kw">if</span> (player.<span class="fn">getRNG</span>().<span class="fn">nextFloat</span>() * <span class="nu">100f</span> &lt; finalChance) {
+        <span class="ty">GemType</span> randomType = <span class="ty">GemType</span>.<span class="fn">values</span>()[player.<span class="fn">getRNG</span>().<span class="fn">nextInt</span>(<span class="ty">GemType</span>.<span class="fn">values</span>().length)];
+        <span class="ty">GemItem</span> gemItem = <span class="ty">GemItems</span>.<span class="fn">getItem</span>(randomType, <span class="ty">GemQuality</span>.RAW);
+        event.<span class="fn">getDrops</span>().<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">ItemStack</span>(gemItem));
+    }
+}</div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Silk Touch</strong> — Avec Silk Touch, aucune gemme n'est droppee (le bloc est recupre entier). Verifier <code>event.isSilkTouching()</code> avant de calculer le drop.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S9 — SERTISSAGE : SOCKETS ═══ -->
+    <div class="section-card" id="s9">
+      <h2><span class="s-num">09</span> Sertissage — Systeme de Sockets</h2>
+
+      <p>Les sockets sont des emplacements integres aux items permettant d'y loger des gemmes. Le nombre de sockets varie selon le tier de l'item et son type (arme vs armure).</p>
+
+      <h3 class="first">Nombre de sockets par tier et type</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Type d'item</th><th>Vanilla</th><th class="tier-valterite">Valterite</th><th class="tier-aetherite">Aetherite</th><th class="tier-erinium">Erinium</th><th>Accessoires</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Epee / Arme</td><td>0</td><td>1</td><td>2</td><td>2</td><td>—</td></tr>
+            <tr><td>Casque</td><td>0</td><td>1</td><td>2</td><td>3</td><td>—</td></tr>
+            <tr><td>Plastron</td><td>0</td><td>1</td><td>2</td><td>3</td><td>—</td></tr>
+            <tr><td>Jambiere</td><td>0</td><td>1</td><td>2</td><td>3</td><td>—</td></tr>
+            <tr><td>Bottes</td><td>0</td><td>1</td><td>2</td><td>3</td><td>—</td></tr>
+            <tr><td>Anneaux</td><td>—</td><td>—</td><td>—</td><td>—</td><td>1 socket</td></tr>
+            <tr><td>Amulettes</td><td>—</td><td>—</td><td>—</td><td>—</td><td>1 socket</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Structure NBT d'un socket — SocketData</h3>
+      <p>Les donnees de socket sont stockees directement dans le NBT de l'ItemStack sous la cle <code>"SocketData"</code>. Chaque socket est une entree dans un NBTTagList.</p>
+
+      <div class="ascii-diagram"><span class="ac">Structure NBT d'un item avec 2 sockets</span>
+
+ItemStack.getTagCompound()
+  └── <span class="ac">"SocketData"</span> : NBTTagCompound
+        ├── <span class="ay">"socketCount"</span> : 2               <span class="as">(int - nb total de sockets)</span>
+        └── <span class="ay">"sockets"</span> : NBTTagList
+              ├── [0] : NBTTagCompound
+              │     ├── <span class="av">"isEmpty"</span> : true        <span class="as">(socket vide)</span>
+              │     ├── <span class="av">"gemType"</span> : ""          <span class="as">(vide)</span>
+              │     └── <span class="av">"gemQuality"</span> : ""      <span class="as">(vide)</span>
+              └── [1] : NBTTagCompound
+                    ├── <span class="ag">"isEmpty"</span> : false       <span class="as">(socket rempli)</span>
+                    ├── <span class="ag">"gemType"</span> : "RUBY"      <span class="as">(GemType.name())</span>
+                    └── <span class="ag">"gemQuality"</span> : "CUT"   <span class="as">(GemQuality.name())</span></div>
+
+      <h3>SocketData — classe de gestion NBT</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">SocketData</span> {
+    <span class="kw">private static final</span> <span class="ty">String</span> TAG_ROOT    = <span class="st">"SocketData"</span>;
+    <span class="kw">private static final</span> <span class="ty">String</span> TAG_COUNT   = <span class="st">"socketCount"</span>;
+    <span class="kw">private static final</span> <span class="ty">String</span> TAG_SOCKETS = <span class="st">"sockets"</span>;
+
+    <span class="cm">/** Initialise les sockets d'un item selon son tier. Appele a la creation de l'item. */</span>
+    <span class="kw">public static void</span> <span class="fn">initializeSockets</span>(<span class="ty">ItemStack</span> stack, <span class="kw">int</span> socketCount) {
+        <span class="ty">NBTTagCompound</span> tag = stack.<span class="fn">getOrCreateSubCompound</span>(TAG_ROOT);
+        tag.<span class="fn">setInteger</span>(TAG_COUNT, socketCount);
+        <span class="ty">NBTTagList</span> sockets = <span class="kw">new</span> <span class="ty">NBTTagList</span>();
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; socketCount; i++) {
+            <span class="ty">NBTTagCompound</span> slot = <span class="kw">new</span> <span class="ty">NBTTagCompound</span>();
+            slot.<span class="fn">setBoolean</span>(<span class="st">"isEmpty"</span>, <span class="kw">true</span>);
+            slot.<span class="fn">setString</span>(<span class="st">"gemType"</span>, <span class="st">""</span>);
+            slot.<span class="fn">setString</span>(<span class="st">"gemQuality"</span>, <span class="st">""</span>);
+            sockets.<span class="fn">appendTag</span>(slot);
+        }
+        tag.<span class="fn">setTag</span>(TAG_SOCKETS, sockets);
+    }
+
+    <span class="cm">/** Retourne le nombre de sockets de l'item. 0 si pas de SocketData. */</span>
+    <span class="kw">public static int</span> <span class="fn">getSocketCount</span>(<span class="ty">ItemStack</span> stack) {
+        <span class="kw">if</span> (!stack.<span class="fn">hasTagCompound</span>() || !stack.<span class="fn">getTagCompound</span>().<span class="fn">hasKey</span>(TAG_ROOT))
+            <span class="kw">return</span> <span class="nu">0</span>;
+        <span class="kw">return</span> stack.<span class="fn">getTagCompound</span>().<span class="fn">getCompoundTag</span>(TAG_ROOT).<span class="fn">getInteger</span>(TAG_COUNT);
+    }
+
+    <span class="cm">/** Retourne la gemme dans le socket i. Null si vide ou index invalide. */</span>
+    <span class="kw">public static</span> <span class="ty">GemInstance</span> <span class="fn">getGemInSlot</span>(<span class="ty">ItemStack</span> stack, <span class="kw">int</span> slotIndex) { <span class="cm">/* ... */</span> }
+
+    <span class="cm">/** Place une gemme dans un socket vide. Retourne false si socket plein. */</span>
+    <span class="kw">public static boolean</span> <span class="fn">insertGem</span>(<span class="ty">ItemStack</span> stack, <span class="kw">int</span> slotIndex, <span class="ty">GemType</span> type, <span class="ty">GemQuality</span> quality) { <span class="cm">/* ... */</span> }
+
+    <span class="cm">/** Retire la gemme d'un socket. Retourne la GemInstance retiree, null si vide. */</span>
+    <span class="kw">public static</span> <span class="ty">GemInstance</span> <span class="fn">removeGem</span>(<span class="ty">ItemStack</span> stack, <span class="kw">int</span> slotIndex) { <span class="cm">/* ... */</span> }
+
+    <span class="cm">/** Collecte toutes les gemmes actives de l'item (non-vides). */</span>
+    <span class="kw">public static</span> <span class="ty">List</span>&lt;<span class="ty">GemInstance</span>&gt; <span class="fn">getAllGems</span>(<span class="ty">ItemStack</span> stack) { <span class="cm">/* ... */</span> }
+}
+
+<span class="cm">/** Classe simple representant une gemme dans un socket */</span>
+<span class="kw">public class</span> <span class="ty">GemInstance</span> {
+    <span class="kw">public final int</span>        slotIndex;
+    <span class="kw">public final</span> <span class="ty">GemType</span>    type;
+    <span class="kw">public final</span> <span class="ty">GemQuality</span> quality;
+    <span class="kw">public</span> <span class="fn">GemInstance</span>(<span class="kw">int</span> slotIndex, <span class="ty">GemType</span> type, <span class="ty">GemQuality</span> quality) {
+        <span class="kw">this</span>.slotIndex = slotIndex; <span class="kw">this</span>.type = type; <span class="kw">this</span>.quality = quality;
+    }
+}</div>
+
+      <h3>Initialisation des sockets a la creation</h3>
+      <p>Les sockets sont initialises quand l'item est craft ou donne. Le nombre de sockets doit etre determine par le tier de l'item. On utilise une interface <code>ISocketable</code> pour que les items declares leur capacite.</p>
+      <div class="code-block"><span class="kw">public interface</span> <span class="ty">ISocketable</span> {
+    <span class="cm">/** Retourne le nombre de sockets de base de cet item */</span>
+    <span class="kw">int</span> <span class="fn">getBaseSocketCount</span>();
+}
+
+<span class="cm">// Implementer sur les items Valterite/Aetherite/Erinium ET les accessoires</span>
+<span class="cm">// Exemple dans une epee Valterite :</span>
+<span class="an">@Override</span> <span class="kw">public int</span> <span class="fn">getBaseSocketCount</span>() { <span class="kw">return</span> <span class="nu">1</span>; }
+
+<span class="cm">// Dans CraftingEvent ou ItemCraftedEvent, detecter ISocketable et appeler initializeSockets</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onItemCrafted</span>(<span class="ty">PlayerEvent</span>.<span class="ty">ItemCraftedEvent</span> event) {
+    <span class="ty">ItemStack</span> result = event.crafting;
+    <span class="kw">if</span> (result.<span class="fn">getItem</span>() <span class="kw">instanceof</span> <span class="ty">ISocketable</span> &amp;&amp; <span class="ty">SocketData</span>.<span class="fn">getSocketCount</span>(result) == <span class="nu">0</span>) {
+        <span class="kw">int</span> count = ((<span class="ty">ISocketable</span>) result.<span class="fn">getItem</span>()).<span class="fn">getBaseSocketCount</span>();
+        <span class="ty">SocketData</span>.<span class="fn">initializeSockets</span>(result, count);
+    }
+}</div>
+    </div>
+
+    <!-- ═══ S10 — SERTISSAGE : INSERTION & EXTRACTION ═══ -->
+    <div class="section-card" id="s10">
+      <h2><span class="s-num orange-num">10</span> Sertissage — Insertion &amp; Extraction</h2>
+
+      <h3 class="first">Insertion d'une gemme</h3>
+      <p>L'insertion se fait via le GUI de sertissage (Section 11). Cliquer droit sur un enclume avec un item socketable dans la main ouvre l'interface. Le joueur peut alors faire glisser une gemme de son inventaire vers un socket vide et confirmer.</p>
+
+      <ul>
+        <li><strong>Prerequis</strong> — L'item doit avoir au moins un socket vide (verifie par SocketManager)</li>
+        <li><strong>Action</strong> — La gemme (item) est retiree de l'inventaire du joueur et ses donnees sont ecrites dans le NBT du socket cible</li>
+        <li><strong>Irreversible</strong> — Sans Extracteur d'Erinium, retirer une gemme la detruit</li>
+        <li><strong>Feedback</strong> — Son de placement + particule de la couleur de la gemme au moment de la confirmation</li>
+      </ul>
+
+      <h3>Extraction : gemme detruite (par defaut)</h3>
+      <p>Retirer une gemme via le GUI sans Extracteur la detruit. Le socket redevient vide, mais la gemme est perdue. Un avertissement est affiche avant confirmation.</p>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Extraction sans Extracteur = destruction</strong> — C'est une decision de design intentionnelle pour donner de la valeur aux gemmes et a l'Extracteur d'Erinium. L'interface GUI doit clairement afficher cet avertissement avant de permettre la suppression.</div>
+      </div>
+
+      <h3>Extracteur d'Erinium — item special</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Propriete</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Item ID</td><td><code>erinium_extractor</code></td></tr>
+            <tr><td>Nom affiche</td><td>Extracteur d'Erinium</td></tr>
+            <tr><td>Stack size</td><td>1 (non stackable)</td></tr>
+            <tr><td>Usage</td><td>Item a usage unique — consomme apres extraction</td></tr>
+            <tr><td>Rarete</td><td>EPIC + glow</td></tr>
+            <tr><td>Recette</td><td>4 lingots Erinium en losange + 1 diamant centre</td></tr>
+            <tr><td>Comportement</td><td>Detecte dans le GUI si dans l'inventaire. Active le mode extraction sans perte.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ascii-diagram"><span class="ac">EXTRACTEUR D'ERINIUM — Recette (shaped)</span>
+
+<span class="as">┌───┬───┬───┐</span>
+<span class="as">│</span>   <span class="as">│</span> <span class="ay">E</span> <span class="as">│</span>   <span class="as">│</span>   rangee 1
+<span class="as">├───┼───┼───┤</span>
+<span class="as">│</span> <span class="ay">E</span> <span class="as">│</span> <span class="ab">D</span> <span class="as">│</span> <span class="ay">E</span> <span class="as">│</span>   rangee 2
+<span class="as">├───┼───┼───┤</span>
+<span class="as">│</span>   <span class="as">│</span> <span class="ay">E</span> <span class="as">│</span>   <span class="as">│</span>   rangee 3
+<span class="as">└───┴───┴───┘</span>
+  <span class="ay">E</span> = erinium_ingot    <span class="ab">D</span> = Diamant vanilla</div>
+
+      <h3>SocketManager — logique d'insertion et d'extraction</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">SocketManager</span> {
+    <span class="kw">private static final</span> <span class="ty">SocketManager</span> INSTANCE = <span class="kw">new</span> <span class="ty">SocketManager</span>();
+    <span class="kw">public static</span> <span class="ty">SocketManager</span> <span class="fn">getInstance</span>() { <span class="kw">return</span> INSTANCE; }
+
+    <span class="cm">/**
+     * Sertit une gemme dans un socket specifique.
+     * Retire l'item gemme de l'inventaire du joueur.
+     * @return true si succes, false si socket plein ou item sans sockets
+     */</span>
+    <span class="kw">public boolean</span> <span class="fn">insertGem</span>(<span class="ty">EntityPlayerMP</span> player, <span class="ty">ItemStack</span> targetItem,
+                              <span class="kw">int</span> socketIndex, <span class="ty">ItemStack</span> gemStack) {
+        <span class="kw">if</span> (!(gemStack.<span class="fn">getItem</span>() <span class="kw">instanceof</span> <span class="ty">GemItem</span>)) <span class="kw">return false</span>;
+        <span class="ty">GemItem</span> gem = (<span class="ty">GemItem</span>) gemStack.<span class="fn">getItem</span>();
+
+        <span class="kw">if</span> (!<span class="ty">SocketData</span>.<span class="fn">insertGem</span>(targetItem, socketIndex, gem.<span class="fn">getGemType</span>(), gem.<span class="fn">getGemQuality</span>()))
+            <span class="kw">return false</span>;
+
+        gemStack.<span class="fn">shrink</span>(<span class="nu">1</span>); <span class="cm">// Consomme la gemme</span>
+        <span class="fn">recalculateSocketBonuses</span>(player, targetItem);
+        <span class="cm">// Notifier le client pour mise a jour GUI + son + particules</span>
+        <span class="ty">GuiNetworkHandler</span>.<span class="fn">sendData</span>(player, <span class="st">"socket_updated"</span>, <span class="fn">buildSocketPacket</span>(targetItem));
+        <span class="kw">return true</span>;
+    }
+
+    <span class="cm">/**
+     * Retire une gemme d'un socket.
+     * @param hasExtractor Si true, la gemme est rendue au joueur. Sinon, detruite.
+     */</span>
+    <span class="kw">public</span> <span class="ty">GemInstance</span> <span class="fn">removeGem</span>(<span class="ty">EntityPlayerMP</span> player, <span class="ty">ItemStack</span> targetItem,
+                                  <span class="kw">int</span> socketIndex, <span class="kw">boolean</span> hasExtractor) {
+        <span class="ty">GemInstance</span> removed = <span class="ty">SocketData</span>.<span class="fn">removeGem</span>(targetItem, socketIndex);
+        <span class="kw">if</span> (removed == <span class="kw">null</span>) <span class="kw">return null</span>;
+
+        <span class="kw">if</span> (hasExtractor) {
+            <span class="cm">// Rendre la gemme + consommer l'extracteur</span>
+            <span class="ty">ItemStack</span> gemBack = <span class="kw">new</span> <span class="ty">ItemStack</span>(<span class="ty">GemItems</span>.<span class="fn">getItem</span>(removed.type, removed.quality));
+            player.inventory.<span class="fn">addItemStackToInventory</span>(gemBack);
+            <span class="fn">consumeExtractor</span>(player); <span class="cm">// Retire 1x erinium_extractor de l'inventaire</span>
+        }
+        <span class="cm">// Si !hasExtractor : gemme detruite silencieusement</span>
+
+        <span class="fn">recalculateSocketBonuses</span>(player, targetItem);
+        <span class="kw">return</span> removed;
+    }
+
+    <span class="cm">/** Recalcule et met a jour tous les bonus de gemmes actifs pour le joueur equipe */</span>
+    <span class="kw">public void</span> <span class="fn">recalculateSocketBonuses</span>(<span class="ty">EntityPlayerMP</span> player, <span class="ty">ItemStack</span> modifiedItem) {
+        <span class="cm">// Parcourir tout l'equipement du joueur + baubles slots</span>
+        <span class="cm">// Sommer tous les bonus de gemmes actifs</span>
+        <span class="cm">// Mettre a jour RpgPlayerData.gemBonuses</span>
+        <span class="cm">// DataManager.save() + sync</span>
+    }
+}</div>
+    </div>
+
+    <!-- ═══ S11 — GUI SERTISSAGE ═══ -->
+    <div class="section-card" id="s11">
+      <h2><span class="s-num">11</span> GUI — Interface de Sertissage</h2>
+
+      <p>Interface dedie au sertissage des gemmes, ouverte en cliquant droit sur une enclume avec un item socketable dans la main. Respecte le style <em>Liquid Glass</em> du reste du mod.</p>
+
+      <h3 class="first">Ouverture du GUI</h3>
+      <ul>
+        <li><strong>Trigger</strong> — <code>PlayerInteractEvent.RightClickBlock</code> sur un enclume + item ISocketable dans la main</li>
+        <li><strong>Cote client</strong> — <code>Minecraft.getMinecraft().displayGuiScreen(new GuiSocketing(heldItem))</code></li>
+        <li><strong>Sync</strong> — Le GUI envoie les modifications via <code>GuiNetworkHandler.sendAction("socket_modify", nbt)</code></li>
+      </ul>
+
+      <h3>Layout de l'interface (coordonnees 1920x1080)</h3>
+      <div class="ascii-diagram"><span class="ac">GuiSocketing — Layout principal (1920x1080 design pixels)</span>
+
+<span class="as">┌────────────────────────────────────────────────────────┐</span>
+<span class="as">│</span>  <span class="ac">FOND</span> : Rectangle 1920x1080, semi-transparent, blur     <span class="as">│</span>
+<span class="as">│</span>                                                          <span class="as">│</span>
+<span class="as">│</span>  <span class="ay">┌──────────────── PANNEAU CENTRAL 760x580 ─────────────┐</span><span class="as">│</span>
+<span class="as">│</span>  <span class="ay">│</span>  <span class="av">Titre :</span> "Sertissage" (Label scale 2.0)              <span class="ay">│</span><span class="as">│</span>
+<span class="as">│</span>  <span class="ay">│</span>                                                      <span class="ay">│</span><span class="as">│</span>
+<span class="as">│</span>  <span class="ay">│</span>  <span class="ac">┌────────────────┐</span>  <span class="ag">┌──────────────────────────┐</span>  <span class="ay">│</span><span class="as">│</span>
+<span class="as">│</span>  <span class="ay">│</span>  <span class="ac">│  APERCU ITEM   │</span>  <span class="ag">│  SOCKETS (cercles)       │</span>  <span class="ay">│</span><span class="as">│</span>
+<span class="as">│</span>  <span class="ay">│</span>  <span class="ac">│  Texture 64x64 │</span>  <span class="ag">│  ○ Socket 1 (vide)       │</span>  <span class="ay">│</span><span class="as">│</span>
+<span class="as">│</span>  <span class="ay">│</span>  <span class="ac">│  Nom item      │</span>  <span class="ag">│  ● Socket 2 (RUBY CUT)   │</span>  <span class="ay">│</span><span class="as">│</span>
+<span class="as">│</span>  <span class="ay">│</span>  <span class="ac">│  Stats actuels │</span>  <span class="ag">│  ● Socket 3 (TOPAZ PERF) │</span>  <span class="ay">│</span><span class="as">│</span>
+<span class="as">│</span>  <span class="ay">│</span>  <span class="ac">└────────────────┘</span>  <span class="ag">└──────────────────────────┘</span>  <span class="ay">│</span><span class="as">│</span>
+<span class="as">│</span>  <span class="ay">│</span>                                                      <span class="ay">│</span><span class="as">│</span>
+<span class="as">│</span>  <span class="ay">│</span>  <span class="ab">┌──────────────────────────────────────────────────┐</span>  <span class="ay">│</span><span class="as">│</span>
+<span class="as">│</span>  <span class="ay">│</span>  <span class="ab">│  INVENTAIRE JOUEUR (gemmes filtrees en haut)      │</span>  <span class="ay">│</span><span class="as">│</span>
+<span class="as">│</span>  <span class="ay">│</span>  <span class="ab">│  [Slot]... gemmes disponibles dans inventaire     │</span>  <span class="ay">│</span><span class="as">│</span>
+<span class="as">│</span>  <span class="ay">│</span>  <span class="ab">└──────────────────────────────────────────────────┘</span>  <span class="ay">│</span><span class="as">│</span>
+<span class="as">│</span>  <span class="ay">│</span>                                                      <span class="ay">│</span><span class="as">│</span>
+<span class="as">│</span>  <span class="ay">│</span>  [Bouton RETIRER GEM] (rouge, warning)  [FERMER]     <span class="ay">│</span><span class="as">│</span>
+<span class="as">│</span>  <span class="ay">└──────────────────────────────────────────────────────┘</span><span class="as">│</span>
+<span class="as">└────────────────────────────────────────────────────────┘</span></div>
+
+      <h3>Composants EriAPI utilises</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Zone UI</th><th>Composant EriAPI</th><th>Comportement</th></tr></thead>
+          <tbody>
+            <tr><td>Fond global</td><td>Rectangle + blur</td><td>0x80000000, couvre tout l'ecran</td></tr>
+            <tr><td>Panneau principal</td><td>ContainerComponent</td><td>580x760 centre, cornerRadius 14, fond Liquid Glass</td></tr>
+            <tr><td>Titre</td><td>Label</td><td>scale 2.0, couleur blanche, ombre portee</td></tr>
+            <tr><td>Apercu item</td><td>Rectangle + TextureRenderer</td><td>Render de la texture de l'item (64x64 pixels design)</td></tr>
+            <tr><td>Nom de l'item</td><td>Label</td><td>Couleur selon rarete de l'item</td></tr>
+            <tr><td>Cercles socket</td><td>Circle</td><td>Vide = gris sombre. Rempli = couleur gem + glow animation</td></tr>
+            <tr><td>Glissement gemme</td><td>Drag-and-drop custom</td><td>Drag d'un slot inventaire vers un cercle socket</td></tr>
+            <tr><td>Tooltip socket</td><td>Tooltip</td><td>Affiche la gem actuelle + bonus ou "Socket vide"</td></tr>
+            <tr><td>Bouton "Retirer"</td><td>Button (red, outlined)</td><td>Ouvre confirmation si !hasExtractor</td></tr>
+            <tr><td>Notification</td><td>NotificationManager</td><td>SUCCESS/ERROR apres insertion ou extraction</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Logique drag-and-drop</h3>
+      <div class="code-block"><span class="cm">// GuiSocketing.java — Gestion du drag</span>
+<span class="kw">public class</span> <span class="ty">GuiSocketing</span> <span class="kw">extends</span> <span class="ty">EriGuiScreen</span> <span class="kw">implements</span> <span class="ty">IGuiDataReceiver</span> {
+
+    <span class="kw">private</span> <span class="ty">ItemStack</span> targetItem;       <span class="cm">// L'item a sertir</span>
+    <span class="kw">private</span> <span class="ty">ItemStack</span> draggedGem;       <span class="cm">// Gemme en cours de glissement</span>
+    <span class="kw">private</span> <span class="kw">int</span>       hoveredSocket;     <span class="cm">// Index du socket survole (-1 = aucun)</span>
+    <span class="kw">private boolean</span>   hasExtractor;      <span class="cm">// L'inventaire contient un Extracteur</span>
+
+    <span class="an">@Override</span>
+    <span class="kw">protected void</span> <span class="fn">buildGui</span>() {
+        <span class="cm">// Construire le layout decrit ci-dessus</span>
+        <span class="cm">// Les cercles socket ecoutent mouseReleased pour recevoir le drag</span>
+        <span class="cm">// Les slots inventaire ecoutent mousePressed pour demarrer le drag</span>
+
+        <span class="cm">// Animer les sockets remplis : breathe de la couleur de la gemme</span>
+        <span class="kw">for</span> (<span class="ty">SocketCircleComponent</span> circle : socketCircles) {
+            <span class="kw">if</span> (!circle.<span class="fn">isEmpty</span>()) {
+                circle.<span class="fn">breathe</span>(<span class="nu">40</span>, <span class="nu">0.6f</span>, <span class="nu">1.0f</span>);
+            }
+        }
+    }
+
+    <span class="kw">private void</span> <span class="fn">onGemDroppedOnSocket</span>(<span class="ty">ItemStack</span> gem, <span class="kw">int</span> socketIndex) {
+        <span class="cm">// Envoyer la demande d'insertion au serveur</span>
+        <span class="ty">NBTTagCompound</span> nbt = <span class="kw">new</span> <span class="ty">NBTTagCompound</span>();
+        nbt.<span class="fn">setInteger</span>(<span class="st">"socketIndex"</span>, socketIndex);
+        nbt.<span class="fn">setTag</span>(<span class="st">"gemStack"</span>, gem.<span class="fn">writeToNBT</span>(<span class="kw">new</span> <span class="ty">NBTTagCompound</span>()));
+        nbt.<span class="fn">setTag</span>(<span class="st">"targetItem"</span>, targetItem.<span class="fn">writeToNBT</span>(<span class="kw">new</span> <span class="ty">NBTTagCompound</span>()));
+        <span class="ty">GuiNetworkHandler</span>.<span class="fn">sendAction</span>(<span class="st">"socket_insert"</span>, nbt);
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">onGuiDataReceived</span>(<span class="ty">String</span> key, <span class="ty">NBTTagCompound</span> data) {
+        <span class="kw">if</span> (<span class="st">"socket_updated"</span>.<span class="fn">equals</span>(key)) {
+            <span class="cm">// Relire le NBT de l'item mis a jour et rafraichir l'affichage</span>
+            targetItem = <span class="ty">ItemStack</span>.<span class="fn">loadItemStackFromNBT</span>(data.<span class="fn">getCompoundTag</span>(<span class="st">"item"</span>));
+            <span class="fn">refreshSocketDisplay</span>();
+            <span class="ty">SoundManager</span>.<span class="fn">playClick</span>();
+        }
+    }
+}</div>
+
+      <h3>Avertissement d'extraction sans Extracteur</h3>
+      <div class="code-block"><span class="cm">// Bouton Retirer → afficher un panneau de confirmation</span>
+retireButton.<span class="fn">onClick</span>(() -&gt; {
+    <span class="kw">if</span> (!hasExtractor) {
+        <span class="cm">// Afficher overlay d'avertissement rouge avec message explicite</span>
+        <span class="fn">showConfirmationDialog</span>(
+            <span class="st">"Retirer cette gemme la DETRUIRA !"</span>,
+            <span class="st">"Sans Extracteur d'Erinium, la gemme sera perdue."</span>,
+            () -&gt; <span class="fn">doRemoveGem</span>(<span class="kw">false</span>),  <span class="cm">// Confirmer = detruire</span>
+            <span class="kw">null</span>                           <span class="cm">// Annuler</span>
+        );
+    } <span class="kw">else</span> {
+        <span class="fn">doRemoveGem</span>(<span class="kw">true</span>); <span class="cm">// Extraction avec recuperation</span>
+    }
+});</div>
+    </div>
+
+    <!-- ═══ S12 — INTEGRATION RPG & COMBAT ═══ -->
+    <div class="section-card" id="s12">
+      <h2><span class="s-num green-num">12</span> Integration RPG &amp; Combat</h2>
+
+      <h3 class="first">Calcul des stats totales du joueur</h3>
+      <p>L'ordre de calcul des stats est :</p>
+      <ol style="padding-left:20px; color:var(--slate); font-size:14px; line-height:2;">
+        <li>Stats de base (RpgPlayerData)</li>
+        <li>+ Bonus d'equipement (arme + armure tier)</li>
+        <li>+ Bonus d'accessoires (onEquipped → RpgPlayerData)</li>
+        <li>+ Bonus de set (SetBonusManager)</li>
+        <li>+ Bonus de gemmes (SocketManager.recalculateSocketBonuses)</li>
+        <li>= Stats finales appliquees dans RpgEventHandler</li>
+      </ol>
+
+      <h3>RpgPlayerData — champs additionnels requis</h3>
+      <div class="code-block"><span class="cm">// Champs a ajouter dans la classe RpgPlayerData existante</span>
+<span class="an">@Sync</span> <span class="kw">public</span> <span class="ty">List</span>&lt;<span class="ty">String</span>&gt; activeSetBonuses = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;(); <span class="cm">// ["VALTERITE", etc.]</span>
+<span class="an">@Sync</span> <span class="kw">public int</span>[] accessoryBonuses = <span class="kw">new int</span>[<span class="ty">RpgStat</span>.<span class="fn">values</span>().length]; <span class="cm">// Bonus par stat</span>
+<span class="an">@Sync</span> <span class="kw">public int</span>[] gemBonuses        = <span class="kw">new int</span>[<span class="ty">RpgStat</span>.<span class="fn">values</span>().length]; <span class="cm">// Bonus gemmes par stat</span>
+<span class="kw">public float</span>  damageMultiplier = <span class="nu">1.0f</span>; <span class="cm">// Multiplicateur degats (set Aetherite)</span>
+<span class="kw">public float</span>  xpMultiplier    = <span class="nu">1.0f</span>; <span class="cm">// Multiplicateur XP (set Erinium)</span>
+<span class="kw">public long</span>   lastDamageReceivedTick = <span class="nu">0</span>; <span class="cm">// Pour detection "hors combat" (Amulette Valterite)</span></div>
+
+      <h3>Affichage dans le GUI RPG</h3>
+      <p>Le panneau de stats RPG existant doit afficher les sources de bonus de facon separee pour la lisibilite :</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Ligne affichee</th><th>Exemple</th><th>Couleur</th></tr></thead>
+          <tbody>
+            <tr><td>Stat base + equipement</td><td>Force : 12</td><td>Blanc</td></tr>
+            <tr><td>+ Accessoires</td><td>+ 2 (Anneau Aetherite)</td><td>Cyan</td></tr>
+            <tr><td>+ Set bonus</td><td>Set Aetherite actif</td><td>Violet</td></tr>
+            <tr><td>+ Gemmes</td><td>+ 4 (2× Rubis taille)</td><td>Couleur de la gemme</td></tr>
+            <tr><td>= Total</td><td>Force totale : 18</td><td>Or</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Effets de combat — RpgEventHandler</h3>
+      <div class="code-block"><span class="cm">// Effets de gemmes geres dans RpgEventHandler</span>
+
+<span class="cm">// --- Lifesteal (Rubis) ---</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onAttackEntity</span>(<span class="ty">LivingAttackEvent</span> event) {
+    <span class="kw">if</span> (!(event.<span class="fn">getSource</span>().<span class="fn">getTrueSource</span>() <span class="kw">instanceof</span> <span class="ty">EntityPlayerMP</span>)) <span class="kw">return</span>;
+    <span class="ty">EntityPlayerMP</span> attacker = (<span class="ty">EntityPlayerMP</span>) event.<span class="fn">getSource</span>().<span class="fn">getTrueSource</span>();
+
+    <span class="kw">float</span> lifestealPct = <span class="ty">GemCombatCalculator</span>.<span class="fn">getTotalLifesteal</span>(attacker);
+    <span class="kw">if</span> (lifestealPct &gt; <span class="nu">0</span>) {
+        <span class="kw">float</span> healAmount = event.<span class="fn">getAmount</span>() * (lifestealPct / <span class="nu">100f</span>);
+        attacker.<span class="fn">heal</span>(healAmount);
+    }
+}
+
+<span class="cm">// --- Reduction degats (Onyx) ---</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onLivingHurt</span>(<span class="ty">LivingHurtEvent</span> event) {
+    <span class="kw">if</span> (!(event.<span class="fn">getEntityLiving</span>() <span class="kw">instanceof</span> <span class="ty">EntityPlayerMP</span>)) <span class="kw">return</span>;
+    <span class="ty">EntityPlayerMP</span> victim = (<span class="ty">EntityPlayerMP</span>) event.<span class="fn">getEntityLiving</span>();
+
+    <span class="kw">float</span> reduction = <span class="ty">GemCombatCalculator</span>.<span class="fn">getTotalDamageReduction</span>(victim);
+    <span class="kw">if</span> (reduction &gt; <span class="nu">0</span>) {
+        event.<span class="fn">setAmount</span>(event.<span class="fn">getAmount</span>() * (<span class="nu">1f</span> - reduction / <span class="nu">100f</span>));
+    }
+
+    <span class="cm">// Mise a jour lastDamageReceivedTick pour l'Amulette Valterite</span>
+    <span class="ty">RpgPlayerData</span> data = <span class="ty">DataManager</span>.<span class="fn">get</span>(victim, <span class="ty">RpgPlayerData</span>.<span class="kw">class</span>);
+    data.lastDamageReceivedTick = victim.<span class="fn">world</span>.<span class="fn">getTotalWorldTime</span>();
+    <span class="ty">DataManager</span>.<span class="fn">save</span>(victim, <span class="ty">RpgPlayerData</span>.<span class="kw">class</span>);
+}
+
+<span class="cm">// --- Vitesse de mouvement (Topaze + Amulette Aetherite) ---</span>
+<span class="cm">// Appliquee via AttributeModifier sur generic.movementSpeed</span>
+<span class="cm">// Recalculee dans recalculateSocketBonuses() et dans onEquipped/onUnequipped</span>
+<span class="kw">private void</span> <span class="fn">updateMovementSpeed</span>(<span class="ty">EntityPlayerMP</span> player) {
+    <span class="ty">IAttributeInstance</span> speedAttr = player.<span class="fn">getEntityAttribute</span>(<span class="ty">SharedMonsterAttributes</span>.MOVEMENT_SPEED);
+    speedAttr.<span class="fn">removeAllModifiers</span>(); <span class="cm">// Retirer les anciens</span>
+    <span class="kw">float</span> bonus = <span class="ty">GemCombatCalculator</span>.<span class="fn">getTotalSpeedBonus</span>(player);
+    <span class="kw">if</span> (bonus &gt; <span class="nu">0</span>) {
+        <span class="ty">UUID</span> modId = <span class="ty">UUID</span>.<span class="fn">fromString</span>(<span class="st">"a3b4c5d6-..."</span>); <span class="cm">// UUID fixe stable</span>
+        speedAttr.<span class="fn">applyModifier</span>(<span class="kw">new</span> <span class="ty">AttributeModifier</span>(modId, <span class="st">"gem_speed"</span>, bonus / <span class="nu">100.0</span>, <span class="nu">1</span>));
+    }
+}</div>
+
+      <h3>Stacking et diminishing returns</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Effet</th><th>Stacking</th><th>Cap / Diminishing</th></tr></thead>
+          <tbody>
+            <tr><td class="gem-ruby">Lifesteal (Rubis)</td><td>Additif</td><td>Diminishing returns au-dela de 4 gemmes : chaque gemme suppl. vaut 50% de moins</td></tr>
+            <tr><td class="gem-sapphire">HP max (Saphir)</td><td>Additif simple</td><td>Pas de cap (chaque gemme +2 HP max, lineaire)</td></tr>
+            <tr><td class="gem-emerald">Drop rate (Emeraude)</td><td>Additif</td><td>Cap a +30% maximum</td></tr>
+            <tr><td class="gem-amethyst">Mana regen (Amethyste)</td><td>Additif</td><td>Diminishing returns au-dela de 4 gemmes</td></tr>
+            <tr><td class="gem-topaz">Vitesse (Topaze)</td><td>Additif</td><td>Cap a +15% (eviter les abus PvP)</td></tr>
+            <tr><td class="gem-onyx">Reduction dmg (Onyx)</td><td>Additif</td><td>Cap a -20% (eviter l'invincibilite)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S13 — STRUCTURES DE DONNEES ═══ -->
+    <div class="section-card" id="s13">
+      <h2><span class="s-num">13</span> Structures de Donnees</h2>
+
+      <h3 class="first">Arborescence des packages</h3>
+      <div class="code-block">fr.eriniumgroup.eriniumfaction
+├── accessory/
+│   ├── AccessoryItems.java          <span class="cm">// Registre des 6 items d'accessoires</span>
+│   ├── AccessoryTier.java           <span class="cm">// Enum VALTERITE, AETHERITE, ERINIUM</span>
+│   ├── BaseAccessoryItem.java       <span class="cm">// Classe abstraite implements IBauble</span>
+│   ├── AccessoryBonusManager.java   <span class="cm">// Applique/retire les stats en onEquipped/onUnequipped</span>
+│   ├── SetBonusManager.java         <span class="cm">// Gere les bonus de set (anneau + amulette)</span>
+│   ├── ring/
+│   │   ├── RingValteriteItem.java
+│   │   ├── RingAetheriteItem.java
+│   │   └── RingEriniumItem.java
+│   └── amulet/
+│       ├── AmuletValteriteItem.java
+│       ├── AmuletAetheriteItem.java
+│       └── AmuletEriniumItem.java
+└── gem/
+    ├── GemItems.java                <span class="cm">// Registre des 18 items gemme + extractor</span>
+    ├── GemType.java                 <span class="cm">// Enum RUBY, SAPPHIRE, EMERALD, AMETHYST, TOPAZ, ONYX</span>
+    ├── GemQuality.java              <span class="cm">// Enum RAW, CUT, PERFECT</span>
+    ├── GemItem.java                 <span class="cm">// Item generique parametre par GemType + GemQuality</span>
+    ├── GemInstance.java             <span class="cm">// POJO : slotIndex + type + quality</span>
+    ├── ExtractorItem.java           <span class="cm">// Item Extracteur d'Erinium (usage unique)</span>
+    ├── ISocketable.java             <span class="cm">// Interface : getBaseSocketCount()</span>
+    ├── SocketData.java              <span class="cm">// Lecture/ecriture NBT des sockets sur ItemStack</span>
+    ├── SocketManager.java           <span class="cm">// Singleton : insertGem, removeGem, recalculate</span>
+    ├── GemDropTable.java            <span class="cm">// Mapping Block → chance de drop gemme</span>
+    ├── GemCombatCalculator.java     <span class="cm">// Calcul des effets de combat totaux du joueur</span>
+    └── gui/
+        └── GuiSocketing.java        <span class="cm">// EriGuiScreen + IGuiDataReceiver</span></div>
+
+      <h3>Enregistrement dans CommonProxy.preInit et ClientProxy.init</h3>
+      <div class="code-block"><span class="cm">// CommonProxy.preInit()</span>
+<span class="ty">AccessoryItems</span>.<span class="fn">register</span>();    <span class="cm">// Enregistre les 6 accessoires via EriItem</span>
+<span class="ty">GemItems</span>.<span class="fn">register</span>();          <span class="cm">// Enregistre les 18 gemmes + 1 extracteur via EriItem</span>
+<span class="ty">GemDropTable</span>.<span class="fn">init</span>();          <span class="cm">// Remplit la table de drops</span>
+<span class="ty">AccessoryRecipes</span>.<span class="fn">register</span>();  <span class="cm">// Enregistre les 6 recettes d'accessoires</span>
+<span class="ty">GemRecipes</span>.<span class="fn">register</span>();        <span class="cm">// Enregistre les recettes de raffinage + extracteur</span>
+
+<span class="cm">// CommonProxy.init()</span>
+<span class="ty">EriEvents</span>.<span class="fn">on</span>(<span class="ty">BlockEvent</span>.<span class="ty">HarvestDropsEvent</span>.<span class="kw">class</span>, e -&gt; <span class="ty">GemDropHandler</span>.<span class="fn">handle</span>(e));
+<span class="ty">EriEvents</span>.<span class="fn">on</span>(<span class="ty">PlayerEvent</span>.<span class="ty">ItemCraftedEvent</span>.<span class="kw">class</span>, e -&gt; <span class="ty">SocketInitHandler</span>.<span class="fn">handle</span>(e));
+<span class="ty">EriEvents</span>.<span class="fn">on</span>(<span class="ty">LivingHurtEvent</span>.<span class="kw">class</span>, e -&gt; <span class="ty">RpgEventHandler</span>.<span class="fn">onLivingHurt</span>(e));
+<span class="ty">EriEvents</span>.<span class="fn">on</span>(<span class="ty">LivingAttackEvent</span>.<span class="kw">class</span>, e -&gt; <span class="ty">RpgEventHandler</span>.<span class="fn">onAttack</span>(e));
+
+<span class="cm">// ClientProxy.init() — Ouverture du GUI sur clic droit enclume</span>
+<span class="ty">EriKeys</span>.<span class="cm">// Pas de touche directe, le trigger est l'event PlayerInteractEvent</span>
+<span class="ty">EriEvents</span>.<span class="fn">on</span>(<span class="ty">PlayerInteractEvent</span>.<span class="ty">RightClickBlock</span>.<span class="kw">class</span>)
+    .<span class="fn">filter</span>(e -&gt; <span class="fn">isAnvil</span>(e.<span class="fn">getWorld</span>(), e.<span class="fn">getPos</span>()) &amp;&amp; e.<span class="fn">getEntityPlayer</span>().<span class="fn">getHeldItemMainhand</span>().<span class="fn">getItem</span>() <span class="kw">instanceof</span> <span class="ty">ISocketable</span>)
+    .<span class="fn">handle</span>(e -&gt; {
+        e.<span class="fn">setCanceled</span>(<span class="kw">true</span>);
+        <span class="ty">Minecraft</span>.<span class="fn">getMinecraft</span>().<span class="fn">displayGuiScreen</span>(<span class="kw">new</span> <span class="ty">GuiSocketing</span>(e.<span class="fn">getEntityPlayer</span>().<span class="fn">getHeldItemMainhand</span>()));
+    });</div>
+    </div>
+
+    <!-- ═══ S14 — COMMANDES & PERMISSIONS ═══ -->
+    <div class="section-card" id="s14">
+      <h2><span class="s-num orange-num">14</span> Commandes &amp; Permissions</h2>
+
+      <h3 class="first">Commandes disponibles</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Commande</th><th>Description</th><th>Permission</th><th>Contexte</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/gem give &lt;player&gt; &lt;type&gt; &lt;quality&gt; [count]</code></td>
+              <td>Donne des gemmes a un joueur</td>
+              <td><code>eriniumfaction.gem.give</code></td>
+              <td>Operateur / Admin</td>
+            </tr>
+            <tr>
+              <td><code>/gem info</code></td>
+              <td>Affiche les sockets et gemmes de l'item en main</td>
+              <td>Aucune (tout joueur)</td>
+              <td>En jeu, item en main</td>
+            </tr>
+            <tr>
+              <td><code>/accessory give &lt;player&gt; &lt;type&gt; &lt;tier&gt;</code></td>
+              <td>Donne un accessoire a un joueur</td>
+              <td><code>eriniumfaction.accessory.give</code></td>
+              <td>Operateur / Admin</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Detail des arguments avec auto-completion</h3>
+      <div class="code-block"><span class="cm">// Commande /gem give — tous les arguments ont des suggestions</span>
+<span class="ty">CommandBuilder</span>.<span class="fn">create</span>(<span class="st">"gem"</span>)
+    .<span class="fn">sub</span>(<span class="st">"give"</span>)
+        .<span class="fn">arg</span>(<span class="st">"player"</span>, <span class="ty">PlayerArg</span>.<span class="fn">of</span>(<span class="st">"player"</span>))
+        .<span class="fn">arg</span>(<span class="st">"type"</span>, <span class="ty">StringArg</span>.<span class="fn">of</span>(<span class="st">"type"</span>).<span class="fn">suggests</span>(
+            <span class="st">"ruby"</span>, <span class="st">"sapphire"</span>, <span class="st">"emerald"</span>, <span class="st">"amethyst"</span>, <span class="st">"topaz"</span>, <span class="st">"onyx"</span>))
+        .<span class="fn">arg</span>(<span class="st">"quality"</span>, <span class="ty">StringArg</span>.<span class="fn">of</span>(<span class="st">"quality"</span>).<span class="fn">suggests</span>(<span class="st">"raw"</span>, <span class="st">"cut"</span>, <span class="st">"perfect"</span>))
+        .<span class="fn">arg</span>(<span class="st">"count"</span>, <span class="ty">IntArg</span>.<span class="fn">of</span>(<span class="st">"count"</span>, <span class="nu">1</span>, <span class="nu">64</span>).<span class="fn">optional</span>(<span class="nu">1</span>))
+        .<span class="fn">permission</span>(<span class="st">"eriniumfaction.gem.give"</span>)
+        .<span class="fn">execute</span>(ctx -&gt; {
+            <span class="ty">EntityPlayerMP</span> target = ctx.<span class="fn">getPlayer</span>(<span class="st">"player"</span>);
+            <span class="ty">GemType</span>    type    = <span class="ty">GemType</span>.<span class="fn">valueOf</span>(ctx.<span class="fn">getString</span>(<span class="st">"type"</span>).<span class="fn">toUpperCase</span>());
+            <span class="ty">GemQuality</span> quality = <span class="ty">GemQuality</span>.<span class="fn">valueOf</span>(ctx.<span class="fn">getString</span>(<span class="st">"quality"</span>).<span class="fn">toUpperCase</span>());
+            <span class="kw">int</span>        count   = ctx.<span class="fn">getInt</span>(<span class="st">"count"</span>);
+            target.inventory.<span class="fn">addItemStackToInventory</span>(<span class="kw">new</span> <span class="ty">ItemStack</span>(<span class="ty">GemItems</span>.<span class="fn">getItem</span>(type, quality), count));
+        })
+    .<span class="fn">sub</span>(<span class="st">"info"</span>)
+        .<span class="fn">execute</span>(ctx -&gt; <span class="ty">GemInfoCommand</span>.<span class="fn">execute</span>(ctx))
+    .<span class="fn">register</span>();</div>
+
+      <h3>Output de /gem info</h3>
+      <div class="code-block"><span class="cm">// Exemple d'output dans le chat pour une epee Aetherite avec 2 sockets :</span>
+<span class="st">"[Gemmes] Epee d'Aetherite — 2 socket(s)"</span>
+<span class="st">"  Socket 1 : Rubis Taille — +2 Force | Lifesteal 2%"</span>
+<span class="st">"  Socket 2 : (vide)"</span>
+<span class="st">"Bonus total gemmes : +2 Force"</span></div>
+    </div>
+
+    <!-- ═══ S15 — ASSETS ═══ -->
+    <div class="section-card" id="s15">
+      <h2><span class="s-num">15</span> Assets</h2>
+
+      <p>Lire <code>docs/ASSETS_WORKFLOW.md</code> avant toute creation d'asset. Toutes les textures sont 16x16 pixels (items) conformement aux standards Minecraft 1.12.2.</p>
+
+      <h3 class="first">Textures requises — Accessoires</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fichier</th><th>Description</th><th>Couleur dominante</th></tr></thead>
+          <tbody>
+            <tr><td><code>ring_valterite.png</code></td><td>Anneau Valterite (16x16)</td><td>Bleu acier #5B9BD5</td></tr>
+            <tr><td><code>ring_aetherite.png</code></td><td>Anneau Aetherite (16x16)</td><td>Violet #A855F7</td></tr>
+            <tr><td><code>ring_erinium.png</code></td><td>Anneau Erinium (16x16)</td><td>Or ambre #F59E0B + glow</td></tr>
+            <tr><td><code>amulet_valterite.png</code></td><td>Amulette Valterite (16x16)</td><td>Bleu acier #5B9BD5</td></tr>
+            <tr><td><code>amulet_aetherite.png</code></td><td>Amulette Aetherite (16x16)</td><td>Violet #A855F7</td></tr>
+            <tr><td><code>amulet_erinium.png</code></td><td>Amulette Erinium (16x16)</td><td>Or ambre #F59E0B + glow</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Textures requises — Gemmes (18 + 1)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Pattern de nommage</th><th>Count</th><th>Exemples</th></tr></thead>
+          <tbody>
+            <tr><td><code>gem_&lt;type&gt;_raw.png</code></td><td>6</td><td>gem_ruby_raw.png, gem_sapphire_raw.png…</td></tr>
+            <tr><td><code>gem_&lt;type&gt;_cut.png</code></td><td>6</td><td>gem_ruby_cut.png, gem_emerald_cut.png…</td></tr>
+            <tr><td><code>gem_&lt;type&gt;_perfect.png</code></td><td>6</td><td>gem_ruby_perfect.png, gem_topaz_perfect.png…</td></tr>
+            <tr><td><code>erinium_extractor.png</code></td><td>1</td><td>Or ambre avec detail de diamant</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Notes de design des textures gemmes</h3>
+      <ul>
+        <li><strong>Brute</strong> — Forme irreguliere, teinte terne (60% saturation de la couleur principale), aucun reflet</li>
+        <li><strong>Taillee</strong> — Forme de diamant stylise, couleur pleine, 1-2 pixels de reflet blanc en haut a gauche</li>
+        <li><strong>Parfaite</strong> — Comme taillee mais avec un pixel de "glow" autour et couleur plus saturee. Utiliser <code>EriItem.create().glow(true)</code></li>
+        <li><strong>Extracteur</strong> — Outil stylise, fond or/ambre, detail diamant au centre, rarete EPIC avec glow</li>
+      </ul>
+
+      <h3>Chemins des fichiers assets</h3>
+      <div class="code-block">src/main/resources/assets/eriniumfaction/textures/items/
+├── ring_valterite.png
+├── ring_aetherite.png
+├── ring_erinium.png
+├── amulet_valterite.png
+├── amulet_aetherite.png
+├── amulet_erinium.png
+├── gem_ruby_raw.png        gem_ruby_cut.png        gem_ruby_perfect.png
+├── gem_sapphire_raw.png    gem_sapphire_cut.png    gem_sapphire_perfect.png
+├── gem_emerald_raw.png     gem_emerald_cut.png     gem_emerald_perfect.png
+├── gem_amethyst_raw.png    gem_amethyst_cut.png    gem_amethyst_perfect.png
+├── gem_topaz_raw.png       gem_topaz_cut.png       gem_topaz_perfect.png
+├── gem_onyx_raw.png        gem_onyx_cut.png        gem_onyx_perfect.png
+└── erinium_extractor.png
+
+src/main/resources/assets/eriniumfaction/models/item/
+├── ring_valterite.json     ring_aetherite.json     ring_erinium.json
+├── amulet_valterite.json   amulet_aetherite.json   amulet_erinium.json
+├── gem_ruby_raw.json       gem_ruby_cut.json       gem_ruby_perfect.json
+│   ... (idem pour les 5 autres types)
+└── erinium_extractor.json</div>
+    </div>
+
+    <!-- ═══ S16 — PLAN DE TESTS ═══ -->
+    <div class="section-card" id="s16">
+      <h2><span class="s-num red-num">16</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests Accessoires</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Scenario</th><th>Critere de succes</th><th>Priorite</th></tr></thead>
+          <tbody>
+            <tr><td>Equiper un Anneau de Valterite dans slot Baubles</td><td>Stats RPG +2 Vigueur +1 Resistance visibles dans le GUI RPG</td><td>P0</td></tr>
+            <tr><td>Desequiper l'anneau</td><td>Stats retirees immediatement, aucun doublon</td><td>P0</td></tr>
+            <tr><td>Porter anneau + amulette Aetherite</td><td>Bonus de set +8% damage actif, visible dans RPG panel</td><td>P0</td></tr>
+            <tr><td>Porter 2 anneaux du meme tier, sans amulette</td><td>Pas de bonus de set, stats individuelles uniquement</td><td>P1</td></tr>
+            <tr><td>Amulette Valterite — regen hors combat</td><td>Soin de 0.5 HP apres 5s sans degat recu</td><td>P1</td></tr>
+            <tr><td>Amulette Valterite — pas de regen en combat</td><td>Aucun soin si degat recu il y a moins de 5s</td><td>P1</td></tr>
+            <tr><td>Amulette Aetherite — speed boost</td><td>+5% vitesse movement, confirmee numeriquement</td><td>P1</td></tr>
+            <tr><td>Amulette Erinium — +1 toutes stats</td><td>6 stats chacune +1 en onEquipped, -1 en onUnequipped</td><td>P0</td></tr>
+            <tr><td>Recette anneau Valterite</td><td>Craft correct, item resultat initialise avec 1 socket vide</td><td>P0</td></tr>
+            <tr><td>Deconnexion/reconnexion avec accessoires equipes</td><td>Bonuses toujours appliques a la reconnexion</td><td>P1</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tests Gemmes — Drop et Craft</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Scenario</th><th>Critere de succes</th><th>Priorite</th></tr></thead>
+          <tbody>
+            <tr><td>Miner un diamant sans Fortune</td><td>10% chance de drop gemme brute aleatoire</td><td>P0</td></tr>
+            <tr><td>Miner un diamant avec Fortune III</td><td>18% chance de drop gemme brute</td><td>P0</td></tr>
+            <tr><td>Miner avec Silk Touch</td><td>Aucune gemme droppee</td><td>P0</td></tr>
+            <tr><td>Craft gemme brute → taillee (silex)</td><td>1 brute + 1 silex = 1 taillee meme type</td><td>P0</td></tr>
+            <tr><td>Craft 4 taillees → parfaite</td><td>4 taillees meme type = 1 parfaite</td><td>P0</td></tr>
+            <tr><td>Craft 4 taillees types differents</td><td>Recette invalide, pas de resultat</td><td>P1</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tests Sertissage</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Scenario</th><th>Critere de succes</th><th>Priorite</th></tr></thead>
+          <tbody>
+            <tr><td>Ouvrir GUI sertissage (clic droit enclume, item Valterite en main)</td><td>GUI s'ouvre, 1 socket vide visible</td><td>P0</td></tr>
+            <tr><td>Glisser gemme taillee sur socket vide</td><td>Gemme retiree de l'inventaire, socket affiche couleur gem</td><td>P0</td></tr>
+            <tr><td>Glisser gemme sur socket plein</td><td>Rien ne se passe, gemme reste en main</td><td>P1</td></tr>
+            <tr><td>Retirer gemme sans Extracteur</td><td>Avertissement affiche, gemme detruite apres confirmation</td><td>P0</td></tr>
+            <tr><td>Retirer gemme avec Extracteur</td><td>Gemme rendue dans l'inventaire, extracteur consomme</td><td>P0</td></tr>
+            <tr><td>Sertir gemme dans un accessoire</td><td>Socket de l'accessoire mis a jour, bonus de gem applique</td><td>P1</td></tr>
+            <tr><td>Equiper item avec gemme sertie</td><td>Bonus de stat gemme applique, visible dans RPG panel</td><td>P0</td></tr>
+            <tr><td>Desequiper item avec gemme sertie</td><td>Bonus de gem retires, recalcul correct</td><td>P0</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tests Effets de Combat</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Scenario</th><th>Critere de succes</th><th>Priorite</th></tr></thead>
+          <tbody>
+            <tr><td>Rubis CUT : attaque pour 10 degats</td><td>Joueur attaquant soigne de 0.2 HP (2%)</td><td>P0</td></tr>
+            <tr><td>Saphir CUT : equiper item avec gemme</td><td>+2 HP max sur la barre de vie</td><td>P0</td></tr>
+            <tr><td>Topaze CUT : 2 gemmes equipes</td><td>+6% vitesse movement (2 × 3%), cap respecte a 4+ gemmes</td><td>P1</td></tr>
+            <tr><td>Onyx CUT : recevoir 10 degats</td><td>Seulement 9.8 degats recus (-2%)</td><td>P0</td></tr>
+            <tr><td>Onyx : 5+ gemmes Onyx</td><td>Cap a -20% respecte malgre plus de 5 gemmes</td><td>P1</td></tr>
+            <tr><td>Gemme parfaite vs taillee</td><td>Effet parfaite = x2 par rapport a taillee</td><td>P0</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tests d'Integration</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Scenario</th><th>Critere de succes</th><th>Priorite</th></tr></thead>
+          <tbody>
+            <tr><td>Anneau avec gemme sertie + set bonus actif</td><td>Stats correctes = stat individuelle + gem + set bonus, sans doublon</td><td>P0</td></tr>
+            <tr><td>Mort du joueur</td><td>Les objets droppes conservent leur NBT de socket intact</td><td>P0</td></tr>
+            <tr><td>Item ramasse apres mort</td><td>Bonuses de gemmes recalcules a l'equip post-ramassage</td><td>P1</td></tr>
+            <tr><td>/gem give player ruby cut 3</td><td>3× Rubis Taille dans l'inventaire cible</td><td>P1</td></tr>
+            <tr><td>/gem info sans item en main</td><td>Message d'erreur clair, pas de NPE</td><td>P1</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Procedure de test recommandee</strong> — Utiliser <code>/gem give</code> et <code>/accessory give</code> pour obtenir rapidement tous les items. Tester d'abord les cas nominaux (P0) avant les cas limites (P1). Verifier systematiquement l'absence de duplication de bonus apres reconnexion (le bug le plus courant avec les Capabilities et DataManager).</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" id="mobileToggle">&#9776;</button>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const toggle  = document.getElementById('mobileToggle');
+  toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+
+  // Active nav link on scroll
+  const sections = document.querySelectorAll('.section-card[id]');
+  const navLinks  = document.querySelectorAll('.nav-link');
+  const observer  = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => link.classList.remove('active'));
+        const active = document.querySelector('.nav-link[href="#' + entry.target.id + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.25 });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

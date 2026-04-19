@@ -1,0 +1,2400 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Enchantements d'Erinium | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+    /* Tier colors */
+    --valterite: #5B9BD5;
+    --aetherite: #A855F7;
+    --erinium:   #F59E0B;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 50% 90%, rgba(245,158,11,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 12px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+
+  /* Tier badges */
+  .badge-valterite { color: var(--valterite); border-color: rgba(91,155,213,0.4); background: rgba(91,155,213,0.1); }
+  .badge-aetherite { color: var(--aetherite); border-color: rgba(168,85,247,0.4); background: rgba(168,85,247,0.1); }
+  .badge-erinium   { color: var(--erinium);   border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.1); }
+
+  /* =========================================================
+     SECTION CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+  .section-card:nth-child(14) { animation-delay: .70s; }
+  .section-card:nth-child(15) { animation-delay: .75s; }
+  .section-card:nth-child(16) { animation-delay: .80s; }
+  .section-card:nth-child(17) { animation-delay: .85s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr { background: rgba(107,47,160,0.18); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+
+  .tier-valterite { color: var(--valterite); font-weight: 600; }
+  .tier-aetherite { color: var(--aetherite); font-weight: 600; }
+  .tier-erinium   { color: var(--erinium);   font-weight: 600; }
+  .tier-diamond   { color: #B9F2FF;          font-weight: 600; }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .cl  { color: #FFCB6B; }
+
+  /* =========================================================
+     ASCII DIAGRAMS
+  ========================================================= */
+  .ascii-diagram {
+    background: rgba(5,5,10,0.75);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 11.5px;
+    line-height: 1.65;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+  }
+
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+
+  /* =========================================================
+     INFO BOXES
+  ========================================================= */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2);   }
+
+  /* =========================================================
+     TIER CARDS (bibliothèques)
+  ========================================================= */
+  .tier-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .tier-card {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    text-align: center;
+  }
+
+  .tier-card.valterite { border-top: 3px solid var(--valterite); }
+  .tier-card.aetherite { border-top: 3px solid var(--aetherite); }
+  .tier-card.erinium   { border-top: 3px solid var(--erinium);   }
+
+  .tier-card-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .tier-card.valterite .tier-card-name { color: var(--valterite); }
+  .tier-card.aetherite .tier-card-name { color: var(--aetherite); }
+  .tier-card.erinium   .tier-card-name { color: var(--erinium);   }
+
+  .tier-card-tier {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin-bottom: 14px;
+  }
+
+  .tier-card-stat {
+    font-size: 12px;
+    color: var(--slate);
+    margin: 4px 0;
+  }
+
+  .tier-card-stat strong { color: var(--text); }
+
+  /* =========================================================
+     ENCHANTMENT CARDS (grille d'enchantements)
+  ========================================================= */
+  .enchant-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin: 20px 0;
+  }
+
+  .enchant-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+    transition: border-color .2s, background .2s;
+  }
+
+  .enchant-card:hover {
+    border-color: rgba(107,47,160,0.3);
+    background: rgba(107,47,160,0.05);
+  }
+
+  .enchant-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+
+  .enchant-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .enchant-meta {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .enchant-level {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(107,47,160,0.2);
+    color: var(--violet-l);
+    border: 1px solid rgba(107,47,160,0.35);
+    white-space: nowrap;
+  }
+
+  .enchant-min {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(0,229,255,0.08);
+    color: var(--cyan);
+    border: 1px solid rgba(0,229,255,0.2);
+    white-space: nowrap;
+  }
+
+  .enchant-desc {
+    font-size: 13px;
+    color: var(--slate);
+    line-height: 1.55;
+  }
+
+  .enchant-desc .lvl-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .enchant-desc .lvl-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--card-bdr);
+    color: var(--text);
+  }
+
+  /* =========================================================
+     INCOMPATIBILITY GRID
+  ========================================================= */
+  .incompat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .incompat-item {
+    background: rgba(231,76,60,0.05);
+    border: 1px solid rgba(231,76,60,0.15);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  .incompat-item .pair {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .incompat-item .reason {
+    color: var(--slate);
+    font-size: 12px;
+  }
+
+  .compat-item {
+    background: rgba(46,204,113,0.05);
+    border: 1px solid rgba(46,204,113,0.15);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  .compat-item .pair {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .compat-item .reason {
+    color: var(--slate);
+    font-size: 12px;
+  }
+
+  /* =========================================================
+     ANIMATIONS + DIVIDER
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-bdr), transparent);
+    margin: 24px 0;
+  }
+
+  /* =========================================================
+     MOBILE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,47,160,0.4);
+    transition: transform .2s;
+  }
+
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 50;
+      width: 260px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .tier-grid { grid-template-columns: 1fr; }
+    .enchant-grid { grid-template-columns: 1fr; }
+    .incompat-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    .section-card { padding: 24px 18px; }
+    .page-header h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+
+    <span class="sidebar-title">Sommaire</span>
+
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Bibliotheques Moddees</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Table Modifiee</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Ameliorations Vanilla</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Enchants Armes</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Enchants Armure</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Enchants Arc</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Enchants Outils</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Incompatibilites</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Retour Visuel</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Integration RPG &amp; Gemmes</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Architecture Technique</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Configuration</a>
+    <a class="nav-link" href="#s14"><span class="num">14</span> Commandes</a>
+    <a class="nav-link" href="#s15"><span class="num">15</span> Assets</a>
+    <a class="nav-link" href="#s16"><span class="num">16</span> Equilibrage</a>
+    <a class="nav-link" href="#s17"><span class="num">17</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges · EriniumFaction</div>
+      <h1>Enchantements d'Erinium</h1>
+      <p>Quarante enchantements custom accessibles uniquement via des bibliotheques moddees placees autour de la table d'enchantement — s'ajoutent aux enchantements vanilla sans les remplacer.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">A faire</span>
+        <span class="badge badge-violet">40 enchantements custom</span>
+        <span class="badge badge-valterite">Bibliotheque Valterite — Niv. 50</span>
+        <span class="badge badge-aetherite">Bibliotheque Aetherite — Niv. 70</span>
+        <span class="badge badge-erinium">Bibliotheque Erinium — Niv. 90</span>
+        <span class="badge badge-cyan">Mixin EnchantmentTable</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <div class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Philosophie centrale</h3>
+      <p>EriniumFaction n'ecrase pas le systeme d'enchantement vanilla. Il l'etend. Les enchantements Erinium s'ajoutent au pool normal de la table d'enchantement et deviennent disponibles uniquement a partir du niveau 50, c'est-a-dire uniquement lorsque des bibliotheques moddees sont presentes autour de la table. Avec des bibliotheques vanilla seules (max niveau 30), aucun enchantement custom n'apparait jamais.</p>
+      <p>Ce choix preserve la courbe d'apprentissage vanilla pour les nouveaux joueurs tout en offrant une couche de profondeur considerable pour ceux qui investissent dans les materiaux de haut tier. Les bibliotheques moddees sont les cles d'acces a ce contenu.</p>
+
+      <h3>Objectifs</h3>
+      <ul>
+        <li><strong>Complementarite</strong> — Chaque enchantement custom comble un manque du vanilla ou amplifie une mecanique existante de facon interessante en PvP 1.8 (pas de cooldown).</li>
+        <li><strong>Progression materielle</strong> — Les bibliotheques sont crafted avec les minerais Valterite, Aetherite et Erinium du systeme Combat &amp; Equipement. Enchantemment haut niveau = investissement en ressources haut tier.</li>
+        <li><strong>Lisibilite</strong> — Les effets doivent rester comprehensibles pour le joueur cible. Pas d'effets invisibles ou imperceptibles en combat rapide.</li>
+        <li><strong>Equilibrage PvP 1.8</strong> — Le serveur utilise un mod PvP 1.8 (pas de cooldown d'attaque, jitter click). Tous les enchantements d'armes sont equilibres pour ce contexte : pas de bonus d'attack speed (attribut inutile), focus sur les degats, le knockback, la mobilite et la survie.</li>
+        <li><strong>Integration Forge propre</strong> — Extension du registre d'enchantements Forge standard via <code>RegistryEvent.Register&lt;Enchantment&gt;</code>. Les Mixin modifient la logique de la table sans toucher au code vanilla en dehors des points d'injection.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>PvP 1.8 — regle absolue</strong> : L'attribut <code>ATTACK_SPEED</code> est inutile sur ce serveur. Aucun enchantement ne doit baser son effet sur la vitesse d'attaque. Les enchantements d'armes se concentrent sur les degats bruts, le knockback, les effets de statut et les mecaniques de jeu actif (combos, stacks de hits, sprinting).</div>
+      </div>
+
+      <h3>Perimetre des 40 enchantements</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Categorie</th>
+              <th>Nombre</th>
+              <th>Items cibles</th>
+              <th>Niveaux min</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Armes</td><td>10</td><td>Epees, Haches</td><td>50 – 70</td></tr>
+            <tr><td>Armure</td><td>10</td><td>Casque, Torse, Jambiere, Bottes</td><td>50 – 70</td></tr>
+            <tr><td>Arc</td><td>10</td><td>Arc</td><td>50 – 80</td></tr>
+            <tr><td>Outils</td><td>10</td><td>Pioche, Hache, Pelle, Houe</td><td>50 – 70</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S2 — BIBLIOTHEQUES MODDEES ═══ -->
+    <div class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Bibliotheques Moddees</h2>
+
+      <h3 class="first">Les trois blocs</h3>
+      <p>Trois nouveaux blocs remplacent ou completent les bibliotheques vanilla autour de la table d'enchantement. Chacun debloquerait un palier de niveau superieur et garantit un minimum d'enchantements sur l'item.</p>
+
+      <div class="tier-grid">
+        <div class="tier-card valterite">
+          <div class="tier-card-name">Bibliotheque de Valterite</div>
+          <div class="tier-card-tier">Palier Niveau 50</div>
+          <div class="tier-card-stat"><strong>Puissance bookshelf</strong> 3x une vanilla</div>
+          <div class="tier-card-stat"><strong>Niveau max debloque</strong> 50</div>
+          <div class="tier-card-stat"><strong>Min enchants garantis</strong> 5</div>
+          <div class="tier-card-stat"><strong>Difficulte craft</strong> Moyenne</div>
+          <div class="tier-card-stat"><strong>ID bloc</strong> valterite_bookshelf</div>
+        </div>
+        <div class="tier-card aetherite">
+          <div class="tier-card-name">Bibliotheque d'Aetherite</div>
+          <div class="tier-card-tier">Palier Niveau 70</div>
+          <div class="tier-card-stat"><strong>Puissance bookshelf</strong> 5x une vanilla</div>
+          <div class="tier-card-stat"><strong>Niveau max debloque</strong> 70</div>
+          <div class="tier-card-stat"><strong>Min enchants garantis</strong> 7</div>
+          <div class="tier-card-stat"><strong>Difficulte craft</strong> Difficile</div>
+          <div class="tier-card-stat"><strong>ID bloc</strong> aetherite_bookshelf</div>
+        </div>
+        <div class="tier-card erinium">
+          <div class="tier-card-name">Bibliotheque d'Erinium</div>
+          <div class="tier-card-tier">Palier Niveau 90</div>
+          <div class="tier-card-stat"><strong>Puissance bookshelf</strong> 7x une vanilla</div>
+          <div class="tier-card-stat"><strong>Niveau max debloque</strong> 90</div>
+          <div class="tier-card-stat"><strong>Min enchants garantis</strong> 9</div>
+          <div class="tier-card-stat"><strong>Difficulte craft</strong> Tres difficile</div>
+          <div class="tier-card-stat"><strong>ID bloc</strong> erinium_bookshelf</div>
+        </div>
+      </div>
+
+      <h3>Systeme de puissance bookshelf</h3>
+      <p>La table d'enchantement vanilla lit le nombre de bibliotheques dans un rayon de 2 blocs et capefie a 15 (donne le niveau 30 max). Les bibliotheques moddees sont detectees via Mixin et comptent plusieurs fois dans ce calcul :</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Bloc</th><th>Puissance equivalente</th><th>Puissance requise pour palier</th><th>Configuration exemple</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Bibliotheque vanilla</td><td>1</td><td>—</td><td>15 vanilla = niveau 30</td></tr>
+            <tr><td class="tier-valterite">Bibliotheque Valterite</td><td>3</td><td>~17 total pour niv. 50</td><td>5 Valterite + 2 vanilla = 17</td></tr>
+            <tr><td class="tier-aetherite">Bibliotheque Aetherite</td><td>5</td><td>~23 total pour niv. 70</td><td>4 Aetherite + 3 vanilla = 23</td></tr>
+            <tr><td class="tier-erinium">Bibliotheque Erinium</td><td>7</td><td>~30 total pour niv. 90</td><td>4 Erinium + 2 vanilla = 30</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Formule de conversion niveau</strong> : <code>niveau_max = min(90, puissance_totale * 3)</code>. Une puissance de 17 donne niveau 51, arrondie a 50. Les bibliotheques moddees peuvent etre melangees entre elles et avec des bibliotheques vanilla.</div>
+      </div>
+
+      <h3>Regles de placement</h3>
+      <p>Les regles de placement sont identiques aux bibliotheques vanilla :</p>
+      <ul>
+        <li>Placees a exactement <strong>1 bloc de distance</strong> de la table d'enchantement (laisser un espace d'air entre la bibliotheque et la table)</li>
+        <li>Meme hauteur (Y) que la table ou <strong>1 bloc au-dessus</strong></li>
+        <li>Pas de bloc opaque entre la bibliotheque et la table (un bloc d'air obligatoire)</li>
+        <li>Positionnees dans un rayon de 5x5 blocs autour de la table</li>
+        <li>Peuvent etre mixees : bibliotheques vanilla + bibliotheques moddees dans le meme arrangement</li>
+      </ul>
+
+      <h3>Recettes de craft</h3>
+      <p>Les recettes sont en shaped 3x3. Les lingots correspondent aux materiaux du systeme Combat &amp; Equipement.</p>
+
+      <div class="ascii-diagram"><span class="av">Bibliotheque de Valterite</span>  (<span class="ac">valterite_bookshelf</span>)
+<span class="as">┌─────┬─────┬─────┐</span>
+<span class="as">│</span> <span class="ac">V</span>   <span class="as">│</span> <span class="ac">V</span>   <span class="as">│</span> <span class="ac">V</span>   <span class="as">│</span>    V = Lingot de Valterite
+<span class="as">├─────┼─────┼─────┤</span>
+<span class="as">│</span> <span class="ay">B</span>   <span class="as">│</span> <span class="ay">B</span>   <span class="as">│</span> <span class="ay">B</span>   <span class="as">│</span>    B = Livre (Items.WRITABLE_BOOK)
+<span class="as">├─────┼─────┼─────┤</span>
+<span class="as">│</span> <span class="ac">V</span>   <span class="as">│</span> <span class="ac">V</span>   <span class="as">│</span> <span class="ac">V</span>   <span class="as">│</span>
+<span class="as">└─────┴─────┴─────┘</span>    → 1x valterite_bookshelf
+
+<span class="av">Bibliotheque d'Aetherite</span>  (<span class="ac">aetherite_bookshelf</span>)
+<span class="as">┌─────┬─────┬─────┐</span>
+<span class="as">│</span> <span class="av">A</span>   <span class="as">│</span> <span class="av">A</span>   <span class="as">│</span> <span class="av">A</span>   <span class="as">│</span>    A = Lingot d'Aetherite
+<span class="as">├─────┼─────┼─────┤</span>
+<span class="as">│</span> <span class="ay">B</span>   <span class="as">│</span> <span class="ac">D</span>   <span class="as">│</span> <span class="ay">B</span>   <span class="as">│</span>    D = Diamant
+<span class="as">├─────┼─────┼─────┤</span>
+<span class="as">│</span> <span class="av">A</span>   <span class="as">│</span> <span class="av">A</span>   <span class="as">│</span> <span class="av">A</span>   <span class="as">│</span>
+<span class="as">└─────┴─────┴─────┘</span>    → 1x aetherite_bookshelf
+
+<span class="ay">Bibliotheque d'Erinium</span>  (<span class="ac">erinium_bookshelf</span>)
+<span class="as">┌─────┬─────┬─────┐</span>
+<span class="as">│</span> <span class="ay">E</span>   <span class="as">│</span> <span class="ay">E</span>   <span class="as">│</span> <span class="ay">E</span>   <span class="as">│</span>    E = Lingot d'Erinium
+<span class="as">├─────┼─────┼─────┤</span>
+<span class="as">│</span> <span class="ay">B</span>   <span class="as">│</span> <span class="ag">N</span>   <span class="as">│</span> <span class="ay">B</span>   <span class="as">│</span>    N = Nether Star
+<span class="as">├─────┼─────┼─────┤</span>
+<span class="as">│</span> <span class="ay">E</span>   <span class="as">│</span> <span class="ay">E</span>   <span class="as">│</span> <span class="ay">E</span>   <span class="as">│</span>
+<span class="as">└─────┴─────┴─────┘</span>    → 1x erinium_bookshelf</div>
+
+      <p>Les recettes sont enregistrees via <code>EriRecipe.shaped()</code> du Content Builder d'EriAPI.</p>
+    </div>
+
+    <!-- ═══ S3 — TABLE D'ENCHANTEMENT MODIFIEE ═══ -->
+    <div class="section-card" id="s3">
+      <h2><span class="s-num">03</span> Table d'Enchantement Modifiee</h2>
+
+      <h3 class="first">Depassement du niveau 30</h3>
+      <p>La table d'enchantement vanilla est limitee au niveau 30. Trois Mixin liftent cette limite et modifient le calcul de la puissance de bibliotheque pour accepter les blocs moddees. La GUI de la table est mise a jour via Mixin pour afficher les niveaux 50/70/90.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Parametre</th><th>Vanilla (niv. 30)</th><th>Valterite (niv. 50)</th><th>Aetherite (niv. 70)</th><th>Erinium (niv. 90)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Niveau max offert</td><td>30</td><td>50</td><td>70</td><td>90</td></tr>
+            <tr><td>Min enchantements garantis</td><td>1</td><td>5</td><td>7</td><td>9</td></tr>
+            <tr><td>Enchantements custom disponibles</td><td><span class="tag-no">NON</span></td><td><span class="tag-yes">OUI</span></td><td><span class="tag-yes">OUI</span></td><td><span class="tag-yes">OUI</span></td></tr>
+            <tr><td>Vanilla upgrades disponibles</td><td><span class="tag-no">NON</span></td><td><span class="tag-yes">OUI</span></td><td><span class="tag-yes">OUI</span></td><td><span class="tag-yes">OUI</span></td></tr>
+            <tr><td>Cout en niveaux joueur</td><td>1–30</td><td>1–50</td><td>1–70</td><td>1–90</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Minimum enchantements garantis</h3>
+      <p>Le minimum garanti signifie que l'item recevra au moins N enchantements au total (vanilla + custom confondus) lors de l'enchantement. Ce n'est pas un minimum de custom uniquement — c'est la somme totale. Le systeme reroll en interne la selection jusqu'a satisfaire cette contrainte, avec un maximum de 5 tentatives pour eviter les boucles infinies.</p>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Pourquoi ce minimum garanti ?</strong> Investir dans des bibliotheques Erinium doit se ressentir immediatement. Un item enchante niveau 90 doit etre spectaculairement different d'un item niveau 30. Le minimum garanti de 9 enchantements avec des bibliotheques Erinium assure cet effet "wow" a chaque utilisation.</div>
+      </div>
+
+      <h3>Points d'injection Mixin</h3>
+      <ul>
+        <li><strong>MixinContainerEnchantment</strong> — override de <code>onCraftMatrixChanged()</code> pour recalculer la puissance bookshelf en detectant les blocs moddees. Override de <code>getEnchantmentLevel()</code> pour lever le plafond a 90.</li>
+        <li><strong>MixinEnchantmentHelper</strong> — override de <code>buildEnchantmentList()</code> pour inclure les enchantements custom dans le pool de selection et appliquer le minimum garanti.</li>
+        <li><strong>MixinBlockBookshelf</strong> — ajout d'une interface <code>IBookshelfPower</code> ; les blocs moddees implementent cette interface. La detection generique remplace le check de type hardcode de vanilla.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Compatibilite production</strong> : Les Mixin sont charges via MixinBooter (IEarlyMixinLoader) avant les classes vanilla. En production, MixinBooter doit etre dans le dossier mods. Le refmap obfusque est genere a la compilation via l'annotation processor de MixinGradle.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S4 — AMELIORATIONS VANILLA ═══ -->
+    <div class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Ameliorations des Enchantements Vanilla</h2>
+
+      <p>Certains enchantements vanilla voient leur niveau maximum augmente lorsque des bibliotheques moddees sont presentes. Ces niveaux supplementaires s'obtiennent uniquement via la table d'enchantement (pas de livre trouve en loot) et necessitent le palier de niveau adequat.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Enchantement</th><th>Max Vanilla</th><th>Nouveau Max</th><th>Palier requis</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Sharpness (Tranchant)</td><td>V</td><td><strong>VII</strong></td><td><span class="badge-valterite">Niv. 50+</span></td><td>+2 degats/niveau au-dela de V</td></tr>
+            <tr><td>Protection</td><td>IV</td><td><strong>VI</strong></td><td><span class="badge-valterite">Niv. 50+</span></td><td>+4% reduction/niveau supplementaire</td></tr>
+            <tr><td>Power (Puissance, arc)</td><td>V</td><td><strong>VII</strong></td><td><span class="badge-valterite">Niv. 50+</span></td><td>+12.5% degats arc/niveau</td></tr>
+            <tr><td>Efficiency (Efficacite)</td><td>V</td><td><strong>VII</strong></td><td><span class="badge-valterite">Niv. 50+</span></td><td>Vitesse de minage supplementaire</td></tr>
+            <tr><td>Unbreaking (Solidite)</td><td>III</td><td><strong>V</strong></td><td><span class="badge-valterite">Niv. 50+</span></td><td>Chance accrue de ne pas consommer de durabilite</td></tr>
+            <tr><td>Looting (Butin)</td><td>III</td><td><strong>V</strong></td><td><span class="badge-aetherite">Niv. 70+</span></td><td>Drops supplementaires sur mobs</td></tr>
+            <tr><td>Fortune</td><td>III</td><td><strong>V</strong></td><td><span class="badge-aetherite">Niv. 70+</span></td><td>Multiplicateur de drops minerais</td></tr>
+            <tr><td>Fire Aspect (Aspect de Feu)</td><td>II</td><td><strong>IV</strong></td><td><span class="badge-aetherite">Niv. 70+</span></td><td>Secondes de feu supplementaires</td></tr>
+            <tr><td>Knockback (Recul)</td><td>II</td><td><strong>IV</strong></td><td><span class="badge-aetherite">Niv. 70+</span></td><td>Knockback horizontal supplementaire</td></tr>
+            <tr><td>Thorns (Epines)</td><td>III</td><td><strong>V</strong></td><td><span class="badge-erinium">Niv. 90+</span></td><td>Degats de reflet supplementaires</td></tr>
+            <tr><td>Feather Falling (Chute amortie)</td><td>IV</td><td><strong>VI</strong></td><td><span class="badge-erinium">Niv. 90+</span></td><td>Reduction chute supplementaire</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Implementation</strong> : Les niveaux vanilla etendus sont geres dans <code>MixinEnchantmentHelper</code> en overridant la methode de calcul du niveau maximum acceptable pour chaque enchantement, conditionnellement a la puissance bookshelf totale detectee.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S5 — ENCHANTEMENTS D'ARMES ═══ -->
+    <div class="section-card" id="s5">
+      <h2><span class="s-num red-num">05</span> Enchantements d'Armes</h2>
+
+      <p>Dix enchantements pour epees et haches. Tous respectent le contexte PvP 1.8 (pas de cooldown d'attaque). Les mecaniques se concentrent sur les combos de clics rapides, le positionnement, le knockback et la gestion de la survie.</p>
+
+      <div class="enchant-grid">
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Fracture</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 35+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Les coups critiques (saut + attaque) creeent une onde de choc AoE au point d'impact.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 20% dmg, 2 blocs</span>
+              <span class="lvl-tag">II — 30% dmg, 3 blocs</span>
+              <span class="lvl-tag">III — 40% dmg, 4 blocs</span>
+            </div>
+            Le pourcentage est calcule sur les degats du coup critique. Pas de degats aux blocs. L'AoE ignore les entites non-joueurs a moins de 1 bloc (protection contre les mobs proches).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Siphon</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 50+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Lifesteal : une portion des degats infligees est rendue en PV au porteur.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 5% vol</span>
+              <span class="lvl-tag">II — 8% vol</span>
+              <span class="lvl-tag">III — 12% vol</span>
+            </div>
+            Applique uniquement sur les degats directs (pas sur les effets de statut du a l'arme). Le soin est en demi-coeurs arrondis au superieur. Ne fonctionne pas si le porteur est a plein PV.
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Ancrage</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 40+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Modifie le ratio knockback : reduit celui recu, augmente celui inflige. Crucial en PvP 1.8 ou le knockback est la mecanique principale.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — -20% recu, +15% inflige</span>
+              <span class="lvl-tag">II — -35% recu, +25% inflige</span>
+            </div>
+            Se cumule avec l'enchantement Knockback vanilla (qui, lui, augmente uniquement le knockback inflige). Incompatible avec Onde de Choc II (les deux enchantements se chevauchent sur la mecanique de push).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Faille</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 50+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Les frappes consecutives sur la meme cible ignorent de plus en plus son armure. Le compteur se remet a zero si le porteur change de cible.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — +3%/frappe (max 15%)</span>
+              <span class="lvl-tag">II — +5%/frappe (max 25%)</span>
+              <span class="lvl-tag">III — +7%/frappe (max 35%)</span>
+            </div>
+            Le compteur de cible est stocke dans une Map temporaire (non persistante). Reset si aucune frappe pendant 3 secondes. Mecanique forte en PvP 1.8 ou les combos de clics rapides sont la norme.
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Resonance</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 45+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Les frappes marquent l'ennemi. Les allies du porteur (membres de la meme faction) infligent des degats bonus aux cibles marquees.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — +8% pour 3s</span>
+              <span class="lvl-tag">II — +12% pour 5s</span>
+            </div>
+            Le marquage est visible via une particule violette sur la cible. Un seul marqueur actif par cible a la fois (le dernier applique ecrase le precedent). Oriente pour le jeu en equipe faction.
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Volatilite</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 55+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Chaque N-ieme frappe est amplifiee. Le compteur est par-arme, stocke en NBT.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 6e frappe +30%</span>
+              <span class="lvl-tag">II — 5e frappe +40%</span>
+              <span class="lvl-tag">III — 4e frappe +50%</span>
+            </div>
+            La frappe amplifiee est signalee par une particule d'explosion dorée. Le compteur NE se remet PAS a zero au changement de cible (mecanique d'anticipation, pas de combo). Compte uniquement les frappes qui atterrissent.
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Cristallisation</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max I</span>
+              <span class="enchant-min">Niv. 70+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Apres 3 kills sans mourir, le porteur gagne un bouclier absorbant 4 coeurs (8 PV d'absorption). Un seul niveau par sa puissance.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 3 kills = 4 coeurs d'absorption</span>
+            </div>
+            Le bouclier est un effet Absorption (MobEffects.ABSORPTION). Le compteur de kills est stocke dans la capability joueur et resete a la mort. Le bouclier ne se cumule pas (si deja actif, le compteur repart de 0).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Hemorragie</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 40+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Les frappes appliquent un saignement (DoT). Le saignement ne se cumule pas : si la cible est deja en train de saigner, la duree est rafraichie (pas d'empilement de dommages).
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 0.5 coeur/2s pendant 4s</span>
+              <span class="lvl-tag">II — 0.5 coeur/1.5s pendant 6s</span>
+              <span class="lvl-tag">III — 1 coeur/2s pendant 6s</span>
+            </div>
+            Implemente via un effet de statut custom (pas Wither, qui a un son different) applique par EriScheduler.
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Onde de Choc</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 60+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Les frappes effectuees en sprint liberent une onde de choc en cone vers l'avant qui repousse les entites proches.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 3 blocs push, cone 4 blocs</span>
+              <span class="lvl-tag">II — 5 blocs push, cone 6 blocs</span>
+            </div>
+            L'onde de choc ne s'applique qu'a la cible principale si elle est dans le cone. Les entites dans le cone mais non frappees recoivent 50% de la force de push. Incompatible avec Ancrage II.
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Voracite</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 50+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Les kills restaurent de la faim et de la saturation au porteur. Utile pour soutenir les combats prolonges.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — +2 barres de faim/kill</span>
+              <span class="lvl-tag">II — +4 barres + 1 saturation/kill</span>
+            </div>
+            Uniquement sur kill de joueur (pas de mob). Ecouteur sur LivingDeathEvent filtre sur EntityPlayerMP.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ S6 — ENCHANTEMENTS D'ARMURE ═══ -->
+    <div class="section-card" id="s6">
+      <h2><span class="s-num cyan-num">06</span> Enchantements d'Armure</h2>
+
+      <p>Dix enchantements pouvant etre places sur n'importe quelle piece d'armure. Certains effets s'empilent a travers les pieces (avec caps de securite), d'autres n'entrent en jeu que sur une piece specifique par logique de gameplay.</p>
+
+      <div class="enchant-grid">
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Fortification</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 35+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Reduit les degats recus lorsque le porteur reste immobile pendant au moins 1.5 secondes. Penalise le camping sans le rendre indestructible.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — -8%</span>
+              <span class="lvl-tag">II — -15%</span>
+              <span class="lvl-tag">III — -22%</span>
+            </div>
+            La detection d'immobilite compare la position actuelle a celle il y a 30 ticks. Si delta &lt; 0.01 blocs, consideree immobile. L'effet se desactive immediatement au premier mouvement.
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Deflexion</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 40+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Chance de defleter les projectiles (fleches, boules de feu) sans les subir. La fleche disparait sans infliquer de degats.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 8%</span>
+              <span class="lvl-tag">II — 15%</span>
+              <span class="lvl-tag">III — 22%</span>
+            </div>
+            Cap de 40% si plusieurs pieces ont Deflexion (cumul additif plafonné). Implemente via Mixin sur EntityArrow.onUpdate() ou via ArrowHitEvent (Forge).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Resilience</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 50+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Lorsque les PV tombent sous 25%, le porteur gagne temporairement une reduction de degats supplementaire avec cooldown.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — +15% pour 3s (CD 40s)</span>
+              <span class="lvl-tag">II — +25% pour 4s (CD 30s)</span>
+            </div>
+            L'activation est passive (auto-trigger). Ne se cumule pas avec une seconde piece ayant Resilience (un seul trigger actif a la fois par joueur).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Dispersion</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 45+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Chance d'aveugler l'attaquant lorsque le porteur est frappe au corps a corps.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 8% chance, 1s blind</span>
+              <span class="lvl-tag">II — 12% chance, 1.5s blind</span>
+            </div>
+            Uniquement declenchee sur frappes au corps a corps (pas sur projectiles). Applique l'effet Blindness (MobEffects.BLINDNESS) sur l'attaquant.
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Echo Defensif</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max I</span>
+              <span class="enchant-min">Niv. 55+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Lorsque le porteur est frappe 3 fois en 2 secondes par le meme joueur, il libere une impulsion de knockback radiale de 6 blocs. Cooldown de 15 secondes.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 3 frappes / 2s → push 6 blocs (CD 15s)</span>
+            </div>
+            Anti-spam de clics. Tres efficace en PvP 1.8. Le compteur de frappes est par attaquant, stocke en cache joueur avec timestamp.
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Regeneration Cristalline</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 50+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Regenere des PV lorsque le porteur est dans le territoire de sa faction (chunk revendique).
+            <div class="lvl-row">
+              <span class="lvl-tag">I — +0.25 coeur/5s</span>
+              <span class="lvl-tag">II — +0.5 coeur/5s</span>
+              <span class="lvl-tag">III — +0.5 coeur/3s</span>
+            </div>
+            S'empile a travers les pieces d'armure, cap a +2 coeurs/5s total. Desactive pendant le combat (si un degat a ete recu dans les 5 dernieres secondes).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Carapace</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 35+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Reduit les degats d'explosion et d'AoE (TNT, creeper, grenades). Ne reduit pas les degats direct en melee.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — -15%</span>
+              <span class="lvl-tag">II — -25%</span>
+              <span class="lvl-tag">III — -35%</span>
+            </div>
+            Detecte via DamageSource.isExplosion(). S'additionne avec la Protection vanilla mais cap total a -60% de reduction d'explosion.
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Absorption d'Impact</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 60+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Chance de nier completement le knockback d'une frappe recue (les degats sont toujours subis, seul le recul est annule).
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 10%</span>
+              <span class="lvl-tag">II — 20%</span>
+            </div>
+            Tres puissant en PvP 1.8 ou le knockback est la mecanique centrale. Incompatible avec Carapace (deux enchantements defensifs majeurs, la combinaison serait trop forte).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Vitalite</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 45+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Augmente les PV maximum du porteur. S'empile a travers les pieces mais avec un cap global.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — +1 coeur</span>
+              <span class="lvl-tag">II — +2 coeurs</span>
+              <span class="lvl-tag">III — +3 coeurs</span>
+            </div>
+            Cap global de +6 coeurs toutes pieces confondues (via attribut MAX_HEALTH). Implemente via EntityPlayer.getAttributeMap().getAttributeInstance(SharedMonsterAttributes.MAX_HEALTH).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Represailles</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 70+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Lorsque le porteur subit des degats, une portion est refletee sur l'attaquant. Fonctionne sur tous types de degats (melee, projectiles, explosions). Meilleur que Thorns.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 10% reflet</span>
+              <span class="lvl-tag">II — 18% reflet</span>
+            </div>
+            Le reflet NE declenche PAS le cooldown de degats de l'attaquant. Les degats refletes sont de type DamageSource.MAGIC (neutres). Incompatible avec Thorns vanilla (redondance).
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ S7 — ENCHANTEMENTS D'ARC ═══ -->
+    <div class="section-card" id="s7">
+      <h2><span class="s-num green-num">07</span> Enchantements d'Arc</h2>
+
+      <p>Dix enchantements pour l'arc. Le serveur PvP 1.8 favorise les arcs a charge rapide et les combats a distance pour couvrir les allies. Les enchantements d'arc sont equilibres autour de cet usage.</p>
+
+      <div class="enchant-grid">
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Fleche Tracante</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 50+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Les fleches qui touchent une cible lui appliquent l'effet Glowing (lueur visible a travers les blocs), facilitant le suivi en combat.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 3s glow</span>
+              <span class="lvl-tag">II — 6s glow</span>
+            </div>
+            Glowing est implemente via Mixin sur EntityPlayer.getFlag() pour Minecraft 1.12.2 (l'effet n'existe pas nativement). La lueur est envoyee au client via packet custom.
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Tir Perforant</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 45+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Les fleches traversent les entites sans s'arreter, permettant d'atteindre plusieurs joueurs en ligne.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — traverse 1 entite</span>
+              <span class="lvl-tag">II — traverse 2 entites</span>
+              <span class="lvl-tag">III — traverse 3 entites</span>
+            </div>
+            Le nombre de traversees restantes est stocke dans le NBT de l'entite fleche. Chaque traversee reduit les degats de 15%. Implemente via Mixin sur EntityArrow.onImpact().
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Fleche Explosive</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 60+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Les fleches creent une petite explosion a l'impact. Aucun degat aux blocs.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 1.5 blocs, 30% degats fleche en AoE</span>
+              <span class="lvl-tag">II — 2.5 blocs, 50% degats fleche en AoE</span>
+            </div>
+            L'explosion est simulee via World.createExplosion() avec le flag de degats aux blocs desactive. Incompatible avec Tir Perforant (une fleche ne peut pas percer et exploser).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Tir Rapide</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 35+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Reduit le temps de charge de l'arc. En PvP 1.8, tirer plus vite est un avantage tactique majeur.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — -15% charge</span>
+              <span class="lvl-tag">II — -25% charge</span>
+              <span class="lvl-tag">III — -35% charge</span>
+            </div>
+            La charge minimale pour une fleche pleine puissance reste de 1 tick (pas de tir instantane). Implemente via Mixin sur ItemBow.onPlayerStoppedUsing().
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Fleche Givrante</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 40+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Les fleches appliquent un ralentissement a l'impact, perturbant les combattants au corps a corps.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — Slowness I pendant 2s</span>
+              <span class="lvl-tag">II — Slowness II pendant 3s</span>
+            </div>
+            Compatible avec la Fleche Tracante (combo utile : marquer et ralentir). Incompatible avec Fleche Explosive (les effets de statut ne s'appliquent pas sur les degats AoE).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Volee</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 70+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Le tir libere des fleches supplementaires en dispersion. Les fleches supplementaires font moins de degats.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — +1 fleche (50% degats)</span>
+              <span class="lvl-tag">II — +2 fleches (50% degats, dispersion elargie)</span>
+            </div>
+            Les fleches supplementaires consomment des fleches en inventaire (1 fleche extra = 1 fleche en plus consommee). La dispersion est de +-8° I, +-12° II. Incompatible avec Infinity (trop fort avec fleches infinies).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Precision</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 50+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Les fleches sont moins affectees par la gravite, volant de facon plus rectiligne sur longue distance.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — -20% gravite</span>
+              <span class="lvl-tag">II — -40% gravite</span>
+              <span class="lvl-tag">III — -60% gravite</span>
+            </div>
+            Implemente via Mixin sur EntityArrow.onUpdate() en reduisant le vecteur gravitationnel. Les fleches restent affectees par la gravite a III (pas de trajectoire completement plate).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Fleche Vampirique</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 55+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Une portion des degats infligees par les fleches soigne le tireur.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 15% soin</span>
+              <span class="lvl-tag">II — 25% soin</span>
+            </div>
+            Fonctionne uniquement sur les degats directs de fleche (pas sur les fleches secondaires de Volee). Incompatible avec Siphon (meme mecanique sur des types d'armes differents — si le joueur porte les deux types d'armes avec ces enchants, c'est acceptable, mais pas sur le meme item).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Recul d'Arc</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 50+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Les fleches repoussent plus fort les cibles touchees. Excellent pour maintenir la distance en combat a distance.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — +50% knockback</span>
+              <span class="lvl-tag">II — +100% knockback</span>
+            </div>
+            Se cumule avec l'enchantement Punch vanilla. Le knockback d'arc est horizontal comme en vanilla. Compatible avec Tir Perforant (chaque entite traversee recoit le knockback).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Homing</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max I</span>
+              <span class="enchant-min">Niv. 80+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Les fleches se courbent legerement vers l'entite la plus proche dans un rayon de 3 blocs autour de leur trajectoire. Guidage subtil, pas un aimbot.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — correction douce, 3 blocs de detection</span>
+            </div>
+            La correction est limitee a 3° par tick. Si aucune entite n'est dans le rayon, la fleche suit sa trajectoire normale. Le guidage ignore les entites alliees (meme faction). Necessite le niveau le plus eleve pour le debloquer (Niv. 80+).
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ S8 — ENCHANTEMENTS D'OUTILS ═══ -->
+    <div class="section-card" id="s8">
+      <h2><span class="s-num gold-num">08</span> Enchantements d'Outils</h2>
+
+      <p>Dix enchantements pour les outils (pioche, hache, pelle, houe). Certains sont specifiques a un type d'outil (notes dans la description). Ces enchantements transforment profondement l'efficacite du minage et de l'agriculture en faction.</p>
+
+      <div class="enchant-grid">
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Excavation</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 40+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Mine une zone elargie en un seul clic. S'applique sur pioche, pelle et hache.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — zone 1x2</span>
+              <span class="lvl-tag">II — zone 1x3</span>
+              <span class="lvl-tag">III — zone 3x3</span>
+            </div>
+            Les blocs supplementaires minent uniquement si le bloc cible est mineable par l'outil. Ne mine pas les blocs hors de portee du joueur. Implemente via PlayerInteractEvent.LeftClickBlock avec un flag anti-recursion.
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Auto-Smelt</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max I</span>
+              <span class="enchant-min">Niv. 35+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Les blocs mines droppent directement leur forme fondue : minerai de fer → lingot, minerai d'or → lingot d'or, sable → verre, etc.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — drop forme fondue</span>
+            </div>
+            Compatible avec Fortune : quand les deux sont presents, Fortune s'applique avec un rendement reduit a 50% (Fortune III donne normalement 1-4 drops → avec Auto-Smelt donne 1-2 lingots au lieu de 1-4 minerais bruts). Le joueur gagne en confort mais perd en quantite max vs Fortune seul. Compatible avec Silk Touch : si les deux sont sur le meme outil, Silk Touch a priorite.
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Magnetisme</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 50+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Les drops de blocs sont automatiquement attires vers le joueur lors du minage.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 3 blocs de portee</span>
+              <span class="lvl-tag">II — 6 blocs de portee</span>
+            </div>
+            Uniquement lors du minage (pas en permanence pour les items au sol). Implemente en appliquant une velocity vers le joueur sur les EntityItem crees par le minage. Evite la collecte manuelle dans les grands chantiers.
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Prospection</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 45+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Chance d'obtenir des drops supplementaires lors du minage de minerais. Distinct de Fortune (probabiliste vs multiplicatif).
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 15% chance de +1 drop</span>
+              <span class="lvl-tag">II — 25% chance de +1 drop</span>
+              <span class="lvl-tag">III — 30% chance de +1 a +2 drops</span>
+            </div>
+            Compatible avec Fortune vanilla (les effets s'appliquent independamment). Incompatible avec Silk Touch.
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Vitesse Miniere</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 35+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Augmente la vitesse de minage, en s'ajoutant a Efficiency. Les deux se cumulent.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — +10%</span>
+              <span class="lvl-tag">II — +20%</span>
+              <span class="lvl-tag">III — +30%</span>
+            </div>
+            Le bonus est un multiplicateur sur le dig speed block attribute. Implemente via PlayerEvent.BreakSpeed. Se cumule avec Efficiency vanilla (Efficiency 5 + Vitesse III = tres rapide).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Durabilite Cristalline</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max III</span>
+              <span class="enchant-min">Niv. 50+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Chance de ne pas consommer de durabilite lors d'une utilisation. Plus puissant qu'Unbreaking vanilla, se cumule avec lui.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 15% chance no-durability</span>
+              <span class="lvl-tag">II — 25% chance</span>
+              <span class="lvl-tag">III — 35% chance</span>
+            </div>
+            La probabilite combinee avec Unbreaking V : ~50% chance de ne pas perdre de durabilite (Unbreaking V ~33% + Cristalline III 35% = plafonné a 50% pour equilibre).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Recolte en Masse</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 40+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Casser une culture mature recolte automatiquement toutes les cultures connectees du meme type dans un rayon. <strong>Enchantement de houe uniquement.</strong>
+            <div class="lvl-row">
+              <span class="lvl-tag">I — rayon 5 blocs</span>
+              <span class="lvl-tag">II — rayon 9 blocs</span>
+            </div>
+            Seules les cultures matures sont recoltees. La propagation suit les blocs connectes en BFS (Breadth-First Search) avec un cap de 512 blocs pour eviter les freezes.
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Bucheron</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 45+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            Casser un bloc de bois abat automatiquement tout l'arbre entier. <strong>Enchantement de hache uniquement.</strong>
+            <div class="lvl-row">
+              <span class="lvl-tag">I — jusqu'a 32 blocs de bois</span>
+              <span class="lvl-tag">II — jusqu'a 64 blocs de bois</span>
+            </div>
+            Propagation BFS limitee aux blocs de type bois (log) adjacents. Les feuilles ne sont pas comptees dans la limite. Chaque bloc consomme un point de durabilite. Desactive si le joueur est accroupi (Sneak = minage individuel).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Pelle Infinie</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max II</span>
+              <span class="enchant-min">Niv. 55+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            La pelle mine une zone elargie sur les blocs mous (terre, sable, gravier, neige). <strong>Enchantement de pelle uniquement.</strong>
+            <div class="lvl-row">
+              <span class="lvl-tag">I — zone 3x3</span>
+              <span class="lvl-tag">II — zone 5x5</span>
+            </div>
+            Le plan de minage est perpendiculaire a la face regardee. Desactive avec Sneak. Se cumule avec Excavation si les deux sont presents (rare, l'un peut remplacer l'autre mais les deux donnent une zone encore plus large).
+          </div>
+        </div>
+
+        <div class="enchant-card">
+          <div class="enchant-card-head">
+            <span class="enchant-name">Detecteur</span>
+            <div class="enchant-meta">
+              <span class="enchant-level">Max I</span>
+              <span class="enchant-min">Niv. 70+</span>
+            </div>
+          </div>
+          <div class="enchant-desc">
+            En tenant l'outil, les minerais proches emettent des particules visibles a travers les blocs, dans un rayon de 8 blocs.
+            <div class="lvl-row">
+              <span class="lvl-tag">I — 8 blocs de portee, particules or/cyan par type de minerai</span>
+            </div>
+            100% client-side via OverlayMod d'EriAPI (extends OverlayMod, register via OverlayModManager). Scan en background toutes les 20 ticks pour eviter le lag. Detecte : charbon, fer, or, diamant, emeraude, lapis, redstone, minerais Erinium.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ S9 — INCOMPATIBILITES ═══ -->
+    <div class="section-card" id="s9">
+      <h2><span class="s-num red-num">09</span> Regles d'Incompatibilite</h2>
+
+      <p>Certains enchantements sont mutuellement exclusifs sur un meme item. Ces incompatibilites sont enforcees au niveau du registre d'enchantements (methode <code>canApplyTogether()</code>) et a la table d'enchantement. L'enclume les autorise si le joueur est pret a payer le cout en niveaux.</p>
+
+      <h3 class="first">Incompatibilites strictes (meme item)</h3>
+      <div class="incompat-grid">
+        <div class="incompat-item">
+          <div class="pair">Fleche Explosive + Tir Perforant</div>
+          <div class="reason">Une fleche ne peut pas exploser et percer simultanement. Conflits physiques.</div>
+        </div>
+        <div class="incompat-item">
+          <div class="pair">Volee + Infinity (vanilla)</div>
+          <div class="reason">Fleches infinies multipliees = trop puissant. Oblige le choix entre sustain et volume.</div>
+        </div>
+        <div class="incompat-item">
+          <div class="pair">Auto-Smelt + Fortune (vanilla) — <strong>COMPATIBLE</strong></div>
+          <div class="reason">Synergie autorisee avec trade-off : Fortune s'applique a 50% de rendement quand Auto-Smelt est actif (confort vs quantite max). Silk Touch prend priorite sur les deux.</div>
+        </div>
+        <div class="incompat-item">
+          <div class="pair">Absorption d'Impact + Carapace</div>
+          <div class="reason">Deux enchantements defensifs majeurs. La combinaison rendrait le joueur quasi invulnerable aux frappes physiques.</div>
+        </div>
+        <div class="incompat-item">
+          <div class="pair">Ancrage II + Onde de Choc II</div>
+          <div class="reason">Les deux modifient le knockback de facon opposee. Ancrage I + Onde de Choc I est autorise.</div>
+        </div>
+        <div class="incompat-item">
+          <div class="pair">Represailles + Thorns (vanilla)</div>
+          <div class="reason">Redondance fonctionnelle. Represailles est superieur et les deux sur le meme item doubleraient le reflet.</div>
+        </div>
+        <div class="incompat-item">
+          <div class="pair">Fleche Givrante + Fleche Explosive</div>
+          <div class="reason">Les effets de statut ne s'appliquent pas via explosion. Combinaison trompeuse pour le joueur.</div>
+        </div>
+        <div class="incompat-item">
+          <div class="pair">Resilience (2 pieces differentes)</div>
+          <div class="reason">Un seul trigger de Resilience actif par joueur. Deux pieces avec Resilience ne se cumulent pas — la plus haute prend priorite.</div>
+        </div>
+      </div>
+
+      <h3>Compatibilites notables (autorisees et synergiques)</h3>
+      <div class="incompat-grid">
+        <div class="compat-item">
+          <div class="pair">Siphon + Hemorragie</div>
+          <div class="reason">Lifesteal sur hit + saignement = pression soutenue. Les deux sont autorisees car elles ne se chevauchent pas mecaniquement.</div>
+        </div>
+        <div class="compat-item">
+          <div class="pair">Faille + Volatilite</div>
+          <div class="reason">Reduire l'armure progressivement + frapper fort a la 4e/5e frappe = combo de combo. Puissant mais lisible.</div>
+        </div>
+        <div class="compat-item">
+          <div class="pair">Fleche Tracante + Fleche Givrante</div>
+          <div class="reason">Marquer et ralentir la cible = utilitaire d'equipe fort. Synergie intentionnelle.</div>
+        </div>
+        <div class="compat-item">
+          <div class="pair">Excavation + Magnetisme</div>
+          <div class="reason">Miner en grand + attirer les drops = tres efficace. Synergie outils de minage evidente.</div>
+        </div>
+        <div class="compat-item">
+          <div class="pair">Fortification + Carapace</div>
+          <div class="reason">Reduction de degats generaux (immobile) + reduction d'explosion = utile pour les defenseurs de base.</div>
+        </div>
+        <div class="compat-item">
+          <div class="pair">Vitalite + Regeneration Cristalline</div>
+          <div class="reason">Plus de PV max + regen en territoire = survie dans la base de faction. Build defensif coherent.</div>
+        </div>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Implementation</strong> : <code>Enchantment.canApplyTogether(Enchantment)</code> est override dans chaque classe d'enchantement custom pour retourner false avec ses incompatibles. La validation a l'enclume est aussi verifiee via <code>EnchantmentHelper.areCompatible()</code>.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S10 — RETOUR VISUEL ═══ -->
+    <div class="section-card" id="s10">
+      <h2><span class="s-num cyan-num">10</span> Retour Visuel et Particules</h2>
+
+      <p>Chaque categorie d'enchantement a sa signature visuelle. Les retours visuels sont 100% client-side via l'API de particules Minecraft 1.12.2 et le systeme OverlayMod d'EriAPI. Aucun overlay brut (RenderGameOverlayEvent + OpenGL direct).</p>
+
+      <h3 class="first">Particules par enchantement</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Enchantement</th><th>Evenement visuel</th><th>Particule Minecraft</th><th>Couleur / Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Fracture</td><td>Coup critique + AoE</td><td>EXPLOSION_NORMAL + CRIT</td><td>Violet, ring au sol</td></tr>
+            <tr><td>Siphon</td><td>Soin actif</td><td>HEART + VILLAGER_HAPPY</td><td>Rouge-violet, monte vers le porteur</td></tr>
+            <tr><td>Ancrage</td><td>Frappe partiellement absorbee</td><td>CLOUD + SMOKE_NORMAL</td><td>Bleu acier, couronne autour du porteur</td></tr>
+            <tr><td>Faille</td><td>Chaque stack d'ignoration d'armure</td><td>CRIT_MAGIC</td><td>Jaune dore, nombre de stacks en HUD</td></tr>
+            <tr><td>Resonance</td><td>Marquage d'ennemi</td><td>SPELL_MOB</td><td>Violet, halo autour de la cible</td></tr>
+            <tr><td>Volatilite</td><td>Frappe amplifiee</td><td>EXPLOSION_LARGE + FLAME</td><td>Orange dore, flash sur l'arme</td></tr>
+            <tr><td>Cristallisation</td><td>Activation du bouclier</td><td>ENCHANTMENT_TABLE + END_ROD</td><td>Cyan brillant, ring cristallin</td></tr>
+            <tr><td>Hemorragie</td><td>Tick de saignement</td><td>CRIT + REDSTONE</td><td>Rouge sombre, gouttes tombantes</td></tr>
+            <tr><td>Onde de Choc</td><td>Cone de push</td><td>SWEEP_ATTACK (custom)</td><td>Cyan, arc devant le joueur</td></tr>
+            <tr><td>Voracite</td><td>Kill + restauration faim</td><td>VILLAGER_HAPPY</td><td>Vert, emojis nourriture</td></tr>
+            <tr><td>Fortification</td><td>Mode actif</td><td>CLOUD</td><td>Bleu acier, aura lente autour du joueur</td></tr>
+            <tr><td>Deflexion</td><td>Fleche deflectee</td><td>CRIT_MAGIC</td><td>Blanc, burst radial</td></tr>
+            <tr><td>Resilience</td><td>Activation</td><td>SMOKE_LARGE + END_ROD</td><td>Violet, bouclier bref</td></tr>
+            <tr><td>Echo Defensif</td><td>Pulse de knockback</td><td>EXPLOSION_HUGE</td><td>Blanc, ring expansif</td></tr>
+            <tr><td>Detecteur</td><td>Minerai detecte</td><td>END_ROD</td><td>Or/cyan par type, 8 blocs de portee</td></tr>
+            <tr><td>Fleche Tracante</td><td>Cible marquee Glowing</td><td>Outline client-side</td><td>Violet, via OverlayMod</td></tr>
+            <tr><td>Homing</td><td>Fleche en guidage</td><td>SPELL_WITCH</td><td>Cyan, trail derriere la fleche</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Overlays HUD (via OverlayMod d'EriAPI)</h3>
+      <p>Les overlays sont implementes via le systeme OverlayMod d'EriAPI (<code>extends OverlayMod</code>, enregistre via <code>OverlayModManager</code>). Aucun <code>RenderGameOverlayEvent</code> + OpenGL direct.</p>
+      <ul>
+        <li><strong>Faille</strong> — compteur de stacks d'ignoration d'armure actifs (coin bas-droit, petit nombre)</li>
+        <li><strong>Volatilite</strong> — compteur de frappes avant la prochaine frappe amplifiee</li>
+        <li><strong>Cristallisation</strong> — compteur de kills depuis le dernier shield (0/3, 1/3, 2/3)</li>
+        <li><strong>Resilience</strong> — barre de cooldown residuel apres activation</li>
+        <li><strong>Echo Defensif</strong> — barre de cooldown (15s)</li>
+        <li><strong>Detecteur</strong> — indicateur d'activation (icone pioche avec petit point lumineux)</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Regle overlay</strong> : JAMAIS de <code>RenderGameOverlayEvent</code> + OpenGL direct. TOUJOURS <code>extends OverlayMod</code> + <code>OverlayModManager.register()</code>.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S11 — INTEGRATION RPG & GEMMES ═══ -->
+    <div class="section-card" id="s11">
+      <h2><span class="s-num">11</span> Integration RPG &amp; Gemmes</h2>
+
+      <p>Les enchantements interagissent avec le systeme RPG (stats, perks) et le systeme de Gemmes (accessoires). Cette integration enrichit la profondeur des builds sans rendre les enchantements dependants d'un autre systeme pour fonctionner.</p>
+
+      <h3 class="first">Interaction avec les stats RPG</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Enchantement</th><th>Stat RPG concernee</th><th>Interaction</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Siphon</td><td>Lifesteal %</td><td>La stat RPG Lifesteal s'additionne avec Siphon. Cap global a 25% de vol total.</td></tr>
+            <tr><td>Fracture</td><td>Critical Damage %</td><td>Le bonus crit RPG s'applique aussi au degat AoE de Fracture.</td></tr>
+            <tr><td>Faille</td><td>Armor Penetration</td><td>La penetration RPG s'additionne avec Faille. Cap global a 50% d'ignoration armure.</td></tr>
+            <tr><td>Vitalite</td><td>Max HP</td><td>S'additionne avec les bonus HP RPG. Cap global a +20 coeurs (au-dela du vanilla).</td></tr>
+            <tr><td>Regeneration Cristalline</td><td>HP Regen</td><td>La regen RPG s'additionne. Active uniquement en territoire ami (condition Cristalline).</td></tr>
+            <tr><td>Hemorragie</td><td>Damage over Time %</td><td>Le multiplicateur de DoT RPG augmente les degats de saignement.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Interaction avec les Gemmes</h3>
+      <p>Les gemmes (accessoires socketables) peuvent synergiser avec certains enchantements. Ces interactions sont documentees dans le spec Accessoires &amp; Gemmes. Resume des synergies cles :</p>
+      <ul>
+        <li><strong>Gemme de Siphon</strong> + enchantement Siphon → Stack avec le cap global de 25%</li>
+        <li><strong>Gemme de Precision</strong> + enchantement Precision (arc) → Le bonus de gravite est multiplie de 1.5x</li>
+        <li><strong>Gemme de Resilience</strong> + enchantement Resilience → Reduit le cooldown de 20% supplementaires</li>
+        <li><strong>Gemme de Vitalite</strong> + enchantement Vitalite → Les deux s'additionnent, le cap global HP s'applique</li>
+      </ul>
+
+      <h3>Ordre de calcul des degats</h3>
+      <p>Pour eviter les ambiguites d'implementation, l'ordre de calcul est strict :</p>
+      <div class="ascii-diagram"><span class="ac">Degat de base</span>
+    → <span class="ac">x Sharpness (vanilla)</span>
+    → <span class="ac">x Faille (ignoration armure)</span>
+    → <span class="ac">x Stat RPG Armor Penetration</span>
+    → <span class="ay">- Armure cible (modifiee par penetration)</span>
+    → <span class="ay">- Protection vanilla</span>
+    → <span class="ay">- Carapace / Fortification</span>
+    → <span class="ag">+ Fracture AoE (si critique, calcule independamment)</span>
+    → <span class="ag">+ Volatilite bonus (si Nth frappe)</span>
+    → <span class="ag">Degat final</span>
+    → <span class="av">Hemorragie appliquee (DoT separe)</span>
+    → <span class="av">Siphon soin (sur degat final)</span>
+    → <span class="av">Represailles reflet (sur degat final, envoye a l'attaquant)</span></div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Important</strong> : Les caps globaux (Siphon 25%, Vitalite +20 coeurs, Faille 50%) doivent etre verifies dans <code>EnchantEffectHandler</code> avant d'appliquer chaque effet, en cumulant les niveaux de toutes les pieces equipees.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S12 — ARCHITECTURE TECHNIQUE ═══ -->
+    <div class="section-card" id="s12">
+      <h2><span class="s-num">12</span> Architecture Technique</h2>
+
+      <h3 class="first">Structure des packages</h3>
+      <div class="code-block"><span class="cm">// Package racine</span>
+<span class="st">fr.eriniumgroup.eriniumfaction.enchant/</span>
+├── <span class="ty">EriniumEnchantments</span>.java        <span class="cm">// Classe de registre — enregistre tous les enchants</span>
+├── shelf/
+│   ├── <span class="ty">ModdedBookshelf</span>.java        <span class="cm">// Classe de bloc pour les 3 types de bibliotheques</span>
+│   └── <span class="ty">BookshelfPowerHelper</span>.java   <span class="cm">// Calcule la puissance totale autour d'une table</span>
+├── enchantment/
+│   ├── weapon/
+│   │   ├── <span class="ty">EnchantFracture</span>.java
+│   │   ├── <span class="ty">EnchantSiphon</span>.java
+│   │   ├── <span class="ty">EnchantAncrage</span>.java
+│   │   ├── <span class="ty">EnchantFaille</span>.java
+│   │   ├── <span class="ty">EnchantResonance</span>.java
+│   │   ├── <span class="ty">EnchantVolatilite</span>.java
+│   │   ├── <span class="ty">EnchantCristallisation</span>.java
+│   │   ├── <span class="ty">EnchantHemorragie</span>.java
+│   │   ├── <span class="ty">EnchantOndeDeChoc</span>.java
+│   │   └── <span class="ty">EnchantVoracite</span>.java
+│   ├── armor/
+│   │   ├── <span class="ty">EnchantFortification</span>.java
+│   │   ├── <span class="ty">EnchantDeflexion</span>.java
+│   │   ├── <span class="ty">EnchantResilience</span>.java
+│   │   ├── <span class="ty">EnchantDispersion</span>.java
+│   │   ├── <span class="ty">EnchantEchoDefensif</span>.java
+│   │   ├── <span class="ty">EnchantRegenCristalline</span>.java
+│   │   ├── <span class="ty">EnchantCarapace</span>.java
+│   │   ├── <span class="ty">EnchantAbsorptionImpact</span>.java
+│   │   ├── <span class="ty">EnchantVitalite</span>.java
+│   │   └── <span class="ty">EnchantRepresailles</span>.java
+│   ├── bow/
+│   │   ├── <span class="ty">EnchantFlecheTracante</span>.java
+│   │   ├── <span class="ty">EnchantTirPerforant</span>.java
+│   │   ├── <span class="ty">EnchantFlecheExplosive</span>.java
+│   │   ├── <span class="ty">EnchantTirRapide</span>.java
+│   │   ├── <span class="ty">EnchantFlecheGivrante</span>.java
+│   │   ├── <span class="ty">EnchantVolee</span>.java
+│   │   ├── <span class="ty">EnchantPrecision</span>.java
+│   │   ├── <span class="ty">EnchantFlecheVampirique</span>.java
+│   │   ├── <span class="ty">EnchantReculArc</span>.java
+│   │   └── <span class="ty">EnchantHoming</span>.java
+│   └── tool/
+│       ├── <span class="ty">EnchantExcavation</span>.java
+│       ├── <span class="ty">EnchantAutoSmelt</span>.java
+│       ├── <span class="ty">EnchantMagnetisme</span>.java
+│       ├── <span class="ty">EnchantProspection</span>.java
+│       ├── <span class="ty">EnchantVitesseMiniere</span>.java
+│       ├── <span class="ty">EnchantDurabiliteCristalline</span>.java
+│       ├── <span class="ty">EnchantRecolteEnMasse</span>.java
+│       ├── <span class="ty">EnchantBucheron</span>.java
+│       ├── <span class="ty">EnchantPelleInfinie</span>.java
+│       └── <span class="ty">EnchantDetecteur</span>.java
+├── mixin/
+│   ├── <span class="ty">MixinContainerEnchantment</span>.java  <span class="cm">// Override logique table d'enchantement</span>
+│   ├── <span class="ty">MixinEnchantmentHelper</span>.java     <span class="cm">// Selection enchantements custom</span>
+│   └── <span class="ty">MixinBlockBookshelf</span>.java        <span class="cm">// Detection puissance bookshelf</span>
+├── event/
+│   └── <span class="ty">EnchantEffectHandler</span>.java       <span class="cm">// Forge events pour tous les effets d'enchant</span>
+└── config/
+    └── <span class="ty">EnchantConfig</span>.java              <span class="cm">// Enable/disable par enchantement, tuning valeurs</span></div>
+
+      <h3>Classe de base pour enchantements custom</h3>
+      <div class="code-block"><span class="kw">public abstract class</span> <span class="ty">EriniumEnchantment</span> <span class="kw">extends</span> <span class="ty">Enchantment</span> {
+
+    <span class="kw">private final int</span> <span class="fn">minBookshelfPower</span>;  <span class="cm">// Puissance minimale pour apparaitre</span>
+
+    <span class="kw">protected</span> <span class="fn">EriniumEnchantment</span>(<span class="ty">Rarity</span> rarity, <span class="ty">EnumEnchantmentType</span> type,
+                                   <span class="ty">EntityEquipmentSlot</span>[] slots, <span class="kw">int</span> minPower) {
+        <span class="kw">super</span>(rarity, type, slots);
+        <span class="kw">this</span>.minBookshelfPower = minPower;
+    }
+
+    <span class="cm">// Apparait uniquement si la puissance bookshelf est suffisante</span>
+    <span class="an">@Override</span>
+    <span class="kw">public boolean</span> <span class="fn">canApplyAtEnchantingTable</span>(<span class="ty">ItemStack</span> stack) {
+        <span class="kw">return</span> <span class="ty">BookshelfPowerHelper</span>.<span class="fn">getCurrentPower</span>() >= minBookshelfPower;
+    }
+
+    <span class="cm">// Tous les enchants Erinium apparaissent rarement (valeur elevee = rare)</span>
+    <span class="an">@Override</span>
+    <span class="kw">public int</span> <span class="fn">getMinEnchantability</span>(<span class="kw">int</span> level) { <span class="kw">return</span> <span class="nu">15</span> + (level * <span class="nu">10</span>); }
+
+    <span class="an">@Override</span>
+    <span class="kw">public int</span> <span class="fn">getMaxEnchantability</span>(<span class="kw">int</span> level) { <span class="kw">return</span> <span class="fn">getMinEnchantability</span>(level) + <span class="nu">50</span>; }
+}</div>
+
+      <h3>MixinContainerEnchantment — injection cle</h3>
+      <div class="code-block"><span class="an">@Mixin</span>(<span class="ty">ContainerEnchantment</span>.class)
+<span class="kw">public class</span> <span class="ty">MixinContainerEnchantment</span> {
+
+    <span class="cm">// @Shadow vers la table et la position</span>
+    <span class="an">@Shadow</span> <span class="kw">private</span> <span class="ty">BlockPos</span> <span class="fn">tablePos</span>;
+    <span class="an">@Shadow</span> <span class="kw">private</span> <span class="ty">World</span> <span class="fn">worldObj</span>;
+
+    <span class="cm">// Override le calcul du nombre de bookshelves</span>
+    <span class="an">@Inject</span>(method = <span class="st">"onCraftMatrixChanged"</span>, at = <span class="an">@At</span>(<span class="st">"HEAD"</span>), cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">onMatrixChanged_Erinium</span>(<span class="ty">IInventory</span> inv, <span class="ty">CallbackInfo</span> ci) {
+        <span class="kw">int</span> power = <span class="ty">BookshelfPowerHelper</span>.<span class="fn">calculatePower</span>(worldObj, tablePos);
+        <span class="cm">// Stocker la puissance pour que EriniumEnchantment.canApplyAtEnchantingTable() la lise</span>
+        <span class="ty">BookshelfPowerHelper</span>.<span class="fn">setCurrentPower</span>(power);
+        <span class="cm">// Override le niveau max : min(90, power * 3)</span>
+        <span class="cm">// ... logique de surcharge du niveau affiche dans la GUI</span>
+    }
+}</div>
+
+      <h3>Enregistrement des enchantements</h3>
+      <div class="code-block"><span class="cm">// Dans EriniumEnchantments.java, appele depuis CommonProxy.preInit()</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public static void</span> <span class="fn">registerEnchantments</span>(<span class="ty">RegistryEvent</span>.<span class="ty">Register</span>&lt;<span class="ty">Enchantment</span>&gt; event) {
+    event.<span class="fn">getRegistry</span>().<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">EnchantFracture</span>().<span class="fn">setRegistryName</span>(<span class="st">"eriniumfaction:fracture"</span>));
+    event.<span class="fn">getRegistry</span>().<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">EnchantSiphon</span>().<span class="fn">setRegistryName</span>(<span class="st">"eriniumfaction:siphon"</span>));
+    <span class="cm">// ... tous les 40 enchantements</span>
+}
+
+<span class="cm">// EnchantEffectHandler est enregistre dans CommonProxy.init()</span>
+<span class="an">@Mod.EventBusSubscriber</span>(modid = <span class="ty">EriniumFaction</span>.MODID)
+<span class="kw">public class</span> <span class="ty">EnchantEffectHandler</span> {
+    <span class="an">@SubscribeEvent</span>
+    <span class="kw">public static void</span> <span class="fn">onLivingHurt</span>(<span class="ty">LivingHurtEvent</span> event) {
+        <span class="cm">// Dispatcher vers chaque enchantement concerne</span>
+        <span class="ty">EnchantFracture</span>.<span class="fn">onHurt</span>(event);
+        <span class="ty">EnchantSiphon</span>.<span class="fn">onHurt</span>(event);
+        <span class="cm">// ...</span>
+    }
+
+    <span class="an">@SubscribeEvent</span>
+    <span class="kw">public static void</span> <span class="fn">onPlayerTick</span>(<span class="ty">TickEvent</span>.<span class="ty">PlayerTickEvent</span> event) {
+        <span class="cm">// Hemorragie DoT, Fortification, Regeneration Cristalline, etc.</span>
+    }
+
+    <span class="an">@SubscribeEvent</span>
+    <span class="kw">public static void</span> <span class="fn">onLivingDeath</span>(<span class="ty">LivingDeathEvent</span> event) {
+        <span class="cm">// Cristallisation kills counter, Voracite</span>
+    }
+}</div>
+
+      <h3>Enregistrement Mixin dans mixins.eriniumfaction.json</h3>
+      <div class="code-block">{
+  "required": <span class="kw">true</span>,
+  "minVersion": <span class="st">"0.8"</span>,
+  "package": <span class="st">"fr.eriniumgroup.eriniumfaction.mixin"</span>,
+  "refmap": <span class="st">"mixins.eriniumfaction.refmap.json"</span>,
+  "mixins": [
+    <span class="st">"MixinLoader"</span>
+  ],
+  "client": [
+    <span class="st">"enchant.MixinContainerEnchantment"</span>,
+    <span class="st">"enchant.MixinEnchantmentHelper"</span>,
+    <span class="st">"enchant.MixinBlockBookshelf"</span>
+  ]
+}</div>
+    </div>
+
+    <!-- ═══ S13 — CONFIGURATION ═══ -->
+    <div class="section-card" id="s13">
+      <h2><span class="s-num">13</span> Configuration</h2>
+
+      <p>Un fichier de configuration Forge standard (<code>eriniumfaction-enchants.cfg</code>) permet d'ajuster ou desactiver chaque enchantement individuellement sans modifier le code.</p>
+
+      <h3 class="first">Structure de la config</h3>
+      <div class="code-block"><span class="cm">// EnchantConfig.java — Configuration Forge</span>
+<span class="kw">public class</span> <span class="ty">EnchantConfig</span> {
+
+    <span class="cm">// ===== BIBLIOTHEQUES =====</span>
+    <span class="kw">public static int</span>     valteritePower     = <span class="nu">3</span>;    <span class="cm">// Equivalence vanilla</span>
+    <span class="kw">public static int</span>     aetheritePower     = <span class="nu">5</span>;
+    <span class="kw">public static int</span>     eriniumPower       = <span class="nu">7</span>;
+
+    <span class="cm">// ===== NIVEAUX MAX PAR PALIER =====</span>
+    <span class="kw">public static int</span>     valteriteMaxLevel  = <span class="nu">50</span>;
+    <span class="kw">public static int</span>     aetheriteMakLevel  = <span class="nu">70</span>;
+    <span class="kw">public static int</span>     eriniumMaxLevel    = <span class="nu">90</span>;
+
+    <span class="cm">// ===== ENCHANTEMENTS ACTIVES (true = actif) =====</span>
+    <span class="kw">public static boolean</span> enableFracture           = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> enableSiphon             = <span class="kw">true</span>;
+    <span class="cm">// ... tous les 40 enchantements</span>
+
+    <span class="cm">// ===== VALEURS NUMERIQUES TUNING =====</span>
+    <span class="kw">public static float</span>   siphonLifestealI        = <span class="nu">0.05f</span>;
+    <span class="kw">public static float</span>   siphonLifestealII       = <span class="nu">0.08f</span>;
+    <span class="kw">public static float</span>   siphonLifestealIII      = <span class="nu">0.12f</span>;
+    <span class="kw">public static float</span>   siphonMaxLifesteal      = <span class="nu">0.25f</span>; <span class="cm">// Cap global (RPG + enchant)</span>
+
+    <span class="kw">public static int</span>     echoDefensifCooldown    = <span class="nu">300</span>;  <span class="cm">// Ticks (15s)</span>
+    <span class="kw">public static int</span>     resilience1Cooldown     = <span class="nu">800</span>;  <span class="cm">// Ticks (40s)</span>
+    <span class="kw">public static int</span>     resilience2Cooldown     = <span class="nu">600</span>;  <span class="cm">// Ticks (30s)</span>
+    <span class="kw">public static int</span>     cristallisationKills    = <span class="nu">3</span>;    <span class="cm">// Kills requis pour shield</span>
+    <span class="kw">public static float</span>   cristallisationHearts   = <span class="nu">4f</span>;   <span class="cm">// Coeurs d'absorption</span>
+
+    <span class="cm">// ===== CAPS GLOBAUX =====</span>
+    <span class="kw">public static float</span>   maxTotalLifesteal       = <span class="nu">0.25f</span>;
+    <span class="kw">public static int</span>     maxVitaliteHearts       = <span class="nu">6</span>;    <span class="cm">// Coeurs max depuis Vitalite</span>
+    <span class="kw">public static float</span>   maxFailleIgnore         = <span class="nu">0.35f</span>; <span class="cm">// Ignoration armure max</span>
+    <span class="kw">public static float</span>   maxDeflexion            = <span class="nu">0.40f</span>; <span class="cm">// Deflexion projectiles max</span>
+}</div>
+
+      <h3>Options de desactivation par enchantement</h3>
+      <p>Si un enchantement est desactive via config, il est retire du pool de la table d'enchantement et les evenements Forge associes ne sont pas traites. Les items deja enchantes avec cet enchantement gardent le tooltip mais l'effet n'est plus applique (effet "silenced" signale par une icone en tooltip).</p>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Fichier config</strong> : <code>config/eriniumfaction-enchants.cfg</code> genere automatiquement a la premiere installation du mod avec toutes les valeurs par defaut commentees. Lisible et modifiable sans redemarrage (hot-reload via FMLConfigEvent pour les valeurs numeriques).</div>
+      </div>
+    </div>
+
+    <!-- ═══ S14 — COMMANDES ═══ -->
+    <div class="section-card" id="s14">
+      <h2><span class="s-num cyan-num">14</span> Commandes</h2>
+
+      <h3 class="first">Liste des commandes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Commande</th><th>Arguments</th><th>Permission</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>/enchant give</td><td>&lt;joueur&gt; &lt;id_enchant&gt; &lt;niveau&gt;</td><td>OP niveau 2</td><td>Applique un enchantement custom directement sur l'item en main du joueur cible.</td></tr>
+            <tr><td>/enchant info</td><td>&lt;id_enchant&gt;</td><td>Tous les joueurs</td><td>Affiche les details d'un enchantement : description, niveaux, conditions, incompatibilites.</td></tr>
+            <tr><td>/enchant list</td><td>[categorie]</td><td>Tous les joueurs</td><td>Liste tous les enchantements custom. Filtrable par categorie : weapon, armor, bow, tool.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Auto-completion (checklist obligatoire)</h3>
+      <ul>
+        <li><strong>/enchant give &lt;joueur&gt;</strong> → suggestions dynamiques des joueurs en ligne (<code>PlayerArg.of("player")</code>)</li>
+        <li><strong>/enchant give &lt;id_enchant&gt;</strong> → suggestions dynamiques via <code>.suggestsDynamic(() -> EriniumEnchantments.getAllIds())</code></li>
+        <li><strong>/enchant give &lt;niveau&gt;</strong> → suggestions 1 a <code>enchant.getMaxLevel()</code></li>
+        <li><strong>/enchant info &lt;id_enchant&gt;</strong> → suggestions de tous les IDs d'enchantements custom</li>
+        <li><strong>/enchant list [categorie]</strong> → suggestions : weapon, armor, bow, tool</li>
+      </ul>
+
+      <h3>Sortie de /enchant info</h3>
+      <p>La commande <code>/enchant info</code> envoie un message chat richement formate via <code>EriChat</code> d'EriAPI :</p>
+      <ul>
+        <li>Nom de l'enchantement en gras (couleur par categorie)</li>
+        <li>Description des effets par niveau (I, II, III) avec les valeurs exactes</li>
+        <li>Niveau de table requis pour debloquer</li>
+        <li>Compatibilite/incompatibilite avec enchantements notables</li>
+        <li>Type d'item cible (epee, arc, pioche...)</li>
+      </ul>
+
+      <h3>Sortie de /enchant list</h3>
+      <p>Utilise <code>ChatPaginator</code> d'EriAPI pour la pagination. Format : ligne par enchantement avec ID cliquable (execute <code>/enchant info &lt;id&gt;</code> au clic), niveau max et categorie.</p>
+    </div>
+
+    <!-- ═══ S15 — ASSETS ═══ -->
+    <div class="section-card" id="s15">
+      <h2><span class="s-num gold-num">15</span> Assets</h2>
+
+      <p>Lire <code>docs/ASSETS_WORKFLOW.md</code> avant toute creation d'asset. Ce fichier definit le pipeline SVG → validation → PNG avec ImageMagick.</p>
+
+      <h3 class="first">Textures des bibliotheques (3 blocs)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Bloc</th><th>Texture</th><th>Taille</th><th>Style</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="tier-valterite">valterite_bookshelf</td>
+              <td><code>textures/blocks/valterite_bookshelf_*.png</code></td>
+              <td>16x16</td>
+              <td>Bois sombre avec livres et accents en cristaux bleu acier. Face avant distinctive avec motif de livres bleus.</td>
+            </tr>
+            <tr>
+              <td class="tier-aetherite">aetherite_bookshelf</td>
+              <td><code>textures/blocks/aetherite_bookshelf_*.png</code></td>
+              <td>16x16</td>
+              <td>Bois noir avec livres et accents violets lumineux. Legere lueur violet sur les tranches de livres.</td>
+            </tr>
+            <tr>
+              <td class="tier-erinium">erinium_bookshelf</td>
+              <td><code>textures/blocks/erinium_bookshelf_*.png</code></td>
+              <td>16x16</td>
+              <td>Bois ebene avec livres et accents or ambre. Runes or sur la face avant. Aspect le plus elabote.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Chaque bibliotheque a les textures suivantes : <code>_front</code>, <code>_side</code>, <code>_top</code>, <code>_bottom</code>.</p>
+
+      <h3>Modeles JSON et blockstates</h3>
+      <ul>
+        <li><code>models/block/valterite_bookshelf.json</code> — etend le modele bookshelf vanilla, overrides les textures</li>
+        <li><code>models/block/aetherite_bookshelf.json</code></li>
+        <li><code>models/block/erinium_bookshelf.json</code></li>
+        <li><code>models/item/</code> — modeles item pour chaque bibliotheque (inventory)</li>
+        <li><code>blockstates/</code> — blockstate JSON simple (pas de variants directionnels pour les bibliotheques)</li>
+      </ul>
+
+      <h3>Traductions</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Cle de traduction</th><th>FR</th><th>EN</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>tile.eriniumfaction.valterite_bookshelf.name</td><td>Bibliotheque de Valterite</td><td>Valterite Bookshelf</td></tr>
+            <tr><td>tile.eriniumfaction.aetherite_bookshelf.name</td><td>Bibliotheque d'Aetherite</td><td>Aetherite Bookshelf</td></tr>
+            <tr><td>tile.eriniumfaction.erinium_bookshelf.name</td><td>Bibliotheque d'Erinium</td><td>Erinium Bookshelf</td></tr>
+            <tr><td>enchantment.eriniumfaction.fracture</td><td>Fracture</td><td>Fracture</td></tr>
+            <tr><td>enchantment.eriniumfaction.siphon</td><td>Siphon</td><td>Siphon</td></tr>
+            <tr><td>enchantment.eriniumfaction.ancrage</td><td>Ancrage</td><td>Anchoring</td></tr>
+            <tr><td>enchantment.eriniumfaction.faille</td><td>Faille</td><td>Rift</td></tr>
+            <tr><td>enchantment.eriniumfaction.resonance</td><td>Resonance</td><td>Resonance</td></tr>
+            <tr><td>enchantment.eriniumfaction.volatilite</td><td>Volatilite</td><td>Volatility</td></tr>
+            <tr><td>enchantment.eriniumfaction.cristallisation</td><td>Cristallisation</td><td>Crystallization</td></tr>
+            <tr><td>enchantment.eriniumfaction.hemorragie</td><td>Hemorragie</td><td>Hemorrhage</td></tr>
+            <tr><td>enchantment.eriniumfaction.onde_de_choc</td><td>Onde de Choc</td><td>Shockwave</td></tr>
+            <tr><td>enchantment.eriniumfaction.voracite</td><td>Voracite</td><td>Voracity</td></tr>
+            <tr><td>... (30 autres cles similaires)</td><td>—</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Les fichiers de langue : <code>assets/eriniumfaction/lang/fr_fr.lang</code> et <code>en_us.lang</code>.</p>
+    </div>
+
+    <!-- ═══ S16 — EQUILIBRAGE ═══ -->
+    <div class="section-card" id="s16">
+      <h2><span class="s-num">16</span> Equilibrage &amp; Impact PvP</h2>
+
+      <h3 class="first">Philosophie d'equilibrage</h3>
+      <p>Le serveur utilise le PvP 1.8 : pas de cooldown d'attaque, jitter click possible. Les enchantements d'armes ont ete con&ccedil;us specifiquement pour ce contexte. L'objectif est que chaque enchantement soit attrayant sans etre obligatoire — pas de "meta fixe".</p>
+
+      <h3>Caps de securite</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Mechanique</th><th>Cap</th><th>Raison</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Lifesteal total (Siphon + RPG)</td><td>25%</td><td>Au-dela, le combat dure indefiniment si les deux joueurs ont du lifesteal</td></tr>
+            <tr><td>Ignoration armure (Faille + RPG)</td><td>50%</td><td>Rend l'armure toujours pertinente meme contre Faille III maxe</td></tr>
+            <tr><td>Deflexion projectiles</td><td>40%</td><td>Les archers restent dangereux</td></tr>
+            <tr><td>Bonus HP (Vitalite + RPG)</td><td>+20 coeurs</td><td>Evite les HP pools absurdes</td></tr>
+            <tr><td>Reduction degats explosion</td><td>60%</td><td>La TNT reste une menace meme avec Carapace</td></tr>
+            <tr><td>Vitesse minage (Excavation + Efficiency)</td><td>Mining speed x10</td><td>Evite le minage instantane de tous les blocs</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Analyse d'impact PvP 1.8 par categorie</h3>
+
+      <h3>Builds synergiques identifies</h3>
+      <ul>
+        <li><strong>Build Pressuriser</strong> : Hemorragie III + Faille III + Siphon II — DoT + penetration progressive + vol de vie. Tres fort en duel prolonge. Counter : Carapace non, mais Resilience + Deflexion oui.</li>
+        <li><strong>Build Soutien</strong> : Resonance II + Fracture III — marquer pour les allies et AoE sur critiques. Ideal en combat de groupe faction.</li>
+        <li><strong>Build Defensif Absolu</strong> : Vitalite III x4 pieces + Regen Cristalline III x4 — +6 coeurs + regen en territoire. Fort en defense de base mais nul en assaut.</li>
+        <li><strong>Build Archer Controle</strong> : Fleche Givrante + Fleche Tracante + Tir Rapide III — ralentir, marquer, tirer vite. Couverture d'equipe excellente.</li>
+        <li><strong>Build Mineur Efficace</strong> : Excavation III + Magnetisme II + Auto-Smelt + Bucheron II — miner une montagne en quelques minutes.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Surveillance post-launch</strong> : Les valeurs numeriques (pourcentages, durees, cooldowns) sont toutes dans EnchantConfig et modifiables sans recompilation. Une periode de test de 2 semaines est prevue avant de figer les valeurs de production.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S17 — PLAN DE TESTS ═══ -->
+    <div class="section-card" id="s17">
+      <h2><span class="s-num cyan-num">17</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests unitaires — Bibliotheques</h3>
+      <ul>
+        <li>Crafting des 3 types de bibliotheques avec les bonnes matieres premieres</li>
+        <li>Placement adjacent a une table d'enchantement → verification calcul de puissance</li>
+        <li>Mix vanilla + Valterite : puissance correcte (3 vanilla + 1 Valterite = 3+3 = 6)</li>
+        <li>15 vanilla seules = niveau 30 max, aucun enchant custom disponible</li>
+        <li>1 Erinium seule = puissance 7 → niveau 21 max, aucun enchant custom (puissance &lt; 17)</li>
+        <li>Configuration minimum pour atteindre niveau 50 : verifier tous les arrangements</li>
+      </ul>
+
+      <h3>Tests unitaires — Enchantements</h3>
+      <ul>
+        <li>Chaque enchantement : trigger au bon moment (hit, tick, kill, etc.)</li>
+        <li>Niveaux I, II, III : valeurs correctes selon config</li>
+        <li>Incompatibilites : impossible d'appliquer deux enchantements incompatibles via table</li>
+        <li>Caps globaux : lifesteal ne depasse pas 25% meme avec Siphon III + stat RPG max</li>
+        <li>Echo Defensif : cooldown respecte, 3 frappes en 2s = trigger, 3 frappes en 3s = pas de trigger</li>
+        <li>Cristallisation : 3 kills consecutifs = absorption, mort remet le compteur a 0</li>
+        <li>Bucheron : Sneak + hache = minage individuel, sans Sneak = arbre entier</li>
+      </ul>
+
+      <h3>Tests de combat PvP (scenarios 1v1)</h3>
+      <ul>
+        <li><strong>Scenario A — Pressuriser vs Defensif</strong> : Hemorragie III + Faille III + Siphon II vs Resilience II + Carapace III + Vitalite III. Duree attendue : 15-25 secondes (ni trop court ni trop long).</li>
+        <li><strong>Scenario B — Archer vs Epee</strong> : Fleche Givrante + Tir Rapide III vs Ancrage II. Le ralentissement de l'archer vs la reduction de knockback du guerrier.</li>
+        <li><strong>Scenario C — Build vanilla vs Build Erinium</strong> : Sharpness V + Protection IV vanilla vs Sharpness VII + Siphon III + Faille II. Le build Erinium doit etre clairement superieur mais pas de l'ordre du one-shot.</li>
+        <li><strong>Scenario D — Combat de groupe 3v3</strong> : Resonance II actif sur les deux equipes. Verifier que les bonus de degats allies s'appliquent correctement aux bonnes cibles.</li>
+      </ul>
+
+      <h3>Tests de performance</h3>
+      <ul>
+        <li>Detecteur actif sur 10 joueurs simultanement : impact CPU client acceptable (&lt; 2ms/frame)</li>
+        <li>Bucheron sur une foret de 100 arbres : pas de freeze serveur (cap de 64 logs par execution)</li>
+        <li>Recolte en Masse sur un champ de 100x100 : BFS cap verifie, execution en &lt; 1 tick</li>
+        <li>Excavation 3x3 x 10 joueurs simultanement : server TPS reste &gt; 18</li>
+      </ul>
+
+      <h3>Tests de compatibilite</h3>
+      <ul>
+        <li>Enchantements custom sur items de tier Valterite, Aetherite et Erinium (Combat &amp; Equipement)</li>
+        <li>Interaction avec le systeme de Gemmes (accessoires socket)</li>
+        <li>Interaction avec les stats RPG (lifesteal, armor pen, HP)</li>
+        <li>Enclume : appliquer/combiner des enchantements custom via livre d'enchantement (via /enchant give)</li>
+        <li>NBT persistence : relog joueur, redemarrage serveur → enchantements toujours actifs et corrects</li>
+        <li>Mixin en production (jar obfusque) : refmap correct, enchantements toujours fonctionnels</li>
+      </ul>
+    </div>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<script>
+  // Mise a jour de l'etat actif dans la sidebar au scroll
+  const sections = document.querySelectorAll('[id^="s"]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector('.nav-link[href="#' + entry.target.id + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

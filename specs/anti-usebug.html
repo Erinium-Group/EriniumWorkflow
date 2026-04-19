@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Anti Use Bug | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(231,76,60,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(107,47,160,0.14) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 60% 10%, rgba(0,229,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--red) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--red); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--red); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 4px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: #E74C3C;
+    background: rgba(231,76,60,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(231,76,60,0.10);
+    border-color: rgba(231,76,60,0.22);
+  }
+
+  .nav-link.active {
+    color: var(--red);
+    background: rgba(231,76,60,0.08);
+    border-color: rgba(231,76,60,0.22);
+  }
+
+  .sidebar-sep { height: 1px; background: var(--card-bdr); margin: 10px 0 4px; }
+
+  /* MAIN */
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* PAGE HEADER */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #E74C3C;
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, #E74C3C 55%, var(--orange) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet { color: var(--violet-l); border-color: rgba(107,47,160,0.4);  background: rgba(107,47,160,0.1); }
+  .badge-cyan   { color: var(--cyan);     border-color: rgba(0,229,255,0.3);    background: rgba(0,229,255,0.07); }
+  .badge-green  { color: var(--green);    border-color: rgba(46,204,113,0.3);   background: rgba(46,204,113,0.07); }
+  .badge-red    { color: var(--red);      border-color: rgba(231,76,60,0.35);   background: rgba(231,76,60,0.08); }
+  .badge-gold   { color: var(--gold);     border-color: rgba(241,196,15,0.3);   background: rgba(241,196,15,0.07); }
+  .badge-orange { color: var(--orange);   border-color: rgba(230,126,34,0.35);  background: rgba(230,126,34,0.08); }
+
+  /* SECTION CARDS */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #c0342a 0%, var(--red) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.violet-num { background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a7a40 0%, var(--green) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #c0960a 0%, var(--gold) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #b05a10 0%, var(--orange) 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--red);
+    margin: 20px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--red);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* TABLES */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr { background: rgba(231,76,60,0.14); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(231,76,60,0.25);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(231,76,60,0.06); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-crit   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(231,76,60,0.15); color:#E74C3C; border:1px solid rgba(231,76,60,0.3); letter-spacing:.05em; }
+  .tag-high   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(230,126,34,0.15); color:var(--orange); border:1px solid rgba(230,126,34,0.3); letter-spacing:.05em; }
+  .tag-med    { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(241,196,15,0.12); color:var(--gold); border:1px solid rgba(241,196,15,0.3); letter-spacing:.05em; }
+  .tag-low    { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(136,146,164,0.12); color:var(--slate); border:1px solid rgba(136,146,164,0.25); letter-spacing:.05em; }
+  .tag-yes    { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(46,204,113,0.12); color:var(--green); border:1px solid rgba(46,204,113,0.3); letter-spacing:.05em; }
+  .tag-cyan   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(0,229,255,0.10); color:var(--cyan); border:1px solid rgba(0,229,255,0.25); letter-spacing:.05em; }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(231,76,60,0.18);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(231,76,60,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(231,76,60,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .cl  { color: #FFCB6B; }
+
+  /* INFO BOXES */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.07);  border: 1px solid rgba(231,76,60,0.22);  }
+
+  /* EXPLOIT CARDS */
+  .exploit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .exploit-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .exploit-card.crit  { border-left: 3px solid var(--red); }
+  .exploit-card.high  { border-left: 3px solid var(--orange); }
+  .exploit-card.med   { border-left: 3px solid var(--gold); }
+
+  .exploit-card-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .exploit-card-desc {
+    font-size: 12.5px;
+    color: var(--slate);
+    line-height: 1.55;
+  }
+
+  .exploit-card-solution {
+    font-size: 12px;
+    color: var(--green);
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  /* ARCHITECTURE BLOCKS */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+  }
+
+  .arch-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+  }
+
+  .arch-card-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    margin-bottom: 6px;
+  }
+
+  .arch-card-desc {
+    font-size: 12px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  /* CHECKLIST */
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 14px 0;
+  }
+
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  .checklist-item::before {
+    content: '□';
+    color: var(--violet-l);
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .checklist-item strong { color: var(--text); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 32px 24px 60px; }
+    .exploit-grid { grid-template-columns: 1fr; }
+    .arch-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a href="../roadmap.html" class="sidebar-back">&#8592; Roadmap</a>
+
+    <div class="sidebar-title">Sections</div>
+    <a href="#contexte"      class="nav-link"><span class="num">01</span>Contexte &amp; Objectifs</a>
+    <a href="#exploits"      class="nav-link"><span class="num">02</span>Types d'Exploits</a>
+    <a href="#nbt-bomb"      class="nav-link"><span class="num">03</span>Chunk NBT Bomb</a>
+    <a href="#container"     class="nav-link"><span class="num">04</span>Container Duplication</a>
+    <a href="#packet"        class="nav-link"><span class="num">05</span>Packet Manipulation</a>
+    <a href="#drop-pickup"   class="nav-link"><span class="num">06</span>Drop / Pickup Exploits</a>
+    <a href="#crafting"      class="nav-link"><span class="num">07</span>Crafting Exploits</a>
+    <a href="#nbt-overflow"  class="nav-link"><span class="num">08</span>Book / Sign Overflow</a>
+    <a href="#hopper"        class="nav-link"><span class="num">09</span>Hopper / TileEntity</a>
+    <a href="#architecture"  class="nav-link"><span class="num">10</span>Architecture Technique</a>
+    <a href="#monitoring"    class="nav-link"><span class="num">11</span>Monitoring &amp; Alertes</a>
+    <a href="#performance"   class="nav-link"><span class="num">12</span>Performance</a>
+    <a href="#config"        class="nav-link"><span class="num">13</span>Configuration</a>
+    <a href="#tests"         class="nav-link"><span class="num">14</span>Plan de Tests</a>
+
+    <div class="sidebar-sep"></div>
+    <div class="sidebar-title">Autres specs</div>
+    <a href="faction-system.html"    class="nav-link" style="font-size:12px;">Faction System</a>
+    <a href="server-performance.html" class="nav-link" style="font-size:12px;">Server Performance</a>
+    <a href="anti-cheat.html"        class="nav-link" style="font-size:12px;">Anti Cheat</a>
+  </aside>
+
+  <!-- ═══════════════════════════════ MAIN ═══════════════════════════════ -->
+  <main class="main">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="eyebrow">Securite — Systeme de Prevention</div>
+      <h1>Anti Use Bug</h1>
+      <p>Framework serveur de prevention, detection et mitigation des exploits de duplication, crashs de chunks et attaques par saturation de donnees NBT en environnement Minecraft 1.12.2 multi-mods.</p>
+      <div class="header-badges">
+        <span class="badge badge-red">Priorite CRITIQUE</span>
+        <span class="badge badge-violet">Forge 1.12.2</span>
+        <span class="badge badge-cyan">Mixin + EriAPI</span>
+        <span class="badge badge-orange">500-1000 joueurs</span>
+        <span class="badge badge-green">Zero Trust Client</span>
+      </div>
+    </div>
+
+    <!-- ═══ 01. CONTEXTE ═══ -->
+    <section class="section-card" id="contexte">
+      <h2><span class="s-num">01</span>Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Qu'est-ce qu'un "Use Bug" ?</h3>
+      <p>Un "use bug" designe toute technique exploitant des failles dans la logique de jeu pour obtenir un avantage illegitime, en particulier :</p>
+      <ul>
+        <li><strong>Duplication d'items</strong> — obtenir plus d'objets qu'il n'en a ete investis via des exploits de containers, de craft, de paquets ou de mort.</li>
+        <li><strong>Crash de chunk</strong> — saturer un chunk avec des donnees NBT massives jusqu'a ce que le jeu ne puisse plus sauvegarder ou charger ce chunk, provoquant une perte de donnees ou une dupe involontaire.</li>
+        <li><strong>NBT data bombs</strong> — creer des stacks d'items avec des metadonnees excessivement grandes (livres ecrits, cartes, enseignes) pour provoquer des lags, des OOM ou des crashs serveur.</li>
+        <li><strong>Exploits de conteneurs</strong> — utiliser des conditions de course (race conditions) dans les interactions de coffres, fours, hoppers pour dupliquer des items.</li>
+        <li><strong>Exploits de mode creatif</strong> — envoyer des paquets de creation d'item illicites depuis un client modifie.</li>
+      </ul>
+
+      <h3>Contexte du serveur</h3>
+      <p>EriniumFaction cible 500 a 1000 joueurs simultanees avec 20+ mods actifs sur un monde faction PvP et une dimension de minage. Dans cet environnement :</p>
+      <ul>
+        <li>L'economie du serveur est entierement basee sur la rareté des ressources et les echanges entre factions. <strong>Une seule technique de dupe peut ruiner l'equilibre en quelques heures.</strong></li>
+        <li>La charge du serveur est elevee : les exploits de saturation NBT peuvent declencher des cascades de lag sur des machines sous pression.</li>
+        <li>Les joueurs de factions PvP sont souvent des joueurs experimentes qui connaissent et partagent activement les exploits connus.</li>
+        <li>Il est impossible de moderer manuellement 1000 joueurs en permanence.</li>
+      </ul>
+
+      <h3>Philosophie : Zero Trust Client</h3>
+      <div class="info-box danger">
+        <span class="icon">!</span>
+        <div class="content"><strong>Le client ne doit jamais etre fait confiance.</strong> Toute donnee, paquet, ou action provenant du client doit etre validee independamment cote serveur. Le serveur maintient sa propre representation de l'etat du monde et refuse tout ce qui devie de cet etat attendu.</div>
+      </div>
+
+      <h3>Objectifs</h3>
+      <ul>
+        <li><strong>Prevention proactive</strong> — Bloquer les exploits avant qu'ils ne prennent effet, pas apres.</li>
+        <li><strong>Detection en temps reel</strong> — Identifier les comportements suspects des qu'ils se produisent.</li>
+        <li><strong>Absence de faux positifs</strong> — Ne pas penaliser le jeu normal. Les limites doivent etre suffisamment hautes pour ne jamais impacter un joueur legitime.</li>
+        <li><strong>Impact performance minimal</strong> — Le systeme ne doit pas ajouter plus de 1ms par tick sur le thread principal.</li>
+        <li><strong>Configurabilite totale</strong> — Tous les seuils sont ajustables sans recompilation.</li>
+        <li><strong>Audit complet</strong> — Chaque detection est logguee avec assez de contexte pour investigation.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ 02. VUE D'ENSEMBLE DES EXPLOITS ═══ -->
+    <section class="section-card" id="exploits">
+      <h2><span class="s-num">02</span>Vue d'Ensemble des Exploits</h2>
+
+      <p>Tableau de priorite et de gravite des exploits identifies. La priorite CRITIQUE signifie que l'exploit peut etre execute automatiquement ou cause des pertes irreversibles.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Exploit</th>
+              <th>Priorite</th>
+              <th>Impact</th>
+              <th>Complexite a exploiter</th>
+              <th>Detection</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Chunk NBT Bomb</td>
+              <td><span class="tag-crit">CRITIQUE</span></td>
+              <td>Crash serveur, perte de donnees, dupe</td>
+              <td>Modere</td>
+              <td>Monitor taille NBT par chunk</td>
+            </tr>
+            <tr>
+              <td>Container Duplication (race condition)</td>
+              <td><span class="tag-crit">CRITIQUE</span></td>
+              <td>Dupe items arbitraires</td>
+              <td>Avance (lag requis)</td>
+              <td>Validation transaction serveur</td>
+            </tr>
+            <tr>
+              <td>Paquet inventaire fake (client modifie)</td>
+              <td><span class="tag-crit">CRITIQUE</span></td>
+              <td>Obtention items illicites</td>
+              <td>Facile (exploit client)</td>
+              <td>Mixin NetHandlerPlayServer</td>
+            </tr>
+            <tr>
+              <td>Drop/Pickup durant mort/TP</td>
+              <td><span class="tag-high">HAUT</span></td>
+              <td>Dupe items via fenetre temporelle</td>
+              <td>Modere</td>
+              <td>Lock inventaire transition</td>
+            </tr>
+            <tr>
+              <td>Craft shift-click sous lag</td>
+              <td><span class="tag-high">HAUT</span></td>
+              <td>Dupe ingredients de craft</td>
+              <td>Modere</td>
+              <td>Verification post-craft</td>
+            </tr>
+            <tr>
+              <td>Book/Sign NBT Overflow</td>
+              <td><span class="tag-high">HAUT</span></td>
+              <td>Crash / lag / OOM</td>
+              <td>Facile (vanilla exploit)</td>
+              <td>Validation paquets livre/enseigne</td>
+            </tr>
+            <tr>
+              <td>Map flooding</td>
+              <td><span class="tag-med">MOYEN</span></td>
+              <td>Bloat donnees monde</td>
+              <td>Facile</td>
+              <td>Rate limit creation cartes</td>
+            </tr>
+            <tr>
+              <td>Hopper/Dispenser machine</td>
+              <td><span class="tag-med">MOYEN</span></td>
+              <td>Dupe automatisee lente</td>
+              <td>Avance</td>
+              <td>Monitor taux transfert hopper</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ 03. CHUNK NBT BOMB ═══ -->
+    <section class="section-card" id="nbt-bomb">
+      <h2><span class="s-num">03</span>Chunk NBT Bomb</h2>
+
+      <div class="info-box danger">
+        <span class="icon">!</span>
+        <div class="content"><strong>Exploit CRITIQUE.</strong> Des joueurs remplissent des chunks de coffres contenant des livres ecrits avec un nombre maximal de pages, des bannières complexes, ou des cartes imbriquees. Quand le chunk tente d'etre sauvegarde, la serialisation NBT echoue ou depasse la limite de taille du fichier de region, provoquant une perte de chunk — et potentiellement une duplication si le serveur recharge une ancienne version du chunk.</div>
+      </div>
+
+      <h3 class="first">Mecanisme de l'exploit</h3>
+      <ul>
+        <li>Un livre ecrit peut avoir jusqu'a 50 pages et 256 caracteres par page = ~12,800 chars de texte brut.</li>
+        <li>Chaque page est stockee en NBT avec overhead JSON : une page peut representer jusqu'a ~800 bytes en NBT.</li>
+        <li>Un coffre double contient 54 slots. 54 livres pleins = ~43,200 chars. Mais chaque slot peut etre stacke a 64 en mode creatif : <strong>54 * 64 = 3,456 livres dans un coffre.</strong></li>
+        <li>Le format de chunk NBT de Minecraft 1.12.2 n'a pas de limite stricte de taille cote serveur Forge. Un chunk avec 100 coffres pleins de livres peut atteindre plusieurs megaoctets de donnees NBT.</li>
+        <li>Le format de region (.mca) est limite a 1 MB par chunk. Un depassement produit un <code>ChunkSaveException</code> et corrompt le chunk.</li>
+      </ul>
+
+      <h3>Solution : ChunkNBTMonitor</h3>
+      <p>Le <code>ChunkNBTMonitor</code> maintient un cache de la taille NBT estimee pour chaque chunk charge. Cette taille est mise a jour incrementalement a chaque modification de TileEntity, pas a chaque tick.</p>
+
+      <div class="code-block"><span class="cm">// Estimation taille NBT d'un TileEntity</span>
+<span class="kw">public class</span> <span class="ty">ChunkNBTMonitor</span> {
+
+    <span class="cm">// Cache: ChunkPos -> estimated NBT bytes</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">ChunkPos</span>, <span class="ty">Integer</span>&gt; chunkSizeCache = <span class="kw">new</span> <span class="ty">ConcurrentHashMap</span>&lt;&gt;();
+
+    <span class="cm">// Limites configurables</span>
+    <span class="kw">public static final int</span> MAX_CHUNK_NBT_BYTES      = <span class="nu">524288</span>; <span class="cm">// 512 KB par chunk</span>
+    <span class="kw">public static final int</span> MAX_TE_NBT_BYTES          = <span class="nu">65536</span>;  <span class="cm">// 64 KB par TileEntity</span>
+    <span class="kw">public static final int</span> MAX_TILE_ENTITIES_PER_CHUNK = <span class="nu">256</span>;    <span class="cm">// max TE par chunk</span>
+
+    <span class="an">@SubscribeEvent</span>
+    <span class="kw">public void</span> <span class="fn">onChunkWatch</span>(<span class="ty">ChunkWatchEvent</span>.Watch event) {
+        <span class="cm">// Calculer la taille NBT initiale quand le chunk se charge</span>
+        <span class="ty">EriScheduler</span>.<span class="fn">delay</span>(<span class="nu">1</span>, () -> <span class="fn">scanChunk</span>(event.getChunk()));
+    }
+
+    <span class="kw">public void</span> <span class="fn">onTileEntityModified</span>(<span class="ty">TileEntity</span> te) {
+        <span class="cm">// Mettre a jour le cache incrementalement</span>
+        <span class="ty">ChunkPos</span> pos = <span class="kw">new</span> <span class="ty">ChunkPos</span>(te.getPos());
+        <span class="kw">int</span> newSize = <span class="fn">estimateTENBTSize</span>(te);
+        chunkSizeCache.<span class="fn">merge</span>(pos, newSize, (<span class="ty">Integer</span> old, <span class="ty">Integer</span> add) -> old + add);
+        <span class="fn">checkChunkLimit</span>(pos, te.getWorld());
+    }
+}</span></div>
+
+      <h3>Mesures de protection</h3>
+      <ul>
+        <li><strong>Limite NBT par chunk</strong> — Si la taille NBT estimee depasse <code>MAX_CHUNK_NBT_BYTES</code> (512 KB par defaut), les nouveaux items NBT lourds sont refuses et l'admin est notifie.</li>
+        <li><strong>Limite NBT par TileEntity</strong> — Avant d'accepter la serialisation d'un TileEntity, sa taille NBT est verifiee. Si > 64 KB, le TE est vidange puis loggue.</li>
+        <li><strong>Limite de TileEntities par chunk</strong> — Un chunk ne peut pas contenir plus de 256 TileEntities. Au-dela, les nouveaux placements de blocks TE sont refuses.</li>
+        <li><strong>Nettoyage automatique</strong> — Si un chunk depasse la limite, les TileEntities les plus lourds sont identifies et leurs contenus sont supprimes (items droppes au sol ou detruits selon config).</li>
+        <li><strong>Hook de sauvegarde</strong> — Mixin sur <code>AnvilChunkLoader.writeChunkToNBT</code> pour intercepter la serialisation et refuser si la taille depasse la limite avant ecriture.</li>
+      </ul>
+
+      <div class="code-block"><span class="cm">// Mixin sur AnvilChunkLoader</span>
+<span class="an">@Mixin</span>(<span class="ty">AnvilChunkLoader</span>.<span class="kw">class</span>)
+<span class="kw">public abstract class</span> <span class="ty">MixinAnvilChunkLoader</span> {
+
+    <span class="an">@Inject</span>(method = <span class="st">"writeChunkToNBT"</span>, at = <span class="an">@At</span>(<span class="st">"HEAD"</span>), cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">onWriteChunk</span>(<span class="ty">Chunk</span> chunk, <span class="ty">World</span> world, <span class="ty">NBTTagCompound</span> compound,
+                                <span class="ty">CallbackInfo</span> ci) {
+        <span class="kw">if</span> (<span class="ty">ChunkNBTMonitor</span>.<span class="fn">getInstance</span>().<span class="fn">isChunkOverLimit</span>(chunk)) {
+            <span class="ty">ExploitLogger</span>.<span class="fn">log</span>(<span class="st">"CHUNK_NBT_OVERFLOW"</span>, chunk.getPos(), <span class="kw">null</span>);
+            <span class="ty">ChunkNBTMonitor</span>.<span class="fn">getInstance</span>().<span class="fn">cleanChunk</span>(chunk);
+            <span class="cm">// Ne pas annuler - le chunk sauvegarde apres nettoyage</span>
+        }
+    }
+}</span></div>
+    </section>
+
+    <!-- ═══ 04. CONTAINER DUPLICATION ═══ -->
+    <section class="section-card" id="container">
+      <h2><span class="s-num">04</span>Container Duplication</h2>
+
+      <h3 class="first">Mecanisme de la race condition</h3>
+      <p>Dans Minecraft 1.12.2, lorsqu'un joueur interagit avec un conteneur (coffre, four, table de craft), le serveur traite les paquets <code>CPacketClickWindow</code> et met a jour l'inventaire. Sous forte charge serveur (lag) :</p>
+      <ul>
+        <li>Le client peut envoyer plusieurs paquets rapides avant de recevoir la confirmation serveur.</li>
+        <li>Un double-clic ou shift-clic rapide peut etre traite deux fois si la validation de l'etat precedent est manquee.</li>
+        <li>La desynchronisation client-serveur cree une fenetre ou l'item semble exister dans deux endroits simultanement.</li>
+      </ul>
+
+      <h3>ContainerInteractionValidator</h3>
+      <p>Le <code>ContainerInteractionValidator</code> maintient un historique reconstruisant l'etat serveur-autoritatif de chaque interaction de conteneur par joueur.</p>
+
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">ContainerInteractionValidator</span> {
+
+    <span class="cm">// Dernier tick d'interaction par joueur par container</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">UUID</span>, <span class="ty">ContainerState</span>&gt; playerStates = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+
+    <span class="cm">// Cooldown minimum entre interactions (ticks)</span>
+    <span class="kw">public static final int</span> MIN_INTERACTION_GAP_TICKS = <span class="nu">1</span>;
+
+    <span class="kw">public boolean</span> <span class="fn">validateClick</span>(<span class="ty">EntityPlayerMP</span> player, <span class="ty">Container</span> container,
+                                     <span class="kw">int</span> slotId, <span class="kw">int</span> button, <span class="ty">ClickType</span> type,
+                                     <span class="ty">ItemStack</span> expected) {
+
+        <span class="ty">ContainerState</span> state = playerStates.<span class="fn">getOrDefault</span>(player.getUniqueID(),
+                                   <span class="kw">new</span> <span class="ty">ContainerState</span>());
+
+        <span class="cm">// 1. Verifier que le tick d'interaction precedent est passe</span>
+        <span class="kw">if</span> (state.lastTick == player.world.getTotalWorldTime()) {
+            <span class="cm">// Meme tick = paquet double -> refuser</span>
+            <span class="fn">flagExploit</span>(player, <span class="st">"CONTAINER_DOUBLE_INTERACT"</span>);
+            <span class="kw">return false</span>;
+        }
+
+        <span class="cm">// 2. Verifier que l'item dans le slot correspond a notre etat attendu</span>
+        <span class="ty">ItemStack</span> serverSlot = container.<span class="fn">getSlot</span>(slotId).<span class="fn">getStack</span>();
+        <span class="kw">if</span> (!<span class="ty">ItemStack</span>.<span class="fn">areItemStacksEqual</span>(serverSlot, expected)) {
+            <span class="fn">flagExploit</span>(player, <span class="st">"CONTAINER_DESYNC"</span>);
+            <span class="cm">// Forcer resync inventaire</span>
+            player.<span class="fn">sendContainerToPlayer</span>(container);
+            <span class="kw">return false</span>;
+        }
+
+        state.lastTick = player.world.<span class="fn">getTotalWorldTime</span>();
+        <span class="kw">return true</span>;
+    }
+}</span></div>
+
+      <h3>Verification de la somme des items</h3>
+      <p>Apres chaque transaction de conteneur completee, le systeme compare le nombre total d'items dans l'inventaire du joueur + le conteneur avant et apres la transaction. Si la somme augmente d'un item qui n'etait pas attendu, la transaction est annulee et l'inventaire est restaure.</p>
+
+      <div class="code-block"><span class="cm">// Snapshot avant transaction</span>
+<span class="ty">InventorySnapshot</span> before = <span class="ty">InventorySnapshot</span>.<span class="fn">take</span>(player, container);
+
+<span class="cm">// [transaction vanilla]</span>
+
+<span class="cm">// Verification apres transaction</span>
+<span class="ty">InventorySnapshot</span> after = <span class="ty">InventorySnapshot</span>.<span class="fn">take</span>(player, container);
+<span class="kw">if</span> (!before.<span class="fn">isConsistentWith</span>(after)) {
+    <span class="ty">ExploitLogger</span>.<span class="fn">log</span>(<span class="st">"ITEM_COUNT_MISMATCH"</span>, player);
+    before.<span class="fn">restore</span>(player, container); <span class="cm">// Rollback</span>
+}</span></div>
+    </section>
+
+    <!-- ═══ 05. PACKET MANIPULATION ═══ -->
+    <section class="section-card" id="packet">
+      <h2><span class="s-num">05</span>Packet Manipulation</h2>
+
+      <h3 class="first">Vecteurs d'attaque</h3>
+      <ul>
+        <li><strong>CPacketCreativeInventoryAction</strong> — Les clients en mode creatif peuvent envoyer ce paquet pour donner n'importe quel item. Des clients modifies l'envoient en mode survie.</li>
+        <li><strong>CPacketClickWindow avec itemStack modifie</strong> — Un client modifie peut envoyer un paquet avec un ItemStack dont le NBT a ete gonfle ou les metadonnees alterees.</li>
+        <li><strong>CPacketWindowConfirmation modifie</strong> — Confirmer des transactions que le serveur n'a jamais initiees.</li>
+      </ul>
+
+      <h3>PacketValidator — Mixin sur NetHandlerPlayServer</h3>
+      <div class="code-block"><span class="an">@Mixin</span>(<span class="ty">NetHandlerPlayServer</span>.<span class="kw">class</span>)
+<span class="kw">public abstract class</span> <span class="ty">MixinNetHandlerPlayServer</span> {
+
+    <span class="an">@Shadow</span> <span class="kw">public</span> <span class="ty">EntityPlayerMP</span> player;
+
+    <span class="cm">// Intercepter les clics d'inventaire</span>
+    <span class="an">@Inject</span>(method = <span class="st">"processClickWindow"</span>, at = <span class="an">@At</span>(<span class="st">"HEAD"</span>), cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">validateClickWindow</span>(<span class="ty">CPacketClickWindow</span> pkt, <span class="ty">CallbackInfo</span> ci) {
+        <span class="kw">if</span> (!<span class="ty">PacketValidator</span>.<span class="fn">getInstance</span>().<span class="fn">validateClickWindow</span>(player, pkt)) {
+            ci.<span class="fn">cancel</span>();
+        }
+    }
+
+    <span class="cm">// Intercepter les actions creatives (ne doit JAMAIS arriver en survie)</span>
+    <span class="an">@Inject</span>(method = <span class="st">"processCreativeInventoryAction"</span>, at = <span class="an">@At</span>(<span class="st">"HEAD"</span>), cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">validateCreativeAction</span>(<span class="ty">CPacketCreativeInventoryAction</span> pkt, <span class="ty">CallbackInfo</span> ci) {
+        <span class="kw">if</span> (player.<span class="fn">interactionManager</span>.getGameType() != <span class="ty">GameType</span>.CREATIVE) {
+            <span class="ty">ExploitLogger</span>.<span class="fn">log</span>(<span class="st">"CREATIVE_PACKET_IN_SURVIVAL"</span>, player);
+            <span class="ty">PacketValidator</span>.<span class="fn">getInstance</span>().<span class="fn">flagViolation</span>(player, <span class="nu">10</span>); <span class="cm">// Violation severe</span>
+            ci.<span class="fn">cancel</span>();
+        }
+    }
+}</span></div>
+
+      <h3>Validation des ItemStack dans les paquets</h3>
+      <ul>
+        <li><strong>Taille NBT par item</strong> — Tout ItemStack recu dans un paquet est inspecte. Si sa taille NBT depasse 8 KB, le paquet est refuse.</li>
+        <li><strong>Validite de l'item</strong> — L'item doit exister dans le registre Forge. Les items avec des metadatas impossibles sont refuses.</li>
+        <li><strong>Coherence du count</strong> — Un ItemStack dans un slot de conteneur ne peut pas depasser <code>maxStackSize</code>. Les stacks > max (manipules par client) sont refuses.</li>
+        <li><strong>Hash verification</strong> — Pour chaque slot d'inventaire, le systeme maintient un hash de l'etat attendu. Si le paquet presente un item qui ne correspond pas au hash, la transaction est rejetee et l'inventaire est resynchronise.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ 06. DROP / PICKUP EXPLOITS ═══ -->
+    <section class="section-card" id="drop-pickup">
+      <h2><span class="s-num">06</span>Drop / Pickup Exploits</h2>
+
+      <h3 class="first">Vecteurs d'attaque</h3>
+      <p>Ces exploits exploitent les fenetres temporelles durant des transitions d'etat ou le serveur peut perdre le suivi des items :</p>
+
+      <div class="exploit-grid">
+        <div class="exploit-card crit">
+          <div class="exploit-card-name"><span class="tag-crit">CRITIQUE</span>Death Dupe</div>
+          <div class="exploit-card-desc">Dropper un item au sol au moment exact de la mort. Sous lag, le serveur traite le drop et la mort dans le meme tick — l'item est a la fois dans le loot de mort et au sol.</div>
+          <div class="exploit-card-solution">Solution : bloquer les drops d'inventaire pendant les 2 ticks precedant et suivant la mort.</div>
+        </div>
+        <div class="exploit-card high">
+          <div class="exploit-card-name"><span class="tag-high">HAUT</span>TP Dupe</div>
+          <div class="exploit-card-desc">Interagir avec un conteneur pendant un teleportation. L'item peut exister dans deux etats simultanes si la TP ne vide pas correctement les conteneurs ouverts.</div>
+          <div class="exploit-card-solution">Solution : fermer de force tous les conteneurs ouverts avant chaque teleportation.</div>
+        </div>
+        <div class="exploit-card high">
+          <div class="exploit-card-name"><span class="tag-high">HAUT</span>Dimension Change Dupe</div>
+          <div class="exploit-card-desc">Placer des items dans un conteneur en cours de transition de dimension. La desync entre dimensions permet a l'item d'exister dans les deux.</div>
+          <div class="exploit-card-solution">Solution : lock inventaire pendant la transition dimensionnelle (flag joueur).</div>
+        </div>
+        <div class="exploit-card med">
+          <div class="exploit-card-name"><span class="tag-med">MOYEN</span>Overflow Pickup</div>
+          <div class="exploit-card-desc">Ramasser des items alors que l'inventaire est plein sur un client modifie. Certains clients envoient des faux paquets de pickup pour forcer des items supplementaires.</div>
+          <div class="exploit-card-solution">Solution : valider capacite inventaire cote serveur avant chaque pickup.</div>
+        </div>
+      </div>
+
+      <h3>Implementation</h3>
+      <div class="code-block"><span class="cm">// Flag de lock inventaire par joueur</span>
+<span class="an">@EriCapability</span>(modId = <span class="st">"eriniumfaction"</span>, target = <span class="ty">AttachTarget</span>.PLAYER)
+<span class="kw">public class</span> <span class="ty">SecurityCapData</span> {
+    <span class="kw">public boolean</span> inventoryLocked = <span class="kw">false</span>;
+    <span class="kw">public long</span> lockUntilTick = <span class="nu">0</span>;
+    <span class="kw">public</span> <span class="ty">String</span> lockReason = <span class="st">""</span>;
+}
+
+<span class="cm">// Mixin sur EntityPlayer.dropItem</span>
+<span class="an">@Inject</span>(method = <span class="st">"dropItem(Lnet/minecraft/item/ItemStack;Z)Lnet/minecraft/entity/item/EntityItem;"</span>,
+         at = <span class="an">@At</span>(<span class="st">"HEAD"</span>), cancellable = <span class="kw">true</span>)
+<span class="kw">private void</span> <span class="fn">preventDropWhileLocked</span>(<span class="ty">ItemStack</span> stack, <span class="kw">boolean</span> dropAround, <span class="ty">CallbackInfoReturnable</span>&lt;<span class="ty">EntityItem</span>&gt; cir) {
+    <span class="kw">if</span> (<span class="ty">EriCap</span>.<span class="fn">get</span>((<span class="ty">EntityPlayer</span>)(<span class="kw">Object</span>)<span class="kw">this</span>, <span class="ty">SecurityCapData</span>.<span class="kw">class</span>).inventoryLocked) {
+        cir.<span class="fn">setReturnValue</span>(<span class="kw">null</span>); <span class="cm">// Annuler le drop</span>
+    }
+}</span></div>
+    </section>
+
+    <!-- ═══ 07. CRAFTING EXPLOITS ═══ -->
+    <section class="section-card" id="crafting">
+      <h2><span class="s-num">07</span>Crafting Exploits</h2>
+
+      <h3 class="first">Shift-click Craft sous lag</h3>
+      <p>Le craft par shift-clic repete tente de fabriquer autant d'exemplaires que possible en une seule interaction. Sous lag :</p>
+      <ul>
+        <li>Le client peut envoyer plusieurs paquets <code>CPacketClickWindow</code> de shift-clic sur l'output de craft avant que le serveur ait retire les ingredients.</li>
+        <li>Resultat : l'output est collecte N fois mais les ingredients ne sont retires qu'une seule fois.</li>
+      </ul>
+
+      <h3>Solution : Post-Craft Ingredient Verification</h3>
+      <div class="code-block"><span class="an">@Mixin</span>(<span class="ty">ContainerWorkbench</span>.<span class="kw">class</span>)
+<span class="kw">public abstract class</span> <span class="ty">MixinContainerWorkbench</span> {
+
+    <span class="an">@Shadow</span> <span class="kw">public</span> <span class="ty">InventoryCrafting</span> craftMatrix;
+    <span class="an">@Shadow</span> <span class="kw">public</span> <span class="ty">IInventory</span> craftResult;
+
+    <span class="an">@Inject</span>(method = <span class="st">"transferStackInSlot"</span>, at = <span class="an">@At</span>(<span class="st">"RETURN"</span>))
+    <span class="kw">private void</span> <span class="fn">verifyCraftIngredients</span>(<span class="ty">EntityPlayer</span> player, <span class="kw">int</span> slotIndex,
+                                           <span class="ty">CallbackInfoReturnable</span>&lt;<span class="ty">ItemStack</span>&gt; cir) {
+        <span class="kw">if</span> (slotIndex == <span class="nu">0</span>) { <span class="cm">// Slot 0 = output de craft</span>
+            <span class="ty">ItemStack</span> output = cir.<span class="fn">getReturnValue</span>();
+            <span class="kw">if</span> (!output.<span class="fn">isEmpty</span>()) {
+                <span class="cm">// Verifier que les ingredients sont bien consommes</span>
+                <span class="ty">CraftingValidator</span>.<span class="fn">getInstance</span>()
+                    .<span class="fn">validateCraftTransaction</span>(player, craftMatrix, output);
+            }
+        }
+    }
+}</span></div>
+
+      <h3>Cooldown de craft</h3>
+      <p>Un cooldown de 1 tick est impose entre chaque operation de craft output pour un meme joueur. Ce cooldown est transparent pour le jeu normal (le craft est instantane dans le jeu vanilla), mais empeche les double-traitements de paquets sous lag.</p>
+    </section>
+
+    <!-- ═══ 08. BOOK / SIGN OVERFLOW ═══ -->
+    <section class="section-card" id="nbt-overflow">
+      <h2><span class="s-num">08</span>Book / Sign NBT Overflow</h2>
+
+      <h3 class="first">Attaques par saturation de texte</h3>
+      <p>Minecraft 1.12.2 ne valide pas strictement la taille du contenu des livres ecrits ni des enseignes. Des clients malveillants peuvent envoyer :</p>
+      <ul>
+        <li>Un livre avec 500+ pages (limite vanilla = 50 mais non enforced serveur).</li>
+        <li>Un livre avec des pages contenant des JSON Component imbriques exponentiellement.</li>
+        <li>Des enseignes avec des lignes contenant des JSON Component de grande profondeur.</li>
+        <li>Des livres avec des caracteres Unicode speciaux causant des problemes de rendering.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">!</span>
+        <div class="content"><strong>Impact :</strong> Un livre avec 500 pages de texte JSON imbriqué peut faire crasher le rendu du client et provoquer un lag du serveur lors de la serialisation. Des enseignes avec un JSON malformé peuvent faire crasher tous les clients dans le rayon de rendu.</div>
+      </div>
+
+      <h3>Limites appliquees par PacketValidator</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Champ</th><th>Limite</th><th>Action si depassement</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Pages par livre</td><td>100 max</td><td>Tronquer a 100 pages</td></tr>
+            <tr><td>Caracteres par page</td><td>1024 chars</td><td>Tronquer la page</td></tr>
+            <tr><td>Taille NBT totale livre</td><td>32 KB</td><td>Refuser l'ecriture, log</td></tr>
+            <tr><td>Longueur ligne enseigne</td><td>64 chars</td><td>Tronquer la ligne</td></tr>
+            <tr><td>Profondeur JSON Component</td><td>8 niveaux max</td><td>Refuser, remplacer par texte brut</td></tr>
+            <tr><td>Titre du livre</td><td>128 chars</td><td>Tronquer</td></tr>
+            <tr><td>Auteur du livre</td><td>64 chars</td><td>Tronquer</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Validation des paquets</h3>
+      <div class="code-block"><span class="an">@Inject</span>(method = <span class="st">"processEditBook"</span>, at = <span class="an">@At</span>(<span class="st">"HEAD"</span>), cancellable = <span class="kw">true</span>)
+<span class="kw">private void</span> <span class="fn">validateEditBook</span>(<span class="ty">CPacketEditBook</span> pkt, <span class="ty">CallbackInfo</span> ci) {
+    <span class="ty">NBTTagCompound</span> bookTag = pkt.<span class="fn">getBookNBT</span>();
+
+    <span class="cm">// 1. Limiter le nombre de pages</span>
+    <span class="ty">NBTTagList</span> pages = bookTag.<span class="fn">getTagList</span>(<span class="st">"pages"</span>, <span class="nu">8</span>);
+    <span class="kw">while</span> (pages.<span class="fn">tagCount</span>() > <span class="ty">UseBugConfig</span>.MAX_BOOK_PAGES) {
+        pages.<span class="fn">removeTag</span>(pages.<span class="fn">tagCount</span>() - <span class="nu">1</span>);
+    }
+
+    <span class="cm">// 2. Tronquer chaque page</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i < pages.<span class="fn">tagCount</span>(); i++) {
+        <span class="ty">String</span> page = pages.<span class="fn">getStringTagAt</span>(i);
+        <span class="kw">if</span> (page.<span class="fn">length</span>() > <span class="ty">UseBugConfig</span>.MAX_CHARS_PER_PAGE) {
+            pages.<span class="fn">set</span>(i, <span class="kw">new</span> <span class="ty">NBTTagString</span>(page.<span class="fn">substring</span>(<span class="nu">0</span>, <span class="ty">UseBugConfig</span>.MAX_CHARS_PER_PAGE)));
+        }
+    }
+
+    <span class="cm">// 3. Verifier taille NBT totale</span>
+    <span class="kw">int</span> nbtSize = <span class="ty">NBTSizeValidator</span>.<span class="fn">estimateSize</span>(bookTag);
+    <span class="kw">if</span> (nbtSize > <span class="ty">UseBugConfig</span>.MAX_BOOK_NBT_BYTES) {
+        <span class="ty">ExploitLogger</span>.<span class="fn">log</span>(<span class="st">"BOOK_NBT_OVERFLOW"</span>, player);
+        ci.<span class="fn">cancel</span>();
+    }
+}</span></div>
+    </section>
+
+    <!-- ═══ 09. HOPPER / TILEENTITY ═══ -->
+    <section class="section-card" id="hopper">
+      <h2><span class="s-num">09</span>Hopper / Dispenser / TileEntity Exploits</h2>
+
+      <h3 class="first">Machines de duplication par hopper</h3>
+      <p>Des joueurs experimentes construisent des "machines" utilisant des combinations de hoppers, comparateurs, pistons et dispensers pour automatiser la duplication a faible taux mais de maniere continue. Les exploits classiques incluent :</p>
+      <ul>
+        <li><strong>Hopper-clock dupe</strong> — Un hopper connecte a un autre en boucle peut dupliquer un item toutes les N ticks si un comparateur mal configure cree un etat instable.</li>
+        <li><strong>Piston-hopper item duplicate</strong> — Utiliser un piston pour pousser un bloc contenant des items pendant qu'un hopper tente de les extraire cree une race condition.</li>
+        <li><strong>Dispenser-bucket dupe</strong> — Placer et ramasser des buckets (eau/lave) via dispenser dans des conditions specifiques.</li>
+      </ul>
+
+      <h3>Limites et moniteurs</h3>
+      <ul>
+        <li><strong>Max hoppers par chunk</strong> — Limite a 64 hoppers par chunk (config). Au-dela, les nouveaux hoppers sont refuses au placement (message d'erreur au joueur).</li>
+        <li><strong>Taux de transfert hopper</strong> — Si un hopper transfere plus de 64 items/seconde (impossible en vanilla normal), le hopper est desactive temporairement et l'admin est notifie.</li>
+        <li><strong>Cap TileEntities par chunk</strong> — Limite totale de 256 TileEntities par chunk (hoppers + coffres + fours + tous les TE).</li>
+        <li><strong>Monitor de TileEntities dupliques</strong> — Detection si le meme item UUID apparait dans deux TileEntities differents simultanement.</li>
+      </ul>
+
+      <div class="code-block"><span class="cm">// Mixin sur TileEntityHopper.transferItems</span>
+<span class="an">@Mixin</span>(<span class="ty">TileEntityHopper</span>.<span class="kw">class</span>)
+<span class="kw">public abstract class</span> <span class="ty">MixinTileEntityHopper</span> {
+
+    <span class="kw">private int</span> transfersThisSecond = <span class="nu">0</span>;
+    <span class="kw">private long</span> lastSecondTick = <span class="nu">0</span>;
+
+    <span class="an">@Inject</span>(method = <span class="st">"transferItems"</span>, at = <span class="an">@At</span>(<span class="st">"RETURN"</span>))
+    <span class="kw">private void</span> <span class="fn">monitorTransferRate</span>(<span class="ty">CallbackInfoReturnable</span>&lt;<span class="ty">Boolean</span>&gt; cir) {
+        <span class="kw">if</span> (!cir.<span class="fn">getReturnValue</span>()) <span class="kw">return</span>;
+
+        <span class="ty">TileEntityHopper</span> self = (<span class="ty">TileEntityHopper</span>)(<span class="kw">Object</span>)<span class="kw">this</span>;
+        <span class="kw">long</span> tick = self.getWorld().<span class="fn">getTotalWorldTime</span>();
+
+        <span class="kw">if</span> (tick - lastSecondTick >= <span class="nu">20</span>) {
+            transfersThisSecond = <span class="nu">0</span>;
+            lastSecondTick = tick;
+        }
+
+        transfersThisSecond++;
+        <span class="kw">if</span> (transfersThisSecond > <span class="ty">UseBugConfig</span>.MAX_HOPPER_TRANSFERS_PER_SEC) {
+            <span class="ty">UseBugManager</span>.<span class="fn">getInstance</span>().<span class="fn">flagHopperAnomaly</span>(self);
+        }
+    }
+}</span></div>
+    </section>
+
+    <!-- ═══ 10. ARCHITECTURE TECHNIQUE ═══ -->
+    <section class="section-card" id="architecture">
+      <h2><span class="s-num">10</span>Architecture Technique</h2>
+
+      <h3 class="first">Package principal</h3>
+      <p>Tout le code de securite est isole dans le package <code>fr.eriniumgroup.eriniumfaction.security.usebug</code> pour faciliter la maintenance et les audits de securite.</p>
+
+      <div class="arch-grid">
+        <div class="arch-card">
+          <div class="arch-card-name">UseBugManager</div>
+          <div class="arch-card-desc">Singleton central. Initialise et orchestre tous les sous-systemes. Point d'entree unique pour les flags d'exploit.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">ChunkNBTMonitor</div>
+          <div class="arch-card-desc">Surveille la taille NBT des chunks en temps reel. Cache incremental, scan initial au chargement.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">ContainerInteractionValidator</div>
+          <div class="arch-card-desc">Valide chaque clic de conteneur. Maintient l'etat attendu par joueur. Rollback si incoherence.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">NBTSizeValidator</div>
+          <div class="arch-card-desc">Estime la taille NBT de tout objet (ItemStack, TileEntity, Chunk). Utilitaire partage.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">PacketValidator</div>
+          <div class="arch-card-desc">Mixin sur NetHandlerPlayServer. Intercepte et valide tous les paquets inventaire entrants.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">CraftingValidator</div>
+          <div class="arch-card-desc">Verifie la coherence des transactions de craft. Comparaison ingredients avant/apres.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">ExploitLogger</div>
+          <div class="arch-card-desc">Log toutes les detections avec UUID joueur, coordonnees, timestamp, type d'exploit et details.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">UseBugConfig</div>
+          <div class="arch-card-desc">Toutes les limites configurables. Rechargeable en live via commande admin.</div>
+        </div>
+      </div>
+
+      <h3>Structure des packages et classes</h3>
+      <div class="code-block">fr.eriniumgroup.eriniumfaction.security.usebug/
+├── UseBugManager.java                  <span class="cm">// Singleton principal</span>
+├── config/
+│   └── UseBugConfig.java               <span class="cm">// Toutes les constantes configurables</span>
+├── monitor/
+│   ├── ChunkNBTMonitor.java            <span class="cm">// Surveillance taille NBT chunks</span>
+│   ├── HopperMonitor.java              <span class="cm">// Surveillance taux transfert hoppers</span>
+│   └── TileEntityCountMonitor.java     <span class="cm">// Surveillance count TE par chunk</span>
+├── validator/
+│   ├── ContainerInteractionValidator.java <span class="cm">// Validation clics conteneurs</span>
+│   ├── NBTSizeValidator.java           <span class="cm">// Estimation taille NBT</span>
+│   ├── PacketValidator.java            <span class="cm">// Validation paquets inventaire</span>
+│   ├── CraftingValidator.java          <span class="cm">// Validation transactions craft</span>
+│   └── InventorySnapshot.java          <span class="cm">// Snapshot inventaire pour rollback</span>
+├── logger/
+│   └── ExploitLogger.java              <span class="cm">// Logging detecteurs + alertes admin</span>
+└── mixin/
+    ├── MixinNetHandlerPlayServer.java   <span class="cm">// Interception paquets inventaire</span>
+    ├── MixinAnvilChunkLoader.java       <span class="cm">// Hook sauvegarde chunk</span>
+    ├── MixinTileEntityHopper.java       <span class="cm">// Monitoring taux hopper</span>
+    ├── MixinContainerWorkbench.java     <span class="cm">// Validation craft</span>
+    └── MixinEntityPlayer.java           <span class="cm">// Lock drops inventaire</span></div>
+
+      <h3>Cycle de vie et initialisation</h3>
+      <div class="code-block"><span class="cm">// Dans CommonProxy.preInit()</span>
+<span class="ty">UseBugManager</span>.<span class="fn">getInstance</span>().<span class="fn">init</span>(event.getSide());
+
+<span class="cm">// Dans CommonProxy.init()</span>
+<span class="ty">EriEvents</span>.<span class="fn">on</span>(<span class="ty">ChunkWatchEvent</span>.Watch.<span class="kw">class</span>)
+    .<span class="fn">handle</span>(e -> <span class="ty">ChunkNBTMonitor</span>.<span class="fn">getInstance</span>().<span class="fn">onChunkLoad</span>(e));
+
+<span class="ty">EriEvents</span>.<span class="fn">on</span>(<span class="ty">LivingDeathEvent</span>.<span class="kw">class</span>)
+    .<span class="fn">filter</span>(e -> e.getEntity() <span class="kw">instanceof</span> <span class="ty">EntityPlayerMP</span>)
+    .<span class="fn">handle</span>(e -> <span class="ty">UseBugManager</span>.<span class="fn">getInstance</span>().<span class="fn">onPlayerDeath</span>((<span class="ty">EntityPlayerMP</span>) e.getEntity()));</div>
+    </section>
+
+    <!-- ═══ 11. MONITORING & ALERTES ═══ -->
+    <section class="section-card" id="monitoring">
+      <h2><span class="s-num">11</span>Monitoring &amp; Alertes Admin</h2>
+
+      <h3 class="first">Systeme d'alertes</h3>
+      <p>Chaque detection d'exploit declenche une alerte multi-canal selon sa severite :</p>
+      <ul>
+        <li><strong>Console</strong> — Toujours loggue dans la console serveur avec level WARNING ou ERROR.</li>
+        <li><strong>Fichier de log</strong> — Ecrit dans <code>logs/exploits.log</code> avec timestamp ISO, UUID joueur, coordonnees, type, details.</li>
+        <li><strong>Chat admin</strong> — Via EriChat, envoi a tous les joueurs avec permission <code>eriniumfaction.admin.security</code>.</li>
+      </ul>
+
+      <div class="code-block"><span class="cm">// Alerte admin via EriChat</span>
+<span class="kw">public void</span> <span class="fn">alertAdmins</span>(<span class="ty">String</span> exploitType, <span class="ty">EntityPlayerMP</span> offender, <span class="ty">String</span> details) {
+    <span class="kw">for</span> (<span class="ty">EntityPlayerMP</span> admin : <span class="ty">FMLCommonHandler</span>.<span class="fn">instance</span>().<span class="fn">getMinecraftServerInstance</span>()
+                                 .<span class="fn">getPlayerList</span>().<span class="fn">getPlayers</span>()) {
+        <span class="kw">if</span> (admin.<span class="fn">canUseCommand</span>(<span class="nu">4</span>, <span class="st">"eriniumfaction.admin.security"</span>)) {
+            <span class="ty">EriChat</span>.<span class="fn">create</span>()
+                .<span class="fn">text</span>(<span class="st">"[SECURITY] "</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.RED).<span class="fn">bold</span>()
+                .<span class="fn">text</span>(offender.<span class="fn">getName</span>()).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.YELLOW)
+                .<span class="fn">text</span>(<span class="st">" — "</span> + exploitType).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.WHITE)
+                .<span class="fn">text</span>(<span class="st">" | "</span> + details).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.GRAY)
+                .<span class="fn">to</span>(admin);
+        }
+    }
+}</span></div>
+
+      <h3>Rate limiting des violations</h3>
+      <p>Si un joueur declenche plus de N violations en M secondes, il est automatiquement kicte avec un message de log pour investigation manuelle. Les seuils sont configurables :</p>
+      <ul>
+        <li><strong>Kick automatique</strong> — 5 violations distinctes en 30 secondes.</li>
+        <li><strong>Ban temporaire 1h</strong> — 3 kicks consecutifs pour exploit dans la meme session.</li>
+        <li><strong>Escalade admin</strong> — Tout kick pour exploit envoie une alerte persistante aux admins connectes.</li>
+      </ul>
+
+      <h3>Dashboard de statistiques</h3>
+      <p>Les donnees d'exploit sont stockees via EriAPI DataManager dans un POJO monde :</p>
+      <div class="code-block"><span class="an">@EriData</span>(modId = <span class="st">"eriniumfaction"</span>, scope = <span class="ty">DataScope</span>.WORLD)
+<span class="kw">public class</span> <span class="ty">SecurityWorldData</span> {
+    <span class="kw">public</span> <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">Integer</span>&gt; exploitCounts = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();    <span class="cm">// type -> count</span>
+    <span class="kw">public</span> <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">Integer</span>&gt; playerViolations = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;(); <span class="cm">// UUID -> count</span>
+    <span class="kw">public</span> <span class="ty">List</span>&lt;<span class="ty">String</span>&gt; recentExploits = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();          <span class="cm">// derniers 100 exploits</span>
+}</span></div>
+    </section>
+
+    <!-- ═══ 12. PERFORMANCE ═══ -->
+    <section class="section-card" id="performance">
+      <h2><span class="s-num">12</span>Considerations de Performance</h2>
+
+      <div class="info-box tip">
+        <span class="icon">✓</span>
+        <div class="content"><strong>Objectif :</strong> L'ensemble du systeme anti-usebug ne doit pas ajouter plus de <strong>1ms par tick</strong> sur le thread principal avec 1000 joueurs actifs.</div>
+      </div>
+
+      <h3 class="first">Strategies d'optimisation</h3>
+      <ul>
+        <li><strong>Evaluation paresseuse (lazy)</strong> — Le scan NBT approfondi d'un chunk n'est effectue qu'a son chargement initial ou lors d'une modification de TileEntity, pas a chaque tick.</li>
+        <li><strong>Cache incremental des tailles NBT</strong> — La taille NBT d'un chunk est mise a jour incrementalement (+/- la difference) quand un TE est modifie, pas recalculee en entier.</li>
+        <li><strong>NBTSizeValidator rapide</strong> — L'estimation de taille est faite par comptage d'octets approximatif (pas par serialisation complete), ce qui est 50x plus rapide.</li>
+        <li><strong>Validation paquet en O(1)</strong> — Le hashage d'inventaire utilise un entier 64-bit XOR des hashes d'items, pas une serialisation complete.</li>
+        <li><strong>Monitoring hopper asynchrone</strong> — Les statistiques de taux de transfert hoppers sont calculees en arriere-plan toutes les 20 ticks, pas en temps reel.</li>
+        <li><strong>Alertes admin en batch</strong> — Les alertes multiples pour le meme joueur dans le meme tick sont regroupees en un seul message.</li>
+      </ul>
+
+      <h3>Benchmark cible</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Frequence</th><th>Budget temps</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Validation paquet CPacketClickWindow</td><td>Par paquet joueur</td><td>&lt; 0.05ms</td></tr>
+            <tr><td>Update cache NBT chunk (TE modifie)</td><td>Par interaction TE</td><td>&lt; 0.1ms</td></tr>
+            <tr><td>Scan initial chunk au chargement</td><td>Une fois par chunk</td><td>&lt; 5ms (async)</td></tr>
+            <tr><td>Verification post-craft</td><td>Par craft</td><td>&lt; 0.05ms</td></tr>
+            <tr><td>Lock/unlock inventaire</td><td>Par mort/TP</td><td>&lt; 0.01ms</td></tr>
+            <tr><td>Monitoring hoppers (batch)</td><td>Toutes les 20 ticks</td><td>&lt; 0.5ms total</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ 13. CONFIGURATION ═══ -->
+    <section class="section-card" id="config">
+      <h2><span class="s-num">13</span>Configuration</h2>
+
+      <h3 class="first">UseBugConfig.java — Constantes configurables</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">UseBugConfig</span> {
+
+    <span class="cm">// ── Chunk NBT Monitor ──────────────────────────────────────</span>
+    <span class="kw">public static int</span>  MAX_CHUNK_NBT_BYTES       = <span class="nu">524288</span>;  <span class="cm">// 512 KB</span>
+    <span class="kw">public static int</span>  MAX_TE_NBT_BYTES           = <span class="nu">65536</span>;   <span class="cm">// 64 KB par TE</span>
+    <span class="kw">public static int</span>  MAX_TILE_ENTITIES_PER_CHUNK = <span class="nu">256</span>;
+    <span class="kw">public static int</span>  MAX_HOPPERS_PER_CHUNK        = <span class="nu">64</span>;
+
+    <span class="cm">// ── Book / Sign Limits ─────────────────────────────────────</span>
+    <span class="kw">public static int</span>  MAX_BOOK_PAGES             = <span class="nu">100</span>;
+    <span class="kw">public static int</span>  MAX_CHARS_PER_PAGE          = <span class="nu">1024</span>;
+    <span class="kw">public static int</span>  MAX_BOOK_NBT_BYTES          = <span class="nu">32768</span>;  <span class="cm">// 32 KB</span>
+    <span class="kw">public static int</span>  MAX_SIGN_LINE_LENGTH        = <span class="nu">64</span>;
+    <span class="kw">public static int</span>  MAX_BOOK_TITLE_LENGTH        = <span class="nu">128</span>;
+    <span class="kw">public static int</span>  MAX_JSON_COMPONENT_DEPTH    = <span class="nu">8</span>;
+
+    <span class="cm">// ── Packet Limits ─────────────────────────────────────────</span>
+    <span class="kw">public static int</span>  MAX_ITEM_NBT_BYTES          = <span class="nu">8192</span>;   <span class="cm">// 8 KB par item</span>
+
+    <span class="cm">// ── Map Flooding ──────────────────────────────────────────</span>
+    <span class="kw">public static int</span>  MAX_MAP_CREATIONS_PER_MINUTE = <span class="nu">5</span>;
+
+    <span class="cm">// ── Rate Limiting Violations ──────────────────────────────</span>
+    <span class="kw">public static int</span>  VIOLATIONS_BEFORE_KICK      = <span class="nu">5</span>;
+    <span class="kw">public static int</span>  VIOLATION_WINDOW_SECONDS     = <span class="nu">30</span>;
+    <span class="kw">public static int</span>  KICKS_BEFORE_TEMPBAN         = <span class="nu">3</span>;
+    <span class="kw">public static int</span>  TEMPBAN_DURATION_HOURS        = <span class="nu">1</span>;
+
+    <span class="cm">// ── Hopper ────────────────────────────────────────────────</span>
+    <span class="kw">public static int</span>  MAX_HOPPER_TRANSFERS_PER_SEC = <span class="nu">64</span>;
+
+    <span class="cm">// ── Feature Flags ─────────────────────────────────────────</span>
+    <span class="kw">public static boolean</span> ENABLE_CHUNK_NBT_MONITOR   = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> ENABLE_PACKET_VALIDATOR     = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> ENABLE_CRAFTING_VALIDATOR   = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> ENABLE_HOPPER_MONITOR       = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> AUTO_KICK_ON_EXPLOIT        = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> ALERT_ADMINS               = <span class="kw">true</span>;
+}</span></div>
+    </section>
+
+    <!-- ═══ 14. PLAN DE TESTS ═══ -->
+    <section class="section-card" id="tests">
+      <h2><span class="s-num">14</span>Plan de Tests</h2>
+
+      <h3 class="first">Scenarios de test par exploit</h3>
+
+      <div class="checklist">
+        <div class="checklist-item"><strong>[TEST-01] Chunk NBT Bomb :</strong> Placer 100 coffres pleins de livres ecrits 100 pages dans un chunk. Verifier que le monitor detecte le depassement et clean automatiquement sans crash serveur.</div>
+        <div class="checklist-item"><strong>[TEST-02] Container Race Condition :</strong> Simuler des paquets CPacketClickWindow en double dans le meme tick. Verifier que seul le premier est traite et le second est refuse.</div>
+        <div class="checklist-item"><strong>[TEST-03] Creative Packet en Survie :</strong> Envoyer manuellement un CPacketCreativeInventoryAction depuis un joueur en mode survie. Verifier kick + log.</div>
+        <div class="checklist-item"><strong>[TEST-04] Livre overflow :</strong> Envoyer un CPacketEditBook avec 500 pages. Verifier que le livre est tronque a 100 pages et que le paquet est accepte (pas refuse).</div>
+        <div class="checklist-item"><strong>[TEST-05] ItemStack NBT gonfle :</strong> Envoyer un CPacketClickWindow avec un ItemStack ayant 100 KB de NBT. Verifier refus et resync inventaire.</div>
+        <div class="checklist-item"><strong>[TEST-06] Death Dupe :</strong> Tester la mort avec un item dans la main droite au meme tick. Verifier que l'item n'est pas duplique.</div>
+        <div class="checklist-item"><strong>[TEST-07] TP pendant conteneur ouvert :</strong> Teleporter un joueur ayant un coffre ouvert. Verifier fermeture du conteneur et absence de dupe.</div>
+        <div class="checklist-item"><strong>[TEST-08] Hopper rate limit :</strong> Creer une machine hopper transferant 100 items/sec. Verifier flag et desactivation temporaire du hopper.</div>
+        <div class="checklist-item"><strong>[TEST-09] Stress test 1000 coffres :</strong> Placer 1000 coffres dans un chunk (via commande admin test). Verifier que la limite est enforced a 256 TE et que les placements supplementaires sont refuses.</div>
+        <div class="checklist-item"><strong>[TEST-10] Faux positifs :</strong> Jouer normalement pendant 1 heure (craft intensif, coffres pleins, editeur de livres). Verifier zero violation detectee.</div>
+        <div class="checklist-item"><strong>[TEST-11] Performance :</strong> Charger 100 chunks simultanement avec des TE. Verifier que le tick time n'augmente pas de plus de 1ms.</div>
+        <div class="checklist-item"><strong>[TEST-12] Map flood :</strong> Creer 20 cartes en 1 minute. Verifier rate limit a 5/minute et refus des suivantes.</div>
+      </div>
+
+      <h3>Criteres de validation finale</h3>
+      <ul>
+        <li>Aucun des 12 exploits ci-dessus ne peut etre execute avec succes.</li>
+        <li>Aucun faux positif sur 1 heure de jeu normal par 3 joueurs de test.</li>
+        <li>Impact performance &lt; 1ms/tick mesure sur serveur de test avec 100 joueurs.</li>
+        <li>Tous les exploits detectes sont loggues dans <code>logs/exploits.log</code>.</li>
+        <li>Les alertes admin sont recues en moins de 2 ticks apres detection.</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">i</span>
+        <div class="content"><strong>Note :</strong> Les tests d'exploit reels ne doivent etre effectues que sur un serveur de test isole avec une copie de la world de production. Ne jamais tester sur la production directement.</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// Highlight active nav link on scroll
+var sections = document.querySelectorAll('section[id]');
+var navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+
+window.addEventListener('scroll', function() {
+  var scrollY = window.scrollY;
+  sections.forEach(function(section) {
+    var top = section.offsetTop - 80;
+    var bottom = top + section.offsetHeight;
+    if (scrollY >= top && scrollY < bottom) {
+      navLinks.forEach(function(link) {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + section.id) {
+          link.classList.add('active');
+        }
+      });
+    }
+  });
+});
+</script>
+</body>
+</html>

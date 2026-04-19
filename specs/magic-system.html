@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Systeme de Magie | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+    /* Ecoles de magie */
+    --fracture:       #A855F7;
+    --cristallisation: #00E5FF;
+    --corruption:     #2ECC71;
+    --resonance:      #F1C40F;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 50% 90%, rgba(168,85,247,0.08) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 12px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+
+  /* Ecoles badges */
+  .badge-fracture       { color: var(--fracture);       border-color: rgba(168,85,247,0.4);  background: rgba(168,85,247,0.1); }
+  .badge-cristallisation { color: var(--cristallisation); border-color: rgba(0,229,255,0.35);  background: rgba(0,229,255,0.08); }
+  .badge-corruption     { color: var(--corruption);     border-color: rgba(46,204,113,0.35); background: rgba(46,204,113,0.08); }
+  .badge-resonance      { color: var(--resonance);      border-color: rgba(241,196,15,0.35); background: rgba(241,196,15,0.08); }
+
+  /* =========================================================
+     SECTION CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+  .section-card:nth-child(14) { animation-delay: .70s; }
+  .section-card:nth-child(15) { animation-delay: .75s; }
+  .section-card:nth-child(16) { animation-delay: .80s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num    { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num   { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num    { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num  { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.fracture-num      { background: linear-gradient(135deg, #6B21A8 0%, #A855F7 100%); }
+  .section-card h2 .s-num.cristal-num       { background: linear-gradient(135deg, #0097a7 0%, #00E5FF 100%); }
+  .section-card h2 .s-num.corruption-num    { background: linear-gradient(135deg, #145226 0%, #2ECC71 100%); }
+  .section-card h2 .s-num.resonance-num     { background: linear-gradient(135deg, #b8860b 0%, #F1C40F 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr { background: rgba(107,47,160,0.18); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  thead.fracture-head tr  { background: rgba(168,85,247,0.14); }
+  thead.fracture-head th  { border-bottom-color: rgba(168,85,247,0.3); }
+  thead.cristal-head tr   { background: rgba(0,229,255,0.10); }
+  thead.cristal-head th   { border-bottom-color: rgba(0,229,255,0.25); }
+  thead.corrupt-head tr   { background: rgba(46,204,113,0.10); }
+  thead.corrupt-head th   { border-bottom-color: rgba(46,204,113,0.25); }
+  thead.resonance-head tr { background: rgba(241,196,15,0.10); }
+  thead.resonance-head th { border-bottom-color: rgba(241,196,15,0.25); }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+
+  .col-fracture       { color: #A855F7; font-weight: 600; }
+  .col-cristallisation { color: var(--cyan); font-weight: 600; }
+  .col-corruption     { color: var(--green); font-weight: 600; }
+  .col-resonance      { color: var(--gold); font-weight: 600; }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .cl  { color: #FFCB6B; }
+
+  /* =========================================================
+     INFO BOXES
+  ========================================================= */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2);   }
+
+  /* =========================================================
+     SCHOOL CARDS (4 ecoles de magie)
+  ========================================================= */
+  .school-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .school-card {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+  }
+
+  .school-card.fracture       { border-top: 3px solid var(--fracture); }
+  .school-card.cristallisation { border-top: 3px solid var(--cristallisation); }
+  .school-card.corruption     { border-top: 3px solid var(--corruption); }
+  .school-card.resonance      { border-top: 3px solid var(--resonance); }
+
+  .school-card-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .school-card.fracture .school-card-name        { color: var(--fracture); }
+  .school-card.cristallisation .school-card-name  { color: var(--cristallisation); }
+  .school-card.corruption .school-card-name      { color: var(--corruption); }
+  .school-card.resonance .school-card-name       { color: var(--resonance); }
+
+  .school-card-role {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin-bottom: 12px;
+  }
+
+  .school-card-stat {
+    font-size: 12px;
+    color: var(--slate);
+    margin: 4px 0;
+  }
+
+  .school-card-stat strong { color: var(--text); }
+
+  /* =========================================================
+     SLOT PROGRESSION
+  ========================================================= */
+  .slot-track {
+    display: flex;
+    gap: 0;
+    margin: 20px 0;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--card-bdr);
+  }
+
+  .slot-phase {
+    flex: 1;
+    padding: 16px 14px;
+    text-align: center;
+    border-right: 1px solid var(--card-bdr);
+    background: rgba(5,5,10,0.5);
+  }
+
+  .slot-phase:last-child { border-right: none; }
+
+  .slot-phase-lvl {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--slate);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .slot-phase-count {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--violet-l);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .slot-phase-label {
+    font-size: 11px;
+    color: var(--slate);
+  }
+
+  .slot-phase.active .slot-phase-count { color: var(--cyan); }
+  .slot-phase.active { background: rgba(0,229,255,0.04); }
+
+  /* =========================================================
+     LOADOUT GRID
+  ========================================================= */
+  .loadout-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  .loadout-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+  }
+
+  .loadout-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .loadout-card-spells {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .loadout-card-spells li {
+    font-size: 12px;
+    color: var(--slate);
+    padding-left: 14px;
+    position: relative;
+  }
+
+  .loadout-card-spells li::before {
+    content: '◆';
+    position: absolute;
+    left: 0;
+    font-size: 7px;
+    top: 4px;
+    color: var(--violet-l);
+  }
+
+  /* =========================================================
+     ANIMATIONS + DIVIDER
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-bdr), transparent);
+    margin: 24px 0;
+  }
+
+  /* =========================================================
+     MOBILE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,47,160,0.4);
+    transition: transform .2s;
+  }
+
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 50;
+      width: 260px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .school-grid { grid-template-columns: 1fr; }
+    .loadout-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    .section-card { padding: 24px 18px; }
+    .page-header h1 { font-size: 26px; }
+    .slot-track { flex-direction: column; }
+    .slot-phase { border-right: none; border-bottom: 1px solid var(--card-bdr); }
+    .slot-phase:last-child { border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+
+    <span class="sidebar-title">Sommaire</span>
+
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Lore</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Progression Magique</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Sources d'XP</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> La Mana</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Les 4 Ecoles</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Fracture</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Cristallisation</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Corruption</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Resonance</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Slots &amp; Loadouts</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Utilisation en jeu</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Synergie RPG</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Equilibre</a>
+    <a class="nav-link" href="#s14"><span class="num">14</span> HUD &amp; Interface</a>
+    <a class="nav-link" href="#s15"><span class="num">15</span> Architecture technique</a>
+    <a class="nav-link" href="#s16"><span class="num">16</span> Plan de tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">CAHIER DES CHARGES &middot; EriniumFaction</div>
+      <h1>Systeme de Magie</h1>
+      <p>Vingt sorts repartis en quatre ecoles distinctes, alimentes par la Mana et un niveau de magie independant du RPG. Force brute cristalline d'Erinium — pas de baguettes, pas de fioritures.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Minecraft 1.12.2</span>
+        <span class="badge badge-violet">EriAPI</span>
+        <span class="badge badge-cyan">Forge Mod</span>
+        <span class="badge badge-fracture">Magie / Erinium</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & LORE ═══ -->
+    <div class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Lore</h2>
+
+      <p>L'Erinium n'est pas un simple minerai — c'est de l'energie cristallisee, une force primordiale qui imprègne tout ce qu'elle touche. Les joueurs longuement exposes a ce mineral developpent la capacite de canaliser cette energie directement a travers leur corps.</p>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Direction artistique — Force brute.</strong> Ce n'est pas de la magie de sorcier avec des baguettes et des robes. C'est une force sombre, cristalline, viscérale. Les mains craquent de lueur violette, le sol tremble sous les impacts, les cristaux explosent en eclats tranchants. Chaque sort doit transmettre une puissance brute, pas de l'élégance académique.</div>
+      </div>
+
+      <ul>
+        <li><strong>Lore :</strong> L'exposition prolongee a l'Erinium brut provoque une mutation subtile — les veines du joueur luisent faintement de violet.</li>
+        <li><strong>Fiction :</strong> Les factions qui controlent les filons d'Erinium controlent aussi les mages les plus puissants.</li>
+        <li><strong>Gameplay :</strong> La magie est une alternative au combat physique, pas un remplacement. Les deux voies sont viables.</li>
+        <li><strong>Tension :</strong> Le mage domine en burst, le combattant physique prend le dessus si le combat s'eternise.</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S2 — PROGRESSION MAGIQUE ═══ -->
+    <div class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Progression Magique</h2>
+
+      <p>Le niveau de magie est un système entierement independant du niveau RPG. Les deux progressent en parallele et le joueur peut choisir d'ignorer completement la magie — jouer full physique reste viable.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Parametre</th>
+              <th>Valeur</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Niveau maximum</td><td>30</td></tr>
+            <tr><td>Temps pour atteindre le max</td><td>6 a 8 semaines de jeu actif</td></tr>
+            <tr><td>Courbe de progression</td><td>Logarithmique (ralentit au fil des niveaux)</td></tr>
+            <tr><td>XP perdue a la mort</td><td>Aucune — la progression est permanente</td></tr>
+            <tr><td>Independance vis-a-vis du RPG</td><td>Complete — niveau magie != niveau RPG</td></tr>
+            <tr><td>Magie optionnelle</td><td>Oui — un joueur full physique reste competitif</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Paliers de deblocage</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Niveau</th>
+              <th>Deblocage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Niveau 1</td><td>Sorts de base : Eclat, Bouclier cristallin, Toucher corrompu, Pulse de soin — 2 slots actifs</td></tr>
+            <tr><td>Niveaux 5-7</td><td>Sorts de tier 2 (Fracture, Prison d'Erinium, Drain d'essence, Lien de resonance)</td></tr>
+            <tr><td>Niveau 10</td><td>3eme slot de sort actif — Mana max bonus +25 avec stat Arcane 25</td></tr>
+            <tr><td>Niveaux 12-14</td><td>Sorts de tier 3 (Salve cristalline, Mur cristallin, Brume toxique, Aura de vigueur)</td></tr>
+            <tr><td>Niveaux 18-22</td><td>Sorts de tier 4 (Implosion, Armure d'Erinium, Malediction, Teleportation d'Erinium)</td></tr>
+            <tr><td>Niveau 20</td><td>4eme et dernier slot de sort actif</td></tr>
+            <tr><td>Niveaux 28-30</td><td>Sorts ultimes (Cataclysme, Stase cristalline, Peste d'Erinium, Resurrection cristalline)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S3 — SOURCES D'XP ═══ -->
+    <div class="section-card" id="s3">
+      <h2><span class="s-num">03</span> Sources d'XP Magique</h2>
+
+      <p>L'XP magique est separee de l'XP RPG. Elle recompense l'utilisation active de la magie sous pression, en particulier en contexte PvP.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>XP Magique</th>
+              <th>Pourquoi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Lancer un sort en combat PvP</td><td>30–80 XP</td><td>Utiliser la magie sous pression</td></tr>
+            <tr><td>Tuer un joueur avec un sort</td><td>100–250 XP</td><td>Kill magique — le plus recompense</td></tr>
+            <tr><td>Assister un kill via sort</td><td>50–120 XP</td><td>Support magique valorise</td></tr>
+            <tr><td>Tuer un mob corrompu d'Erinium</td><td>20–60 XP</td><td>PvE magique</td></tr>
+            <tr><td>Tuer un boss d'Erinium</td><td>200–500 XP</td><td>Boss impregnés de magie</td></tr>
+            <tr><td>Miner de l'Erinium brut</td><td>10–20 XP</td><td>Contact direct avec la source</td></tr>
+            <tr><td>Raffinement d'Erinium</td><td>40–100 XP</td><td>Travailler le cristal</td></tr>
+            <tr><td>Meditation sur un Cristal d'Erinium</td><td>50 XP / 30 sec (max 5 min/jour)</td><td>Source passive lore-friendly</td></tr>
+            <tr><td>Participer a un event avec sorts actifs</td><td>100–400 XP</td><td>Events + magie = combo</td></tr>
+            <tr><td>Capturer un PDC avec sorts actifs</td><td>150 XP</td><td>Combinaison objectif + magie</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Regles anti-grind</h3>
+      <ul>
+        <li><strong>Saturation :</strong> Le meme systeme de saturation que le RPG s'applique — les gains diminuent apres repetition rapide de la meme source.</li>
+        <li><strong>Sorts valides :</strong> Pour compter en PvP, le sort doit toucher une cible reelle — les sorts rates ne donnent pas d'XP.</li>
+        <li><strong>Meditation :</strong> Hard-cappee a 5 minutes par jour (250 XP maximum quotidien). Commande <code>/magic meditate</code>.</li>
+        <li><strong>Pas de farm PvE :</strong> L'XP des mobs et boss est limitee par joueur/mob unique (pas de grind sur le meme mob respawn).</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S4 — LA MANA ═══ -->
+    <div class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> La Mana</h2>
+
+      <p>La mana est la ressource consommable de la magie. Limitee et a regen lente en combat, elle force les mages a planifier leurs sorts plutot que de les spammer.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Parametre</th>
+              <th>Valeur</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Mana max de base</td><td>100</td></tr>
+            <tr><td>Mana max avec stat Arcane 25 + Vigueur 25</td><td>162,5 — formule : <code>100 + (arcane × 2) + (vigueur × 0.5)</code></td></tr>
+            <tr><td>Mana max avec stat Arcane 25 uniquement</td><td>150</td></tr>
+            <tr><td>Regeneration hors combat (base)</td><td>2 mana / seconde</td></tr>
+            <tr><td>Regeneration hors combat (Arcane 15+)</td><td>2,5 mana / seconde — formule : <code>2.0 + (arcane &gt;= 15 ? 0.5 : 0)</code></td></tr>
+            <tr><td>Regeneration en combat</td><td>0,5 mana / seconde</td></tr>
+            <tr><td>Delai pour passer "hors combat"</td><td>8 secondes sans donner ni recevoir de degats</td></tr>
+            <tr><td>Potions de mana</td><td>Non — aucune potion de restauration de mana</td></tr>
+            <tr><td>Affichage</td><td>Barre violette sous la barre de vie</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Pas de potions de mana.</strong> Cette contrainte est volontaire et centrale a l'equilibre : le mage doit gerer sa mana comme une ressource strategique. Si les potions existaient, le mage dominerait indefiniment. La regen lente en combat (0,5/sec) signifie qu'un mage avec 100 mana a environ 3 a 6 sorts par engagement PvP — chaque choix compte.</div>
+      </div>
+
+      <h3>Implementation technique</h3>
+      <div class="code-block"><span class="an">@EriCapability</span>(modId = <span class="st">"eriniumfaction"</span>, target = AttachTarget.<span class="cl">PLAYER</span>, persistOnDeath = <span class="kw">true</span>)
+<span class="kw">public class</span> <span class="ty">MagicCapData</span> {
+    <span class="an">@Sync</span> <span class="kw">public float</span> currentMana = <span class="nu">100f</span>;
+    <span class="an">@Sync</span> <span class="kw">public float</span> maxMana = <span class="nu">100f</span>;
+    <span class="an">@Sync</span> <span class="kw">public int</span>   magicLevel = <span class="nu">0</span>;
+    <span class="an">@Sync</span> <span class="kw">public int</span>   magicXp = <span class="nu">0</span>;
+    <span class="an">@Sync</span> <span class="kw">public</span> <span class="ty">String</span>[] equippedSpells = <span class="kw">new</span> <span class="ty">String</span>[<span class="nu">4</span>]; <span class="cm">// IDs des sorts</span>
+    <span class="kw">public long</span> lastCombatTime = <span class="nu">0</span>;
+    <span class="kw">public long</span> meditationTodayMs = <span class="nu">0</span>;
+    <span class="kw">public</span> <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">Long</span>&gt; cooldowns = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;(); <span class="cm">// spellId -> timestamp fin CD</span>
+}</div>
+    </div>
+
+    <!-- ═══ S5 — LES 4 ECOLES ═══ -->
+    <div class="section-card" id="s5">
+      <h2><span class="s-num">05</span> Vue d'ensemble — Les 4 Ecoles</h2>
+
+      <p>Vingt sorts au total, cinq par ecole. Chaque ecole a une identite visuelle, sonore et mecanique propre. Un joueur peut mixer librement les sorts de toutes les ecoles dans ses slots.</p>
+
+      <div class="school-grid">
+        <div class="school-card fracture">
+          <div class="school-card-name">Fracture</div>
+          <div class="school-card-role">Destruction pure</div>
+          <div class="school-card-stat"><strong>Couleur :</strong> Violet vif</div>
+          <div class="school-card-stat"><strong>5 sorts :</strong> Eclat, Fracture, Salve cristalline, Implosion, Cataclysme</div>
+          <div class="school-card-stat"><strong>Identite :</strong> Degats directs, zones, pluie de cristaux</div>
+        </div>
+        <div class="school-card cristallisation">
+          <div class="school-card-name">Cristallisation</div>
+          <div class="school-card-role">Protection &amp; Controle</div>
+          <div class="school-card-stat"><strong>Couleur :</strong> Cyan glace</div>
+          <div class="school-card-stat"><strong>5 sorts :</strong> Bouclier cristallin, Prison d'Erinium, Mur cristallin, Armure d'Erinium, Stase cristalline</div>
+          <div class="school-card-stat"><strong>Identite :</strong> Survie, cages, murs, stase</div>
+        </div>
+        <div class="school-card corruption">
+          <div class="school-card-name">Corruption</div>
+          <div class="school-card-role">Poison &amp; Affaiblissement</div>
+          <div class="school-card-stat"><strong>Couleur :</strong> Vert sombre / Noir</div>
+          <div class="school-card-stat"><strong>5 sorts :</strong> Toucher corrompu, Drain d'essence, Brume toxique, Malediction, Peste d'Erinium</div>
+          <div class="school-card-stat"><strong>Identite :</strong> DoT, debuffs, propagation</div>
+        </div>
+        <div class="school-card resonance">
+          <div class="school-card-name">Resonance</div>
+          <div class="school-card-role">Support &amp; Utilitaires</div>
+          <div class="school-card-stat"><strong>Couleur :</strong> Or / Blanc lumineux</div>
+          <div class="school-card-stat"><strong>5 sorts :</strong> Pulse de soin, Lien de resonance, Aura de vigueur, Teleportation d'Erinium, Resurrection cristalline</div>
+          <div class="school-card-stat"><strong>Identite :</strong> Heal, bouclier partage, buff, mobilite, rez</div>
+        </div>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Mix libre.</strong> Il n'y a pas de "classe mage". Un joueur peut equiper Teleportation (Resonance) + Malediction (Corruption) + Eclat (Fracture) + Bouclier (Cristallisation) — les loadouts hybrides sont encourages.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S6 — FRACTURE ═══ -->
+    <div class="section-card" id="s6">
+      <h2><span class="s-num fracture-num">06</span> Ecole Fracture — Destruction Pure</h2>
+
+      <p>Sorts offensifs directs. Violence pure, impacts immédiats, degats massifs en zone. Visuel : violet vif, eclats cristallins anguleux, impacts brillants.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead class="fracture-head">
+            <tr>
+              <th>Sort</th>
+              <th>Lvl requis</th>
+              <th>Mana</th>
+              <th>Cooldown</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="col-fracture">Eclat</span></td>
+              <td>1</td>
+              <td>15</td>
+              <td>3s</td>
+              <td>Projectile</td>
+              <td>Projectile a moyenne portee (20 blocs). Degats moderes. Sort de base, rapide a utiliser.</td>
+            </tr>
+            <tr>
+              <td><span class="col-fracture">Fracture</span></td>
+              <td>5</td>
+              <td>30</td>
+              <td>8s</td>
+              <td>Ligne de zone</td>
+              <td>Ligne de fissures au sol (10 blocs devant le lanceur). Degats + effet slow 2 secondes sur les cibles traversees.</td>
+            </tr>
+            <tr>
+              <td><span class="col-fracture">Salve cristalline</span></td>
+              <td>10</td>
+              <td>40</td>
+              <td>12s</td>
+              <td>Multi-projectiles</td>
+              <td>5 eclats en eventail. Couts plus eleves mais couvre un angle large — idéal contre les cibles mobiles.</td>
+            </tr>
+            <tr>
+              <td><span class="col-fracture">Implosion</span></td>
+              <td>18</td>
+              <td>60</td>
+              <td>25s</td>
+              <td>Canalisation + AoE</td>
+              <td>1,5 secondes de canalisation, puis explosion AoE rayon 4 blocs (portee 15 blocs). Interruptible. Degats élevés.</td>
+            </tr>
+            <tr>
+              <td><span class="col-fracture">Cataclysme</span></td>
+              <td>28</td>
+              <td>90</td>
+              <td>60s</td>
+              <td>Zone persistante</td>
+              <td>Pluie de cristaux sur une zone 8x8 pendant 4 secondes. Degats massifs sur tout ce qui reste dans la zone. Sort ultime offensif.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Visuels Fracture :</strong> Teinte violette vive (#A855F7) — eclats anguleux qui se brisent a l'impact, sol qui se craquelle de lueur violette, sons d'impact cristallins secs. Cataclysme doit etre spectaculaire et visible de loin.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S7 — CRISTALLISATION ═══ -->
+    <div class="section-card" id="s7">
+      <h2><span class="s-num cristal-num">07</span> Ecole Cristallisation — Protection &amp; Controle</h2>
+
+      <p>Sorts defensifs et de controle. Cages de cristaux, murs, boucliers absorbants, stase temporelle. Visuel : cyan glace, translucide, geométrique.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead class="cristal-head">
+            <tr>
+              <th>Sort</th>
+              <th>Lvl requis</th>
+              <th>Mana</th>
+              <th>Cooldown</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="col-cristallisation">Bouclier cristallin</span></td>
+              <td>1</td>
+              <td>20</td>
+              <td>10s</td>
+              <td>Self-buff</td>
+              <td>Absorbe 4 coeurs de degats, dure 6 secondes. Se brise visuellement en eclats cyan a epuisement.</td>
+            </tr>
+            <tr>
+              <td><span class="col-cristallisation">Prison d'Erinium</span></td>
+              <td>6</td>
+              <td>35</td>
+              <td>15s</td>
+              <td>Ciblage</td>
+              <td>Cage de cristaux qui encercle la cible pendant 2 secondes. Immobilise ET rend la cible invulnerable (la cage la protege aussi). Utile pour interrompre temporairement.</td>
+            </tr>
+            <tr>
+              <td><span class="col-cristallisation">Mur cristallin</span></td>
+              <td>12</td>
+              <td>30</td>
+              <td>18s</td>
+              <td>Zone</td>
+              <td>Mur de cristaux 5x3 blocs pendant 5 secondes. Destructible (20 PV). Bloque projectiles et deplacements.</td>
+            </tr>
+            <tr>
+              <td><span class="col-cristallisation">Armure d'Erinium</span></td>
+              <td>20</td>
+              <td>50</td>
+              <td>35s</td>
+              <td>Self-buff</td>
+              <td>+40% resistance aux degats, immunite au knockback, -30% vitesse de deplacement, pendant 5 secondes. Transforme le mage en tank temporaire.</td>
+            </tr>
+            <tr>
+              <td><span class="col-cristallisation">Stase cristalline</span></td>
+              <td>28</td>
+              <td>80</td>
+              <td>90s</td>
+              <td>Ciblage</td>
+              <td>1 seconde de delai avant activation (cible peut se deplacer). Cible figee 3 secondes, recoit -50% de degats pendant la stase. Sort ultime de controle.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Visuels Cristallisation :</strong> Teinte cyan (#00E5FF) translucide — structures geometriques nettes, effet givre, sons de cristal qui tinte. La Prison et la Stase doivent etre clairement visibles des allies pour coordonner les attaques.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S8 — CORRUPTION ═══ -->
+    <div class="section-card" id="s8">
+      <h2><span class="s-num corruption-num">08</span> Ecole Corruption — Poison &amp; Affaiblissement</h2>
+
+      <p>Sorts de debuff, poison et damage over time. Progressif, insidieux, difficile a jouer mais devastateur sur la duree. Visuel : vert sombre, fumees noires, particules organiques.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead class="corrupt-head">
+            <tr>
+              <th>Sort</th>
+              <th>Lvl requis</th>
+              <th>Mana</th>
+              <th>Cooldown</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="col-corruption">Toucher corrompu</span></td>
+              <td>1</td>
+              <td>10</td>
+              <td>5s</td>
+              <td>Self-buff mêlee</td>
+              <td>La prochaine attaque melee inflige un poison supplementaire de 1 coeur sur 4 secondes. Scale avec la stat Force. Combo physique + magie.</td>
+            </tr>
+            <tr>
+              <td><span class="col-corruption">Drain d'essence</span></td>
+              <td>7</td>
+              <td>25</td>
+              <td>12s</td>
+              <td>Canalisation</td>
+              <td>Canalisation de 3 secondes, draine 1 coeur/sec a la cible et rend 0,5 coeur/sec au lanceur. Interruptible par coup melee.</td>
+            </tr>
+            <tr>
+              <td><span class="col-corruption">Brume toxique</span></td>
+              <td>13</td>
+              <td>35</td>
+              <td>20s</td>
+              <td>Zone persistante</td>
+              <td>Nuage rayon 5 blocs, dure 6 secondes. Inflige DoT + effet Nausee + -15% degats aux cibles dans le nuage. Excellent en zone etroite.</td>
+            </tr>
+            <tr>
+              <td><span class="col-corruption">Malediction</span></td>
+              <td>22</td>
+              <td>45</td>
+              <td>30s</td>
+              <td>Ciblage</td>
+              <td>La cible subit +20% de degats de toutes sources et sa regeneration naturelle est reduite de 50%, pendant 8 secondes. Debuff offense pure.</td>
+            </tr>
+            <tr>
+              <td><span class="col-corruption">Peste d'Erinium</span></td>
+              <td>30</td>
+              <td>85</td>
+              <td>75s</td>
+              <td>Ciblage + propagation</td>
+              <td>DoT de 0,5 coeur/sec pendant 8 secondes. Se propage automatiquement aux joueurs allies de la cible dans un rayon de 4 blocs. Sort ultime de support negatif.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Visuels Corruption :</strong> Particules vert fonce (#2ECC71 degrade vers #0D4A1F), fumees noires, effet visceral. La Peste doit avoir un indicateur visuel clair sur les cibles infectees (aura verte pulsante) pour que les allies sachent s'ecarter.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S9 — RESONANCE ═══ -->
+    <div class="section-card" id="s9">
+      <h2><span class="s-num resonance-num">09</span> Ecole Resonance — Support &amp; Utilitaires</h2>
+
+      <p>Sorts de soin, buff, mobilite et resurrection. L'ecole du mage de groupe — moins spectaculaire visuellement mais decisif en faction PvP organise. Visuel : or, blanc lumineux, lueurs chaudes.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead class="resonance-head">
+            <tr>
+              <th>Sort</th>
+              <th>Lvl requis</th>
+              <th>Mana</th>
+              <th>Cooldown</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="col-resonance">Pulse de soin</span></td>
+              <td>1</td>
+              <td>20</td>
+              <td>8s</td>
+              <td>Self / cible allie</td>
+              <td>Soigne instantanement 2 coeurs. Peut cibler un allie proche (5 blocs) ou soi-meme. Sort de base de survie.</td>
+            </tr>
+            <tr>
+              <td><span class="col-resonance">Lien de resonance</span></td>
+              <td>6</td>
+              <td>25</td>
+              <td>15s</td>
+              <td>Ciblage allie</td>
+              <td>Pendant 10 secondes, 30% des degats recus par l'allie cible sont transferes au lanceur. Le lanceur les encaisse a sa place. Bouclier de substitution.</td>
+            </tr>
+            <tr>
+              <td><span class="col-resonance">Aura de vigueur</span></td>
+              <td>14</td>
+              <td>40</td>
+              <td>25s</td>
+              <td>AoE allie</td>
+              <td>Pendant 8 secondes, tous les allies dans un rayon de 10 blocs regenerent 0,5 coeur/sec et gagnent +10% vitesse de deplacement.</td>
+            </tr>
+            <tr>
+              <td><span class="col-resonance">Teleportation d'Erinium</span></td>
+              <td>22</td>
+              <td>50</td>
+              <td>45s</td>
+              <td>Self-mobilite</td>
+              <td>Teleporte le lanceur de 15 blocs dans la direction visee. Traverse les murs fins (1-2 blocs). Indispensable pour fuir ou repositionner.</td>
+            </tr>
+            <tr>
+              <td><span class="col-resonance">Resurrection cristalline</span></td>
+              <td>30</td>
+              <td>100</td>
+              <td>120s</td>
+              <td>Ciblage allie mort</td>
+              <td>Ressuscite un allie mort depuis moins de 5 secondes a 30% de ses PV maximum. Consomme integraalement la mana du lanceur. Sort ultime de soutien — peut renverser un combat.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Resurrection cristalline — Cas limite.</strong> La fenetre de 5 secondes apres la mort doit etre strict cote serveur (timestamp de mort en NBT). Le lanceur doit etre dans un rayon de 8 blocs du corps. Si le body a ete loote ou si le joueur a deja respawne, le sort echoue silencieusement (message d'erreur au lanceur).</div>
+      </div>
+    </div>
+
+    <!-- ═══ S10 — SLOTS & LOADOUTS ═══ -->
+    <div class="section-card" id="s10">
+      <h2><span class="s-num">10</span> Slots de sorts &amp; Loadouts</h2>
+
+      <p>Le nombre de sorts actifs simultanement augmente avec la progression. Au maximum 4 sorts peuvent etre actifs. Il y a 20 sorts au total — le choix du loadout est une decision strategique.</p>
+
+      <h3 class="first">Evolution des slots</h3>
+      <div class="slot-track">
+        <div class="slot-phase">
+          <div class="slot-phase-lvl">Niveaux 1–9</div>
+          <div class="slot-phase-count">2</div>
+          <div class="slot-phase-label">slots actifs</div>
+        </div>
+        <div class="slot-phase">
+          <div class="slot-phase-lvl">Niveaux 10–19</div>
+          <div class="slot-phase-count">3</div>
+          <div class="slot-phase-label">slots actifs</div>
+        </div>
+        <div class="slot-phase active">
+          <div class="slot-phase-lvl">Niveaux 20–30</div>
+          <div class="slot-phase-count">4</div>
+          <div class="slot-phase-label">slots actifs (max)</div>
+        </div>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Changement de sorts restreint.</strong> Un joueur ne peut modifier son loadout de sorts que dans deux endroits : au spawn ou dans la base de sa faction. Pas de changement en plein combat — decision strategique pre-engagement.</div>
+      </div>
+
+      <h3>Exemples de loadouts</h3>
+      <div class="loadout-grid">
+        <div class="loadout-card">
+          <div class="loadout-card-title">Mage offensif</div>
+          <ul class="loadout-card-spells">
+            <li>Eclat</li>
+            <li>Salve cristalline</li>
+            <li>Implosion</li>
+            <li>Malediction</li>
+          </ul>
+        </div>
+        <div class="loadout-card">
+          <div class="loadout-card-title">Mage defensif</div>
+          <ul class="loadout-card-spells">
+            <li>Bouclier cristallin</li>
+            <li>Mur cristallin</li>
+            <li>Pulse de soin</li>
+            <li>Teleportation d'Erinium</li>
+          </ul>
+        </div>
+        <div class="loadout-card">
+          <div class="loadout-card-title">Support de groupe</div>
+          <ul class="loadout-card-spells">
+            <li>Pulse de soin</li>
+            <li>Aura de vigueur</li>
+            <li>Lien de resonance</li>
+            <li>Resurrection cristalline</li>
+          </ul>
+        </div>
+        <div class="loadout-card">
+          <div class="loadout-card-title">Perturbateur</div>
+          <ul class="loadout-card-spells">
+            <li>Brume toxique</li>
+            <li>Prison d'Erinium</li>
+            <li>Peste d'Erinium</li>
+            <li>Fracture</li>
+          </ul>
+        </div>
+        <div class="loadout-card">
+          <div class="loadout-card-title">Battlemage</div>
+          <ul class="loadout-card-spells">
+            <li>Toucher corrompu</li>
+            <li>Bouclier cristallin</li>
+            <li>Teleportation d'Erinium</li>
+            <li>Eclat</li>
+          </ul>
+        </div>
+        <div class="loadout-card">
+          <div class="loadout-card-title">Assassin magique</div>
+          <ul class="loadout-card-spells">
+            <li>Teleportation d'Erinium</li>
+            <li>Malediction</li>
+            <li>Drain d'essence</li>
+            <li>Salve cristalline</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ S11 — UTILISATION EN JEU ═══ -->
+    <div class="section-card" id="s11">
+      <h2><span class="s-num cyan-num">11</span> Utilisation en jeu</h2>
+
+      <h3 class="first">Raccourcis clavier</h3>
+      <ul>
+        <li><strong>ALT+1, ALT+2, ALT+3, ALT+4 :</strong> Lancer les sorts des slots 1 a 4. Configurable via le menu des keybindings Minecraft.</li>
+        <li>Implemente avec <code>EriKeys.create().combo(KeyCombo.of(KEY).alt())</code></li>
+        <li>Contexte <code>KeyContext.IN_GAME</code> — inactif si un GUI est ouvert.</li>
+      </ul>
+
+      <h3>Types de viseur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Comportement</th>
+              <th>Sorts concernes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Projectile</td><td>Lance dans la direction visee, collide avec terrain et entites</td><td>Eclat, Salve cristalline</td></tr>
+            <tr><td>Zone au sol</td><td>Se projette sur le bloc vise par le curseur</td><td>Fracture, Cataclysme, Brume toxique</td></tr>
+            <tr><td>Ciblage entite</td><td>Cible le joueur/mob pointe (rayon de detection)</td><td>Prison, Stase, Malediction, Drain, Pest, Lien, Pulse (si allie cible), Resurrection</td></tr>
+            <tr><td>Self-cast</td><td>S'applique immediatement au lanceur</td><td>Bouclier cristallin, Armure d'Erinium, Teleportation, Toucher corrompu, Pulse (sans cible)</td></tr>
+            <tr><td>AoE autour du lanceur</td><td>Zone circulaire centree sur le joueur</td><td>Aura de vigueur, Implosion (apres canalisation)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Regles de canalisation</h3>
+      <ul>
+        <li><strong>Vitesse reduite :</strong> Pendant la canalisation d'un sort, le joueur se deplace a 50% de sa vitesse normale.</li>
+        <li><strong>Interruption :</strong> Tout coup melee direct sur le lanceur interrompt la canalisation. La mana consommee est perdue a 50%.</li>
+        <li><strong>Indicateur visuel :</strong> Une barre de progression circulaire et un effet de particules autour du joueur indiquent qu'une canalisation est en cours — les ennemis le voient et peuvent reagir.</li>
+        <li><strong>Sorts concernes :</strong> Implosion (1,5s), Drain d'essence (3s)</li>
+      </ul>
+
+      <h3>Commandes joueur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Commande</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>/magic level</td><td>Affiche le niveau de magie actuel et la barre d'XP en chat</td></tr>
+            <tr><td>/magic spells</td><td>Liste tous les sorts debloques et verrouilles</td></tr>
+            <tr><td>/magic equip &lt;sort&gt; &lt;slot&gt;</td><td>Equipe un sort dans un slot (1-4). Uniquement au spawn / base faction</td></tr>
+            <tr><td>/magic meditate</td><td>Lance une session de meditation de 30 secondes sur un Cristal d'Erinium proche</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S12 — SYNERGIE RPG ═══ -->
+    <div class="section-card" id="s12">
+      <h2><span class="s-num gold-num">12</span> Synergie RPG + Magie</h2>
+
+      <p>Les stats RPG interagissent avec le systeme de magie pour recompenser la specialisation transversale. Un joueur qui investit dans Arcane et Agilite sera un meilleur mage qu'un joueur qui l'ignore.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Stat RPG</th>
+              <th>Effet sur la Magie</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Arcane</strong></td>
+              <td>
+                Mana max = <code>100 + (arcanePoints × 2)</code> — a 25 pts : mana max = 150.<br>
+                Puissance des sorts : <strong>+1%/pt</strong> (max +25% degats/heal).<br>
+                Seuil 15+ : regeneration hors combat +0,5/s (2 → 2,5 mana/s).
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Vigueur</strong></td>
+              <td>
+                +0,5 Mana max par point (bonus secondaire, complement d'Arcane).<br>
+                A 25 pts : mana max += 12,5. Formule complete : <code>manaMax = 100 + (arcanePoints × 2) + (vigueurPoints × 0.5)</code>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Force</strong></td>
+              <td>
+                Sorts offensifs physiques +1,5% degats par point (Toucher corrompu, Frappe sismique).<br>
+                Max +37,5% a 25 pts. Formule : <code>degats = base × (1 + arcane × 0.01 + force × 0.015)</code>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Resistance</strong></td>
+              <td>
+                -1% degats magiques recus par point (max -25% a 25 pts).<br>
+                Bouclier anti-magie passif — s'applique a tous les sorts ennemis.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Agilite</strong></td>
+              <td>-1% temps de canalisation par point, maximum -25% (cap a 25 points).</td>
+            </tr>
+            <tr><td>Fortune</td><td>Plus de composants magiques droppes par les mobs (materiaux de craft liés a la magie)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Formules de scaling des sorts</h3>
+      <div class="code-block"><span class="cm">// Formule generale — tous les sorts offensifs et de soin</span>
+degâtsFinal = degâtsBase * (<span class="nu">1</span> + arcanePoints * <span class="nu">0.01</span>)
+
+<span class="cm">// Sorts physiques uniquement : Toucher corrompu, Frappe sismique</span>
+degâtsFinal = degâtsBase * (<span class="nu">1</span> + arcanePoints * <span class="nu">0.01</span> + forcePoints * <span class="nu">0.015</span>)
+
+<span class="cm">// Exemple : Arcane 20, Force 15 — Toucher corrompu (base 8)</span>
+<span class="cm">// degats = 8 * (1 + 0.20 + 0.225) = 8 * 1.425 = 11.4</span></div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Design intent.</strong> Arcane est la stat "mage pure" — elle maximise la mana et booste tous les sorts. Agilite est la stat "battlemage" — elle reduit les canalisations pour rendre les sorts offensifs plus fluides au corps-a-corps. Force amplifie les sorts physiques, creant un archetype hybride melee/magie distinct. Un joueur peut combiner Arcane + Agilite + Force pour un battlemage complet, ou se concentrer sur Arcane pur pour maximiser la puissance magique brute.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S13 — EQUILIBRE ═══ -->
+    <div class="section-card" id="s13">
+      <h2><span class="s-num">13</span> Equilibre Magie vs Physique</h2>
+
+      <p>La magie n'est PAS superieure au physique — c'est une alternative avec ses propres forces et faiblesses. L'equilibre est assure par des mecaniques structurelles, pas par des chiffres arbitraires.</p>
+
+      <h3 class="first">Desavantages intentionnels du mage</h3>
+      <ul>
+        <li><strong>Canalisation interruptible :</strong> Les sorts puissants exigent une immobilite relative — le combattant physique peut punir ca.</li>
+        <li><strong>Mana limitee :</strong> 100 a 150 mana max. Un mage ne peut pas spammer indefiniment — il a 3 a 6 sorts par combat selon les sorts equipes.</li>
+        <li><strong>Cooldowns significatifs :</strong> Les sorts puissants ont des cooldowns longs (25s-120s) — pas de repeat-cast immediat.</li>
+        <li><strong>Sorts esquivables :</strong> Les projectiles et zones sont esquivables — un joueur agile peut eviter l'essentiel des degats.</li>
+        <li><strong>Degats reduits par Resistance :</strong> La stat Resistance du RPG s'applique aux degats de sorts — un tank peut resister a la magie.</li>
+        <li><strong>Regen nulle en combat :</strong> 0,5 mana/sec en combat = negligeable — pas de recuperation significative entre deux exchanges.</li>
+      </ul>
+
+      <h3>Courbe d'engagement</h3>
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Le mage domine les premieres secondes.</strong> En burst initial, le mage peut infliger des degats massifs s'il a le premier mouvement. Mais sa mana s'epuise rapidement. Si le combat dure plus de 20-30 secondes, le joueur physique (avec regen passive, potions, durabilite illimitee des armes) prend naturellement l'avantage. Cette asymetrie encourage les mages a jouer vite et brutal, ou a fuir (Teleportation) pour reset.</div>
+      </div>
+
+      <h3>Regles d'equilibre additionnelles</h3>
+      <ul>
+        <li><strong>Resurrection cristalline :</strong> La fenetre de 5 secondes est tres courte — difficile a utiliser en combat actif sans coordination.</li>
+        <li><strong>Stase cristalline :</strong> La cible est invulnerable pendant la stase — un mage ne peut pas stase + nuker simultanément seul.</li>
+        <li><strong>Prison d'Erinium :</strong> Immunite temporaire = le mage "gache" un CC s'il ne coordonne pas avec ses allies.</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S14 — HUD & INTERFACE ═══ -->
+    <div class="section-card" id="s14">
+      <h2><span class="s-num cyan-num">14</span> HUD &amp; Interface GUI</h2>
+
+      <h3 class="first">HUD en jeu (overlay)</h3>
+      <ul>
+        <li><strong>Barre de mana :</strong> Barre violette affichee sous la barre de vie. Affiche mana actuelle / mana max. Pulse en violet vif quand la mana est inferieure a 20%.</li>
+        <li><strong>Sorts equipes :</strong> 4 icones de sorts affichees dans le coin inferieur droit (ou configurable). Chaque icone montre le sort equipe dans le slot.</li>
+        <li><strong>Cooldowns :</strong> Icone grisee + timer circulaire qui se remplit quand le sort est en cooldown. Le timer disparait quand le cooldown est termine (bref flash de disponibilite).</li>
+        <li><strong>Niveau de magie :</strong> Petit indicateur discret affichant le niveau de magie actuel pres de la barre de mana.</li>
+        <li><strong>Indicateur de canalisation :</strong> Barre de progression sur l'ecran central + particules autour du joueur pendant une canalisation active.</li>
+        <li><strong>Indicateur mana basse :</strong> Vignette violette subtile sur les bords de l'ecran quand la mana est sous 20%.</li>
+      </ul>
+
+      <h3>Menu Magie — GUI principal</h3>
+      <p>Accessible via touche configuree (par defaut : M). Cree avec <code>EriGuiScreen</code>, style Liquid Glass avec animations de particules cristallines.</p>
+      <ul>
+        <li><strong>En-tete :</strong> Niveau de magie actuel (ex: "Niveau 15") + barre d'XP magique avec progression jusqu'au niveau suivant.</li>
+        <li><strong>Slots de sorts :</strong> 4 slots de sorts actifs affichés en evidence, avec drag &amp; drop pour reorganiser. Les sorts verrouilles (niveau insuffisant) ne peuvent pas etre droppés dans les slots.</li>
+        <li><strong>Liste des sorts :</strong> ScrollList de tous les sorts du jeu. Sorts debloques : icone coloree + nom + stats. Sorts verrouilles : icone grisee + niveau requis en rouge.</li>
+        <li><strong>Prévisualisation au survol :</strong> Tooltip detaille au survol d'un sort (Tooltip d'EriAPI) — cooldown, cout mana, portée, description complete de l'effet.</li>
+        <li><strong>Onglets par ecole :</strong> TabView pour filtrer la liste par ecole (Toutes / Fracture / Cristallisation / Corruption / Resonance).</li>
+      </ul>
+
+      <h3>Style visuel GUI</h3>
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Liquid Glass style.</strong> Panneaux semi-transparents avec flou gaussien, bordures lumineuses violettes et cyan, coins arrondis. Animations : icones de sorts qui respirent (breathe()) quand disponibles, particules cristallines en arriere-plan, transitions fluides entre onglets. Couleur dominante : violet (#6B2FA0) avec accents cyan (#00E5FF).</div>
+      </div>
+    </div>
+
+    <!-- ═══ S15 — ARCHITECTURE TECHNIQUE ═══ -->
+    <div class="section-card" id="s15">
+      <h2><span class="s-num">15</span> Architecture Technique</h2>
+
+      <p>Toute la stack utilise EriAPI. Pas de boilerplate Forge brut la ou EriAPI couvre le besoin.</p>
+
+      <h3 class="first">Stockage des donnees magiques</h3>
+      <div class="code-block"><span class="cm">// Capability principale (mana + progression + loadout)</span>
+<span class="an">@EriCapability</span>(modId = <span class="st">"eriniumfaction"</span>, target = AttachTarget.<span class="cl">PLAYER</span>, persistOnDeath = <span class="kw">true</span>)
+<span class="kw">public class</span> <span class="ty">MagicCapData</span> {
+    <span class="an">@Sync</span> <span class="kw">public float</span>    currentMana    = <span class="nu">100f</span>;
+    <span class="an">@Sync</span> <span class="kw">public float</span>    maxMana        = <span class="nu">100f</span>;
+    <span class="an">@Sync</span> <span class="kw">public int</span>      magicLevel     = <span class="nu">0</span>;
+    <span class="an">@Sync</span> <span class="kw">public int</span>      magicXp        = <span class="nu">0</span>;
+    <span class="an">@Sync</span> <span class="kw">public</span> <span class="ty">String</span>[] equippedSpells = <span class="kw">new</span> <span class="ty">String</span>[<span class="nu">4</span>];
+    <span class="kw">public</span> <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">Long</span>&gt; cooldowns      = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+    <span class="kw">public boolean</span>    isChanneling    = <span class="kw">false</span>;
+    <span class="kw">public</span> <span class="ty">String</span>    channelingSpell = <span class="kw">null</span>;
+    <span class="kw">public long</span>      lastCombatTime  = <span class="nu">0</span>;
+    <span class="kw">public long</span>      meditationMs    = <span class="nu">0</span>; <span class="cm">// cumul aujourd'hui</span>
+}</div>
+
+      <h3>Keybindings — Sorts ALT+1 a ALT+4</h3>
+      <div class="code-block"><span class="cm">// Dans ClientProxy.init()</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; <span class="nu">4</span>; i++) {
+    <span class="kw">final int</span> slot = i;
+    <span class="fn">EriKeys</span>.<span class="fn">create</span>(<span class="st">"eriniumfaction.spell_slot_"</span> + (i + <span class="nu">1</span>))
+        .<span class="fn">combo</span>(<span class="fn">KeyCombo</span>.<span class="fn">of</span>(Keyboard.<span class="cl">KEY_1</span> + i).<span class="fn">alt</span>())
+        .<span class="fn">category</span>(<span class="st">"Erinium Faction — Magie"</span>)
+        .<span class="fn">context</span>(KeyContext.<span class="cl">IN_GAME</span>)
+        .<span class="fn">onPress</span>(() -&gt; <span class="fn">castSpellSlot</span>(slot))
+        .<span class="fn">register</span>();
+}</div>
+
+      <h3>Packets de sorts</h3>
+      <div class="code-block"><span class="cm">// Client -> Serveur : lancer un sort</span>
+<span class="ty">NBTTagCompound</span> data = <span class="kw">new</span> <span class="ty">NBTTagCompound</span>();
+data.<span class="fn">setString</span>(<span class="st">"spellId"</span>, spellId);
+data.<span class="fn">setDouble</span>(<span class="st">"targetX"</span>, target.posX);  <span class="cm">// selon type de viseur</span>
+data.<span class="fn">setDouble</span>(<span class="st">"targetY"</span>, target.posY);
+data.<span class="fn">setDouble</span>(<span class="st">"targetZ"</span>, target.posZ);
+<span class="fn">GuiNetworkHandler</span>.<span class="fn">sendAction</span>(<span class="st">"spell_cast"</span>, data);
+
+<span class="cm">// Serveur : valide et execute le sort</span>
+<span class="cm">// 1. Verifier CD, mana suffisante, niveau requis</span>
+<span class="cm">// 2. Consommer mana, declencher CD</span>
+<span class="cm">// 3. Executer l'effet du sort cote serveur</span>
+<span class="cm">// 4. Envoyer packet de particules aux clients a portee</span></div>
+
+      <h3>Regeneration de mana — Scheduler</h3>
+      <div class="code-block"><span class="cm">// Repeter toutes les 20 ticks (1 seconde) pour chaque joueur en ligne</span>
+<span class="fn">EriScheduler</span>.<span class="fn">repeat</span>(<span class="nu">20</span>, () -&gt; {
+    <span class="kw">for</span> (<span class="ty">EntityPlayerMP</span> player : server.<span class="fn">getPlayerList</span>().<span class="fn">getPlayers</span>()) {
+        <span class="ty">MagicCapData</span> cap = <span class="fn">EriCap</span>.<span class="fn">get</span>(player, <span class="ty">MagicCapData</span>.<span class="kw">class</span>);
+        <span class="kw">boolean</span> inCombat = <span class="ty">System</span>.<span class="fn">currentTimeMillis</span>() - cap.lastCombatTime &lt; <span class="nu">8000</span>;
+        <span class="ty">RpgPlayerData</span> rpg = <span class="ty">DataManager</span>.<span class="fn">get</span>(player, <span class="ty">RpgPlayerData</span>.<span class="kw">class</span>);
+        <span class="kw">float</span> regenBase = inCombat ? <span class="nu">0.5f</span> : <span class="nu">2.0f</span>;
+        <span class="kw">float</span> regenBonus = (!inCombat &amp;&amp; rpg.statArcane &gt;= <span class="nu">15</span>) ? <span class="nu">0.5f</span> : <span class="nu">0f</span>;
+        <span class="kw">float</span> regen = regenBase + regenBonus; <span class="cm">// hors combat + Arcane 15+ = 2.5 mana/s</span>
+        cap.maxMana = <span class="nu">100f</span> + (rpg.statArcane * <span class="nu">2f</span>) + (rpg.statVigueur * <span class="nu">0.5f</span>); <span class="cm">// manaMax = 100 + (arcane*2) + (vigueur*0.5)</span>
+        cap.currentMana = <span class="ty">Math</span>.<span class="fn">min</span>(cap.maxMana, cap.currentMana + regen);
+        <span class="fn">EriCap</span>.<span class="fn">sync</span>(player, <span class="ty">MagicCapData</span>.<span class="kw">class</span>);
+    }
+});</div>
+
+      <h3>Architecture des sorts — Interface</h3>
+      <div class="code-block"><span class="kw">public interface</span> <span class="ty">ISpell</span> {
+    <span class="ty">String</span>  <span class="fn">getId</span>();
+    <span class="kw">int</span>     <span class="fn">getRequiredLevel</span>();
+    <span class="kw">float</span>   <span class="fn">getManaCost</span>();
+    <span class="kw">int</span>     <span class="fn">getCooldownTicks</span>();
+    <span class="ty">School</span>  <span class="fn">getSchool</span>();          <span class="cm">// FRACTURE, CRISTALLISATION, CORRUPTION, RESONANCE</span>
+    <span class="ty">CastType</span> <span class="fn">getCastType</span>();       <span class="cm">// INSTANT, CHANNELED, PROJECTILE, ZONE, TARGET</span>
+    <span class="kw">boolean</span> <span class="fn">canCast</span>(<span class="ty">EntityPlayerMP</span> player, <span class="ty">MagicCapData</span> cap);
+    <span class="kw">void</span>    <span class="fn">execute</span>(<span class="ty">EntityPlayerMP</span> caster, <span class="ty">NBTTagCompound</span> targetData);
+    <span class="kw">void</span>    <span class="fn">sendParticles</span>(<span class="ty">EntityPlayerMP</span> caster, <span class="ty">WorldServer</span> world);
+}
+
+<span class="cm">// Registre des sorts</span>
+<span class="kw">public class</span> <span class="ty">SpellRegistry</span> {
+    <span class="kw">private static final</span> <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">ISpell</span>&gt; SPELLS = <span class="kw">new</span> <span class="ty">LinkedHashMap</span>&lt;&gt;();
+    <span class="kw">public static void</span> <span class="fn">register</span>(<span class="ty">ISpell</span> spell) { SPELLS.<span class="fn">put</span>(spell.<span class="fn">getId</span>(), spell); }
+    <span class="kw">public static</span> <span class="ty">ISpell</span> <span class="fn">get</span>(<span class="ty">String</span> id) { <span class="kw">return</span> SPELLS.<span class="fn">get</span>(id); }
+}</div>
+
+      <h3>Packages et fichiers cles</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Package / Fichier</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>magic/cap/MagicCapData.java</td><td>Capability EriAPI — mana, niveau, loadout, cooldowns</td></tr>
+            <tr><td>magic/MagicManager.java</td><td>Singleton — init, regen mana, gestion des canalisations</td></tr>
+            <tr><td>magic/spell/ISpell.java</td><td>Interface commune de tous les sorts</td></tr>
+            <tr><td>magic/spell/SpellRegistry.java</td><td>Registre statique des 20 sorts</td></tr>
+            <tr><td>magic/spell/fracture/</td><td>5 classes de sorts Fracture</td></tr>
+            <tr><td>magic/spell/cristallisation/</td><td>5 classes de sorts Cristallisation</td></tr>
+            <tr><td>magic/spell/corruption/</td><td>5 classes de sorts Corruption</td></tr>
+            <tr><td>magic/spell/resonance/</td><td>5 classes de sorts Resonance</td></tr>
+            <tr><td>magic/gui/MagicGui.java</td><td>Menu principal de magie (EriGuiScreen)</td></tr>
+            <tr><td>magic/hud/MagicHudOverlay.java</td><td>Overlay HUD (barre mana, slots, cooldowns)</td></tr>
+            <tr><td>magic/command/MagicCommand.java</td><td>Commandes /magic</td></tr>
+            <tr><td>magic/network/MagicPacketHandler.java</td><td>Gestion des packets sort client-&gt;serveur</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S16 — PLAN DE TESTS ═══ -->
+    <div class="section-card" id="s16">
+      <h2><span class="s-num green-num">16</span> Plan de tests</h2>
+
+      <p>Tests exhaustifs avant mise en production. Chaque sort doit etre valide individuellement avant les tests d'integration.</p>
+
+      <h3 class="first">Tests unitaires par sort</h3>
+      <ul>
+        <li><strong>Degats :</strong> Verifier que chaque sort inflige les degats corrects sur une cible dummy (et non pas selon les RNG si applicable).</li>
+        <li><strong>Portee :</strong> Valider les portees (20 blocs pour Eclat, 15 blocs pour Implosion, etc.) — le sort doit echouer proprement si hors de portee.</li>
+        <li><strong>Cooldown :</strong> Verifier que le cooldown s'applique correctement et qu'on ne peut pas re-caster avant la fin.</li>
+        <li><strong>Cout mana :</strong> Verifier que le bon montant de mana est consomme et que le sort echoue si mana insuffisante (message d'erreur approprie).</li>
+      </ul>
+
+      <h3>Tests de la mana</h3>
+      <ul>
+        <li><strong>Regen hors combat :</strong> 2 mana/sec, verifier la linearite et le cap a maxMana.</li>
+        <li><strong>Regen en combat :</strong> 0,5 mana/sec apres avoir pris ou inflige des degats.</li>
+        <li><strong>Transition combat/hors-combat :</strong> La regen doit passer de 0,5 a 2 exactement 8 secondes apres le dernier evenement de combat.</li>
+        <li><strong>Pas de depassement :</strong> La mana ne doit jamais depasser maxMana.</li>
+      </ul>
+
+      <h3>Tests de slots et changement</h3>
+      <ul>
+        <li><strong>Slots selon niveau :</strong> A niveau 5, seulement 2 slots accessibles. Tenter d'equiper un 3eme sort doit etre refuse.</li>
+        <li><strong>Changement restreint :</strong> Equiper un sort hors spawn / base faction doit etre refuse avec message explicatif.</li>
+        <li><strong>Sorts verrouilles :</strong> Tenter de caster un sort non-debloque (niveau insuffisant) doit etre refuse.</li>
+      </ul>
+
+      <h3>Tests de synergie Arcane</h3>
+      <ul>
+        <li><strong>Mana max Arcane :</strong> Verifier la formule <code>manaMax = 100 + (arcanePoints * 2) + (vigueurPoints * 0.5)</code> — ex : Arcane 10 = 120 mana, Arcane 25 = 150 mana, Arcane 25 + Vigueur 25 = 162,5 mana.</li>
+        <li><strong>Seuil Arcane 15 :</strong> Verifier que la regen hors combat passe de 2,0 a 2,5 mana/s exactement a partir de 15 points Arcane.</li>
+        <li><strong>Puissance sorts :</strong> Verifier que la formule <code>degats = base * (1 + arcane * 0.01)</code> s'applique correctement — Arcane 25 = +25% degats/heal.</li>
+        <li><strong>Sorts physiques + Force :</strong> Verifier que Toucher corrompu et Frappe sismique appliquent <code>degats = base * (1 + arcane * 0.01 + force * 0.015)</code>.</li>
+        <li><strong>Agilite et canalisation :</strong> Verifier que 25 points d'Agilite reduisent bien de 25% les temps de canalisation.</li>
+        <li><strong>Resistance et sorts :</strong> Verifier que les degats recus de sorts sont reduits de 1% par point de Resistance (max -25% a 25 pts).</li>
+      </ul>
+
+      <h3>Tests d'interruption de canalisation</h3>
+      <ul>
+        <li><strong>Interruption par coup melee :</strong> Un coup melee doit stopper instantanement la canalisation de Drain et Implosion.</li>
+        <li><strong>50% mana perdue :</strong> Verifier qu'exactement 50% du cout est consomme si interruption (non arrondi au superieur).</li>
+        <li><strong>Agilite et canalisation :</strong> Mesurer les temps de canalisation reduits a differents niveaux d'Agilite.</li>
+      </ul>
+
+      <h3>Tests d'equilibre mage vs physique</h3>
+      <ul>
+        <li><strong>Simulation de combat :</strong> Mage niveau 20 vs combattant physique equipement equivalent — le mage doit dominer les 15 premieres secondes, le physique doit l'emporter apres 30 secondes si mana epuisee.</li>
+        <li><strong>Esquive de projectiles :</strong> Verifier qu'Eclat et Salve sont esquivables par un joueur agile (pas de tracking automatique).</li>
+        <li><strong>Resurrection cristalline :</strong> La fenetre de 5 secondes doit etre precise — tester a 4,9s (doit fonctionner) et 5,1s (doit echouer).</li>
+      </ul>
+
+      <h3>Tests visuels et feedback</h3>
+      <ul>
+        <li><strong>Particules :</strong> Verifier que chaque ecole a des particules distinctes et correctement colorees.</li>
+        <li><strong>HUD :</strong> La barre de mana doit pulse quand mana &lt; 20%. Le timer de cooldown doit etre precis a ±1 seconde.</li>
+        <li><strong>Canalisation visible :</strong> L'indicateur de canalisation doit etre visible pour les alliés ET les ennemis dans un rayon de 20 blocs.</li>
+        <li><strong>Sons :</strong> Verifier qu'aucun sort ne joue le son d'un autre sort (mappage correct des <code>SoundEvent</code>).</li>
+      </ul>
+
+      <h3>Tests d'edge cases</h3>
+      <ul>
+        <li><strong>Mort pendant canalisation :</strong> Si le lanceur meurt pendant une canalisation, la canalisation annule proprement sans crash.</li>
+        <li><strong>Meditation hors cristal :</strong> <code>/magic meditate</code> echoue si aucun Cristal d'Erinium dans un rayon de 3 blocs.</li>
+        <li><strong>Resurrection sans cadavre :</strong> Si le joueur cible a deja respawne (body loote ou despawn), le sort echoue avec message adequat.</li>
+        <li><strong>Pest et propagation hors limites :</strong> La Peste ne doit pas se propager a travers des murs ou au-dela du rayon de 4 blocs (tester en 3D, pas 2D).</li>
+        <li><strong>Prison + invulnerabilite :</strong> La cible en Prison ne doit prendre aucun degat pendant la duree — y compris DoT existants (Corruption).</li>
+      </ul>
+    </div>
+
+  </main>
+</div>
+
+<!-- ========== MOBILE TOGGLE ========== -->
+<button class="mobile-nav-toggle" id="mobileToggle" aria-label="Menu">&#9776;</button>
+
+<script>
+  const toggle = document.getElementById('mobileToggle');
+  const sidebar = document.getElementById('sidebar');
+  toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+  document.addEventListener('click', e => {
+    if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+      sidebar.classList.remove('open');
+    }
+  });
+
+  // Active nav link on scroll
+  const sections = document.querySelectorAll('.section-card[id]');
+  const navLinks  = document.querySelectorAll('.nav-link');
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector('.nav-link[href="#' + entry.target.id + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+
+  sections.forEach(s => obs.observe(s));
+</script>
+
+</body>
+</html>

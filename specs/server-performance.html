@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Server Performance | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --teal:      #1ABC9C;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(26,188,156,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(107,47,160,0.14) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 60% 10%, rgba(0,229,255,0.07) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--teal) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--teal); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--teal); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 4px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--teal);
+    background: rgba(26,188,156,0.14);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(26,188,156,0.09);
+    border-color: rgba(26,188,156,0.22);
+  }
+
+  .nav-link.active {
+    color: var(--teal);
+    background: rgba(26,188,156,0.08);
+    border-color: rgba(26,188,156,0.22);
+  }
+
+  .sidebar-sep { height: 1px; background: var(--card-bdr); margin: 10px 0 4px; }
+
+  /* MAIN */
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* PAGE HEADER */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--teal) 55%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 680px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet { color: var(--violet-l); border-color: rgba(107,47,160,0.4);  background: rgba(107,47,160,0.1); }
+  .badge-cyan   { color: var(--cyan);     border-color: rgba(0,229,255,0.3);    background: rgba(0,229,255,0.07); }
+  .badge-green  { color: var(--green);    border-color: rgba(46,204,113,0.3);   background: rgba(46,204,113,0.07); }
+  .badge-teal   { color: var(--teal);     border-color: rgba(26,188,156,0.35);  background: rgba(26,188,156,0.08); }
+  .badge-gold   { color: var(--gold);     border-color: rgba(241,196,15,0.3);   background: rgba(241,196,15,0.07); }
+  .badge-orange { color: var(--orange);   border-color: rgba(230,126,34,0.35);  background: rgba(230,126,34,0.08); }
+
+  /* SECTION CARDS */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: #0A0A0F;
+    background: linear-gradient(135deg, #0d8c76 0%, var(--teal) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.violet-num { background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); color: #fff; }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a7a40 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #c0960a 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #b05a10 0%, var(--orange) 100%); color: #fff; }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--teal);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* TABLES */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+  thead tr { background: rgba(26,188,156,0.12); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(26,188,156,0.25);
+  }
+
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(26,188,156,0.06); }
+
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes    { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(46,204,113,0.12); color:var(--green); border:1px solid rgba(46,204,113,0.3); letter-spacing:.05em; }
+  .tag-teal   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(26,188,156,0.12); color:var(--teal); border:1px solid rgba(26,188,156,0.3); letter-spacing:.05em; }
+  .tag-cyan   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(0,229,255,0.10); color:var(--cyan); border:1px solid rgba(0,229,255,0.25); letter-spacing:.05em; }
+  .tag-gold   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(241,196,15,0.12); color:var(--gold); border:1px solid rgba(241,196,15,0.3); letter-spacing:.05em; }
+  .tag-orange { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(230,126,34,0.12); color:var(--orange); border:1px solid rgba(230,126,34,0.3); letter-spacing:.05em; }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(26,188,156,0.16);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(26,188,156,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(26,188,156,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+
+  /* INFO BOXES */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(26,188,156,0.06); border: 1px solid rgba(26,188,156,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.07);  border: 1px solid rgba(231,76,60,0.22);  }
+
+  /* OPTIM CARDS */
+  .optim-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+  }
+
+  .optim-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .optim-card.entity { border-top: 3px solid var(--teal); }
+  .optim-card.chunk  { border-top: 3px solid var(--cyan); }
+  .optim-card.packet { border-top: 3px solid var(--violet-l); }
+  .optim-card.data   { border-top: 3px solid var(--gold); }
+  .optim-card.mem    { border-top: 3px solid var(--green); }
+  .optim-card.net    { border-top: 3px solid var(--orange); }
+
+  .optim-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .optim-card-desc {
+    font-size: 12px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  .optim-card-gain {
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 8px;
+  }
+
+  /* ARCH BLOCKS */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+  }
+
+  .arch-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+  }
+
+  .arch-card-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--teal);
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    margin-bottom: 6px;
+  }
+
+  .arch-card-desc {
+    font-size: 12px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  /* TARGET CARDS */
+  .target-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  .target-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid rgba(26,188,156,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    text-align: center;
+  }
+
+  .target-val {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--teal);
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  .target-label {
+    font-size: 12px;
+    color: var(--slate);
+    font-weight: 500;
+  }
+
+  .target-sub {
+    font-size: 11px;
+    color: rgba(136,146,164,0.6);
+    margin-top: 4px;
+  }
+
+  /* CHECKLIST */
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 14px 0;
+  }
+
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  .checklist-item::before {
+    content: '□';
+    color: var(--teal);
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .checklist-item strong { color: var(--text); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 32px 24px 60px; }
+    .target-grid { grid-template-columns: 1fr; }
+    .arch-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a href="../roadmap.html" class="sidebar-back">&#8592; Roadmap</a>
+
+    <div class="sidebar-title">Sections</div>
+    <a href="#contexte"     class="nav-link"><span class="num">01</span>Contexte &amp; Objectifs</a>
+    <a href="#entity"       class="nav-link"><span class="num">02</span>Entites &amp; Mobs</a>
+    <a href="#chunk"        class="nav-link"><span class="num">03</span>Chunks &amp; Generation</a>
+    <a href="#packet"       class="nav-link"><span class="num">04</span>Paquets Reseau</a>
+    <a href="#tick"         class="nav-link"><span class="num">05</span>Distribution des Ticks</a>
+    <a href="#io"           class="nav-link"><span class="num">06</span>Data &amp; I/O Async</a>
+    <a href="#memory"       class="nav-link"><span class="num">07</span>Memoire</a>
+    <a href="#view-dist"    class="nav-link"><span class="num">08</span>Vue Dynamique</a>
+    <a href="#architecture" class="nav-link"><span class="num">09</span>Architecture</a>
+    <a href="#monitoring"   class="nav-link"><span class="num">10</span>Monitoring TPS</a>
+    <a href="#servperf"     class="nav-link"><span class="num">11</span>Commande /servperf</a>
+    <a href="#config"       class="nav-link"><span class="num">12</span>Configuration</a>
+    <a href="#targets"      class="nav-link"><span class="num">13</span>Cibles de Performance</a>
+    <a href="#tests"        class="nav-link"><span class="num">14</span>Plan de Tests</a>
+
+    <div class="sidebar-sep"></div>
+    <div class="sidebar-title">Autres specs</div>
+    <a href="faction-system.html" class="nav-link" style="font-size:12px;">Faction System</a>
+    <a href="anti-usebug.html"    class="nav-link" style="font-size:12px;">Anti Use Bug</a>
+    <a href="anti-cheat.html"     class="nav-link" style="font-size:12px;">Anti Cheat</a>
+  </aside>
+
+  <!-- ═══════════════════════════════ MAIN ═══════════════════════════════ -->
+  <main class="main">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="eyebrow">Infrastructure — Optimisation Serveur</div>
+      <h1>Server Performance</h1>
+      <p>Systeme d'optimisation complet pour maintenir 20 TPS stables avec 500 a 1000 joueurs simultanees sur un seul serveur Forge 1.12.2, sans BungeeCord, avec un monde faction et une dimension de minage.</p>
+      <div class="header-badges">
+        <span class="badge badge-teal">20 TPS Stable</span>
+        <span class="badge badge-violet">Forge 1.12.2</span>
+        <span class="badge badge-cyan">Mixin</span>
+        <span class="badge badge-orange">500-1000 Joueurs</span>
+        <span class="badge badge-gold">Single Server</span>
+        <span class="badge badge-green">Async I/O</span>
+      </div>
+    </div>
+
+    <!-- ═══ 01. CONTEXTE ═══ -->
+    <section class="section-card" id="contexte">
+      <h2><span class="s-num">01</span>Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Infrastructure cible</h3>
+      <ul>
+        <li><strong>Architecture</strong> — Serveur unique, pas de BungeeCord ni de split par dimension sur des processus distincts.</li>
+        <li><strong>Dimensions</strong> — Monde faction principal (overworld) + dimension de minage (dim custom).</li>
+        <li><strong>Mods</strong> — 20+ mods actifs dont Dimensional Threading (gere le multithreading des dimensions).</li>
+        <li><strong>Joueurs</strong> — 500 a 1000 joueurs simultanees en heure de pointe.</li>
+        <li><strong>PvP</strong> — Serveur PvP 1.8 : combats frequents, effets de potion, mouvements rapides = beaucoup d'entites et de paquets.</li>
+      </ul>
+
+      <h3>Perimetre de cette spec</h3>
+      <div class="info-box info">
+        <span class="icon">i</span>
+        <div class="content"><strong>Exclusion :</strong> Le threading des dimensions est gere par le mod <strong>Dimensional Threading</strong> — ne pas dupliquer cette logique. Cette spec couvre tout le reste : entites, chunks, paquets, ticks, I/O, memoire, reseau.</div>
+      </div>
+
+      <h3>Analyse du bottleneck Forge 1.12.2</h3>
+      <p>Les principaux goulets d'etranglement sur un serveur Forge 1.12.2 avec 1000 joueurs sont, par ordre d'impact :</p>
+      <ul>
+        <li><strong>Tick entites (40-60% du tick)</strong> — Chaque entite (mob, item, fleche, animal) execute sa logique IA a chaque tick.</li>
+        <li><strong>Generation de chunks (pic 100+ms)</strong> — La generation synchrone d'un chunk peut bloquer tout un tick.</li>
+        <li><strong>Tick TileEntities (15-25%)</strong> — Hoppers, fours, coffres actifs tickent a chaque tick.</li>
+        <li><strong>Sauvegarde monde (pic 200+ms toutes les 5 min)</strong> — L'auto-save bloque le thread principal sous Forge 1.12.2.</li>
+        <li><strong>Paquets reseau (10-20%)</strong> — Serialisation et envoi des mises a jour d'entites a 1000 clients.</li>
+      </ul>
+
+      <div class="target-grid" style="margin-top: 24px;">
+        <div class="target-card">
+          <div class="target-val">20</div>
+          <div class="target-label">TPS cible (500 joueurs)</div>
+          <div class="target-sub">Tick time &lt; 50ms</div>
+        </div>
+        <div class="target-card">
+          <div class="target-val">18+</div>
+          <div class="target-label">TPS minimum (1000 joueurs)</div>
+          <div class="target-sub">Tick time &lt; 80ms</div>
+        </div>
+        <div class="target-card">
+          <div class="target-val">30ms</div>
+          <div class="target-label">Temps de generation chunk</div>
+          <div class="target-sub">Moyenne par chunk</div>
+        </div>
+        <div class="target-card">
+          <div class="target-val">100ms</div>
+          <div class="target-label">Impact auto-save</div>
+          <div class="target-sub">Max par cycle de save</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 02. ENTITES ═══ -->
+    <section class="section-card" id="entity">
+      <h2><span class="s-num">02</span>Optimisation des Entites</h2>
+
+      <h3 class="first">EntityTickOptimizer — Throttling par distance</h3>
+      <p>La logique IA d'un mob a 64 blocs de tout joueur consomme du CPU sans aucun impact visible. Le throttling reduit la frequence de tick des entites eloignees :</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Distance du joueur le plus proche</th><th>Frequence de tick</th><th>Impact IA</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0 – 24 blocs</td><td>Chaque tick (100%)</td><td>IA complete</td></tr>
+            <tr><td>24 – 48 blocs</td><td>1 tick sur 2 (50%)</td><td>Mouvements legerement ralentis</td></tr>
+            <tr><td>48 – 96 blocs</td><td>1 tick sur 4 (25%)</td><td>Comportement ralenti, invisible au joueur</td></tr>
+            <tr><td>96+ blocs ou chunk inactive</td><td>Skip IA entierement</td><td>L'entite existe mais ne pense pas</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-block"><span class="an">@Mixin</span>(<span class="ty">World</span>.<span class="kw">class</span>)
+<span class="kw">public abstract class</span> <span class="ty">MixinWorldEntityTick</span> {
+
+    <span class="an">@Inject</span>(method = <span class="st">"updateEntityWithOptionalForce"</span>, at = <span class="an">@At</span>(<span class="st">"HEAD"</span>), cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">throttleEntityTick</span>(<span class="ty">Entity</span> entity, <span class="kw">boolean</span> forceUpdate, <span class="ty">CallbackInfo</span> ci) {
+        <span class="kw">if</span> (entity <span class="kw">instanceof</span> <span class="ty">EntityLivingBase</span> &amp;&amp; !(entity <span class="kw">instanceof</span> <span class="ty">EntityPlayer</span>)) {
+            <span class="kw">int</span> throttle = <span class="ty">EntityTickOptimizer</span>.<span class="fn">getThrottle</span>(entity);
+            <span class="kw">if</span> (throttle > <span class="nu">1</span>) {
+                <span class="kw">long</span> tick = entity.world.<span class="fn">getTotalWorldTime</span>();
+                <span class="kw">if</span> ((tick + entity.<span class="fn">getEntityId</span>()) % throttle != <span class="nu">0</span>) {
+                    ci.<span class="fn">cancel</span>(); <span class="cm">// Skip ce tick</span>
+                }
+            }
+        }
+    }
+}</span></div>
+
+      <h3>Entity Activation Range</h3>
+      <p>Les entites au-dela de 32 blocs de tout joueur entrent en mode "inactif" : leurs ticks IA sont entierement sautes. Elles continuent d'exister dans le monde et de se deplacer selon l'inertie, mais ne calculent pas de nouvelles decisions d'IA.</p>
+      <ul>
+        <li><strong>Mobs hostiles</strong> — Desactivation IA a 32 blocs.</li>
+        <li><strong>Animaux / mobs passifs</strong> — Desactivation IA a 24 blocs.</li>
+        <li><strong>Items au sol</strong> — Desactivation complete a 16 blocs (pas de mouvement physique non plus).</li>
+        <li><strong>Fleches / projectiles</strong> — Toujours actifs (courte duree de vie, impact joueur possible).</li>
+        <li><strong>EntityPlayer</strong> — Jamais throttle.</li>
+      </ul>
+
+      <h3>Mob Cap par section de chunk</h3>
+      <p>Le mob cap vanilla s'applique a l'echelle du monde entier (70 mobs hostiles par monde). Sur un serveur 1000 joueurs, cela est completement insuffisant. Le cap est remplace par un cap <strong>par section de chunk (16x16x16)</strong> :</p>
+      <ul>
+        <li>Maximum 10 mobs hostiles par section de chunk.</li>
+        <li>Maximum 20 animaux par section de chunk.</li>
+        <li>Suppression automatique des mobs en surplus (les plus anciens en premier).</li>
+      </ul>
+
+      <h3>Culling des entites inactives</h3>
+      <p>Une entite qui est restee dans un chunk non charge pendant plus de 5 minutes (configurable) est automatiquement supprimee du serveur. Cela evite l'accumulation d'entites dans des zones non visitees.</p>
+    </section>
+
+    <!-- ═══ 03. CHUNKS ═══ -->
+    <section class="section-card" id="chunk">
+      <h2><span class="s-num">03</span>Optimisation des Chunks</h2>
+
+      <h3 class="first">Probleme de la generation synchrone</h3>
+      <p>Sous Forge 1.12.2, la generation d'un nouveau chunk bloque le thread principal. Avec 1000 joueurs se deplacant dans toutes les directions, plusieurs chunks peuvent etre generes en serie dans le meme tick, causant des pics de latence de 100-500ms.</p>
+
+      <h3>ChunkLoadOptimizer — Chargement asynchrone</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">ChunkLoadOptimizer</span> {
+
+    <span class="cm">// Queue de chunks a generer, traites 2 par tick max</span>
+    <span class="kw">private final</span> <span class="ty">Queue</span>&lt;<span class="ty">ChunkGenerationTask</span>&gt; generationQueue = <span class="kw">new</span> <span class="ty">ConcurrentLinkedQueue</span>&lt;&gt;();
+
+    <span class="kw">public static final int</span> MAX_CHUNKS_PER_TICK = <span class="nu">2</span>; <span class="cm">// configurable</span>
+
+    <span class="an">@SubscribeEvent</span>
+    <span class="kw">public void</span> <span class="fn">onServerTick</span>(<span class="ty">TickEvent</span>.ServerTickEvent event) {
+        <span class="kw">if</span> (event.phase != <span class="ty">TickEvent</span>.Phase.START) <span class="kw">return</span>;
+
+        <span class="kw">int</span> processed = <span class="nu">0</span>;
+        <span class="kw">while</span> (!generationQueue.<span class="fn">isEmpty</span>() &amp;&amp; processed < MAX_CHUNKS_PER_TICK) {
+            <span class="ty">ChunkGenerationTask</span> task = generationQueue.<span class="fn">poll</span>();
+            <span class="kw">long</span> before = <span class="ty">System</span>.<span class="fn">currentTimeMillis</span>();
+            task.<span class="fn">generate</span>();
+            <span class="ty">PerformanceMonitor</span>.<span class="fn">recordChunkGenTime</span>(<span class="ty">System</span>.<span class="fn">currentTimeMillis</span>() - before);
+            processed++;
+        }
+    }
+}</span></div>
+
+      <h3>Pre-generation de chunks</h3>
+      <p>Le vecteur de deplacement de chaque joueur est calcule et les chunks dans la direction de deplacement sont pre-mis en queue de generation avec une priorite elevee avant que le joueur ne les atteigne.</p>
+
+      <h3>Distance de vue dynamique (AutoViewDistance)</h3>
+      <p>La distance de vue globale du serveur est ajustee automatiquement selon le nombre de joueurs connectes :</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Joueurs connectes</th><th>View Distance</th><th>Chunks envoyes par joueur</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0 – 100</td><td>10</td><td>441</td></tr>
+            <tr><td>100 – 250</td><td>9</td><td>361</td></tr>
+            <tr><td>250 – 400</td><td>8</td><td>289</td></tr>
+            <tr><td>400 – 600</td><td>7</td><td>225</td></tr>
+            <tr><td>600 – 800</td><td>6</td><td>169</td></tr>
+            <tr><td>800+</td><td>5</td><td>121</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Le changement de view distance se fait progressivement (1 chunk par 30 secondes) pour eviter un pic de chargement/dechargement massif lors de transitions.</p>
+
+      <h3>Dechargement agressif de chunks</h3>
+      <p>Un chunk sans joueur dans un rayon de 2 chunks est decharge immediatement apres 30 ticks (1.5 secondes) sans joueur. Forge vanilla attend 600 ticks (30 secondes). Sur 1000 joueurs, cette reduction libere des centaines de chunks en memoire.</p>
+    </section>
+
+    <!-- ═══ 04. PAQUETS ═══ -->
+    <section class="section-card" id="packet">
+      <h2><span class="s-num">04</span>Optimisation des Paquets Reseau</h2>
+
+      <h3 class="first">Probleme : surcharge paquets a 1000 joueurs</h3>
+      <p>Le systeme d'entity tracker vanilla envoie des mises a jour de position a tous les joueurs dans le rayon de tracking pour chaque entite a chaque tick. Avec 1000 joueurs :</p>
+      <ul>
+        <li>Si 1000 joueurs sont proches les uns des autres (combat faction) : jusqu'a 1000 * 1000 = 1,000,000 paquets de position par tick.</li>
+        <li>Le debit reseau peut depasser 100 MB/s uniquement pour les paquets d'entites.</li>
+      </ul>
+
+      <h3>PacketOptimizer — Batch updates</h3>
+      <div class="code-block"><span class="cm">// Mixin sur EntityTrackerEntry pour regrouper les updates</span>
+<span class="an">@Mixin</span>(<span class="ty">EntityTrackerEntry</span>.<span class="kw">class</span>)
+<span class="kw">public abstract class</span> <span class="ty">MixinEntityTrackerEntry</span> {
+
+    <span class="an">@Shadow</span> <span class="kw">private int</span> updateFrequency;
+
+    <span class="an">@Inject</span>(method = <span class="st">"&lt;init&gt;"</span>, at = <span class="an">@At</span>(<span class="st">"RETURN"</span>))
+    <span class="kw">private void</span> <span class="fn">adjustUpdateFrequency</span>(<span class="ty">Entity</span> entity, <span class="kw">int</span> range, <span class="kw">int</span> freq, <span class="kw">boolean</span> sendVel,
+                                          <span class="ty">CallbackInfo</span> ci) {
+        <span class="kw">if</span> (entity <span class="kw">instanceof</span> <span class="ty">EntityLivingBase</span> &amp;&amp; !(entity <span class="kw">instanceof</span> <span class="ty">EntityPlayer</span>)) {
+            <span class="cm">// Mobs : update toutes les 2 ticks au lieu de chaque tick</span>
+            updateFrequency = <span class="ty">Math</span>.<span class="fn">max</span>(freq, <span class="ty">PerformanceConfig</span>.ENTITY_UPDATE_FREQ_TICKS);
+        }
+    }
+}</span></div>
+
+      <h3>Rate limiting par joueur</h3>
+      <p>Chaque connexion joueur a une limite de paquets sortants par tick (configurable, defaut 200 paquets/tick). Si cette limite est depassee, les paquets de basse priorite (positions d'entites lointaines) sont droppes jusqu'au prochain tick.</p>
+
+      <h3>Priorite des paquets</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Type de paquet</th><th>Priorite</th><th>Comportement si rate limit atteint</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Dialogue / chat</td><td><span class="tag-yes">HAUTE</span></td><td>Toujours envoye</td></tr>
+            <tr><td>Position joueur (PvP)</td><td><span class="tag-yes">HAUTE</span></td><td>Toujours envoye</td></tr>
+            <tr><td>Changements de blocs proches</td><td><span class="tag-teal">NORMALE</span></td><td>Envoye si budget disponible</td></tr>
+            <tr><td>Position mobs &lt; 32 blocs</td><td><span class="tag-teal">NORMALE</span></td><td>Envoye si budget disponible</td></tr>
+            <tr><td>Position mobs &gt; 32 blocs</td><td><span class="tag-gold">BASSE</span></td><td>Droppé si rate limit</td></tr>
+            <tr><td>Mise a jour tab list</td><td><span class="tag-gold">BASSE</span></td><td>Batch toutes les 2 secondes</td></tr>
+            <tr><td>Son / particule distants</td><td><span class="tag-orange">TRES BASSE</span></td><td>Droppé si charge elevee</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Batch Tab List Updates</h3>
+      <p>Les mises a jour de la tab list (tab player) sont regroupees et envoyees en batch toutes les 2 secondes (40 ticks) plutot qu'en temps reel. Cela reduit de 40x le nombre de paquets <code>SPacketPlayerListItem</code>.</p>
+
+      <h3>Chat queuing anti-flood</h3>
+      <p>Les messages chat sont limites a 1 par 500ms par joueur. Les messages en surplus sont soit droppes, soit mis en file avec un indicateur de delai. Empeche les tempetes de paquets chat lors d'evenements.</p>
+    </section>
+
+    <!-- ═══ 05. DISTRIBUTION DES TICKS ═══ -->
+    <section class="section-card" id="tick">
+      <h2><span class="s-num">05</span>Distribution des Ticks</h2>
+
+      <h3 class="first">Probleme : congestion en debut de tick</h3>
+      <p>Par defaut, tous les TileEntities tickent au debut du tick serveur (phase WORLD_TICK). Avec 10,000 TileEntities dans le monde, ils consomment tous le CPU dans la meme fenetre, creant un pic de charge.</p>
+
+      <h3>TickDistributor — Repartition sur N ticks</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">TickDistributor</span> {
+
+    <span class="kw">private static final int</span> DISTRIBUTION_WINDOW = <span class="nu">4</span>; <span class="cm">// Repartir sur 4 ticks</span>
+
+    <span class="cm">// Partitionner les TileEntities en 4 groupes par hash de position</span>
+    <span class="kw">public static boolean</span> <span class="fn">shouldTickThisTick</span>(<span class="ty">TileEntity</span> te, <span class="kw">long</span> worldTick) {
+        <span class="kw">int</span> group = (te.<span class="fn">getPos</span>().<span class="fn">hashCode</span>() &amp; <span class="nu">0x7FFFFFFF</span>) % DISTRIBUTION_WINDOW;
+        <span class="kw">return</span> (worldTick % DISTRIBUTION_WINDOW) == group;
+    }
+}</span></div>
+
+      <p>En pratique, chaque TileEntity ne ticke qu'1 fois tous les 4 ticks au lieu de chaque tick. Pour la plupart des TileEntities (coffres, balises, spawners inactifs), cela est imperceptible. Les hoppers ont leur propre systeme de throttling.</p>
+
+      <h3>Hopper Throttling</h3>
+      <p>Les hoppers sont les TileEntities les plus couteux de Minecraft. Le throttling conditionnel :</p>
+      <ul>
+        <li><strong>Hopper isole</strong> (&lt; 10 hoppers dans le chunk) — tick normal (toutes les 8 ticks, comportement vanilla).</li>
+        <li><strong>Chunk avec 10-30 hoppers</strong> — tick toutes les 16 ticks.</li>
+        <li><strong>Chunk avec 30+ hoppers</strong> — tick toutes les 32 ticks + alerte admin (potentielle machine exploit).</li>
+      </ul>
+
+      <h3>Redstone throttling</h3>
+      <p>La propagation redstone illimitee peut provoquer des boucles infinies ou des pics de lag. Un compteur de profondeur limite les mises a jour redstone a 512 par tick et par zone de 16x16x16.</p>
+
+      <h3>Random tick speed optimization</h3>
+      <p>Le random tick speed affecte la culture de blocs et la poussee de l'herbe. En dessous de 18 TPS, le random tick speed est reduit automatiquement de 3 a 1 pour alleager la charge, puis restaure quand le TPS revient au-dessus de 19.</p>
+    </section>
+
+    <!-- ═══ 06. DATA & I/O ASYNC ═══ -->
+    <section class="section-card" id="io">
+      <h2><span class="s-num">06</span>Data &amp; I/O Asynchrone</h2>
+
+      <h3 class="first">Sauvegarde monde asynchrone</h3>
+      <p>L'auto-save vanilla bloque le thread principal pendant la serialisation et l'ecriture des chunks et des donnees joueur. Sur un monde charge avec 1000 joueurs, cela peut prendre 200-500ms toutes les 5 minutes — un spike TPS majeur visible par tous.</p>
+
+      <div class="code-block"><span class="cm">// Mixin sur MinecraftServer.saveAllWorlds pour rendre la save async</span>
+<span class="an">@Mixin</span>(<span class="ty">MinecraftServer</span>.<span class="kw">class</span>)
+<span class="kw">public abstract class</span> <span class="ty">MixinMinecraftServer</span> {
+
+    <span class="an">@Inject</span>(method = <span class="st">"saveAllWorlds"</span>, at = <span class="an">@At</span>(<span class="st">"HEAD"</span>), cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">asyncSaveAllWorlds</span>(<span class="kw">boolean</span> suppressLog, <span class="ty">CallbackInfo</span> ci) {
+        <span class="kw">if</span> (<span class="ty">PerformanceConfig</span>.ENABLE_ASYNC_SAVE) {
+            <span class="ty">AsyncWorldSaver</span>.<span class="fn">getInstance</span>().<span class="fn">scheduleSave</span>();
+            ci.<span class="fn">cancel</span>(); <span class="cm">// La save vanilla est remplacee par notre impl async</span>
+        }
+    }
+}</span></div>
+
+      <p>La sauvegarde async fonctionne en deux phases :</p>
+      <ul>
+        <li><strong>Phase 1 (thread principal, &lt; 5ms)</strong> — Serialisation des chunks en memoire (NBTTagCompound) sans I/O disque.</li>
+        <li><strong>Phase 2 (thread I/O dedie)</strong> — Ecriture des NBTTagCompound serialises dans les fichiers .mca. Completement off-thread.</li>
+      </ul>
+
+      <h3>Batching de sauvegarde joueur</h3>
+      <p>Les donnees NBT de 1000 joueurs sont sauvegardees en batch toutes les 5 minutes au lieu d'etre sauvegardees individuellement a chaque deconnexion. La sauvegarde batch est faite sur un thread I/O dedie.</p>
+
+      <h3>Cache de fichiers region</h3>
+      <p>Les fichiers .mca (region files) frequemment accedes sont gardes ouverts avec un cache LRU de 32 fichiers. Cela evite les overheads d'ouverture/fermeture de fichiers pour les zones frequemment visitees.</p>
+
+      <h3>EriAPI DataManager — Backend optimise</h3>
+      <p>Pour 1000 joueurs, stocker les donnees dans des fichiers NBT individuels (1 fichier par joueur) represente 1000 acces disque distincts lors de l'auto-save. Le DataManager est configure en mode <strong>batch write</strong> : toutes les donnees joueur sont serialisees en un seul fichier JSON ou dans une simple base SQLite en memoire.</p>
+    </section>
+
+    <!-- ═══ 07. MEMOIRE ═══ -->
+    <section class="section-card" id="memory">
+      <h2><span class="s-num">07</span>Optimisation Memoire</h2>
+
+      <h3 class="first">Object pooling</h3>
+      <p>Minecraft cree et detruit des millions d'objets temporaires par tick (BlockPos, Vec3d, AxisAlignedBB). Chaque allocation declenche eventuellement le GC Java, causant des pauses. Le pooling reutilise ces objets :</p>
+
+      <div class="code-block"><span class="cm">// Pool de BlockPos mutables (thread-local pour la securite)</span>
+<span class="kw">public class</span> <span class="ty">BlockPosPool</span> {
+
+    <span class="kw">private static final</span> <span class="ty">ThreadLocal</span>&lt;<span class="ty">BlockPos</span>.MutableBlockPos&gt; POOL =
+        <span class="ty">ThreadLocal</span>.<span class="fn">withInitial</span>(<span class="ty">BlockPos</span>.MutableBlockPos::<span class="kw">new</span>);
+
+    <span class="kw">public static</span> <span class="ty">BlockPos</span>.MutableBlockPos <span class="fn">get</span>() {
+        <span class="kw">return</span> POOL.<span class="fn">get</span>();
+    }
+}</span></div>
+
+      <p>Le pool est appele dans les hotspots identifies par profiling : boucles de recherche d'entites, calculs de path-finding, detection de collisions.</p>
+
+      <h3>Reduction NBT des mobs</h3>
+      <p>Les mobs accumulent des tags NBT optionnels (historique de degats, custom name vide, tags inutilises par les mods). Un pass de nettoyage NBT retire les tags vides ou redondants lors de la serialisation des entites.</p>
+
+      <h3>Chunk palette optimization</h3>
+      <p>Le systeme de palette de blocs de Minecraft 1.12.2 utilise un tableau de long pour stocker les blocs par chunk. Les chunks avec peu de types de blocs distincts utilisent des palettes plus petites (4 bits/bloc au lieu de 8). Cette optimisation est deja en partie presente dans Forge mais peut etre amelioree pour les chunks du monde de minage.</p>
+
+      <h3>Limit des entites items au sol</h3>
+      <p>Les items droppes au sol s'accumulent dans les zones PvP actives. Une limite de 200 items par chunk section est appliquee. Au-dela, les plus anciens items sont supprimes (avec log si l'item est rare).</p>
+    </section>
+
+    <!-- ═══ 08. VUE DYNAMIQUE ═══ -->
+    <section class="section-card" id="view-dist">
+      <h2><span class="s-num">08</span>AutoViewDistance</h2>
+
+      <h3 class="first">Ajustement dynamique de la distance de vue</h3>
+      <p>L'<code>AutoViewDistance</code> surveille le TPS et le nombre de joueurs en temps reel et ajuste la distance de vue du serveur progressivement :</p>
+
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">AutoViewDistance</span> {
+
+    <span class="kw">private int</span> currentViewDist = <span class="nu">10</span>;
+    <span class="kw">private int</span> targetViewDist  = <span class="nu">10</span>;
+    <span class="kw">private</span>  <span class="kw">long</span> lastAdjustTick = <span class="nu">0</span>;
+
+    <span class="kw">public void</span> <span class="fn">tick</span>(<span class="kw">long</span> worldTick) {
+        <span class="kw">if</span> (worldTick - lastAdjustTick < <span class="nu">600</span>) <span class="kw">return</span>; <span class="cm">// Check toutes les 30s</span>
+
+        <span class="kw">int</span> players = <span class="ty">FMLCommonHandler</span>.<span class="fn">instance</span>().<span class="fn">getMinecraftServerInstance</span>()
+                       .<span class="fn">getCurrentPlayerCount</span>();
+        <span class="kw">double</span> tps = <span class="ty">PerformanceMonitor</span>.<span class="fn">getInstance</span>().<span class="fn">getAverageTPS</span>(<span class="nu">60</span>); <span class="cm">// moy 60s</span>
+
+        targetViewDist = <span class="fn">calculateTarget</span>(players, tps);
+
+        <span class="kw">if</span> (targetViewDist != currentViewDist) {
+            <span class="kw">int</span> step = targetViewDist > currentViewDist ? <span class="nu">1</span> : <span class="op">-</span><span class="nu">1</span>;
+            currentViewDist += step;
+            <span class="ty">FMLCommonHandler</span>.<span class="fn">instance</span>().<span class="fn">getMinecraftServerInstance</span>()
+                .<span class="fn">setPlayerListViewDistance</span>(currentViewDist);
+        }
+        lastAdjustTick = worldTick;
+    }
+}</span></div>
+
+      <p>Des qu'un admin modifie manuellement la view distance via commande, l'AutoViewDistance se met en pause pendant 10 minutes avant de reprendre les ajustements automatiques.</p>
+    </section>
+
+    <!-- ═══ 09. ARCHITECTURE ═══ -->
+    <section class="section-card" id="architecture">
+      <h2><span class="s-num">09</span>Architecture Technique</h2>
+
+      <h3 class="first">Package principal</h3>
+      <p>Tout le code d'optimisation est isole dans le package <code>fr.eriniumgroup.eriniumfaction.performance</code>.</p>
+
+      <div class="arch-grid">
+        <div class="arch-card">
+          <div class="arch-card-name">PerformanceManager</div>
+          <div class="arch-card-desc">Singleton central. Coordonne tous les sous-systemes d'optimisation. Point d'entree d'initialisation.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">EntityTickOptimizer</div>
+          <div class="arch-card-desc">Throttling IA par distance + activation range. Culling entites inactives. Cap mob par section.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">ChunkLoadOptimizer</div>
+          <div class="arch-card-desc">Queue de generation avec cap par tick. Pre-generation directionnelle. Dechargement agressif.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">PacketOptimizer</div>
+          <div class="arch-card-desc">Rate limiting joueur. Priorite paquets. Batch tab list. Queue chat anti-flood.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">TickDistributor</div>
+          <div class="arch-card-desc">Repartition des TileEntities sur N ticks. Hopper throttling conditionnel. Redstone cap.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">AsyncWorldSaver</div>
+          <div class="arch-card-desc">Sauvegarde monde en deux phases. Thread I/O dedie. Batch NBT joueurs.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">AutoViewDistance</div>
+          <div class="arch-card-desc">Ajustement dynamique distance de vue selon joueurs + TPS. Transition progressive.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">PerformanceMonitor</div>
+          <div class="arch-card-desc">TPS tracker, entity counts, chunk stats, packet rates. Fournit les donnees a /servperf.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">PerformanceConfig</div>
+          <div class="arch-card-desc">Tous les seuils et options configurables. Rechargeable en live. Valeurs par defaut conservatrices.</div>
+        </div>
+      </div>
+
+      <h3>Structure des packages</h3>
+      <div class="code-block">fr.eriniumgroup.eriniumfaction.performance/
+├── PerformanceManager.java
+├── config/
+│   └── PerformanceConfig.java
+├── entity/
+│   ├── EntityTickOptimizer.java
+│   └── EntityActivationRange.java
+├── chunk/
+│   ├── ChunkLoadOptimizer.java
+│   └── AsyncWorldSaver.java
+├── network/
+│   ├── PacketOptimizer.java
+│   └── PlayerPacketRateLimiter.java
+├── tick/
+│   ├── TickDistributor.java
+│   └── HopperThrottler.java
+├── view/
+│   └── AutoViewDistance.java
+├── monitor/
+│   ├── PerformanceMonitor.java
+│   ├── TpsTracker.java
+│   └── EntityCountTracker.java
+└── mixin/
+    ├── MixinWorld.java               <span class="cm">// Entity tick throttle</span>
+    ├── MixinMinecraftServer.java      <span class="cm">// Async save hook</span>
+    ├── MixinEntityTrackerEntry.java   <span class="cm">// Packet frequency</span>
+    ├── MixinTileEntityHopper.java     <span class="cm">// Hopper throttle</span>
+    └── MixinChunkProviderServer.java  <span class="cm">// Chunk load queue</span></div>
+    </section>
+
+    <!-- ═══ 10. MONITORING TPS ═══ -->
+    <section class="section-card" id="monitoring">
+      <h2><span class="s-num">10</span>Monitoring TPS &amp; Metriques</h2>
+
+      <h3 class="first">TPS Tracker</h3>
+      <p>Le <code>TpsTracker</code> calcule le TPS en temps reel avec trois moyennes glissantes :</p>
+      <ul>
+        <li><strong>TPS instantane</strong> — Mis a jour a chaque tick.</li>
+        <li><strong>Moyenne 1 minute</strong> — Fenetre glissante sur les 60 derniers ticks.</li>
+        <li><strong>Moyenne 5 minutes</strong> — Fenetre glissante sur les 6000 derniers ticks.</li>
+        <li><strong>Moyenne 15 minutes</strong> — Fenetre glissante sur les 18000 derniers ticks.</li>
+      </ul>
+
+      <h3>Metriques collectees</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Metrique</th><th>Frequence de mise a jour</th><th>Utilisation</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>TPS (1m/5m/15m)</td><td>Chaque tick</td><td>/servperf, auto-adjustments</td></tr>
+            <tr><td>Tick time (ms)</td><td>Chaque tick</td><td>Detection pics de lag</td></tr>
+            <tr><td>Entites par dimension</td><td>Toutes les 100 ticks</td><td>/servperf, culling</td></tr>
+            <tr><td>Chunks charges par dimension</td><td>Toutes les 100 ticks</td><td>/servperf</td></tr>
+            <tr><td>Temps generation chunk (moy)</td><td>A chaque generation</td><td>Alertes si &gt; 30ms</td></tr>
+            <tr><td>Paquets/s par joueur</td><td>Toutes les 20 ticks</td><td>Rate limiting</td></tr>
+            <tr><td>Memoire heap (MB)</td><td>Toutes les 200 ticks</td><td>/servperf, alertes GC</td></tr>
+            <tr><td>Hopper count par chunk</td><td>Toutes les 400 ticks</td><td>Throttling conditionnel</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Alertes automatiques</h3>
+      <ul>
+        <li><strong>TPS &lt; 15</strong> — Alerte console + notification Discord (si webhook configure).</li>
+        <li><strong>Tick time &gt; 100ms</strong> — Log du composant coupable (entites, chunks, TEs) pour diagnostique.</li>
+        <li><strong>Generation chunk &gt; 50ms</strong> — Log avec coordonnees du chunk pour investigation.</li>
+        <li><strong>Memoire heap &gt; 85%</strong> — Alerte + reduction temporaire de la view distance de 2.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ 11. /SERVPERF ═══ -->
+    <section class="section-card" id="servperf">
+      <h2><span class="s-num">11</span>Commande /servperf</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <p>La commande <code>/servperf</code> affiche un tableau de bord de performance en temps reel dans le chat, avec coloration selon la severite. Requiert la permission <code>eriniumfaction.admin.performance</code>.</p>
+
+      <div class="code-block"><span class="cm">// Affichage via EriChat</span>
+<span class="cm">// ╔═════════════════════════════════════╗</span>
+<span class="cm">// ║  SERVER PERFORMANCE — EriniumFaction  ║</span>
+<span class="cm">// ╠═════════════════════════════════════╣</span>
+<span class="cm">// ║  TPS: 19.8 (1m) | 19.5 (5m) | 19.1 (15m)    ║</span>
+<span class="cm">// ║  Tick: 48ms avg | 67ms max (last 60s)          ║</span>
+<span class="cm">// ║  Players: 743                                   ║</span>
+<span class="cm">// ║  View Distance: 7 (auto)                        ║</span>
+<span class="cm">// ╠═════════════════════════════════════╣</span>
+<span class="cm">// ║  Overworld — Entities: 1,842 | Chunks: 2,156   ║</span>
+<span class="cm">// ║  Mining Dim — Entities: 634  | Chunks: 847     ║</span>
+<span class="cm">// ╠═════════════════════════════════════╣</span>
+<span class="cm">// ║  Memory: 6.2 GB / 8 GB (77%)                  ║</span>
+<span class="cm">// ║  Chunk Gen: 24ms avg | 89ms max                ║</span>
+<span class="cm">// ╚═════════════════════════════════════╝</span></div>
+
+      <h3>Sous-commandes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Commande</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>/servperf</td><td>Affiche le tableau de bord complet</td></tr>
+            <tr><td>/servperf tps</td><td>Affiche uniquement les TPS avec graphique ASCII</td></tr>
+            <tr><td>/servperf entities [dim]</td><td>Top 10 des types d'entites les plus nombreux</td></tr>
+            <tr><td>/servperf chunks [dim]</td><td>Stats de chunks : charges, queues de generation</td></tr>
+            <tr><td>/servperf top</td><td>Top 5 des joueurs par volume de paquets</td></tr>
+            <tr><td>/servperf view &lt;n&gt;</td><td>Force la view distance a n (desactive l'auto)</td></tr>
+            <tr><td>/servperf view auto</td><td>Reactive le mode automatique</td></tr>
+            <tr><td>/servperf reload</td><td>Recharge PerformanceConfig depuis le fichier</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ 12. CONFIG ═══ -->
+    <section class="section-card" id="config">
+      <h2><span class="s-num">12</span>Configuration</h2>
+
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">PerformanceConfig</span> {
+
+    <span class="cm">// ── Entity Throttling ──────────────────────────────────────</span>
+    <span class="kw">public static int</span>     ENTITY_TICK_RANGE_FULL   = <span class="nu">24</span>;   <span class="cm">// blocs, tick 100%</span>
+    <span class="kw">public static int</span>     ENTITY_TICK_RANGE_HALF   = <span class="nu">48</span>;   <span class="cm">// blocs, tick 50%</span>
+    <span class="kw">public static int</span>     ENTITY_TICK_RANGE_QUARTER = <span class="nu">96</span>;   <span class="cm">// blocs, tick 25%</span>
+    <span class="kw">public static int</span>     ENTITY_ACTIVATION_RANGE  = <span class="nu">32</span>;   <span class="cm">// blocs, desactive IA</span>
+    <span class="kw">public static int</span>     MAX_HOSTILE_MOBS_PER_SECTION = <span class="nu">10</span>;
+    <span class="kw">public static int</span>     MAX_PASSIVE_MOBS_PER_SECTION = <span class="nu">20</span>;
+    <span class="kw">public static int</span>     INACTIVE_ENTITY_CULL_MINUTES = <span class="nu">5</span>;
+
+    <span class="cm">// ── Chunk Loading ─────────────────────────────────────────</span>
+    <span class="kw">public static int</span>     MAX_CHUNKS_GEN_PER_TICK  = <span class="nu">2</span>;
+    <span class="kw">public static int</span>     CHUNK_UNLOAD_DELAY_TICKS = <span class="nu">30</span>;
+
+    <span class="cm">// ── View Distance ─────────────────────────────────────────</span>
+    <span class="kw">public static int</span>     VIEW_DIST_MAX            = <span class="nu">10</span>;
+    <span class="kw">public static int</span>     VIEW_DIST_MIN            = <span class="nu">5</span>;
+    <span class="kw">public static boolean</span> AUTO_VIEW_DISTANCE        = <span class="kw">true</span>;
+
+    <span class="cm">// ── Packets ───────────────────────────────────────────────</span>
+    <span class="kw">public static int</span>     MAX_PACKETS_PER_TICK     = <span class="nu">200</span>;
+    <span class="kw">public static int</span>     ENTITY_UPDATE_FREQ_TICKS  = <span class="nu">2</span>;
+    <span class="kw">public static int</span>     TAB_LIST_UPDATE_TICKS     = <span class="nu">40</span>;
+    <span class="kw">public static int</span>     CHAT_COOLDOWN_MS          = <span class="nu">500</span>;
+
+    <span class="cm">// ── Tick Distribution ─────────────────────────────────────</span>
+    <span class="kw">public static int</span>     TE_DISTRIBUTION_WINDOW    = <span class="nu">4</span>;
+    <span class="kw">public static int</span>     HOPPER_THROTTLE_MEDIUM    = <span class="nu">16</span>; <span class="cm">// ticks entre ticks hopper</span>
+    <span class="kw">public static int</span>     HOPPER_THROTTLE_HIGH      = <span class="nu">32</span>;
+    <span class="kw">public static int</span>     HOPPER_THRESHOLD_MEDIUM   = <span class="nu">10</span>; <span class="cm">// nb hoppers par chunk</span>
+    <span class="kw">public static int</span>     HOPPER_THRESHOLD_HIGH     = <span class="nu">30</span>;
+    <span class="kw">public static int</span>     REDSTONE_UPDATES_CAP      = <span class="nu">512</span>;
+
+    <span class="cm">// ── Async Save ────────────────────────────────────────────</span>
+    <span class="kw">public static boolean</span> ENABLE_ASYNC_SAVE         = <span class="kw">true</span>;
+    <span class="kw">public static int</span>     ASYNC_SAVE_THREAD_PRIORITY = <span class="nu">3</span>;   <span class="cm">// 1-10</span>
+
+    <span class="cm">// ── Memory ────────────────────────────────────────────────</span>
+    <span class="kw">public static int</span>     MAX_ITEMS_ON_GROUND_PER_SECTION = <span class="nu">200</span>;
+
+    <span class="cm">// ── Feature Flags ─────────────────────────────────────────</span>
+    <span class="kw">public static boolean</span> ENABLE_ENTITY_THROTTLE    = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> ENABLE_CHUNK_QUEUE         = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> ENABLE_PACKET_OPTIMIZER    = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> ENABLE_TICK_DISTRIBUTOR    = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> ENABLE_HOPPER_THROTTLE     = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> ENABLE_PERFORMANCE_MONITOR = <span class="kw">true</span>;
+}</span></div>
+    </section>
+
+    <!-- ═══ 13. CIBLES ═══ -->
+    <section class="section-card" id="targets">
+      <h2><span class="s-num">13</span>Cibles de Performance</h2>
+
+      <h3 class="first">Objectifs mesurables</h3>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Scenario</th><th>TPS Cible</th><th>Tick Time Max</th><th>Note</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>100 joueurs, exploration normale</td><td>20 TPS</td><td>&lt; 20ms</td><td>Baseline</td></tr>
+            <tr><td>500 joueurs, jeu normal</td><td>20 TPS</td><td>&lt; 50ms</td><td>Objectif principal</td></tr>
+            <tr><td>500 joueurs + combat faction 100v100</td><td>18+ TPS</td><td>&lt; 70ms</td><td>Pic de charge</td></tr>
+            <tr><td>1000 joueurs, jeu normal</td><td>18+ TPS</td><td>&lt; 80ms</td><td>Objectif secondaire</td></tr>
+            <tr><td>1000 joueurs + evenement monde</td><td>16+ TPS</td><td>&lt; 100ms</td><td>Acceptable</td></tr>
+            <tr><td>Auto-save cycle</td><td>&gt; 19 TPS</td><td>&lt; 100ms impact</td><td>Grace a async save</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Impacts des optimisations (estimations)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Optimisation</th><th>Reduction tick time estimee</th><th>Conditions</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Entity tick throttling</td><td>-20 a -40%</td><td>Monde avec 2000+ entites</td></tr>
+            <tr><td>Chunk gen queue (2/tick)</td><td>-5 a -15% (spike)</td><td>Zones d'exploration active</td></tr>
+            <tr><td>TE tick distribution (x4)</td><td>-10 a -20%</td><td>Monde avec 5000+ TEs</td></tr>
+            <tr><td>Async world save</td><td>Eliminiation spike 200ms</td><td>Toutes les 5 minutes</td></tr>
+            <tr><td>Packet rate limiting</td><td>-10% CPU reseau</td><td>Combats de masse</td></tr>
+            <tr><td>AutoViewDistance</td><td>-15 a -30% chunks</td><td>500+ joueurs</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ 14. TESTS ═══ -->
+    <section class="section-card" id="tests">
+      <h2><span class="s-num">14</span>Plan de Tests</h2>
+
+      <h3 class="first">Tests de performance</h3>
+      <div class="checklist">
+        <div class="checklist-item"><strong>[TEST-01] Baseline :</strong> Mesurer le TPS sans aucune optimisation active sur un serveur de test avec 100 bots explorant la carte pendant 10 minutes.</div>
+        <div class="checklist-item"><strong>[TEST-02] Entity throttling :</strong> Spawner 5000 mobs dans une zone. Activer l'optimisation. Mesurer la reduction de tick time. Verifier que les mobs proches du joueur ont toujours un comportement normal.</div>
+        <div class="checklist-item"><strong>[TEST-03] Chunk generation :</strong> Faire explorer 100 bots dans des zones non generees. Comparer le tick time avec et sans la queue de generation. Verifier l'absence de monde corrompu.</div>
+        <div class="checklist-item"><strong>[TEST-04] Auto-save async :</strong> Provoquer 5 cycles d'auto-save consécutifs. Mesurer le TPS pendant chaque save. Verifier que le TPS reste &gt; 19 pendant la save async.</div>
+        <div class="checklist-item"><strong>[TEST-05] Packet rate :</strong> Simuler un combat 50v50. Mesurer le volume de paquets generes. Verifier que le rate limiting ne cause pas de desync notable cote client.</div>
+        <div class="checklist-item"><strong>[TEST-06] AutoViewDistance :</strong> Connecter progressivement 800 bots. Verifier que la view distance se reduit automatiquement selon les seuils configures.</div>
+        <div class="checklist-item"><strong>[TEST-07] Hopper throttling :</strong> Placer 50 hoppers dans un chunk. Verifier le throttling et l'absence de duplication d'items dans les machines legales.</div>
+        <div class="checklist-item"><strong>[TEST-08] Stress test 1000 joueurs :</strong> Simuler 1000 connexions avec des bots effectuant des actions variees (combat, mining, commerce). Mesurer TPS sur 30 minutes.</div>
+        <div class="checklist-item"><strong>[TEST-09] TE Distribution :</strong> Remplir un monde avec 10,000 TileEntities actifs. Verifier reduction tick time de 15% minimum vs baseline.</div>
+        <div class="checklist-item"><strong>[TEST-10] Compatibilite mods :</strong> Verifier que les optimisations ne cassent pas les mecaniques des 20 mods actifs (pas de duplication, pas de comportement IA casse, pas de corruption de redstone).</div>
+      </div>
+
+      <h3>Criteres de validation</h3>
+      <ul>
+        <li>500 joueurs : TPS moyen &gt; 19.5 sur 30 minutes de test continu.</li>
+        <li>Aucun rapport de comportement de jeu casse ou anormal par les testeurs.</li>
+        <li>Impact auto-save &lt; 100ms mesure sur un world plein.</li>
+        <li>Compatibilite confirmee avec tous les mods du pack.</li>
+        <li>Commande <code>/servperf</code> affiche des metriques coherentes et utiles.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">!</span>
+        <div class="content"><strong>Important :</strong> Les optimisations doivent etre activees/desactivables individuellement via PerformanceConfig pour permettre un diagnostique fin en cas de bug. Ne jamais activer toutes les optimisations d'un coup en production.</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+var sections = document.querySelectorAll('section[id]');
+var navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+
+window.addEventListener('scroll', function() {
+  var scrollY = window.scrollY;
+  sections.forEach(function(section) {
+    var top = section.offsetTop - 80;
+    var bottom = top + section.offsetHeight;
+    if (scrollY >= top && scrollY < bottom) {
+      navLinks.forEach(function(link) {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + section.id) {
+          link.classList.add('active');
+        }
+      });
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — More ModOverlays | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --pink:      #E91E8C;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(107,47,160,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 60% 10%, rgba(46,204,113,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+  .sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 32px 20px; background: rgba(10,10,15,0.70); backdrop-filter: blur(24px); border-right: 1px solid var(--card-bdr); display: flex; flex-direction: column; gap: 6px; scrollbar-width: thin; scrollbar-color: var(--violet-l) transparent; }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet-l); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--pink); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 4px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cyan); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, var(--cyan) 50%, var(--green) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 680px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet { color: var(--violet-l); border-color: rgba(107,47,160,0.4);  background: rgba(107,47,160,0.1); }
+  .badge-cyan   { color: var(--cyan);     border-color: rgba(0,229,255,0.3);    background: rgba(0,229,255,0.07); }
+  .badge-green  { color: var(--green);    border-color: rgba(46,204,113,0.3);   background: rgba(46,204,113,0.07); }
+  .badge-red    { color: var(--red);      border-color: rgba(231,76,60,0.35);   background: rgba(231,76,60,0.08); }
+  .badge-gold   { color: var(--gold);     border-color: rgba(241,196,15,0.3);   background: rgba(241,196,15,0.07); }
+  .badge-pink   { color: var(--pink);     border-color: rgba(233,30,140,0.35);  background: rgba(233,30,140,0.08); }
+  .badge-orange { color: var(--orange);   border-color: rgba(230,126,34,0.35);  background: rgba(230,126,34,0.08); }
+
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1) { animation-delay: .05s; }
+  .section-card:nth-child(2) { animation-delay: .10s; }
+  .section-card:nth-child(3) { animation-delay: .15s; }
+  .section-card:nth-child(4) { animation-delay: .20s; }
+  .section-card:nth-child(5) { animation-delay: .25s; }
+  .section-card:nth-child(6) { animation-delay: .30s; }
+  .section-card:nth-child(7) { animation-delay: .35s; }
+  .section-card:nth-child(8) { animation-delay: .40s; }
+
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #c0342a 0%, var(--red) 100%); }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a7a40 0%, var(--green) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #c0960a 0%, var(--gold) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #b05a10 0%, var(--orange) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.pink-num   { background: linear-gradient(135deg, #a01060 0%, var(--pink) 100%); }
+
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '›'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.16); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.07); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; }
+  .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; }
+  .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; }
+
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.07);  border: 1px solid rgba(231,76,60,0.22);  }
+
+  /* OVERLAY GRID */
+  .overlay-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin: 18px 0;
+  }
+
+  .overlay-card {
+    background: rgba(5,5,10,0.65);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .overlay-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .overlay-card.fps::before    { background: linear-gradient(90deg, var(--green), var(--cyan)); }
+  .overlay-card.ping::before   { background: linear-gradient(90deg, var(--cyan), var(--violet-l)); }
+  .overlay-card.tps::before    { background: linear-gradient(90deg, var(--gold), var(--green)); }
+  .overlay-card.key::before    { background: linear-gradient(90deg, var(--violet-l), var(--pink)); }
+  .overlay-card.time::before   { background: linear-gradient(90deg, var(--gold), var(--orange)); }
+  .overlay-card.clock::before  { background: linear-gradient(90deg, var(--slate), var(--text)); }
+  .overlay-card.comp::before   { background: linear-gradient(90deg, var(--cyan), var(--green)); }
+  .overlay-card.coord::before  { background: linear-gradient(90deg, var(--orange), var(--red)); }
+  .overlay-card.biome::before  { background: linear-gradient(90deg, var(--green), var(--cyan)); }
+  .overlay-card.dir::before    { background: linear-gradient(90deg, var(--violet-l), var(--cyan)); }
+  .overlay-card.armor::before  { background: linear-gradient(90deg, var(--gold), var(--red)); }
+  .overlay-card.potion::before { background: linear-gradient(90deg, var(--pink), var(--violet-l)); }
+
+  .overlay-card-num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 6px;
+  }
+
+  .overlay-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .overlay-card-class {
+    font-size: 11px;
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(0,229,255,0.06);
+    border: 1px solid rgba(0,229,255,0.15);
+    border-radius: 4px;
+    padding: 2px 7px;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+
+  .overlay-card-desc {
+    font-size: 12.5px;
+    color: var(--slate);
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+
+  .overlay-card-params {
+    font-size: 11.5px;
+    color: var(--slate);
+    line-height: 1.7;
+    list-style: none;
+  }
+
+  .overlay-card-params li { padding-left: 12px; position: relative; }
+  .overlay-card-params li::before { content: '·'; position: absolute; left: 0; color: var(--violet-l); }
+  .overlay-card-params li strong { color: var(--text); }
+
+  /* PRESET GRID */
+  .preset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 18px 0;
+  }
+
+  .preset-card {
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    cursor: default;
+  }
+
+  .preset-default  { background: rgba(0,0,0,0.55);    border-color: rgba(136,146,164,0.2); }
+  .preset-glass    { background: rgba(16,16,32,0.60);  border-color: rgba(255,255,255,0.08); }
+  .preset-neon     { background: rgba(0,0,0,0.80);     border-color: rgba(0,229,255,0.25); }
+  .preset-rgb      { background: rgba(0,0,0,0.80);     border-color: rgba(107,47,160,0.35); }
+  .preset-minimal  { background: transparent;          border-color: transparent; }
+  .preset-custom   { background: rgba(14,14,22,0.55);  border-color: rgba(107,47,160,0.25); }
+
+  .preset-name {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .preset-default  .preset-name { color: #CCCCCC; }
+  .preset-glass    .preset-name { color: #E8E8F0; }
+  .preset-neon     .preset-name { color: var(--cyan); text-shadow: 0 0 8px var(--cyan); }
+  .preset-rgb      .preset-name { background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bff6b, #6bceff, #a56bff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .preset-minimal  .preset-name { color: var(--text); }
+  .preset-custom   .preset-name { color: var(--violet-l); }
+
+  .preset-desc { font-size: 11.5px; color: var(--slate); line-height: 1.5; }
+
+  /* ARCH GRID */
+  .arch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin: 18px 0; }
+  .arch-card { background: rgba(5,5,10,0.55); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 16px 18px; }
+  .arch-card-name { font-size: 13px; font-weight: 700; color: var(--violet-l); font-family: 'JetBrains Mono', 'Consolas', monospace; margin-bottom: 6px; }
+  .arch-card-desc { font-size: 12px; color: var(--slate); line-height: 1.5; }
+
+  .checklist { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; }
+  .checklist-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13.5px; color: var(--slate); line-height: 1.5; }
+  .checklist-item::before { content: '□'; color: var(--violet-l); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .checklist-item strong { color: var(--text); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 32px 24px 60px; }
+    .overlay-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a href="../roadmap.html" class="sidebar-back">&#8592; Roadmap</a>
+
+    <div class="sidebar-title">Sections</div>
+    <a href="#contexte"     class="nav-link"><span class="num">01</span>Contexte &amp; Objectifs</a>
+    <a href="#overlays"     class="nav-link"><span class="num">02</span>Liste des 12 Overlays</a>
+    <a href="#presets"      class="nav-link"><span class="num">03</span>Systeme de Presets</a>
+    <a href="#rgb"          class="nav-link"><span class="num">04</span>Preset RGB</a>
+    <a href="#tps-packet"   class="nav-link"><span class="num">05</span>TPS Packet Reseau</a>
+    <a href="#keystroke"    class="nav-link"><span class="num">06</span>Keystroke Detail</a>
+    <a href="#architecture" class="nav-link"><span class="num">07</span>Architecture</a>
+    <a href="#base-class"   class="nav-link"><span class="num">08</span>Classe de Base</a>
+    <a href="#registration" class="nav-link"><span class="num">09</span>Enregistrement</a>
+    <a href="#performance"  class="nav-link"><span class="num">10</span>Performance</a>
+    <a href="#tests"        class="nav-link"><span class="num">11</span>Plan de Tests</a>
+  </aside>
+
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">EriniumFaction · Cahier des charges</div>
+      <h1>More ModOverlays</h1>
+      <p>Collection de 12 overlays HUD indépendants et configurables : FPS, ping, TPS, keystrokes, heure, coordonnées, boussole, biome, armure, potions et plus. Chacun utilise le système OverlayMod d'EriAPI avec un moteur de presets graphiques partagé.</p>
+      <div class="header-badges">
+        <span class="badge badge-cyan">Client-side</span>
+        <span class="badge badge-violet">OverlayMod EriAPI</span>
+        <span class="badge badge-green">12 Overlays</span>
+        <span class="badge badge-gold">Presets graphiques</span>
+        <span class="badge badge-orange">RGB Animation</span>
+        <span class="badge badge-pink">Planifie</span>
+      </div>
+    </div>
+
+    <!-- 01. CONTEXTE -->
+    <div class="section-card" id="contexte">
+      <h2><span class="s-num cyan-num">01</span>Contexte &amp; Objectifs</h2>
+      <h3 class="first">Regles fondamentales</h3>
+      <div class="info-box danger">
+        <span class="icon">!</span>
+        <div class="content"><strong>JAMAIS d'overlay brut :</strong> Conformément aux règles du projet, tous les overlays DOIVENT étendre <code>OverlayMod</code> d'EriAPI et être enregistrés via <code>OverlayModManager</code>. N'utiliser ni <code>RenderGameOverlayEvent</code> direct, ni OpenGL brut pour le rendu HUD.</div>
+      </div>
+      <h3>Objectifs</h3>
+      <ul>
+        <li><strong>12 overlays indépendants</strong> — chacun activable/désactivable séparément par le joueur</li>
+        <li><strong>Système de presets</strong> — 6 styles graphiques prédéfinis + Custom avec color pickers</li>
+        <li><strong>Preset RGB</strong> — animation arc-en-ciel continue via AnimationManager avec timer global (pas un timer par overlay)</li>
+        <li><strong>Coordonnées design 1920x1080</strong> — le ScaleManager d'EriAPI gère la conversion vers la résolution réelle</li>
+        <li><strong>Performance</strong> — aucune allocation dans le hot path de rendu</li>
+      </ul>
+    </div>
+
+    <!-- 02. LISTE DES OVERLAYS -->
+    <div class="section-card" id="overlays">
+      <h2><span class="s-num">02</span>Liste des 12 Overlays</h2>
+
+      <div class="overlay-grid">
+
+        <!-- FPS -->
+        <div class="overlay-card fps">
+          <div class="overlay-card-num">OVERLAY 01</div>
+          <div class="overlay-card-title">FPS Counter</div>
+          <div class="overlay-card-class">FpsOverlay</div>
+          <div class="overlay-card-desc">Affiche les FPS actuels du client. Couleur dynamique selon performance : vert si &gt;60, jaune si &gt;30, rouge si &lt;30.</div>
+          <ul class="overlay-card-params">
+            <li><strong>showLabel</strong> — afficher "FPS" ou juste le nombre</li>
+            <li><strong>textColor</strong> — couleur fixe (ignorée si preset actif)</li>
+            <li><strong>scale</strong> — multiplicateur de taille (0.5–2.0)</li>
+            <li><strong>dynamicColor</strong> — activer la coloration selon les seuils</li>
+          </ul>
+        </div>
+
+        <!-- PING -->
+        <div class="overlay-card ping">
+          <div class="overlay-card-num">OVERLAY 02</div>
+          <div class="overlay-card-title">Ping Display</div>
+          <div class="overlay-card-class">PingOverlay</div>
+          <div class="overlay-card-desc">Latence en millisecondes via <code>player.connection.getPlayerInfo(uuid).getResponseTime()</code>. Couleur dynamique : vert &lt;50ms, jaune &lt;100ms, rouge &gt;100ms.</div>
+          <ul class="overlay-card-params">
+            <li><strong>showLabel</strong> — afficher "ms" après le nombre</li>
+            <li><strong>dynamicColor</strong> — coloration selon les seuils de latence</li>
+            <li><strong>scale</strong> — multiplicateur de taille</li>
+          </ul>
+        </div>
+
+        <!-- TPS -->
+        <div class="overlay-card tps">
+          <div class="overlay-card-num">OVERLAY 03</div>
+          <div class="overlay-card-title">Server TPS</div>
+          <div class="overlay-card-class">TpsOverlay</div>
+          <div class="overlay-card-desc">TPS du serveur synchronisé depuis le serveur via packet custom. Couleur : vert &gt;18, jaune &gt;15, rouge &lt;15. Affiche "?" si aucune donnée reçue.</div>
+          <ul class="overlay-card-params">
+            <li><strong>showLabel</strong> — afficher "TPS"</li>
+            <li><strong>dynamicColor</strong> — coloration selon les seuils</li>
+            <li><strong>decimals</strong> — 0 ou 1 décimale</li>
+          </ul>
+        </div>
+
+        <!-- KEYSTROKE -->
+        <div class="overlay-card key">
+          <div class="overlay-card-num">OVERLAY 04</div>
+          <div class="overlay-card-title">Keystroke Display</div>
+          <div class="overlay-card-class">KeystrokeOverlay</div>
+          <div class="overlay-card-desc">Affiche visuellement les touches WASD + Espace + Shift + Ctrl + LMB + RMB. Animation pressed/released. CPS intégré dans LMB/RMB.</div>
+          <ul class="overlay-card-params">
+            <li><strong>showCps</strong> — afficher le CPS dans LMB/RMB</li>
+            <li><strong>colorPressed</strong> — fond quand touche enfoncée</li>
+            <li><strong>colorReleased</strong> — fond quand touche relâchée</li>
+            <li><strong>keySize</strong> — taille des touches en px design</li>
+          </ul>
+        </div>
+
+        <!-- IN-GAME TIME -->
+        <div class="overlay-card time">
+          <div class="overlay-card-num">OVERLAY 05</div>
+          <div class="overlay-card-title">In-Game Time</div>
+          <div class="overlay-card-class">GameTimeOverlay</div>
+          <div class="overlay-card-desc">Heure du monde Minecraft (0-24h). Icône soleil ☀ de 6h à 18h, lune ☾ de 18h à 6h. Conversion via <code>world.getWorldTime() % 24000</code>.</div>
+          <ul class="overlay-card-params">
+            <li><strong>format24h</strong> — format 24h ou 12h (AM/PM)</li>
+            <li><strong>showIcon</strong> — afficher l'icône soleil/lune</li>
+            <li><strong>showDayCount</strong> — afficher le jour (Jour 5)</li>
+          </ul>
+        </div>
+
+        <!-- REAL TIME -->
+        <div class="overlay-card clock">
+          <div class="overlay-card-num">OVERLAY 06</div>
+          <div class="overlay-card-title">Real Time Clock</div>
+          <div class="overlay-card-class">RealTimeOverlay</div>
+          <div class="overlay-card-desc">Heure réelle du PC via <code>Calendar.getInstance()</code>. Format configurable. Mise à jour chaque tick client.</div>
+          <ul class="overlay-card-params">
+            <li><strong>format24h</strong> — format 24h ou 12h</li>
+            <li><strong>showSeconds</strong> — afficher les secondes (HH:MM:SS)</li>
+            <li><strong>textColor</strong> — couleur du texte</li>
+          </ul>
+        </div>
+
+        <!-- COMPASS -->
+        <div class="overlay-card comp">
+          <div class="overlay-card-num">OVERLAY 07</div>
+          <div class="overlay-card-title">Compass</div>
+          <div class="overlay-card-class">CompassOverlay</div>
+          <div class="overlay-card-desc">Boussole horizontale avec barre graduée. La direction courante du joueur est centrée. Affiche N/S/E/W et les degrés. Largeur configurable.</div>
+          <ul class="overlay-card-params">
+            <li><strong>width</strong> — largeur de la barre (200–600 px design)</li>
+            <li><strong>colorCardinal</strong> — couleur des lettres cardinales</li>
+            <li><strong>colorTick</strong> — couleur des graduations</li>
+            <li><strong>showDegrees</strong> — afficher les degrés en dessous</li>
+          </ul>
+        </div>
+
+        <!-- COORDS -->
+        <div class="overlay-card coord">
+          <div class="overlay-card-num">OVERLAY 08</div>
+          <div class="overlay-card-title">Coordinates XYZ</div>
+          <div class="overlay-card-class">CoordsOverlay</div>
+          <div class="overlay-card-desc">Position XYZ du joueur via <code>player.posX/Y/Z</code>. Chaque axe configurable individuellement. Supporte 0 ou 2 décimales.</div>
+          <ul class="overlay-card-params">
+            <li><strong>showX/Y/Z</strong> — afficher chaque axe</li>
+            <li><strong>decimals</strong> — 0 ou 2 décimales</li>
+            <li><strong>orientation</strong> — horizontal ou vertical</li>
+            <li><strong>colorX/Y/Z</strong> — couleur par axe</li>
+          </ul>
+        </div>
+
+        <!-- BIOME -->
+        <div class="overlay-card biome">
+          <div class="overlay-card-num">OVERLAY 09</div>
+          <div class="overlay-card-title">Biome Display</div>
+          <div class="overlay-card-class">BiomeOverlay</div>
+          <div class="overlay-card-desc">Nom du biome sous le joueur. Utilise le registre EriniumBiomeProvider pour le nom custom. Via <code>world.getBiome(player.getPosition()).getBiomeName()</code>.</div>
+          <ul class="overlay-card-params">
+            <li><strong>showTemperature</strong> — afficher la température du biome</li>
+            <li><strong>textColor</strong> — couleur du texte</li>
+          </ul>
+        </div>
+
+        <!-- DIRECTION -->
+        <div class="overlay-card dir">
+          <div class="overlay-card-num">OVERLAY 10</div>
+          <div class="overlay-card-title">Direction / Facing</div>
+          <div class="overlay-card-class">FacingOverlay</div>
+          <div class="overlay-card-desc">Direction cardinale du joueur via <code>player.getHorizontalFacing()</code>. Format long ("North +Z") ou court ("N"). Converti depuis les degrés de rotation yaw.</div>
+          <ul class="overlay-card-params">
+            <li><strong>longFormat</strong> — "North (+Z)" vs "N"</li>
+            <li><strong>showAxis</strong> — afficher l'axe Z/X</li>
+            <li><strong>textColor</strong> — couleur</li>
+          </ul>
+        </div>
+
+        <!-- ARMOR -->
+        <div class="overlay-card armor">
+          <div class="overlay-card-num">OVERLAY 11</div>
+          <div class="overlay-card-title">Armor Status</div>
+          <div class="overlay-card-class">ArmorOverlay</div>
+          <div class="overlay-card-desc">Durabilité des 4 pièces d'armure avec barres colorées. Rouge si &lt;20%, jaune si &lt;50%, vert sinon. Affiche optionnellement les icônes d'items.</div>
+          <ul class="overlay-card-params">
+            <li><strong>orientation</strong> — vertical ou horizontal</li>
+            <li><strong>showItemIcons</strong> — afficher les icônes d'armure</li>
+            <li><strong>showPercentage</strong> — afficher le % de durabilité</li>
+            <li><strong>hideEmpty</strong> — masquer les slots vides</li>
+          </ul>
+        </div>
+
+        <!-- POTION -->
+        <div class="overlay-card potion">
+          <div class="overlay-card-num">OVERLAY 12</div>
+          <div class="overlay-card-title">Potion Effects</div>
+          <div class="overlay-card-class">PotionOverlay</div>
+          <div class="overlay-card-desc">Liste des effets de potion actifs via <code>player.getActivePotionEffects()</code>. Affiche le nom, le niveau et la durée restante. Icônes optionnelles.</div>
+          <ul class="overlay-card-params">
+            <li><strong>showIcons</strong> — afficher les icônes de potions</li>
+            <li><strong>showAmplifier</strong> — afficher le niveau (II, III)</li>
+            <li><strong>showDuration</strong> — afficher le temps restant</li>
+            <li><strong>maxEffects</strong> — nombre max à afficher (1–10)</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 03. SYSTÈME DE PRESETS -->
+    <div class="section-card" id="presets">
+      <h2><span class="s-num gold-num">03</span>Systeme de Presets Graphiques</h2>
+      <h3 class="first">Les 6 presets</h3>
+      <div class="preset-grid">
+        <div class="preset-card preset-default">
+          <div class="preset-name">Default</div>
+          <div class="preset-desc">Fond noir translucide 0x80000000, texte blanc 0xFFFFFFFF, bordure grise 0x40FFFFFF. Style discret universel.</div>
+        </div>
+        <div class="preset-card preset-glass">
+          <div class="preset-name">Liquid Glass</div>
+          <div class="preset-desc">Fond 0xA0101020, bordure 0x20FFFFFF, texte 0xFFE8E8F0. Style cohérent avec les GUIs du mod.</div>
+        </div>
+        <div class="preset-card preset-neon">
+          <div class="preset-name">Neon</div>
+          <div class="preset-desc">Fond noir 0xCC000000, texte cyan 0xFF00E5FF, bordure 0x40FFFFFF. Style cyberpunk avec lueur sur le texte.</div>
+        </div>
+        <div class="preset-card preset-rgb">
+          <div class="preset-name">RGB</div>
+          <div class="preset-desc">Couleurs défilent en arc-en-ciel. Timer global partagé. Hue +1/tick. Appliqué au texte et/ou à la bordure.</div>
+        </div>
+        <div class="preset-card preset-minimal">
+          <div class="preset-name">Minimal</div>
+          <div class="preset-desc">Pas de fond, pas de bordure. Texte seul avec ombre portée. Style épuré pour les puristes.</div>
+        </div>
+        <div class="preset-card preset-custom">
+          <div class="preset-name">Custom</div>
+          <div class="preset-desc">Color pickers complets. L'utilisateur choisit fond, texte, bordure, accent individuellement via ColorPicker EriAPI.</div>
+        </div>
+      </div>
+      <h3>Structure OverlayStylePreset</h3>
+      <div class="code-block"><span class="kw">public enum</span> <span class="ty">OverlayStylePreset</span> {
+    DEFAULT(
+        <span class="nu">0x80000000</span>, <span class="cm">// bgColor</span>
+        <span class="nu">0xFFFFFFFF</span>, <span class="cm">// textColor</span>
+        <span class="nu">0x40FFFFFF</span>, <span class="cm">// borderColor</span>
+        <span class="nu">0xFF00E5FF</span>  <span class="cm">// accentColor</span>
+    ),
+    LIQUID_GLASS(<span class="nu">0xA0101020</span>, <span class="nu">0xFFE8E8F0</span>, <span class="nu">0x20FFFFFF</span>, <span class="nu">0xFF9B4FCF</span>),
+    NEON        (<span class="nu">0xCC000000</span>, <span class="nu">0xFF00E5FF</span>, <span class="nu">0x60FFFFFF</span>, <span class="nu">0xFF00E5FF</span>),
+    RGB         (<span class="nu">0xCC000000</span>, <span class="nu">0xFFFFFFFF</span>, <span class="nu">0x80FFFFFF</span>, <span class="nu">0xFFFFFFFF</span>), <span class="cm">// couleurs overridées par le timer</span>
+    MINIMAL     (<span class="nu">0x00000000</span>, <span class="nu">0xFFFFFFFF</span>, <span class="nu">0x00000000</span>, <span class="nu">0xFFAAAAAA</span>),
+    CUSTOM      (<span class="nu">0x80000000</span>, <span class="nu">0xFFFFFFFF</span>, <span class="nu">0x40FFFFFF</span>, <span class="nu">0xFF00E5FF</span>); <span class="cm">// valeurs par défaut</span>
+
+    <span class="kw">public final int</span> bgColor, textColor, borderColor, accentColor;
+
+    <span class="ty">OverlayStylePreset</span>(<span class="kw">int</span> bg, <span class="kw">int</span> text, <span class="kw">int</span> border, <span class="kw">int</span> accent) { ... }
+}</div>
+      <h3>OverlayStyleManager — singleton</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">OverlayStyleManager</span> {
+    <span class="kw">private static final</span> <span class="ty">OverlayStyleManager</span> INSTANCE <span class="op">=</span> <span class="kw">new</span> <span class="ty">OverlayStyleManager</span>();
+
+    <span class="kw">private</span> <span class="ty">OverlayStylePreset</span> activePreset <span class="op">=</span> OverlayStylePreset.LIQUID_GLASS;
+    <span class="kw">private float</span> globalOpacity  <span class="op">=</span> <span class="nu">0.85f</span>;   <span class="cm">// slider 0–100% dans l'éditeur</span>
+    <span class="kw">private float</span> globalScale    <span class="op">=</span> <span class="nu">1.0f</span>;    <span class="cm">// slider 0.5–2.0x</span>
+
+    <span class="cm">// Couleurs custom (utilisées si preset == CUSTOM)</span>
+    <span class="kw">private int</span> customBg, customText, customBorder, customAccent;
+
+    <span class="cm">// Couleur RGB courante (mise à jour par le timer global)</span>
+    <span class="kw">private int</span> rgbColor <span class="op">=</span> <span class="nu">0xFFFF0000</span>;
+
+    <span class="kw">public int</span> <span class="fn">getTextColor</span>() {
+        <span class="kw">if</span> (activePreset <span class="op">==</span> OverlayStylePreset.RGB) <span class="kw">return</span> rgbColor;
+        <span class="kw">if</span> (activePreset <span class="op">==</span> OverlayStylePreset.CUSTOM) <span class="kw">return</span> customText;
+        <span class="kw">return</span> activePreset.textColor;
+    }
+
+    <span class="kw">public int</span> <span class="fn">getBgColor</span>() {
+        <span class="kw">int</span> base <span class="op">=</span> (activePreset <span class="op">==</span> OverlayStylePreset.CUSTOM) <span class="op">?</span> customBg : activePreset.bgColor;
+        <span class="cm">// Appliquer globalOpacity sur l'alpha</span>
+        <span class="kw">int</span> alpha <span class="op">=</span> (<span class="kw">int</span>) (((base <span class="op">>></span> <span class="nu">24</span>) <span class="op">&</span> <span class="nu">0xFF</span>) <span class="op">*</span> globalOpacity);
+        <span class="kw">return</span> (alpha <span class="op">&lt;&lt;</span> <span class="nu">24</span>) <span class="op">|</span> (base <span class="op">&</span> <span class="nu">0x00FFFFFF</span>);
+    }
+}</div>
+    </div>
+
+    <!-- 04. PRESET RGB -->
+    <div class="section-card" id="rgb">
+      <h2><span class="s-num pink-num">04</span>Preset RGB — Animation Arc-en-Ciel</h2>
+      <h3 class="first">Timer global unique</h3>
+      <p>Un seul timer RGB pour tous les overlays actifs en preset RGB. Il tourne de 0 à 360 (hue HSL) sur environ 5 secondes (300 ticks), puis boucle en infini. La couleur calculée est stockée dans <code>OverlayStyleManager.rgbColor</code> et lue par tous les overlays.</p>
+      <div class="code-block"><span class="cm">// Initialisation du timer RGB dans OverlayStyleManager.init()</span>
+<span class="kw">private float</span> hue <span class="op">=</span> <span class="nu">0f</span>;
+
+<span class="kw">public void</span> <span class="fn">init</span>() {
+    <span class="cm">// Animation loop infinie — hue 0→360 en 300 ticks (~15s à 20tps)</span>
+    Animation.<span class="fn">create</span>(<span class="nu">0f</span>, <span class="nu">360f</span>, <span class="nu">300</span>)
+        .loop()
+        .easing(Easing.LINEAR)
+        .onUpdate(h <span class="op">-></span> {
+            hue <span class="op">=</span> h;
+            rgbColor <span class="op">=</span> <span class="fn">hslToArgb</span>(h, <span class="nu">1.0f</span>, <span class="nu">0.65f</span>);
+        });
+    AnimationManager.<span class="fn">getInstance</span>().<span class="fn">play</span>(rgbAnimation);
+}
+
+<span class="cm">// Conversion HSL → ARGB (alpha = 0xFF)</span>
+<span class="kw">private int</span> <span class="fn">hslToArgb</span>(<span class="kw">float</span> h, <span class="kw">float</span> s, <span class="kw">float</span> l) {
+    <span class="cm">// Formule standard HSL → RGB</span>
+    h <span class="op">=</span> h <span class="op">%</span> <span class="nu">360f</span>;
+    <span class="kw">float</span> c <span class="op">=</span> (<span class="nu">1f</span> <span class="op">-</span> Math.<span class="fn">abs</span>(<span class="nu">2f</span> <span class="op">*</span> l <span class="op">-</span> <span class="nu">1f</span>)) <span class="op">*</span> s;
+    <span class="kw">float</span> x <span class="op">=</span> c <span class="op">*</span> (<span class="nu">1f</span> <span class="op">-</span> Math.<span class="fn">abs</span>((h <span class="op">/</span> <span class="nu">60f</span>) <span class="op">%</span> <span class="nu">2f</span> <span class="op">-</span> <span class="nu">1f</span>));
+    <span class="kw">float</span> m <span class="op">=</span> l <span class="op">-</span> c <span class="op">/</span> <span class="nu">2f</span>;
+    <span class="cm">// ... calcul r, g, b selon la plage de h ...</span>
+    <span class="kw">return</span> <span class="nu">0xFF000000</span> <span class="op">|</span> (r <span class="op">&lt;&lt;</span> <span class="nu">16</span>) <span class="op">|</span> (g <span class="op">&lt;&lt;</span> <span class="nu">8</span>) <span class="op">|</span> b;
+}</div>
+      <h3>Application aux elements</h3>
+      <p>En preset RGB, le timer est appliqué au texte et à la bordure. L'application sur le fond est configurable (par défaut désactivé pour la lisibilité). Chaque overlay récupère <code>OverlayStyleManager.getInstance().getTextColor()</code> à chaque frame.</p>
+      <div class="info-box tip">
+        <span class="icon">✓</span>
+        <div class="content"><strong>Performance :</strong> Un seul objet Animation tourne pour tous les overlays RGB. Le coût est O(1) par frame, peu importe le nombre d'overlays actifs en mode RGB.</div>
+      </div>
+    </div>
+
+    <!-- 05. TPS PACKET -->
+    <div class="section-card" id="tps-packet">
+      <h2><span class="s-num">05</span>TPS Packet Reseau</h2>
+      <h3 class="first">Probleme</h3>
+      <p>Le TPS du serveur n'est pas accessible nativement côté client. Il faut créer un packet custom pour synchroniser cette valeur périodiquement.</p>
+      <h3>Solution — Packet TPS</h3>
+      <div class="code-block"><span class="cm">// Packet S→C envoyé toutes les 20 ticks (1 seconde)</span>
+<span class="kw">public class</span> <span class="ty">PacketTpsUpdate</span> <span class="kw">implements</span> <span class="ty">IMessage</span> {
+    <span class="kw">public float</span> tps; <span class="cm">// TPS calculé côté serveur</span>
+
+    <span class="cm">// Calcul côté serveur : tickTime = server.recentTps[0]</span>
+    <span class="cm">// TPS = Math.min(20.0, 1000.0 / server.tickTimeArray[i])</span>
+    <span class="cm">// Disponible via MinecraftServer.getServer().recentTps</span>
+}
+
+<span class="cm">// Envoi depuis un scheduler serveur (toutes les 20 ticks)</span>
+EriScheduler.<span class="fn">repeat</span>(<span class="nu">20</span>, () <span class="op">-></span> {
+    <span class="kw">float</span> tps <span class="op">=</span> (<span class="kw">float</span>) Math.<span class="fn">min</span>(<span class="nu">20.0</span>, MinecraftServer.<span class="fn">getServer</span>().<span class="fn">recentTps</span>[<span class="nu">0</span>]);
+    <span class="kw">for</span> (<span class="ty">EntityPlayerMP</span> player : server.<span class="fn">getPlayerList</span>().<span class="fn">getPlayers</span>()) {
+        <span class="ty">EriniumFaction</span>.CHANNEL.<span class="fn">sendTo</span>(<span class="kw">new</span> <span class="ty">PacketTpsUpdate</span>(tps), player);
+    }
+});
+
+<span class="cm">// Côté client — stockage dans TpsOverlay</span>
+<span class="kw">public class</span> <span class="ty">PacketTpsUpdateHandler</span> <span class="kw">implements</span> IMessageHandler&lt;PacketTpsUpdate, IMessage&gt; {
+    <span class="kw">public</span> <span class="ty">IMessage</span> <span class="fn">onMessage</span>(<span class="ty">PacketTpsUpdate</span> msg, <span class="ty">MessageContext</span> ctx) {
+        Minecraft.<span class="fn">getMinecraft</span>().<span class="fn">addScheduledTask</span>(() <span class="op">-></span>
+            TpsOverlay.<span class="fn">getInstance</span>().<span class="fn">setCurrentTps</span>(msg.tps)
+        );
+        <span class="kw">return null</span>;
+    }
+}</div>
+    </div>
+
+    <!-- 06. KEYSTROKE DETAIL -->
+    <div class="section-card" id="keystroke">
+      <h2><span class="s-num">06</span>Keystroke Display — Detail</h2>
+      <h3 class="first">Layout des touches</h3>
+      <p>Le layout reproduit un clavier physique en grille 3x4. Les touches sont des rectangles avec label centré.</p>
+      <div class="code-block"><span class="cm">// Layout en coordonnées design (pixels 1920x1080 relatifs au coin de l'overlay)</span>
+<span class="cm">// Taille de chaque touche : 40x40 px design (configurable via keySize)</span>
+<span class="cm">// Espacement : 4 px entre touches</span>
+
+<span class="cm">// Rangée 1 : [  ] [W] [  ]   ← (vide) W (vide)</span>
+<span class="cm">// Rangée 2 : [A] [S] [D]      ← A S D</span>
+<span class="cm">// Rangée 3 : [CTRL] [SPACE] [SHIFT]</span>
+<span class="cm">// Rangée 4 : [  LMB  ] [ RMB ]  ← avec CPS</span></div>
+      <h3>Detection des touches</h3>
+      <div class="code-block"><span class="cm">// Détection des touches WASD (keybindings vanilla)</span>
+Minecraft mc <span class="op">=</span> Minecraft.<span class="fn">getMinecraft</span>();
+<span class="kw">boolean</span> wPressed  <span class="op">=</span> mc.gameSettings.keyBindForward.<span class="fn">isKeyDown</span>();
+<span class="kw">boolean</span> aPressed  <span class="op">=</span> mc.gameSettings.keyBindLeft.<span class="fn">isKeyDown</span>();
+<span class="kw">boolean</span> sPressed  <span class="op">=</span> mc.gameSettings.keyBindBack.<span class="fn">isKeyDown</span>();
+<span class="kw">boolean</span> dPressed  <span class="op">=</span> mc.gameSettings.keyBindRight.<span class="fn">isKeyDown</span>();
+<span class="kw">boolean</span> spPressed <span class="op">=</span> mc.gameSettings.keyBindJump.<span class="fn">isKeyDown</span>();
+<span class="kw">boolean</span> shPressed <span class="op">=</span> mc.gameSettings.keyBindSneak.<span class="fn">isKeyDown</span>();
+
+<span class="cm">// LMB / RMB via Mouse.isButtonDown()</span>
+<span class="kw">boolean</span> lmbDown <span class="op">=</span> Mouse.<span class="fn">isButtonDown</span>(<span class="nu">0</span>);
+<span class="kw">boolean</span> rmbDown <span class="op">=</span> Mouse.<span class="fn">isButtonDown</span>(<span class="nu">1</span>);</div>
+      <h3>Calcul CPS (clics par seconde)</h3>
+      <div class="code-block"><span class="cm">// Buffer circulaire des timestamps de clics — taille fixe de 100</span>
+<span class="kw">private final long</span>[] lmbClickTimes <span class="op">=</span> <span class="kw">new long</span>[<span class="nu">100</span>];
+<span class="kw">private int</span> lmbClickHead <span class="op">=</span> <span class="nu">0</span>;
+<span class="kw">private int</span> lmbClickCount <span class="op">=</span> <span class="nu">0</span>;
+
+<span class="cm">// À chaque nouveau clic LMB (front montant)</span>
+<span class="kw">void</span> <span class="fn">onLmbClick</span>() {
+    lmbClickTimes[lmbClickHead <span class="op">%</span> <span class="nu">100</span>] <span class="op">=</span> System.<span class="fn">currentTimeMillis</span>();
+    lmbClickHead<span class="op">++</span>;
+    <span class="kw">if</span> (lmbClickCount <span class="op">&lt;</span> <span class="nu">100</span>) lmbClickCount<span class="op">++</span>;
+}
+
+<span class="cm">// Calcul CPS — compte les clics dans la dernière seconde</span>
+<span class="kw">int</span> <span class="fn">getCps</span>() {
+    <span class="kw">long</span> now <span class="op">=</span> System.<span class="fn">currentTimeMillis</span>();
+    <span class="kw">int</span> cps <span class="op">=</span> <span class="nu">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> i <span class="op">=</span> <span class="nu">0</span>; i <span class="op">&lt;</span> lmbClickCount; i<span class="op">++</span>) {
+        <span class="kw">if</span> (now <span class="op">-</span> lmbClickTimes[i] <span class="op">&lt;=</span> <span class="nu">1000L</span>) cps<span class="op">++</span>;
+    }
+    <span class="kw">return</span> cps;
+}</div>
+      <div class="info-box info">
+        <span class="icon">ℹ</span>
+        <div class="content"><strong>Pas d'ATTACK_SPEED :</strong> Conformément aux règles du projet, le serveur utilise le PvP 1.8 sans cooldown d'attaque. Le CPS affiché est donc pertinent et utile pour les joueurs qui font du jitter click.</div>
+      </div>
+    </div>
+
+    <!-- 07. ARCHITECTURE -->
+    <div class="section-card" id="architecture">
+      <h2><span class="s-num">07</span>Architecture</h2>
+      <div class="arch-grid">
+        <div class="arch-card">
+          <div class="arch-card-name">OverlayStyleManager</div>
+          <div class="arch-card-desc">Singleton. Preset actif, opacity, scale, couleurs custom. Timer RGB global. Fournit les couleurs à tous les overlays.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">OverlayStylePreset</div>
+          <div class="arch-card-desc">Enum des 6 presets (DEFAULT, LIQUID_GLASS, NEON, RGB, MINIMAL, CUSTOM) avec leurs couleurs par défaut.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">FpsOverlay</div>
+          <div class="arch-card-desc">extends OverlayMod. Lit Minecraft.debugFPS. Coloration dynamique selon seuils.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">PingOverlay</div>
+          <div class="arch-card-desc">extends OverlayMod. Lit NetworkPlayerInfo.getResponseTime(). Coloration selon seuils.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">TpsOverlay</div>
+          <div class="arch-card-desc">extends OverlayMod. Valeur mise à jour via PacketTpsUpdate. Singleton pour accès depuis le handler réseau.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">KeystrokeOverlay</div>
+          <div class="arch-card-desc">extends OverlayMod. Détection WASD+Mouse. Buffer circulaire pour CPS. Rendu grille de touches.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">GameTimeOverlay</div>
+          <div class="arch-card-desc">extends OverlayMod. Lit world.getWorldTime(). Calcul heure MC. Icône soleil/lune.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">RealTimeOverlay</div>
+          <div class="arch-card-desc">extends OverlayMod. Lit Calendar.getInstance(). Format configurable.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">CompassOverlay</div>
+          <div class="arch-card-desc">extends OverlayMod. Calcul de la position de la barre selon player.rotationYaw. Rendu graduations N/S/E/W.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">CoordsOverlay</div>
+          <div class="arch-card-desc">extends OverlayMod. Lit player.posX/Y/Z. Formatage décimales. Couleurs par axe.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">BiomeOverlay</div>
+          <div class="arch-card-desc">extends OverlayMod. world.getBiome(player.getPosition()). Compatible EriniumBiomeProvider.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">FacingOverlay</div>
+          <div class="arch-card-desc">extends OverlayMod. player.getHorizontalFacing(). Format long/court configurable.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">ArmorOverlay</div>
+          <div class="arch-card-desc">extends OverlayMod. Itère sur player.inventory.armorInventory[]. Barres de durabilité colorées.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">PotionOverlay</div>
+          <div class="arch-card-desc">extends OverlayMod. player.getActivePotionEffects(). Tri par durée restante.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">PacketTpsUpdate</div>
+          <div class="arch-card-desc">Packet S→C. float tps. Envoyé toutes les 20 ticks par un scheduler serveur.</div>
+        </div>
+      </div>
+      <h3>Package</h3>
+      <div class="code-block">fr.eriniumgroup.eriniumfaction.overlay/
+  OverlayStyleManager.java
+  OverlayStylePreset.java
+  FpsOverlay.java
+  PingOverlay.java
+  TpsOverlay.java
+  KeystrokeOverlay.java
+  GameTimeOverlay.java
+  RealTimeOverlay.java
+  CompassOverlay.java
+  CoordsOverlay.java
+  BiomeOverlay.java
+  FacingOverlay.java
+  ArmorOverlay.java
+  PotionOverlay.java
+
+fr.eriniumgroup.eriniumfaction.network/
+  PacketTpsUpdate.java
+  PacketTpsUpdateHandler.java</div>
+    </div>
+
+    <!-- 08. CLASSE DE BASE -->
+    <div class="section-card" id="base-class">
+      <h2><span class="s-num">08</span>Classe de Base — Pattern commun</h2>
+      <h3 class="first">Heritage OverlayMod</h3>
+      <div class="code-block"><span class="cm">// Exemple — FpsOverlay</span>
+<span class="kw">public class</span> <span class="ty">FpsOverlay</span> <span class="kw">extends</span> <span class="ty">OverlayMod</span> {
+
+    <span class="kw">private boolean</span> showLabel <span class="op">=</span> <span class="kw">true</span>;
+    <span class="kw">private boolean</span> dynamicColor <span class="op">=</span> <span class="kw">true</span>;
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">render</span>(<span class="kw">int</span> screenW, <span class="kw">int</span> screenH) {
+        <span class="ty">OverlayStyleManager</span> style <span class="op">=</span> OverlayStyleManager.<span class="fn">getInstance</span>();
+        <span class="kw">int</span> fps <span class="op">=</span> Minecraft.debugFPS;
+
+        <span class="kw">int</span> textColor;
+        <span class="kw">if</span> (dynamicColor) {
+            textColor <span class="op">=</span> fps <span class="op">></span> <span class="nu">60</span> <span class="op">?</span> <span class="nu">0xFF2ECC71</span> : fps <span class="op">></span> <span class="nu">30</span> <span class="op">?</span> <span class="nu">0xFFF1C40F</span> : <span class="nu">0xFFE74C3C</span>;
+        } <span class="kw">else</span> {
+            textColor <span class="op">=</span> style.<span class="fn">getTextColor</span>();
+        }
+
+        String text <span class="op">=</span> showLabel <span class="op">?</span> fps <span class="op">+</span> <span class="st">" FPS"</span> : String.<span class="fn">valueOf</span>(fps);
+
+        <span class="cm">// Fond</span>
+        <span class="fn">drawRect</span>(<span class="nu">0</span>, <span class="nu">0</span>, <span class="fn">getWidth</span>(), <span class="fn">getHeight</span>(), style.<span class="fn">getBgColor</span>());
+        <span class="cm">// Bordure</span>
+        <span class="fn">drawBorder</span>(<span class="nu">0</span>, <span class="nu">0</span>, <span class="fn">getWidth</span>(), <span class="fn">getHeight</span>(), style.<span class="fn">getBorderColor</span>());
+        <span class="cm">// Texte centré</span>
+        <span class="fn">drawString</span>(text, <span class="fn">getWidth</span>() <span class="op">/</span> <span class="nu">2</span>, <span class="fn">getHeight</span>() <span class="op">/</span> <span class="nu">2</span>, textColor, style.<span class="fn">getScale</span>());
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> String <span class="fn">getId</span>() { <span class="kw">return</span> <span class="st">"eriniumfaction:fps"</span>; }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> String <span class="fn">getDisplayName</span>() { <span class="kw">return</span> <span class="st">"FPS Counter"</span>; }
+}</div>
+    </div>
+
+    <!-- 09. ENREGISTREMENT -->
+    <div class="section-card" id="registration">
+      <h2><span class="s-num">09</span>Enregistrement</h2>
+      <h3 class="first">Dans ClientProxy.init()</h3>
+      <div class="code-block"><span class="cm">// Initialiser le manager de styles (démarre le timer RGB)</span>
+OverlayStyleManager.<span class="fn">getInstance</span>().<span class="fn">init</span>();
+
+<span class="cm">// Enregistrer tous les overlays via OverlayModManager d'EriAPI</span>
+OverlayModManager.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">FpsOverlay</span>());
+OverlayModManager.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">PingOverlay</span>());
+OverlayModManager.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">TpsOverlay</span>());
+OverlayModManager.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">KeystrokeOverlay</span>());
+OverlayModManager.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">GameTimeOverlay</span>());
+OverlayModManager.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">RealTimeOverlay</span>());
+OverlayModManager.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">CompassOverlay</span>());
+OverlayModManager.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">CoordsOverlay</span>());
+OverlayModManager.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">BiomeOverlay</span>());
+OverlayModManager.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">FacingOverlay</span>());
+OverlayModManager.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">ArmorOverlay</span>());
+OverlayModManager.<span class="fn">register</span>(<span class="kw">new</span> <span class="ty">PotionOverlay</span>());
+
+<span class="cm">// Enregistrement du packet TPS</span>
+EriniumFaction.CHANNEL.<span class="fn">registerMessage</span>(
+    PacketTpsUpdateHandler.<span class="kw">class</span>,
+    PacketTpsUpdate.<span class="kw">class</span>,
+    MSG_ID_TPS,
+    Side.CLIENT
+);</div>
+    </div>
+
+    <!-- 10. PERFORMANCE -->
+    <div class="section-card" id="performance">
+      <h2><span class="s-num">10</span>Performance</h2>
+      <h3 class="first">Contexte client</h3>
+      <p>Les overlays tournent côté client uniquement et s'exécutent chaque frame dans le thread de rendu. Les contraintes de performance sont différentes du serveur mais restent importantes pour garder un framerate fluide.</p>
+      <ul>
+        <li><strong>Pas d'allocation dans render()</strong> — les String de texte sont formatés en amont, pas à chaque frame. Utiliser des champs <code>String</code> pré-calculés mis à jour à une fréquence réduite</li>
+        <li><strong>Mise à jour découplée du rendu</strong> — FPS, coordonnées, biome : calculé chaque tick (20x/sec), pas chaque frame. Le rendu lit la valeur pré-calculée</li>
+        <li><strong>Timer RGB unique</strong> — un seul AnimationManager.play() pour tous les overlays RGB, pas un timer par overlay actif</li>
+        <li><strong>CPS buffer tableau primitif</strong> — <code>long[]</code> fixe, pas de List ni d'ArrayList dynamique</li>
+        <li><strong>Compass</strong> — les positions des markers cardinaux sont recalculées seulement si le yaw a changé de plus de 0.5 degrés</li>
+        <li><strong>Biome</strong> — recalculé uniquement si le joueur a bougé de plus d'un chunk depuis la dernière lecture</li>
+      </ul>
+      <div class="code-block"><span class="cm">// Pattern "tick-cached" — exemple CoordsOverlay</span>
+<span class="kw">private</span> String cachedText <span class="op">=</span> <span class="st">""</span>;
+<span class="kw">private int</span> tickTimer <span class="op">=</span> <span class="nu">0</span>;
+
+<span class="an">@Override</span>
+<span class="kw">public void</span> <span class="fn">onTick</span>(<span class="ty">EntityPlayer</span> player) {
+    <span class="kw">if</span> (tickTimer<span class="op">++</span> <span class="op">%</span> <span class="nu">4</span> <span class="op">!=</span> <span class="nu">0</span>) <span class="kw">return</span>; <span class="cm">// Met à jour 5x/sec</span>
+    cachedText <span class="op">=</span> String.<span class="fn">format</span>(<span class="st">"X: %.0f  Y: %.0f  Z: %.0f"</span>,
+        player.posX, player.posY, player.posZ);
+}
+
+<span class="an">@Override</span>
+<span class="kw">public void</span> <span class="fn">render</span>(<span class="kw">int</span> w, <span class="kw">int</span> h) {
+    <span class="fn">drawString</span>(cachedText, ...); <span class="cm">// Pas de calcul ici</span>
+}</div>
+    </div>
+
+    <!-- 11. PLAN DE TESTS -->
+    <div class="section-card" id="tests">
+      <h2><span class="s-num">11</span>Plan de Tests</h2>
+      <div class="checklist">
+        <div class="checklist-item"><strong>FPS Counter</strong> — vérifier la coloration selon les seuils (forcer faible FPS ou simuler), affichage correct du label</div>
+        <div class="checklist-item"><strong>Ping Display</strong> — vérifier la lecture de getResponseTime() et la coloration dynamique</div>
+        <div class="checklist-item"><strong>Server TPS</strong> — vérifier la réception du packet, affichage "?" sans packet, coloration selon seuils</div>
+        <div class="checklist-item"><strong>Keystroke WASD</strong> — tester chaque touche et vérifier l'animation visuelle pressed/released</div>
+        <div class="checklist-item"><strong>CPS LMB/RMB</strong> — cliquer rapidement et vérifier le comptage sur 1 seconde glissante</div>
+        <div class="checklist-item"><strong>In-Game Time</strong> — vérifier le cycle jour/nuit, le changement d'icône soleil/lune à 6000/18000 ticks</div>
+        <div class="checklist-item"><strong>Real Time</strong> — vérifier l'heure réelle et les formats 12h/24h</div>
+        <div class="checklist-item"><strong>Compass</strong> — tourner et vérifier que N/S/E/W bougent correctement</div>
+        <div class="checklist-item"><strong>Coordinates</strong> — vérifier les valeurs XYZ, les décimales, et la mise à jour en mouvement</div>
+        <div class="checklist-item"><strong>Biome</strong> — traverser plusieurs biomes custom EriniumFaction et vérifier les noms corrects</div>
+        <div class="checklist-item"><strong>Direction</strong> — tourner vers N/S/E/W et vérifier le format long et court</div>
+        <div class="checklist-item"><strong>Armor Status</strong> — porter une armure endommagée et vérifier les barres colorées</div>
+        <div class="checklist-item"><strong>Potion Effects</strong> — boire des potions et vérifier l'affichage avec niveaux et durées</div>
+        <div class="checklist-item"><strong>Preset Default</strong> — vérifier les couleurs de fond/texte/bordure correspondantes</div>
+        <div class="checklist-item"><strong>Preset Liquid Glass</strong> — vérifier la cohérence visuelle avec les GUIs du mod</div>
+        <div class="checklist-item"><strong>Preset Neon</strong> — vérifier le style cyan sur fond noir</div>
+        <div class="checklist-item"><strong>Preset RGB</strong> — vérifier l'animation arc-en-ciel et le timer global (activer 3 overlays en RGB simultanément)</div>
+        <div class="checklist-item"><strong>Preset Minimal</strong> — vérifier l'absence de fond et de bordure</div>
+        <div class="checklist-item"><strong>Preset Custom</strong> — ouvrir les color pickers et vérifier l'application en temps réel</div>
+        <div class="checklist-item"><strong>Scale et opacity</strong> — tester les sliders de taille et d'opacité globaux</div>
+        <div class="checklist-item"><strong>Performance</strong> — vérifier que les overlays n'induisent pas de baisse de framerate mesurable</div>
+        <div class="checklist-item"><strong>Multi-resolution</strong> — tester sur des résolutions différentes (720p, 1080p, 1440p, 4K)</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>

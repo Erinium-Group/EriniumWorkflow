@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Anti Cheat | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --pink:      #E91E8C;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.16) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(233,30,140,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 60% 10%, rgba(0,229,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet-l) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet-l); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--pink); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 4px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.10);
+    border-color: rgba(107,47,160,0.28);
+  }
+
+  .sidebar-sep { height: 1px; background: var(--card-bdr); margin: 10px 0 4px; }
+
+  /* MAIN */
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* PAGE HEADER */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 50%, var(--pink) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 680px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet { color: var(--violet-l); border-color: rgba(107,47,160,0.4);  background: rgba(107,47,160,0.1); }
+  .badge-cyan   { color: var(--cyan);     border-color: rgba(0,229,255,0.3);    background: rgba(0,229,255,0.07); }
+  .badge-green  { color: var(--green);    border-color: rgba(46,204,113,0.3);   background: rgba(46,204,113,0.07); }
+  .badge-red    { color: var(--red);      border-color: rgba(231,76,60,0.35);   background: rgba(231,76,60,0.08); }
+  .badge-gold   { color: var(--gold);     border-color: rgba(241,196,15,0.3);   background: rgba(241,196,15,0.07); }
+  .badge-pink   { color: var(--pink);     border-color: rgba(233,30,140,0.35);  background: rgba(233,30,140,0.08); }
+
+  /* SECTION CARDS */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a7a40 0%, var(--green) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #c0960a 0%, var(--gold) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #c0342a 0%, var(--red) 100%); }
+  .section-card h2 .s-num.pink-num   { background: linear-gradient(135deg, #a01060 0%, var(--pink) 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* TABLES */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.16); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.07); }
+
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-crit   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(231,76,60,0.15); color:#E74C3C; border:1px solid rgba(231,76,60,0.3); letter-spacing:.05em; }
+  .tag-high   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(230,126,34,0.15); color:var(--orange); border:1px solid rgba(230,126,34,0.3); letter-spacing:.05em; }
+  .tag-med    { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(241,196,15,0.12); color:var(--gold); border:1px solid rgba(241,196,15,0.3); letter-spacing:.05em; }
+  .tag-low    { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(136,146,164,0.12); color:var(--slate); border:1px solid rgba(136,146,164,0.25); letter-spacing:.05em; }
+  .tag-yes    { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(46,204,113,0.12); color:var(--green); border:1px solid rgba(46,204,113,0.3); letter-spacing:.05em; }
+  .tag-violet { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(107,47,160,0.15); color:var(--violet-l); border:1px solid rgba(107,47,160,0.3); letter-spacing:.05em; }
+  .tag-cyan   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(0,229,255,0.10); color:var(--cyan); border:1px solid rgba(0,229,255,0.25); letter-spacing:.05em; }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+
+  /* INFO BOXES */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.07);  border: 1px solid rgba(231,76,60,0.22);  }
+
+  /* CHECK CATEGORY CARDS */
+  .check-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 18px 0;
+  }
+
+  .check-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+  }
+
+  .check-card.movement { border-left: 3px solid var(--cyan); }
+  .check-card.combat   { border-left: 3px solid var(--red); }
+  .check-card.world    { border-left: 3px solid var(--gold); }
+  .check-card.packet   { border-left: 3px solid var(--violet-l); }
+  .check-card.mining   { border-left: 3px solid var(--orange); }
+
+  .check-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .check-card ul { gap: 4px; }
+
+  .check-card ul li {
+    font-size: 12.5px;
+    color: var(--slate);
+  }
+
+  .check-card ul li::before { color: var(--violet-l); }
+
+  /* VIOLATION LEVEL CARDS */
+  .viol-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 18px 0;
+  }
+
+  .viol-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    text-align: center;
+  }
+
+  .viol-card.lv1 { border-top: 3px solid #546E7A; }
+  .viol-card.lv2 { border-top: 3px solid var(--gold); }
+  .viol-card.lv3 { border-top: 3px solid var(--orange); }
+  .viol-card.lv4 { border-top: 3px solid var(--red); }
+
+  .viol-level {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  .viol-card.lv1 .viol-level { color: #546E7A; }
+  .viol-card.lv2 .viol-level { color: var(--gold); }
+  .viol-card.lv3 .viol-level { color: var(--orange); }
+  .viol-card.lv4 .viol-level { color: var(--red); }
+
+  .viol-range {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--slate);
+    margin-bottom: 8px;
+  }
+
+  .viol-action {
+    font-size: 11.5px;
+    color: var(--slate);
+    line-height: 1.4;
+  }
+
+  /* ARCH GRID */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+  }
+
+  .arch-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+  }
+
+  .arch-card-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--violet-l);
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    margin-bottom: 6px;
+  }
+
+  .arch-card-desc {
+    font-size: 12px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  /* CHECKLIST */
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 14px 0;
+  }
+
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  .checklist-item::before {
+    content: '□';
+    color: var(--violet-l);
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .checklist-item strong { color: var(--text); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 32px 24px 60px; }
+    .check-grid { grid-template-columns: 1fr; }
+    .viol-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a href="../roadmap.html" class="sidebar-back">&#8592; Roadmap</a>
+
+    <div class="sidebar-title">Sections</div>
+    <a href="#contexte"     class="nav-link"><span class="num">01</span>Contexte &amp; Objectifs</a>
+    <a href="#movement"     class="nav-link"><span class="num">02</span>Check Mouvement</a>
+    <a href="#combat"       class="nav-link"><span class="num">03</span>Check Combat</a>
+    <a href="#world"        class="nav-link"><span class="num">04</span>Check Monde</a>
+    <a href="#packet"       class="nav-link"><span class="num">05</span>Check Paquets</a>
+    <a href="#mining"       class="nav-link"><span class="num">06</span>Check Mining / X-Ray</a>
+    <a href="#violations"   class="nav-link"><span class="num">07</span>Systeme de Violations</a>
+    <a href="#punishments"  class="nav-link"><span class="num">08</span>Punitions Automatiques</a>
+    <a href="#architecture" class="nav-link"><span class="num">09</span>Architecture</a>
+    <a href="#commands"     class="nav-link"><span class="num">10</span>Commandes Admin</a>
+    <a href="#exemptions"   class="nav-link"><span class="num">11</span>Systeme d'Exemptions</a>
+    <a href="#logging"      class="nav-link"><span class="num">12</span>Logging &amp; Evidences</a>
+    <a href="#performance"  class="nav-link"><span class="num">13</span>Performance</a>
+    <a href="#config"       class="nav-link"><span class="num">14</span>Configuration</a>
+    <a href="#tests"        class="nav-link"><span class="num">15</span>Plan de Tests</a>
+
+    <div class="sidebar-sep"></div>
+    <div class="sidebar-title">Autres specs</div>
+    <a href="anti-usebug.html"        class="nav-link" style="font-size:12px;">Anti Use Bug</a>
+    <a href="server-performance.html" class="nav-link" style="font-size:12px;">Server Performance</a>
+    <a href="faction-system.html"     class="nav-link" style="font-size:12px;">Faction System</a>
+  </aside>
+
+  <!-- ═══════════════════════════════ MAIN ═══════════════════════════════ -->
+  <main class="main">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="eyebrow">Securite — Detection de Triche</div>
+      <h1>Anti Cheat</h1>
+      <p>Systeme de detection automatique de clients modifies (hacked clients) et d'avantages injustes dans un environnement PvP 1.8. Detection server-side uniquement, violation progressive, punitions automatiques configurables.</p>
+      <div class="header-badges">
+        <span class="badge badge-violet">Forge 1.12.2</span>
+        <span class="badge badge-pink">PvP 1.8 (no cooldown)</span>
+        <span class="badge badge-cyan">Server-side only</span>
+        <span class="badge badge-red">Auto-punition</span>
+        <span class="badge badge-gold">500-1000 joueurs</span>
+        <span class="badge badge-green">EriAPI + Mixin</span>
+      </div>
+    </div>
+
+    <!-- ═══ 01. CONTEXTE ═══ -->
+    <section class="section-card" id="contexte">
+      <h2><span class="s-num">01</span>Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Contexte PvP 1.8</h3>
+      <p>Le serveur utilise un mod PvP 1.8 (sans cooldown d'attaque). Cela change radicalement le paysage des triche par rapport a un serveur vanilla 1.12 :</p>
+      <ul>
+        <li><strong>CPS illimite</strong> — Sans cooldown, cliquer plus vite donne directement plus de DPS. Les auto-clickers sont un avantage massif.</li>
+        <li><strong>KillAura</strong> — Peut attaquer plusieurs cibles par tick a 360 degres, devastateur sans cooldown.</li>
+        <li><strong>Reach</strong> — Avec les "s-clicks" et le no-knockback, la portee d'attaque est critique.</li>
+        <li><strong>Velocity/Anti-Knockback</strong> — Annuler le knockback permet d'encaisser des combos sans reculer, rompt completement l'equilibre PvP.</li>
+        <li><strong>Speed</strong> — Se deplacer plus vite que les adversaires confere un avantage de poursuite/fuite decisif.</li>
+      </ul>
+      <div class="info-box danger">
+        <span class="icon">!</span>
+        <div class="content"><strong>Note importante :</strong> L'attribut ATTACK_SPEED est inutile sur ce serveur (mod PvP 1.8). Ne jamais baser des checks anti-cheat sur ATTACK_SPEED. Tous les checks de combat se basent sur la vitesse de mouvement, les degats, le knockback et la distance.</div>
+      </div>
+
+      <h3>Philosophie : detection server-side</h3>
+      <p>L'anti-cheat est entierement cote serveur. Aucune verification client, aucun agent injecte. Cette approche est plus robuste (un client modifie ne peut pas mentir au serveur si le serveur valide lui-meme) mais requiert une calibration fine pour eviter les faux positifs.</p>
+
+      <h3>Principes de design</h3>
+      <ul>
+        <li><strong>Tolerance avant punition</strong> — Un joueur doit accumuler plusieurs violations avant toute action. Un seul faux positif isole ne punit pas.</li>
+        <li><strong>Decay des violations</strong> — Les points de violation diminuent naturellement avec le temps pour ne pas penaliser un joueur longtemps apres un evenement de lag.</li>
+        <li><strong>Configurabilite totale</strong> — Chaque check peut etre desactive independamment. Chaque seuil est ajustable sans recompilation.</li>
+        <li><strong>Transparence staff</strong> — Le staff voit les violations en temps reel avec assez de contexte pour decider d'une action manuelle.</li>
+        <li><strong>Zero impact gameplay</strong> — Les checks ne doivent jamais modifier le comportement d'un joueur legitime, meme sous lag.</li>
+      </ul>
+
+      <h3>Vue d'ensemble des checks</h3>
+      <div class="check-grid">
+        <div class="check-card movement">
+          <div class="check-card-title"><span class="tag-cyan">MOUVEMENT</span></div>
+          <ul>
+            <li>Speed — vitesse de deplacement</li>
+            <li>Fly — vol non autorise</li>
+            <li>NoFall — annulation des degats de chute</li>
+            <li>Phase — passage dans les blocs solides</li>
+            <li>Step — montee de blocs illegale</li>
+            <li>Blink/Timer — timing de paquets</li>
+            <li>TeleportHack — sauts de position</li>
+          </ul>
+        </div>
+        <div class="check-card combat">
+          <div class="check-card-title"><span class="tag-crit">COMBAT</span></div>
+          <ul>
+            <li>KillAura — attaques automatiques</li>
+            <li>Reach — portee d'attaque etendue</li>
+            <li>AutoClicker — CPS inhumain</li>
+            <li>Criticals — critiques illegaux</li>
+            <li>Velocity — annulation knockback</li>
+            <li>AntiKnockback — resistence knockback</li>
+          </ul>
+        </div>
+        <div class="check-card world">
+          <div class="check-card-title"><span class="tag-med">MONDE</span></div>
+          <ul>
+            <li>FastBreak — minage trop rapide</li>
+            <li>FastPlace — placement trop rapide</li>
+            <li>Scaffold — pont automatique</li>
+            <li>NoSwing — attaque sans animation</li>
+          </ul>
+        </div>
+        <div class="check-card mining">
+          <div class="check-card-title"><span class="tag-high">MINING</span></div>
+          <ul>
+            <li>XRay — analyse statistique du minage</li>
+            <li>ChestESP — acces direct aux conteneurs</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 02. CHECK MOUVEMENT ═══ -->
+    <section class="section-card" id="movement">
+      <h2><span class="s-num">02</span>CheckMovement</h2>
+
+      <h3 class="first">Speed Hack</h3>
+      <p>La vitesse maximale d'un joueur est calculee a chaque tick selon ses effets actifs, son etat (sprint, marche, aquatique, echelle, cheval) et les attributs modifies par le mod.</p>
+
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">CheckMovement</span> {
+
+    <span class="cm">// Calculer la vitesse max attendue en blocs/tick</span>
+    <span class="kw">public double</span> <span class="fn">getMaxExpectedSpeed</span>(<span class="ty">EntityPlayerMP</span> player) {
+        <span class="kw">double</span> base = <span class="nu">0.22</span>; <span class="cm">// Vitesse marche vanilla (~4.3 blocs/s)</span>
+
+        <span class="kw">if</span> (player.<span class="fn">isSprinting</span>())   base *= <span class="nu">1.30</span>;
+        <span class="kw">if</span> (player.<span class="fn">isOnLadder</span>())    base = <span class="nu">0.12</span>;
+        <span class="kw">if</span> (player.<span class="fn">isInWater</span>())     base *= <span class="nu">0.80</span>;
+        <span class="kw">if</span> (player.<span class="fn">isRiding</span>())      base  = <span class="fn">getHorseSpeed</span>(player);
+
+        <span class="cm">// Effets de potion</span>
+        <span class="ty">PotionEffect</span> speed = player.<span class="fn">getActivePotionEffect</span>(<span class="ty">MobEffects</span>.SPEED);
+        <span class="kw">if</span> (speed != <span class="kw">null</span>) base *= (<span class="nu">1</span> + (<span class="nu">0.20</span> * (speed.<span class="fn">getAmplifier</span>() + <span class="nu">1</span>)));
+
+        <span class="ty">PotionEffect</span> slow = player.<span class="fn">getActivePotionEffect</span>(<span class="ty">MobEffects</span>.SLOWNESS);
+        <span class="kw">if</span> (slow != <span class="kw">null</span>) base *= (<span class="nu">1</span> - (<span class="nu">0.15</span> * (slow.<span class="fn">getAmplifier</span>() + <span class="nu">1</span>)));
+
+        <span class="cm">// Tolerance lag : +20% de marge</span>
+        <span class="kw">return</span> base * <span class="ty">AntiCheatConfig</span>.SPEED_TOLERANCE;
+    }
+
+    <span class="kw">public void</span> <span class="fn">checkSpeed</span>(<span class="ty">EntityPlayerMP</span> player, <span class="kw">double</span> distanceTraveled) {
+        <span class="kw">if</span> (player.<span class="fn">capabilities</span>.isFlying) <span class="kw">return</span>; <span class="cm">// Admin en vol</span>
+        <span class="kw">double</span> maxSpeed = <span class="fn">getMaxExpectedSpeed</span>(player);
+        <span class="kw">if</span> (distanceTraveled > maxSpeed) {
+            <span class="kw">double</span> ratio = distanceTraveled / maxSpeed;
+            <span class="kw">int</span> weight = ratio > <span class="nu">2.0</span> ? <span class="nu">5</span> : ratio > <span class="nu">1.5</span> ? <span class="nu">3</span> : <span class="nu">1</span>;
+            <span class="ty">ViolationTracker</span>.<span class="fn">getInstance</span>().<span class="fn">addViolation</span>(player, <span class="st">"SPEED"</span>, weight);
+        }
+    }
+}</span></div>
+
+      <h3>Fly Hack</h3>
+      <ul>
+        <li>Detection : joueur en l'air depuis plus de 4 ticks sans elytra, sans cheval volant, sans mode creatif, sans effet Levitation.</li>
+        <li>Tolerance : 4 ticks de vol correspond a un double saut de mod — la fenetre est suffisamment large pour eviter les faux positifs sur des sauts hauts.</li>
+        <li>Verification : position Y du joueur vs position Y attendue selon la gravite (chute libre).</li>
+      </ul>
+
+      <h3>NoFall</h3>
+      <p>Le serveur tracked independamment la hauteur de chute de chaque joueur depuis le dernier sol touche. Quand un paquet d'atterrissage arrive, les degats attendus sont calcules et compares aux degats reellement infliges. Si l'ecart est > 2 hearts, violation.</p>
+
+      <h3>Phase / NoClip</h3>
+      <p>A chaque mise a jour de position, le serveur verifie si la position reportee par le joueur est dans un bloc solide. Si oui, le joueur est teleporte en arriere a la derniere position valide et une violation est enregistree.</p>
+
+      <h3>Step Hack</h3>
+      <p>Un joueur ne peut pas monter plus de 0.6 blocs par tick sans escalier ni dalle. Si la position Y augmente de plus de 0.65 blocs en un tick alors que le joueur est au sol (pas en saut), c'est un step hack.</p>
+
+      <h3>Blink / Timer</h3>
+      <ul>
+        <li><strong>Blink</strong> — Le timer check detecte un nombre anormal de paquets de mouvement. Vanilla envoie exactement 1 CPacketPlayer par tick. Si un joueur envoie plus de 25 paquets en 20 ticks (25% d'exces) : violation.</li>
+        <li><strong>Timer</strong> — Si un joueur envoie moins de 5 paquets en 20 ticks (50% du normal) puis burst de 35+ paquets : violation blink.</li>
+      </ul>
+
+      <h3>TeleportHack</h3>
+      <p>Si la distance entre deux positions consecutives depasse 10 blocs sans qu'un teleport serveur ait ete initie (via <code>/tp</code>, warp, faction home), violation severe de poids 8.</p>
+    </section>
+
+    <!-- ═══ 03. CHECK COMBAT ═══ -->
+    <section class="section-card" id="combat">
+      <h2><span class="s-num">03</span>CheckCombat</h2>
+
+      <h3 class="first">KillAura</h3>
+      <p>La kill aura attaque automatiquement les cibles proches, souvent derriere le joueur ou sans line-of-sight. Detection multi-criteres :</p>
+      <ul>
+        <li><strong>Angle d'attaque</strong> — Si la cible est a plus de 120 degres derriere la direction de regard du joueur au moment de l'attaque : violation. (Vanilla 1.8 permet d'attaquer dans un cone de ~60 degres devant soi.)</li>
+        <li><strong>Line-of-sight</strong> — Verifier qu'il n'y a pas de bloc solide entre le joueur et la cible au moment de l'attaque.</li>
+        <li><strong>Multi-target rapid switch</strong> — Si un joueur attaque 3 entites differentes en moins de 5 ticks : violation killaura (pattern auto-swing).</li>
+        <li><strong>Pas d'animation de swing</strong> — Voir NoSwing check dans CheckWorld.</li>
+      </ul>
+
+      <h3>Reach Hack</h3>
+      <div class="code-block"><span class="cm">// Sur EntityAttackEvent : calculer la distance reelle de l'attaque</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onAttack</span>(<span class="ty">AttackEntityEvent</span> event) {
+    <span class="kw">if</span> (!(event.getEntity() <span class="kw">instanceof</span> <span class="ty">EntityPlayerMP</span>)) <span class="kw">return</span>;
+    <span class="ty">EntityPlayerMP</span> attacker = (<span class="ty">EntityPlayerMP</span>) event.getEntity();
+    <span class="ty">Entity</span> target = event.<span class="fn">getTarget</span>();
+
+    <span class="kw">double</span> distance = attacker.<span class="fn">getPositionVector</span>().<span class="fn">distanceTo</span>(target.<span class="fn">getPositionVector</span>());
+    <span class="kw">double</span> maxReach = <span class="ty">AntiCheatConfig</span>.MAX_REACH_DISTANCE; <span class="cm">// 4.5 blocs par defaut</span>
+
+    <span class="kw">if</span> (distance > maxReach) {
+        <span class="kw">int</span> weight = distance > maxReach * <span class="nu">1.5</span> ? <span class="nu">5</span> : <span class="nu">2</span>;
+        <span class="ty">ViolationTracker</span>.<span class="fn">getInstance</span>().<span class="fn">addViolation</span>(attacker, <span class="st">"REACH"</span>, weight);
+        event.<span class="fn">setCanceled</span>(<span class="kw">true</span>); <span class="cm">// Annuler l'attaque hors portee</span>
+    }
+}</span></div>
+      <p>La portee maximale par defaut est 4.5 blocs (3.0 vanilla PvP 1.8 + 1.5 de tolerance lag reseau). Configurable.</p>
+
+      <h3>AutoClicker</h3>
+      <p>Sur un serveur PvP 1.8, le jitter clicking humain peut atteindre 14-16 CPS soutenu, avec des pics a 18-20 CPS tres brefs. Un AutoClicker maintient 20+ CPS indefiniment. Detection :</p>
+      <ul>
+        <li>Mesure du CPS sur une fenetre glissante de 10 secondes.</li>
+        <li>Si le CPS moyen depasse 18 sur plus de 5 secondes consecutives : violation.</li>
+        <li>Si le CPS depasse 25 meme brievement : violation immediate.</li>
+        <li>Analyse de la variance : un autoclicker a une variance CPS tres faible. Detecter une variance inter-click &lt; 5ms sur 20 clicks consecutifs.</li>
+      </ul>
+
+      <h3>Criticals Illegaux</h3>
+      <p>Un coup critique en PvP 1.8 requiert que le joueur soit en train de descendre dans les airs (position Y decroissante). Le serveur verrifie :</p>
+      <ul>
+        <li>Si le joueur n'est pas en saut (Y velocity == 0 ou positif) et que le coup est critique : violation.</li>
+        <li>Si le joueur est clairement au sol (onGround = true, confirme server-side) : les critiques sont impossible, violation si tente.</li>
+      </ul>
+
+      <h3>Velocity / Anti-Knockback</h3>
+      <p>Apres chaque coup recu, le serveur calcule le knockback attendu selon la force de frappe, l'enchantement Knockback, et l'effet Resistance. Il compare avec le deplacement reel du joueur dans les 3 ticks suivants :</p>
+      <ul>
+        <li>Si le joueur se deplace de moins de 30% du knockback attendu apres un coup fort : violation velocity.</li>
+        <li>Tolerance : les joueurs avec potion de resistance ou dans l'eau ont des comportements differents — ces cas sont correctement pris en compte.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ 04. CHECK MONDE ═══ -->
+    <section class="section-card" id="world">
+      <h2><span class="s-num">04</span>CheckWorld</h2>
+
+      <h3 class="first">FastBreak</h3>
+      <p>La vitesse de minage depend du type de bloc, de l'outil, des enchantements (Efficiency), de l'effet Haste, et de si le joueur est dans l'eau ou en l'air (malus). Le serveur calcule la duree minimale de minage pour chaque bloc :</p>
+
+      <div class="code-block"><span class="kw">public int</span> <span class="fn">getMinMiningTicks</span>(<span class="ty">EntityPlayerMP</span> player, <span class="ty">IBlockState</span> state) {
+    <span class="kw">float</span> hardness = state.<span class="fn">getBlockHardness</span>(player.world, player.getPosition());
+    <span class="kw">float</span> speed = player.<span class="fn">getDigSpeed</span>(state);
+
+    <span class="kw">if</span> (player.<span class="fn">canHarvestBlock</span>(state)) {
+        <span class="kw">return</span> (<span class="kw">int</span>) <span class="ty">Math</span>.<span class="fn">ceil</span>(hardness / speed * <span class="nu">1.5</span>); <span class="cm">// *1.5 = ticks</span>
+    } <span class="kw">else</span> {
+        <span class="kw">return</span> (<span class="kw">int</span>) <span class="ty">Math</span>.<span class="fn">ceil</span>(hardness / speed * <span class="nu">5.0</span>); <span class="cm">// Outil inadapte = 5x plus long</span>
+    }
+}</span></div>
+
+      <p>Si le bloc est casse en moins de <code>getMinMiningTicks() * 0.85</code> : violation FastBreak (15% de tolerance pour le lag).</p>
+
+      <h3>FastPlace</h3>
+      <p>Un joueur peut placer au maximum 1 bloc par tick (meme avec un autoclicker au CPS max). Si un joueur place 2+ blocs dans le meme tick : violation. Le systeme aussi surveille le taux de placement sur 20 ticks : max 20 blocs/seconde (1 par tick est le maximum physique).</p>
+
+      <h3>Scaffold</h3>
+      <p>Le scaffold automatique place des blocs sous les pieds du joueur pendant qu'il se deplace a vitesse sprint. Pattern detecte :</p>
+      <ul>
+        <li>Joueur en sprint (&gt; 0.20 blocs/tick de deplacement horizontal).</li>
+        <li>Placements de blocs consecutifs dans les chunks sous la position du joueur.</li>
+        <li>Si le pattern (sprint + placement bloc sous soi) se repete plus de 8 fois en 3 secondes : violation scaffold.</li>
+      </ul>
+
+      <h3>NoSwing</h3>
+      <p>Tout coup porte ou tout bloc mine doit etre precede ou accompagne d'un paquet <code>CPacketAnimation</code> (swing de bras). Si une attaque ou un minage arrive sans swing dans les 2 ticks precedents : violation. Poids 2 par occurence.</p>
+    </section>
+
+    <!-- ═══ 05. CHECK PAQUETS ═══ -->
+    <section class="section-card" id="packet">
+      <h2><span class="s-num">05</span>CheckPacket</h2>
+
+      <h3 class="first">Paquets invalides</h3>
+      <p>Les paquets malformes ou hors-sequence sont interceptes par le Mixin sur <code>NetHandlerPlayServer</code>. Tout paquet avec des valeurs hors limites (positions NaN, infinies, ou hors monde) genere une violation immediate de poids 10 (quasi-certainement un client modifie).</p>
+
+      <h3>Flood de paquets</h3>
+      <ul>
+        <li>Un joueur vanilla envoie environ 20-25 paquets par seconde (CPacketPlayer + interactions).</li>
+        <li>Si un joueur envoie plus de 500 paquets par seconde : violation severe + rate limiting force.</li>
+        <li>Si un joueur envoie plus de 1000 paquets par seconde : deconnexion immediate pour protection du serveur.</li>
+      </ul>
+
+      <h3>Timer manipulation (analyse temporelle)</h3>
+      <p>Le timer cheat accelere toutes les actions du client (pas seulement les clics). Il est detecte par l'analyse de la frequence des paquets CPacketPlayer :</p>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">CheckPacket</span> {
+
+    <span class="cm">// Ring buffer des timestamps des derniers paquets CPacketPlayer</span>
+    <span class="kw">private final long</span>[] movePacketTimes = <span class="kw">new long</span>[<span class="nu">40</span>]; <span class="cm">// 40 derniers</span>
+    <span class="kw">private int</span> ringHead = <span class="nu">0</span>;
+
+    <span class="kw">public void</span> <span class="fn">onMovePacket</span>(<span class="ty">EntityPlayerMP</span> player) {
+        <span class="kw">long</span> now = <span class="ty">System</span>.<span class="fn">currentTimeMillis</span>();
+        movePacketTimes[ringHead++ % <span class="nu">40</span>] = now;
+
+        <span class="cm">// Calculer la frequence sur les 40 derniers paquets</span>
+        <span class="kw">if</span> (ringHead < <span class="nu">40</span>) <span class="kw">return</span>;
+        <span class="kw">long</span> oldest = movePacketTimes[ringHead % <span class="nu">40</span>];
+        <span class="kw">double</span> packetsPerSec = <span class="nu">40000.0</span> / (now - oldest);
+
+        <span class="cm">// Normal: ~20 paquets/sec. Timer 1.2: ~24/sec. Timer 2.0: ~40/sec</span>
+        <span class="kw">if</span> (packetsPerSec > <span class="nu">26</span>) { <span class="cm">// 30% au-dessus de la normale</span>
+            <span class="kw">int</span> weight = packetsPerSec > <span class="nu">35</span> ? <span class="nu">5</span> : <span class="nu">2</span>;
+            <span class="ty">ViolationTracker</span>.<span class="fn">getInstance</span>().<span class="fn">addViolation</span>(player, <span class="st">"TIMER"</span>, weight);
+        }
+    }
+}</span></div>
+    </section>
+
+    <!-- ═══ 06. CHECK MINING / XRAY ═══ -->
+    <section class="section-card" id="mining">
+      <h2><span class="s-num">06</span>CheckMining — Analyse X-Ray Statistique</h2>
+
+      <h3 class="first">Principe de detection</h3>
+      <p>Le X-Ray ne peut pas etre detecte directement (le client voit les minerais, le serveur non). Cependant, le comportement de minage d'un joueur utilisant le X-Ray est statistiquement tres different d'un joueur legitime :</p>
+      <ul>
+        <li><strong>Un joueur normal</strong> mine des couloirs d'exploration, des branch mines, rencontre les minerais par hasard.</li>
+        <li><strong>Un X-Rayer</strong> va directement aux veines de minerais sans exploration intermediaire.</li>
+      </ul>
+
+      <h3>Metriques collectees par joueur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Metrique</th><th>Description</th><th>Seuil suspect</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Ore hit rate</td><td>Blocs de minerai / total blocs mines</td><td>&gt; 35% sur 200 blocs</td></tr>
+            <tr><td>Travel distance to ore</td><td>Distance directe player → minerai avant de miner</td><td>&lt; 3 blocs avg</td></tr>
+            <tr><td>Stone mined ratio</td><td>Pierre minee entre deux veines (exploration)</td><td>&lt; 15% entre chaque ore</td></tr>
+            <tr><td>Diamond hit rate</td><td>Blocs diamant / total blocs mines</td><td>&gt; 5% sur 100 blocs</td></tr>
+            <tr><td>Ore path linearity</td><td>Minage en ligne droite vers le minerai</td><td>Angle &lt; 15 deg sur 5+ blocs</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Implementation asynchrone</h3>
+      <div class="code-block"><span class="cm">// Collect blocs mines dans un buffer par joueur (thread principal)</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onBlockBreak</span>(<span class="ty">BlockEvent</span>.BreakEvent event) {
+    <span class="kw">if</span> (!(event.getPlayer() <span class="kw">instanceof</span> <span class="ty">EntityPlayerMP</span>)) <span class="kw">return</span>;
+    <span class="ty">MiningRecord</span> record = <span class="ty">MiningRecord</span>.<span class="fn">of</span>(event.getPos(), event.getState(), event.getPlayer());
+    miningBuffer.<span class="fn">get</span>(event.getPlayer().<span class="fn">getUniqueID</span>()).<span class="fn">add</span>(record);
+}
+
+<span class="cm">// Analyse asynchrone toutes les 30 secondes par joueur (decale pour eviter burst)</span>
+<span class="ty">EriScheduler</span>.<span class="fn">async</span>(() -> {
+    <span class="kw">for</span> (<span class="ty">UUID</span> uuid : miningBuffer.<span class="fn">keySet</span>()) {
+        <span class="ty">List</span>&lt;<span class="ty">MiningRecord</span>&gt; records = miningBuffer.<span class="fn">get</span>(uuid);
+        <span class="ty">XRayAnalysis</span> analysis = <span class="fn">analyzeRecords</span>(records);
+        <span class="kw">if</span> (analysis.isSuspicious()) {
+            <span class="ty">EriScheduler</span>.<span class="fn">delay</span>(<span class="nu">0</span>, () ->
+                <span class="ty">ViolationTracker</span>.<span class="fn">getInstance</span>().<span class="fn">addViolation</span>(uuid, <span class="st">"XRAY"</span>, analysis.weight()));
+        }
+    }
+});<span class="cm">// Retry toutes les 600 ticks (30s), offset par UUID hash</span></div>
+
+      <h3>Chest ESP</h3>
+      <p>Si un joueur interagit avec un coffre cache (enterré, dans une cave non visitee) sans avoir explore la zone environment dans les 30 secondes precedentes : flag statistique. Ce n'est pas une violation directe mais un facteur de risque additionnel dans l'analyse globale.</p>
+    </section>
+
+    <!-- ═══ 07. SYSTEME DE VIOLATIONS ═══ -->
+    <section class="section-card" id="violations">
+      <h2><span class="s-num">07</span>Systeme de Violations</h2>
+
+      <h3 class="first">ViolationTracker — Architecture</h3>
+      <p>Chaque joueur possede un compte de violations independant par type de check. Les violations s'accumulent avec des poids differents selon la severite et la confiance du check.</p>
+
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">ViolationTracker</span> {
+
+    <span class="cm">// Donnees par joueur (primitif pour eviter GC)</span>
+    <span class="kw">private static final int</span> MAX_PLAYERS = <span class="nu">1100</span>;
+    <span class="kw">private final int</span>[] violationPoints = <span class="kw">new int</span>[MAX_PLAYERS];  <span class="cm">// par slot</span>
+    <span class="kw">private final long</span>[] lastViolTick   = <span class="kw">new long</span>[MAX_PLAYERS];
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">UUID</span>, <span class="ty">Integer</span>&gt; slotMap = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+
+    <span class="cm">// Decay : -1 point toutes les 30 secondes (600 ticks)</span>
+    <span class="kw">public static final int</span> DECAY_INTERVAL_TICKS = <span class="nu">600</span>;
+    <span class="kw">public static final int</span> DECAY_AMOUNT          = <span class="nu">1</span>;
+
+    <span class="kw">public void</span> <span class="fn">addViolation</span>(<span class="ty">EntityPlayerMP</span> player, <span class="ty">String</span> checkName, <span class="kw">int</span> weight) {
+        <span class="kw">int</span> slot = <span class="fn">getSlot</span>(player.getUniqueID());
+        violationPoints[slot] += weight;
+        lastViolTick[slot] = player.world.<span class="fn">getTotalWorldTime</span>();
+
+        <span class="ty">ExploitLogger</span>.<span class="fn">log</span>(checkName, player, violationPoints[slot]);
+        <span class="ty">PunishmentManager</span>.<span class="fn">getInstance</span>().<span class="fn">evaluate</span>(player, violationPoints[slot]);
+    }
+}</span></div>
+
+      <h3>Poids des violations par check</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Check</th><th>Poids par detection</th><th>Confiance</th><th>Action immediate si</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Speed (leger, &lt;1.5x)</td><td>1</td><td><span class="tag-med">MOYENNE</span></td><td>Jamais seul</td></tr>
+            <tr><td>Speed (severe, &gt;2x)</td><td>5</td><td><span class="tag-yes">HAUTE</span></td><td>Points &gt; 10</td></tr>
+            <tr><td>Fly</td><td>4</td><td><span class="tag-yes">HAUTE</span></td><td>Points &gt; 8</td></tr>
+            <tr><td>NoFall</td><td>3</td><td><span class="tag-yes">HAUTE</span></td><td>Points &gt; 9</td></tr>
+            <tr><td>Phase</td><td>4</td><td><span class="tag-yes">HAUTE</span></td><td>Points &gt; 8</td></tr>
+            <tr><td>Step</td><td>2</td><td><span class="tag-med">MOYENNE</span></td><td>Jamais seul</td></tr>
+            <tr><td>Timer (leger)</td><td>2</td><td><span class="tag-med">MOYENNE</span></td><td>Jamais seul</td></tr>
+            <tr><td>Timer (severe)</td><td>5</td><td><span class="tag-yes">HAUTE</span></td><td>Points &gt; 10</td></tr>
+            <tr><td>TeleportHack</td><td>8</td><td><span class="tag-crit">CRITIQUE</span></td><td>Immediate</td></tr>
+            <tr><td>KillAura</td><td>4</td><td><span class="tag-yes">HAUTE</span></td><td>Points &gt; 8</td></tr>
+            <tr><td>Reach (&lt;5m)</td><td>2</td><td><span class="tag-med">MOYENNE</span></td><td>Jamais seul</td></tr>
+            <tr><td>Reach (&gt;6m)</td><td>6</td><td><span class="tag-yes">HAUTE</span></td><td>Points &gt; 8</td></tr>
+            <tr><td>AutoClicker</td><td>3</td><td><span class="tag-med">MOYENNE</span></td><td>Points &gt; 9</td></tr>
+            <tr><td>Criticals illegaux</td><td>3</td><td><span class="tag-yes">HAUTE</span></td><td>Points &gt; 9</td></tr>
+            <tr><td>Velocity</td><td>3</td><td><span class="tag-med">MOYENNE</span></td><td>Points &gt; 9</td></tr>
+            <tr><td>FastBreak</td><td>2</td><td><span class="tag-med">MOYENNE</span></td><td>Jamais seul</td></tr>
+            <tr><td>Scaffold</td><td>3</td><td><span class="tag-med">MOYENNE</span></td><td>Points &gt; 9</td></tr>
+            <tr><td>NoSwing</td><td>2</td><td><span class="tag-low">BASSE</span></td><td>Jamais seul</td></tr>
+            <tr><td>Paquet invalide (NaN/Inf)</td><td>10</td><td><span class="tag-crit">CRITIQUE</span></td><td>Immediate</td></tr>
+            <tr><td>Packet flood &gt; 500/s</td><td>8</td><td><span class="tag-crit">CRITIQUE</span></td><td>Immediate</td></tr>
+            <tr><td>Creative packet en survie</td><td>10</td><td><span class="tag-crit">CRITIQUE</span></td><td>Immediate</td></tr>
+            <tr><td>XRay (analyse stat)</td><td>3</td><td><span class="tag-low">BASSE</span></td><td>Jamais seul</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Decay progressif</h3>
+      <p>Toutes les 600 ticks (30 secondes), chaque joueur perd 1 point de violation. Cela assure que les joueurs qui ne triche plus retrouvent un niveau de violation propre apres quelques minutes. Un joueur avec 10 violations retombe a 0 en 5 minutes de jeu normal.</p>
+    </section>
+
+    <!-- ═══ 08. PUNITIONS ═══ -->
+    <section class="section-card" id="punishments">
+      <h2><span class="s-num">08</span>Punitions Automatiques</h2>
+
+      <h3 class="first">Niveaux de punition par seuil de violations</h3>
+
+      <div class="viol-grid">
+        <div class="viol-card lv1">
+          <div class="viol-level">1-3</div>
+          <div class="viol-range">Points 1 a 3</div>
+          <div class="viol-action">Log uniquement. Aucune action visible. Stockage pour analyse staff.</div>
+        </div>
+        <div class="viol-card lv2">
+          <div class="viol-level">4-6</div>
+          <div class="viol-range">Points 4 a 6</div>
+          <div class="viol-action">Notification silencieuse au staff en ligne via EriChat (mode quiet).</div>
+        </div>
+        <div class="viol-card lv3">
+          <div class="viol-level">7-9</div>
+          <div class="viol-range">Points 7 a 9</div>
+          <div class="viol-action">Alerte staff avec details. Log complet. Kick auto si joueur atteint 9.</div>
+        </div>
+        <div class="viol-card lv4">
+          <div class="viol-level">10+</div>
+          <div class="viol-range">Points 10+</div>
+          <div class="viol-action">Kick automatique + log + alerte staff. Tempban si 3 kicks dans la meme session.</div>
+        </div>
+      </div>
+
+      <h3>Messages de kick</h3>
+      <div class="code-block"><span class="cm">// Message de kick (configurable)</span>
+<span class="kw">public void</span> <span class="fn">kickPlayer</span>(<span class="ty">EntityPlayerMP</span> player, <span class="ty">String</span> checkName) {
+    <span class="ty">String</span> reason = <span class="ty">AntiCheatConfig</span>.KICK_MESSAGE
+        .<span class="fn">replace</span>(<span class="st">"{check}"</span>, checkName)
+        .<span class="fn">replace</span>(<span class="st">"{id}"</span>, <span class="fn">generateIncidentId</span>());
+    <span class="cm">// Exemple: "Tu as ete deconnecte. Raison: Comportement suspect detecte. ID: AC-1748293"</span>
+    player.<span class="fn">connection</span>.<span class="fn">disconnect</span>(<span class="kw">new</span> <span class="ty">TextComponentString</span>(reason));
+    <span class="ty">ExploitLogger</span>.<span class="fn">logKick</span>(player, checkName, reason);
+}</span></div>
+
+      <h3>Tempban automatique</h3>
+      <p>Si un joueur est kicke 3 fois pour triche dans la meme session de jeu (entre deux connexions), un ban temporaire configurable est automatiquement applique. Duree par defaut : 1 heure. Le staff peut annuler via <code>/ac unban &lt;player&gt;</code>.</p>
+    </section>
+
+    <!-- ═══ 09. ARCHITECTURE ═══ -->
+    <section class="section-card" id="architecture">
+      <h2><span class="s-num">09</span>Architecture Technique</h2>
+
+      <h3 class="first">Package principal</h3>
+      <p>Tout le code anti-cheat est dans <code>fr.eriniumgroup.eriniumfaction.security.anticheat</code>.</p>
+
+      <div class="arch-grid">
+        <div class="arch-card">
+          <div class="arch-card-name">AntiCheatManager</div>
+          <div class="arch-card-desc">Singleton central. Enregistre tous les checks, coordonne les events EriAPI, dispatche les violations.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">CheckMovement</div>
+          <div class="arch-card-desc">Speed, Fly, NoFall, Phase, Step, Blink, Timer, TeleportHack. Run sur PlayerMoveEvent.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">CheckCombat</div>
+          <div class="arch-card-desc">KillAura, Reach, AutoClicker, Criticals, Velocity. Run sur EntityAttackEvent.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">CheckWorld</div>
+          <div class="arch-card-desc">FastBreak, FastPlace, Scaffold, NoSwing. Run sur BlockBreak/Place events.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">CheckPacket</div>
+          <div class="arch-card-desc">Paquets invalides, flood, timer. Mixin sur NetHandlerPlayServer.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">CheckMining</div>
+          <div class="arch-card-desc">Analyse X-Ray statistique asynchrone. Ring buffer de records de minage par joueur.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">ViolationTracker</div>
+          <div class="arch-card-desc">Points par joueur en tableaux primitifs. Decay periodique. Persistance EriData.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">PunishmentManager</div>
+          <div class="arch-card-desc">Evaluate violations vs seuils. Kick, tempban, alertes staff, notifications.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">AntiCheatConfig</div>
+          <div class="arch-card-desc">Tous les seuils, poids, durees. Feature flags par check. Rechargeable via /ac reload.</div>
+        </div>
+      </div>
+
+      <h3>Structure des packages</h3>
+      <div class="code-block">fr.eriniumgroup.eriniumfaction.security.anticheat/
+├── AntiCheatManager.java
+├── config/
+│   └── AntiCheatConfig.java
+├── check/
+│   ├── CheckMovement.java
+│   ├── CheckCombat.java
+│   ├── CheckWorld.java
+│   ├── CheckPacket.java
+│   └── CheckMining.java
+├── data/
+│   ├── ViolationTracker.java
+│   ├── PlayerMovementHistory.java    <span class="cm">// Ring buffer positions</span>
+│   ├── CpsTracker.java               <span class="cm">// Click rate tracker</span>
+│   └── MiningRecord.java             <span class="cm">// Record de minage</span>
+├── punishment/
+│   └── PunishmentManager.java
+├── logger/
+│   └── ExploitLogger.java            <span class="cm">// Partage avec anti-usebug</span>
+└── mixin/
+    ├── MixinNetHandlerPlayServer.java <span class="cm">// Interception paquets mouvement</span>
+    └── MixinEntityPlayerMP.java       <span class="cm">// Hooks attaque/minage</span></div>
+    </section>
+
+    <!-- ═══ 10. COMMANDES ADMIN ═══ -->
+    <section class="section-card" id="commands">
+      <h2><span class="s-num">10</span>Commandes Admin</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Commande</th><th>Description</th><th>Permission</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>/ac alerts</td><td>Toggle les notifications staff en temps reel</td><td>eriniumfaction.ac.alerts</td></tr>
+            <tr><td>/ac alerts on/off</td><td>Activer/desactiver les alertes</td><td>eriniumfaction.ac.alerts</td></tr>
+            <tr><td>/ac info &lt;player&gt;</td><td>Affiche le profil de violations du joueur</td><td>eriniumfaction.ac.info</td></tr>
+            <tr><td>/ac reset &lt;player&gt;</td><td>Remet les violations a 0</td><td>eriniumfaction.ac.reset</td></tr>
+            <tr><td>/ac history &lt;player&gt;</td><td>Affiche les 20 derniers incidents loggues</td><td>eriniumfaction.ac.info</td></tr>
+            <tr><td>/ac top</td><td>Top 10 des joueurs par points de violation</td><td>eriniumfaction.ac.info</td></tr>
+            <tr><td>/ac exempt &lt;player&gt; &lt;check&gt;</td><td>Exempter un joueur d'un check specifique</td><td>eriniumfaction.ac.exempt</td></tr>
+            <tr><td>/ac unexempt &lt;player&gt;</td><td>Retirer toutes les exemptions</td><td>eriniumfaction.ac.exempt</td></tr>
+            <tr><td>/ac ban &lt;player&gt; [duree]</td><td>Tempban manuel (defaut 1h)</td><td>eriniumfaction.ac.ban</td></tr>
+            <tr><td>/ac unban &lt;player&gt;</td><td>Annuler un tempban anti-cheat</td><td>eriniumfaction.ac.ban</td></tr>
+            <tr><td>/ac reload</td><td>Recharger AntiCheatConfig</td><td>eriniumfaction.ac.admin</td></tr>
+            <tr><td>/ac status</td><td>Statut de tous les checks (actif/inactif)</td><td>eriniumfaction.ac.admin</td></tr>
+            <tr><td>/ac check &lt;check&gt; on/off</td><td>Activer/desactiver un check en live</td><td>eriniumfaction.ac.admin</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Affichage /ac info</h3>
+      <div class="code-block"><span class="cm">// Affichage via EriChat</span>
+<span class="cm">// ╔══════════════════════════════════════════╗</span>
+<span class="cm">// ║  Anti-Cheat Profile — Pseudo123          ║</span>
+<span class="cm">// ╠══════════════════════════════════════════╣</span>
+<span class="cm">// ║  Points actuels : 4  (decay: -1 / 30s)  ║</span>
+<span class="cm">// ║  Kicks total   : 0                       ║</span>
+<span class="cm">// ║  Exemptions    : aucune                  ║</span>
+<span class="cm">// ╠══════════════════════════════════════════╣</span>
+<span class="cm">// ║  Recentes violations:                    ║</span>
+<span class="cm">// ║  [14:32:05] SPEED x1.6  (+1pt) — 832,64 ║</span>
+<span class="cm">// ║  [14:32:47] SPEED x1.4  (+1pt) — 834,64 ║</span>
+<span class="cm">// ║  [14:33:12] REACH 5.1m  (+2pt) — 833,64 ║</span>
+<span class="cm">// ╚══════════════════════════════════════════╝</span></div>
+    </section>
+
+    <!-- ═══ 11. EXEMPTIONS ═══ -->
+    <section class="section-card" id="exemptions">
+      <h2><span class="s-num">11</span>Systeme d'Exemptions</h2>
+
+      <h3 class="first">Exemptions permanentes par permission</h3>
+      <p>Certains checks sont automatiquement bypasses pour les joueurs ayant des permissions specifiques :</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Permission</th><th>Checks bypasses</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>eriniumfaction.bypass.fly</td><td>Fly, Speed (partiel), NoFall</td></tr>
+            <tr><td>eriniumfaction.bypass.speed</td><td>Speed uniquement</td></tr>
+            <tr><td>eriniumfaction.bypass.all</td><td>Tous les checks (pour les admins)</td></tr>
+            <tr><td>eriniumfaction.bypass.mining</td><td>CheckMining / X-Ray uniquement</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Exemptions contextuelles automatiques</h3>
+      <ul>
+        <li><strong>Elytra</strong> — Check Fly desactive quand le joueur porte une elytra equipee et est en l'air.</li>
+        <li><strong>Cheval</strong> — Checks Speed et Step ajustes selon la vitesse du cheval.</li>
+        <li><strong>Effets de potion</strong> — Tous les calculs de vitesse/portee prennent en compte les effets actifs.</li>
+        <li><strong>Lenteur de lag</strong> — Si le TPS serveur est &lt; 15, la tolerance des checks de mouvement est automatiquement augmentee de 50% pour eviter les faux positifs dus au lag.</li>
+        <li><strong>Teleportation recente</strong> — 2 secondes apres un /tp ou spawn : checks de mouvement desactives (position instable post-TP).</li>
+      </ul>
+
+      <h3>Stockage des exemptions</h3>
+      <div class="code-block"><span class="an">@EriData</span>(modId = <span class="st">"eriniumfaction"</span>, scope = <span class="ty">DataScope</span>.PLAYER, persistOnDeath = <span class="kw">true</span>)
+<span class="kw">public class</span> <span class="ty">AntiCheatPlayerData</span> {
+    <span class="kw">public int</span>  violationPoints  = <span class="nu">0</span>;
+    <span class="kw">public int</span>  totalKicks        = <span class="nu">0</span>;
+    <span class="kw">public int</span>  sessionKicks      = <span class="nu">0</span>;
+    <span class="kw">public</span> <span class="ty">List</span>&lt;<span class="ty">String</span>&gt; exemptions = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;(); <span class="cm">// check names</span>
+    <span class="kw">public long</span> tempBanUntil      = <span class="nu">0</span>;                  <span class="cm">// timestamp epoch ms</span>
+}</span></div>
+    </section>
+
+    <!-- ═══ 12. LOGGING ═══ -->
+    <section class="section-card" id="logging">
+      <h2><span class="s-num">12</span>Logging &amp; Evidences</h2>
+
+      <h3 class="first">Format de log</h3>
+      <div class="code-block"><span class="cm">// Exemple d'entree dans logs/anticheat.log</span>
+<span class="cm">// [2026-03-22 14:32:05] [VIOLATION] Player=Pseudo123 UUID=a1b2c3d4 Check=SPEED</span>
+<span class="cm">//   Details: Traveled=0.38 blocks/tick  Expected=0.22  Ratio=1.73</span>
+<span class="cm">//   Position=X:832 Y:64 Z:1204  World=overworld</span>
+<span class="cm">//   ViolPoints=4 (after: 5)  Action=NONE</span>
+<span class="cm">//</span>
+<span class="cm">// [2026-03-22 14:40:12] [KICK] Player=Pseudo123 UUID=a1b2c3d4</span>
+<span class="cm">//   TriggerCheck=SPEED  ViolPoints=10  SessionKicks=1</span>
+<span class="cm">//   IncidentID=AC-1748293</span></div>
+
+      <h3>Snapshots de position (Evidence Replay)</h3>
+      <p>Pour les checks de mouvement, le systeme enregistre les 20 derniers paquets CPacketPlayer de chaque joueur dans un ring buffer. Quand une violation est loggue, ces 20 positions sont sauvegardees dans le log avec timestamps pour permettre au staff de "rejouer" le mouvement suspect.</p>
+
+      <h3>Alertes Discord (optionnel)</h3>
+      <p>Si un webhook Discord est configure, les violations de niveau 3+ (kick) sont envoyes automatiquement avec :</p>
+      <ul>
+        <li>Nom du joueur + UUID.</li>
+        <li>Type de triche detectee.</li>
+        <li>Points de violation au moment du kick.</li>
+        <li>Coordonnees.</li>
+        <li>ID d'incident pour correlation avec les logs.</li>
+      </ul>
+
+      <h3>Persistance des violations</h3>
+      <p>Les points de violation et l'historique de kicks sont persistes via EriAPI DataManager. Ils survivent aux redemarrages serveur. Un joueur ne peut pas effacer son historique en se deconnectant.</p>
+    </section>
+
+    <!-- ═══ 13. PERFORMANCE ═══ -->
+    <section class="section-card" id="performance">
+      <h2><span class="s-num">13</span>Performance</h2>
+
+      <div class="info-box tip">
+        <span class="icon">✓</span>
+        <div class="content"><strong>Objectif :</strong> L'overhead total de l'anti-cheat ne doit pas depasser <strong>0.5ms par joueur par tick</strong>. Avec 1000 joueurs et des checks exécutes seulement sur événement (pas toutes les ticks), l'impact réel est bien inférieur.</div>
+      </div>
+
+      <h3 class="first">Strategies de performance</h3>
+      <ul>
+        <li><strong>Run sur event, pas sur tick</strong> — CheckMovement s'execute sur PlayerMoveEvent (1 fois par paquet mouvement), CheckCombat sur AttackEvent (seulement pendant les combats). Pas de boucle sur tous les joueurs a chaque tick.</li>
+        <li><strong>Tableaux primitifs</strong> — ViolationTracker utilise <code>int[]</code> et <code>long[]</code> indexes par slot joueur. Zero allocation d'objet, zero GC pressure.</li>
+        <li><strong>Ring buffers de taille fixe</strong> — L'historique de positions (20 entrees) et le tracker CPS (100 entrees) utilisent des tableaux de taille fixe avec indice circulaire. Pas de listes qui grandissent.</li>
+        <li><strong>Analyse X-Ray asynchrone</strong> — L'analyse statistique couteuse est faite off-thread toutes les 30 secondes, avec les resultats appliques sur le thread principal via EriScheduler.</li>
+        <li><strong>Early exit</strong> — Chaque check commence par verifier les exemptions et les conditions rapides (is admin, is creative, has permission) avant tout calcul.</li>
+        <li><strong>Calculs de collision en cache</strong> — Les AABB de blocs sont calcules une seule fois par check de phase et caches pour ce tick.</li>
+      </ul>
+
+      <h3>Budget de performance estimé</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Check</th><th>Declencheur</th><th>Temps estim&#233;</th><th>Fr&#233;quence</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>CheckMovement complet</td><td>PlayerMoveEvent</td><td>&lt; 0.05ms</td><td>20/s par joueur</td></tr>
+            <tr><td>CheckCombat (attaque)</td><td>AttackEntityEvent</td><td>&lt; 0.02ms</td><td>Variable (combat)</td></tr>
+            <tr><td>CheckWorld (minage)</td><td>BlockBreakEvent</td><td>&lt; 0.03ms</td><td>Variable (minage)</td></tr>
+            <tr><td>CheckPacket (paquet)</td><td>Par paquet</td><td>&lt; 0.01ms</td><td>20-25/s par joueur</td></tr>
+            <tr><td>X-Ray analysis</td><td>EriScheduler async</td><td>&lt; 5ms total</td><td>1 fois / 30s / joueur (async)</td></tr>
+            <tr><td>Violation decay</td><td>TickEvent.Server</td><td>&lt; 0.1ms total</td><td>1 fois / 30s</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ 14. CONFIG ═══ -->
+    <section class="section-card" id="config">
+      <h2><span class="s-num">14</span>Configuration</h2>
+
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">AntiCheatConfig</span> {
+
+    <span class="cm">// ── Movement ───────────────────────────────────────────────</span>
+    <span class="kw">public static double</span>  SPEED_TOLERANCE           = <span class="nu">1.20</span>; <span class="cm">// +20% marge</span>
+    <span class="kw">public static int</span>     FLY_AIR_TICKS_THRESHOLD    = <span class="nu">4</span>;
+    <span class="kw">public static double</span>  STEP_MAX_Y_DELTA           = <span class="nu">0.65</span>;
+    <span class="kw">public static int</span>     BLINK_PACKETS_PER_20_TICKS  = <span class="nu">25</span>;  <span class="cm">// max avant violation</span>
+    <span class="kw">public static double</span>  TP_HACK_DISTANCE_THRESHOLD  = <span class="nu">10.0</span>;
+
+    <span class="cm">// ── Combat ────────────────────────────────────────────────</span>
+    <span class="kw">public static double</span>  MAX_REACH_DISTANCE          = <span class="nu">4.5</span>;
+    <span class="kw">public static double</span>  KILLAURA_ANGLE_THRESHOLD     = <span class="nu">120.0</span>; <span class="cm">// degres derriere</span>
+    <span class="kw">public static int</span>     KILLAURA_MULTI_TARGET_TICKS  = <span class="nu">5</span>;
+    <span class="kw">public static int</span>     AUTOCLICKER_CPS_THRESHOLD    = <span class="nu">18</span>;
+    <span class="kw">public static int</span>     AUTOCLICKER_DURATION_SECS    = <span class="nu">5</span>;   <span class="cm">// soutenu pendant</span>
+    <span class="kw">public static double</span>  VELOCITY_THRESHOLD           = <span class="nu">0.30</span>; <span class="cm">// 30% du knockback attendu</span>
+
+    <span class="cm">// ── World ─────────────────────────────────────────────────</span>
+    <span class="kw">public static double</span>  FASTBREAK_TOLERANCE          = <span class="nu">0.85</span>; <span class="cm">// 85% du temps min</span>
+    <span class="kw">public static int</span>     SCAFFOLD_PATTERN_THRESHOLD   = <span class="nu">8</span>;   <span class="cm">// repetitions en 3s</span>
+
+    <span class="cm">// ── Packets ───────────────────────────────────────────────</span>
+    <span class="kw">public static int</span>     MAX_PACKETS_PER_SECOND       = <span class="nu">500</span>;
+    <span class="kw">public static int</span>     INSTANT_KICK_PACKETS_PER_SEC = <span class="nu">1000</span>;
+    <span class="kw">public static int</span>     TIMER_PACKETS_PER_20_TICKS   = <span class="nu">26</span>;
+
+    <span class="cm">// ── Mining / X-Ray ────────────────────────────────────────</span>
+    <span class="kw">public static double</span>  XRAY_ORE_HIT_RATE_THRESHOLD  = <span class="nu">0.35</span>;
+    <span class="kw">public static double</span>  XRAY_DIAMOND_RATE_THRESHOLD  = <span class="nu">0.05</span>;
+    <span class="kw">public static int</span>     XRAY_MIN_BLOCKS_SAMPLE       = <span class="nu">100</span>; <span class="cm">// min blocs avant analyse</span>
+    <span class="kw">public static int</span>     XRAY_ANALYSIS_INTERVAL_SECS  = <span class="nu">30</span>;
+
+    <span class="cm">// ── Violation / Punishment ────────────────────────────────</span>
+    <span class="kw">public static int</span>     KICK_THRESHOLD               = <span class="nu">10</span>;
+    <span class="kw">public static int</span>     STAFF_ALERT_THRESHOLD        = <span class="nu">4</span>;
+    <span class="kw">public static int</span>     DECAY_INTERVAL_TICKS         = <span class="nu">600</span>;
+    <span class="kw">public static int</span>     SESSION_KICKS_BEFORE_TEMPBAN = <span class="nu">3</span>;
+    <span class="kw">public static int</span>     TEMPBAN_DURATION_HOURS       = <span class="nu">1</span>;
+
+    <span class="cm">// ── Feature Flags ─────────────────────────────────────────</span>
+    <span class="kw">public static boolean</span> ENABLE_CHECK_MOVEMENT        = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> ENABLE_CHECK_COMBAT          = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> ENABLE_CHECK_WORLD           = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> ENABLE_CHECK_PACKET          = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> ENABLE_CHECK_MINING          = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> ENABLE_AUTO_KICK             = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> ENABLE_AUTO_TEMPBAN          = <span class="kw">true</span>;
+    <span class="kw">public static boolean</span> AUTO_REDUCE_TOLERANCE_ON_LAG = <span class="kw">true</span>; <span class="cm">// si TPS < 15</span>
+
+    <span class="cm">// ── Kick Message ──────────────────────────────────────────</span>
+    <span class="kw">public static</span> <span class="ty">String</span> KICK_MESSAGE =
+        <span class="st">"Comportement suspect detecte. Contact support avec ID: {id}"</span>;
+}</span></div>
+    </section>
+
+    <!-- ═══ 15. PLAN DE TESTS ═══ -->
+    <section class="section-card" id="tests">
+      <h2><span class="s-num">15</span>Plan de Tests</h2>
+
+      <h3 class="first">Tests de detection</h3>
+      <div class="checklist">
+        <div class="checklist-item"><strong>[TEST-01] Speed hack :</strong> Utiliser un client de test pour envoyer des paquets CPacketPlayer a 2x la vitesse normale. Verifier detection en moins de 5 violations accumulees et kick a 10 points.</div>
+        <div class="checklist-item"><strong>[TEST-02] Fly hack :</strong> Envoyer des paquets de position en vol libre (Y constant sans elytra). Verifier detection apres 4 ticks et accumulation de violations.</div>
+        <div class="checklist-item"><strong>[TEST-03] KillAura angle :</strong> Simuler une attaque a 150 degres derriere la direction de regard. Verifier violation et annulation de l'attaque.</div>
+        <div class="checklist-item"><strong>[TEST-04] Reach hack :</strong> Simuler des attaques a 6 blocs de distance. Verifier que l'attaque est annulee et violation enregistree.</div>
+        <div class="checklist-item"><strong>[TEST-05] Velocity :</strong> Recevoir un coup avec knockback et rester sur place. Verifier detection et violation.</div>
+        <div class="checklist-item"><strong>[TEST-06] AutoClicker :</strong> Envoyer 25 paquets d'attaque par seconde pendant 10 secondes. Verifier detection apres 5 secondes de CPS eleve.</div>
+        <div class="checklist-item"><strong>[TEST-07] FastBreak :</strong> Casser un bloc de pierre avec la main en 2 ticks (normal : ~30 ticks). Verifier violation.</div>
+        <div class="checklist-item"><strong>[TEST-08] Paquet invalide :</strong> Envoyer un CPacketPlayer avec des coordonnees NaN. Verifier kick immediat.</div>
+        <div class="checklist-item"><strong>[TEST-09] Timer :</strong> Envoyer 40 paquets CPacketPlayer en 20 ticks. Verifier detection de l'acceleration.</div>
+        <div class="checklist-item"><strong>[TEST-10] X-Ray simulation :</strong> Miner 300 blocs en allant directement aux minerais (ore rate 60%). Verifier detection en analyse async apres 30s.</div>
+        <div class="checklist-item"><strong>[TEST-11] Faux positifs — Joueur normal :</strong> 1 heure de jeu normal avec sprint, combats legaux, minage legitime. Verifier zero violation.</div>
+        <div class="checklist-item"><strong>[TEST-12] Faux positifs — Lag :</strong> Simuler un spike de lag (TPS 8) avec un joueur legitime. Verifier que la tolerance auto-lag empeche les violations Speed/Movement.</div>
+        <div class="checklist-item"><strong>[TEST-13] Exemptions :</strong> Donner la permission bypass.fly a un joueur, verifier que le check Fly ne se declenche pas en mode vol.</div>
+        <div class="checklist-item"><strong>[TEST-14] Commandes admin :</strong> Tester toutes les commandes /ac avec des joueurs fictifs. Verifier auto-completion et messages d'erreur propres.</div>
+        <div class="checklist-item"><strong>[TEST-15] Performance 1000 joueurs :</strong> Stress test avec 1000 bots en combat simultane. Verifier que le tick time n'augmente pas de plus de 0.5ms/joueur.</div>
+      </div>
+
+      <h3>Criteres de validation finale</h3>
+      <ul>
+        <li>Les 10 types de triche principaux sont detectes avec un taux de detection &gt; 95% dans les conditions de test.</li>
+        <li>Taux de faux positifs &lt; 0.1% sur 1 heure de jeu normal par 10 joueurs de test.</li>
+        <li>Overhead performance &lt; 0.5ms/joueur/tick mesure avec 100 joueurs actifs.</li>
+        <li>Commande /ac info affiche des informations correctes et utiles.</li>
+        <li>Tous les kicks sont loggues avec l'ID d'incident dans logs/anticheat.log.</li>
+        <li>Le systeme de decay fait revenir un joueur a 0 violations en 5 minutes apres la derniere violation.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">!</span>
+        <div class="content"><strong>Calibration indispensable :</strong> Les seuils par defaut sont des estimations. Apres depoiement en production, une periode de 2 semaines de monitoring en mode "log only" (auto-kick desactive) est obligatoire pour ajuster les seuils selon le comportement reel des joueurs du serveur.</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+var sections = document.querySelectorAll('section[id]');
+var navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+
+window.addEventListener('scroll', function() {
+  var scrollY = window.scrollY;
+  sections.forEach(function(section) {
+    var top = section.offsetTop - 80;
+    var bottom = top + section.offsetHeight;
+    if (scrollY >= top && scrollY < bottom) {
+      navLinks.forEach(function(link) {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + section.id) {
+          link.classList.add('active');
+        }
+      });
+    }
+  });
+});
+</script>
+</body>
+</html>

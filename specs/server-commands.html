@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Commandes Serveur | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 50% 90%, rgba(0,229,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 12px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+
+  /* =========================================================
+     SECTION CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+  .section-card:nth-child(14) { animation-delay: .70s; }
+  .section-card:nth-child(15) { animation-delay: .75s; }
+  .section-card:nth-child(16) { animation-delay: .80s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr { background: rgba(107,47,160,0.18); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12);  color: var(--green); border: 1px solid rgba(46,204,113,0.3);  letter-spacing: 0.05em; }
+  .tag-no   { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10);   color: #E74C3C;      border: 1px solid rgba(231,76,60,0.25);  letter-spacing: 0.05em; }
+  .tag-opt  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(241,196,15,0.10);  color: var(--gold);  border: 1px solid rgba(241,196,15,0.25); letter-spacing: 0.05em; }
+  .tag-adm  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(230,126,34,0.12);  color: var(--orange);border: 1px solid rgba(230,126,34,0.3);  letter-spacing: 0.05em; }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .cl  { color: #FFCB6B; }
+
+  /* =========================================================
+     ASCII DIAGRAMS
+  ========================================================= */
+  .ascii-diagram {
+    background: rgba(5,5,10,0.75);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 11.5px;
+    line-height: 1.65;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+  }
+
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+
+  /* =========================================================
+     INFO BOXES
+  ========================================================= */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2);   }
+
+  /* =========================================================
+     TWO-COL GRID
+  ========================================================= */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  @media (max-width: 700px) {
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  .mini-card {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+  }
+
+  .mini-card-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 10px;
+  }
+
+  .mini-card ul { gap: 5px; }
+
+  /* =========================================================
+     ANIMATIONS + DIVIDER
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-bdr), transparent);
+    margin: 24px 0;
+  }
+
+  /* =========================================================
+     MOBILE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,47,160,0.4);
+    transition: transform .2s;
+  }
+
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 50;
+      width: 260px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    .section-card { padding: 24px 18px; }
+    .page-header h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+
+    <span class="sidebar-title">Sommaire</span>
+
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Systeme Spawn</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Systeme Homes</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Systeme Warps</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Systeme TPA</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Systeme Back</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Teleportation Aleatoire</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Administration TP</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Systeme de Warmup</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Systeme de Cooldown</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Permissions</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Structures de Donnees</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Configuration</a>
+    <a class="nav-link" href="#s14"><span class="num">14</span> Architecture Technique</a>
+    <a class="nav-link" href="#s15"><span class="num">15</span> Auto-completion</a>
+    <a class="nav-link" href="#s16"><span class="num">16</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <!-- HEADER -->
+    <div class="page-header">
+      <div class="eyebrow">EriniumFaction &nbsp;—&nbsp; Cahier des charges</div>
+      <h1>Commandes Serveur<br>Teleportation &amp; Utilitaires</h1>
+      <p>
+        Systeme complet de commandes de teleportation et d'utilitaires pour le serveur EriniumFaction :
+        spawn, homes, warps, TPA, /back, RTP et commandes d'administration, avec warmup, cooldowns
+        et integration au systeme de grades (permissions a valeur entiere).
+      </p>
+      <div class="header-badges">
+        <span class="badge badge-violet">Forge 1.12.2</span>
+        <span class="badge badge-cyan">EriAPI Commands</span>
+        <span class="badge badge-cyan">EriData / WorldSavedData</span>
+        <span class="badge badge-green">EriScheduler</span>
+        <span class="badge badge-gold">RankManager</span>
+        <span class="badge badge-slate">Planifie</span>
+      </div>
+    </div>
+
+    <!-- ─── S1 : CONTEXTE & OBJECTIFS ─── -->
+    <div class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Contexte</h3>
+      <p>
+        EriniumFaction est un serveur PvP/Faction 1.8 (sans cooldown d'attaque). Les joueurs ont besoin
+        d'un ensemble de commandes de mobilite pour naviguer dans le monde, rejoindre leurs allies,
+        retourner a leur base et acceder aux points d'interet du serveur. Ces commandes doivent s'integrer
+        parfaitement au systeme de grades existant (<code>RankManager</code>, <code>PermissionResolver</code>)
+        et utiliser EriAPI pour la planification, le chat enrichi et la persistence des donnees.
+      </p>
+
+      <h3>Objectifs fonctionnels</h3>
+      <ul>
+        <li><strong>Spawn :</strong> point d'ancrage central du serveur, accessible a tous avec warmup.</li>
+        <li><strong>Homes :</strong> bases personnelles, nombre limite par grade (permission a valeur entiere <code>homes.max=N</code>).</li>
+        <li><strong>Warps :</strong> points d'interet administres, filtres par permission individuelle par warp.</li>
+        <li><strong>TPA :</strong> teleportation sociale entre joueurs avec systeme de demande/acceptation.</li>
+        <li><strong>Back :</strong> retour rapide apres une mort ou une teleportation, ideal pour recuperer du loot.</li>
+        <li><strong>RTP :</strong> decouverte du monde via teleportation aleatoire securisee.</li>
+        <li><strong>Admin TP :</strong> commandes d'administration sans warmup ni cooldown.</li>
+      </ul>
+
+      <h3>Contraintes techniques</h3>
+      <ul>
+        <li>Java 8 obligatoire — pas de features Java 9+.</li>
+        <li>EriAPI pour toutes les commandes (<code>EriCommand</code>), la planification (<code>EriScheduler</code>), le chat (<code>EriChat</code>) et les donnees joueur (<code>DataManager</code>).</li>
+        <li>Le serveur utilise PvP 1.8 : <strong>ne jamais se baser sur <code>ATTACK_SPEED</code></strong>.</li>
+        <li>Les warmups et cooldowns sont configures via <code>CommandConfig.java</code> (modifiable sans recompilation).</li>
+        <li>Les cooldowns sont en memoire uniquement (reset au redemarrage du serveur — intentionnel).</li>
+        <li>Toutes les commandes avec des arguments dynamiques doivent avoir de l'auto-completion.</li>
+        <li>Toute nouvelle permission doit etre documentee dans <code>docs/permissions.md</code>.</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content">
+          <strong>Priorite d'implementation :</strong> Spawn → Homes → Warps → TPA → Back → RTP → Admin TP.
+          Le systeme de warmup partage doit etre cree en premier car il est utilise par toutes les commandes de teleportation.
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── S2 : SPAWN ─── -->
+    <div class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Systeme Spawn — /setspawn &amp; /spawn</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <p>
+        Le systeme de spawn est le point d'ancrage central du serveur. L'administrateur definit un point
+        de spawn unique via <code>/setspawn</code> et les joueurs peuvent s'y teleporter a tout moment
+        via <code>/spawn</code>, soumis a un warmup et un cooldown configurables.
+      </p>
+
+      <h3>Commande /setspawn</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Parametre</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Syntaxe</td><td><code>/setspawn</code></td></tr>
+            <tr><td>Permission requise</td><td><code>command.setspawn</code></td></tr>
+            <tr><td>Warmup</td><td><span class="tag-no">Non</span></td></tr>
+            <tr><td>Cooldown</td><td><span class="tag-no">Non</span></td></tr>
+            <tr><td>Utilisable en jeu</td><td><span class="tag-yes">Oui</span></td></tr>
+            <tr><td>Utilisable en console</td><td><span class="tag-no">Non</span> (necessite une position physique)</td></tr>
+            <tr><td>Stockage</td><td><code>SpawnData</code> (WorldSavedData)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Cette commande enregistre la position exacte du joueur (monde, X, Y, Z, yaw, pitch) dans
+        <code>SpawnData</code>. Elle remplace le spawn precedemment defini. Un message de confirmation
+        est envoye avec les coordonnees.
+      </p>
+
+      <h3>Commande /spawn</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Parametre</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Syntaxe</td><td><code>/spawn</code></td></tr>
+            <tr><td>Permission requise</td><td><span class="tag-yes">Aucune</span> (tous les joueurs)</td></tr>
+            <tr><td>Warmup</td><td><span class="tag-yes">Oui</span> — configurable (<code>spawnWarmup</code>, defaut 3s)</td></tr>
+            <tr><td>Cooldown</td><td><span class="tag-yes">Oui</span> — configurable (<code>spawnCooldown</code>, defaut 30s)</td></tr>
+            <tr><td>Annulation mouvement</td><td><span class="tag-yes">Oui</span> si <code>warmupCancelOnMove = true</code></td></tr>
+            <tr><td>Utilisable en console</td><td><span class="tag-no">Non</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content">
+          <strong>Cas limite :</strong> si aucun spawn n'a ete defini via <code>/setspawn</code>,
+          la commande affiche un message d'erreur : <em>"Aucun spawn n'a ete configure. Contactez un administrateur."</em>
+          Elle ne teleporte pas au spawn vanilla de la map (0,0 world).
+        </div>
+      </div>
+
+      <h3>Comportement detaille</h3>
+      <ul>
+        <li>Le joueur execute <code>/spawn</code>.</li>
+        <li>Verification du cooldown — si en cooldown, affichage du temps restant en secondes.</li>
+        <li>Si le spawn n'est pas configure → message d'erreur, arret.</li>
+        <li>Lancement du warmup via <code>TeleportWarmup</code> avec affichage titre/actionbar.</li>
+        <li>Si le joueur bouge de plus de 0.5 bloc → annulation et notification.</li>
+        <li>A expiration du warmup → teleportation au spawn, enregistrement de la position precedente dans <code>BackTracker</code>.</li>
+        <li>Application du cooldown post-teleportation.</li>
+      </ul>
+
+      <h3>SpawnData — WorldSavedData</h3>
+      <div class="code-block"><span class="cm">// Stockage du point de spawn serveur</span>
+<span class="kw">public class</span> <span class="cl">SpawnData</span> <span class="kw">extends</span> <span class="cl">WorldSavedData</span> {
+    <span class="kw">public static final</span> <span class="ty">String</span> <span class="op">KEY</span> = <span class="st">"eriniumfaction_spawn"</span>;
+
+    <span class="kw">public</span> <span class="ty">boolean</span> isSet = <span class="kw">false</span>;
+    <span class="kw">public</span> <span class="ty">String</span>  worldName = <span class="st">""</span>;
+    <span class="kw">public</span> <span class="ty">double</span>  x, y, z;
+    <span class="kw">public</span> <span class="ty">float</span>   yaw, pitch;
+
+    <span class="kw">public static</span> <span class="cl">SpawnData</span> <span class="fn">get</span>(<span class="cl">World</span> world) {
+        <span class="cl">MapStorage</span> storage = world.<span class="fn">getPerWorldStorage</span>();
+        <span class="cl">SpawnData</span> data = (<span class="cl">SpawnData</span>) storage.<span class="fn">getOrLoadData</span>(<span class="cl">SpawnData</span>.class, <span class="op">KEY</span>);
+        <span class="kw">if</span> (data == <span class="kw">null</span>) { data = <span class="kw">new</span> <span class="cl">SpawnData</span>(); storage.<span class="fn">setData</span>(<span class="op">KEY</span>, data); }
+        <span class="kw">return</span> data;
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">readFromNBT</span>(<span class="cl">NBTTagCompound</span> nbt) {
+        isSet     = nbt.<span class="fn">getBoolean</span>(<span class="st">"isSet"</span>);
+        worldName = nbt.<span class="fn">getString</span>(<span class="st">"world"</span>);
+        x = nbt.<span class="fn">getDouble</span>(<span class="st">"x"</span>); y = nbt.<span class="fn">getDouble</span>(<span class="st">"y"</span>); z = nbt.<span class="fn">getDouble</span>(<span class="st">"z"</span>);
+        yaw = nbt.<span class="fn">getFloat</span>(<span class="st">"yaw"</span>); pitch = nbt.<span class="fn">getFloat</span>(<span class="st">"pitch"</span>);
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="cl">NBTTagCompound</span> <span class="fn">writeToNBT</span>(<span class="cl">NBTTagCompound</span> nbt) {
+        nbt.<span class="fn">setBoolean</span>(<span class="st">"isSet"</span>, isSet); nbt.<span class="fn">setString</span>(<span class="st">"world"</span>, worldName);
+        nbt.<span class="fn">setDouble</span>(<span class="st">"x"</span>, x); nbt.<span class="fn">setDouble</span>(<span class="st">"y"</span>, y); nbt.<span class="fn">setDouble</span>(<span class="st">"z"</span>, z);
+        nbt.<span class="fn">setFloat</span>(<span class="st">"yaw"</span>, yaw); nbt.<span class="fn">setFloat</span>(<span class="st">"pitch"</span>, pitch);
+        <span class="kw">return</span> nbt;
+    }
+}</div>
+    </div>
+
+    <!-- ─── S3 : HOMES ─── -->
+    <div class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Systeme Homes — /sethome, /home, /delhome, /homes</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <p>
+        Les homes sont des points de teleportation personnels enregistres par chaque joueur. Le nombre
+        maximum de homes qu'un joueur peut posseder est determine par la permission a valeur entiere
+        <code>homes.max=N</code> de son grade. Si aucun grade ne definit cette valeur, la valeur par defaut
+        de <code>CommandConfig.homeMaxDefault</code> s'applique (defaut : 1).
+      </p>
+
+      <h3>Tableau des commandes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Syntaxe</th><th>Permission</th><th>Warmup</th><th>Cooldown</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>/sethome</td>
+              <td><code>/sethome [nom]</code></td>
+              <td><span class="tag-yes">Aucune</span></td>
+              <td><span class="tag-no">Non</span></td>
+              <td><span class="tag-no">Non</span></td>
+            </tr>
+            <tr>
+              <td>/home</td>
+              <td><code>/home [nom]</code></td>
+              <td><span class="tag-yes">Aucune</span></td>
+              <td><span class="tag-yes">homeWarmup</span></td>
+              <td><span class="tag-yes">homeCooldown</span></td>
+            </tr>
+            <tr>
+              <td>/delhome</td>
+              <td><code>/delhome &lt;nom&gt;</code></td>
+              <td><span class="tag-yes">Aucune</span></td>
+              <td><span class="tag-no">Non</span></td>
+              <td><span class="tag-no">Non</span></td>
+            </tr>
+            <tr>
+              <td>/homes</td>
+              <td><code>/homes</code></td>
+              <td><span class="tag-yes">Aucune</span></td>
+              <td><span class="tag-no">Non</span></td>
+              <td><span class="tag-no">Non</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>/sethome [nom]</h3>
+      <ul>
+        <li>Le parametre <code>nom</code> est optionnel. Si omis, le home s'appelle <code>home</code>.</li>
+        <li>Le nom est en minuscule, alphanumerique, max 16 caracteres. Caracteres speciaux refuses.</li>
+        <li>Verification du nombre de homes existants vs <code>homes.max</code> du grade.</li>
+        <li>Si la limite est atteinte → message d'erreur avec le nombre maximum et la commande <code>/delhome</code>.</li>
+        <li>Ecrasement silencieux si un home du meme nom existe deja (mise a jour de la position).</li>
+        <li>Stockage via <code>HomePlayerData</code> (EriData, persistant apres mort).</li>
+      </ul>
+
+      <h3>/home [nom]</h3>
+      <ul>
+        <li>Le parametre <code>nom</code> est optionnel. Si omis, utilise <code>home</code>.</li>
+        <li>Si le home demande n'existe pas → message d'erreur listant les homes disponibles.</li>
+        <li>Processus : verification cooldown → lancement warmup → teleportation → enregistrement position precedente dans <code>BackTracker</code> → application cooldown.</li>
+        <li>L'auto-completion liste uniquement les homes du joueur executant la commande.</li>
+      </ul>
+
+      <h3>/delhome &lt;nom&gt;</h3>
+      <ul>
+        <li>Argument obligatoire. L'auto-completion liste les homes du joueur.</li>
+        <li>Si le home n'existe pas → message d'erreur.</li>
+        <li>Demande de confirmation optionnelle (configurable via <code>CommandConfig.homeDeleteConfirm</code>).</li>
+      </ul>
+
+      <h3>/homes</h3>
+      <p>Liste tous les homes du joueur avec leurs coordonnees et leur dimension via <code>EriChat</code>.</p>
+      <div class="code-block"><span class="cm">// Exemple de sortie chat de /homes</span>
+<span class="op">---</span> Vos homes (<span class="nu">2</span>/<span class="nu">3</span>) <span class="op">---</span>
+ <span class="ag">home</span>     <span class="as">→ Overworld  X:-142  Y:64   Z:351</span>
+ <span class="ag">base2</span>    <span class="as">→ Overworld  X:890   Y:72   Z:-220</span></div>
+
+      <h3>HomePlayerData — EriData</h3>
+      <div class="code-block"><span class="an">@EriData</span>(modId = <span class="st">"eriniumfaction"</span>, scope = <span class="cl">DataScope</span>.PLAYER, persistOnDeath = <span class="kw">true</span>)
+<span class="kw">public class</span> <span class="cl">HomePlayerData</span> {
+    <span class="cm">// Cle : nom du home (ex. "home", "base2")</span>
+    <span class="cm">// Valeur : "worldName,x,y,z,yaw,pitch" (ex. "overworld,-142.5,64.0,351.0,-90.0,0.0")</span>
+    <span class="kw">public</span> <span class="cl">Map</span>&lt;<span class="ty">String</span>, <span class="ty">String</span>&gt; homes = <span class="kw">new</span> <span class="cl">HashMap</span>&lt;&gt;();
+}</div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content">
+          <strong>Note :</strong> <code>Map&lt;String, String&gt;</code> est le seul type de Map supporte par EriData.
+          Les coordonnees sont serialisees sous forme de chaine delimitee par des virgules. Un helper
+          statique <code>LocationSerializer.serialize(world, x, y, z, yaw, pitch)</code> et
+          <code>LocationSerializer.deserialize(String)</code> sera cree dans le package <code>command/</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── S4 : WARPS ─── -->
+    <div class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Systeme Warps — /setwarp, /delwarp, /warp, /warps</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <p>
+        Les warps sont des points de teleportation globaux administres par les operateurs du serveur.
+        Chaque warp possede sa propre permission <code>warp.&lt;nom&gt;</code>. Un joueur sans cette permission
+        ne peut pas voir le warp dans l'auto-completion et ne peut pas l'utiliser.
+      </p>
+
+      <h3>Tableau des commandes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Syntaxe</th><th>Permission</th><th>Warmup</th><th>Cooldown</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>/setwarp</td>
+              <td><code>/setwarp &lt;nom&gt;</code></td>
+              <td><code>command.setwarp</code> <span class="tag-adm">Admin</span></td>
+              <td><span class="tag-no">Non</span></td>
+              <td><span class="tag-no">Non</span></td>
+            </tr>
+            <tr>
+              <td>/delwarp</td>
+              <td><code>/delwarp &lt;nom&gt;</code></td>
+              <td><code>command.delwarp</code> <span class="tag-adm">Admin</span></td>
+              <td><span class="tag-no">Non</span></td>
+              <td><span class="tag-no">Non</span></td>
+            </tr>
+            <tr>
+              <td>/warp</td>
+              <td><code>/warp [nom]</code></td>
+              <td><code>warp.&lt;nom&gt;</code> par warp</td>
+              <td><span class="tag-yes">warpWarmup</span></td>
+              <td><span class="tag-yes">warpCooldown</span></td>
+            </tr>
+            <tr>
+              <td>/warps</td>
+              <td><code>/warps</code></td>
+              <td><span class="tag-yes">Aucune</span></td>
+              <td><span class="tag-no">Non</span></td>
+              <td><span class="tag-no">Non</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>/setwarp &lt;nom&gt;</h3>
+      <ul>
+        <li>Cree un warp au nom donne a la position exacte de l'administrateur.</li>
+        <li>Si un warp du meme nom existe deja → confirmation ou ecrasement selon config.</li>
+        <li>La permission <code>warp.&lt;nom&gt;</code> est generee automatiquement avec le warp et documentee dans la sortie de la commande.</li>
+        <li>Le nom du warp est en minuscule, alphanumerique + tirets, max 24 caracteres.</li>
+        <li>Stockage dans <code>WarpWorldData</code> (WorldSavedData).</li>
+      </ul>
+
+      <h3>/delwarp &lt;nom&gt;</h3>
+      <ul>
+        <li>Supprime le warp. L'auto-completion liste tous les warps existants (admin voit tout).</li>
+        <li>Confirmation obligatoire : le joueur doit re-executer la commande avec <code>--confirm</code> ou cliquer sur un bouton chat.</li>
+      </ul>
+
+      <h3>/warp [nom]</h3>
+      <ul>
+        <li>Si <code>nom</code> est omis → envoie la liste des warps accessibles (equivalent a <code>/warps</code>).</li>
+        <li>Verification de la permission <code>warp.&lt;nom&gt;</code> — si refusee : <em>"Ce warp n'existe pas ou vous n'avez pas la permission d'y acceder."</em> (message identique pour cacher l'existence du warp).</li>
+        <li>Processus standard : cooldown → warmup → teleportation → BackTracker → cooldown.</li>
+        <li>L'auto-completion ne liste que les warps pour lesquels le joueur a la permission.</li>
+      </ul>
+
+      <h3>/warps</h3>
+      <p>
+        Liste tous les warps auxquels le joueur a acces, avec coordonnees et dimension.
+        Utilise <code>EriChat</code> avec pages si la liste est longue (<code>ChatPaginator</code>).
+      </p>
+
+      <h3>WarpWorldData — WorldSavedData</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">WarpWorldData</span> <span class="kw">extends</span> <span class="cl">WorldSavedData</span> {
+    <span class="kw">public static final</span> <span class="ty">String</span> <span class="op">KEY</span> = <span class="st">"eriniumfaction_warps"</span>;
+
+    <span class="cm">// Cle : nom du warp</span>
+    <span class="cm">// Valeur : "world,x,y,z,yaw,pitch,permission"</span>
+    <span class="cm">// Ex. : "overworld,100.5,64.0,200.0,0.0,0.0,warp.marche"</span>
+    <span class="kw">public</span> <span class="cl">Map</span>&lt;<span class="ty">String</span>, <span class="ty">String</span>&gt; warps = <span class="kw">new</span> <span class="cl">HashMap</span>&lt;&gt;();
+
+    <span class="kw">public static</span> <span class="cl">WarpWorldData</span> <span class="fn">get</span>(<span class="cl">World</span> world) { <span class="cm">/* pattern identique a SpawnData */</span> }
+}</div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content">
+          <strong>Securite :</strong> le message d'erreur pour un warp inaccessible est identique
+          que le warp existe ou non. Cela empeche un joueur sans permission de detecter l'existence
+          de warps caches (ex. warp staff, warp admin, warp event).
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── S5 : TPA ─── -->
+    <div class="section-card" id="s5">
+      <h2><span class="s-num">05</span> Systeme TPA — Demandes de Teleportation</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <p>
+        Le systeme TPA permet aux joueurs de se teleporter les uns vers les autres apres accord mutuel.
+        Deux types de demandes existent : <code>/tpa</code> (demande d'aller vers le joueur cible) et
+        <code>/tpahere</code> (demande au joueur cible de venir chez vous). Les demandes expirent automatiquement
+        apres un delai configurable (<code>tpaTimeout</code>, defaut 60s).
+      </p>
+
+      <h3>Tableau des commandes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Syntaxe</th><th>Permission</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>/tpa</td>
+              <td><code>/tpa &lt;joueur&gt;</code></td>
+              <td><code>command.tpa</code></td>
+              <td>Demande a se teleporter vers le joueur cible</td>
+            </tr>
+            <tr>
+              <td>/tpahere</td>
+              <td><code>/tpahere &lt;joueur&gt;</code></td>
+              <td><code>command.tpahere</code></td>
+              <td>Demande au joueur cible de venir chez vous</td>
+            </tr>
+            <tr>
+              <td>/tpaccept ou /tpyes</td>
+              <td><code>/tpaccept</code></td>
+              <td><span class="tag-yes">Aucune</span></td>
+              <td>Accepte la demande TPA en cours</td>
+            </tr>
+            <tr>
+              <td>/tpdeny ou /tpno</td>
+              <td><code>/tpdeny</code></td>
+              <td><span class="tag-yes">Aucune</span></td>
+              <td>Refuse la demande TPA en cours</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Flux de demande TPA</h3>
+      <div class="ascii-diagram"><span class="as">Joueur A execute /tpa JoueurB</span>
+      <span class="op">│</span>
+      <span class="op">├─ [</span><span class="ar">Echec</span><span class="op">]</span> <span class="as">A n'a pas la permission command.tpa</span>
+      <span class="op">├─ [</span><span class="ar">Echec</span><span class="op">]</span> <span class="as">B n'est pas connecte</span>
+      <span class="op">├─ [</span><span class="ar">Echec</span><span class="op">]</span> <span class="as">A a deja une demande en attente (annuler avec /tpdeny)</span>
+      <span class="op">└─ [</span><span class="ag">OK</span><span class="op">]</span>
+           <span class="op">│</span>
+           <span class="op">├─</span> <span class="ac">TpaManager.addRequest(A → B, type=TPA)</span>
+           <span class="op">├─</span> <span class="ac">Planification expiration dans tpaTimeout ticks</span>
+           <span class="op">├─</span> <span class="as">Message A : "Demande envoyee a JoueurB. Expire dans 60s."</span>
+           <span class="op">└─</span> <span class="as">Message B (EriChat clickable) :</span>
+                <span class="ag">"[JoueurA veut se teleporter vers vous]"</span>
+                <span class="ag">[ACCEPTER]</span> <span class="ar">[REFUSER]</span>
+
+<span class="as">JoueurB clique [ACCEPTER] → execute /tpaccept</span>
+      <span class="op">│</span>
+      <span class="op">└─ [</span><span class="ag">OK</span><span class="op">]</span>
+           <span class="op">│</span>
+           <span class="op">├─</span> <span class="as">TpaManager retire la demande</span>
+           <span class="op">├─</span> <span class="as">Lancement warmup pour le joueur qui se deplace (A dans /tpa, B dans /tpahere)</span>
+           <span class="op">└─</span> <span class="as">Apres warmup → teleportation → BackTracker → cooldown tpa</span></div>
+
+      <h3>Message chat cliquable (EriChat)</h3>
+      <div class="code-block"><span class="cm">// Notification recue par JoueurB quand A execute /tpa B</span>
+<span class="cl">EriChat</span>.<span class="fn">create</span>()
+    .<span class="fn">text</span>(<span class="st">"[TPA] "</span>).<span class="fn">color</span>(<span class="cl">TextFormatting</span>.GOLD).<span class="fn">bold</span>()
+    .<span class="fn">text</span>(requesterName).<span class="fn">color</span>(<span class="cl">TextFormatting</span>.WHITE)
+    .<span class="fn">text</span>(<span class="st">" veut se teleporter vers vous. "</span>).<span class="fn">color</span>(<span class="cl">TextFormatting</span>.GRAY)
+    .<span class="fn">text</span>(<span class="st">"[ACCEPTER]"</span>).<span class="fn">color</span>(<span class="cl">TextFormatting</span>.GREEN).<span class="fn">bold</span>()
+    .<span class="fn">command</span>(<span class="st">"/tpaccept"</span>)
+    .<span class="fn">hover</span>(<span class="st">"Cliquer pour accepter la demande"</span>)
+    .<span class="fn">text</span>(<span class="st">" "</span>)
+    .<span class="fn">text</span>(<span class="st">"[REFUSER]"</span>).<span class="fn">color</span>(<span class="cl">TextFormatting</span>.RED).<span class="fn">bold</span>()
+    .<span class="fn">command</span>(<span class="st">"/tpdeny"</span>)
+    .<span class="fn">hover</span>(<span class="st">"Cliquer pour refuser la demande"</span>)
+    .<span class="fn">to</span>(targetPlayer);</div>
+
+      <h3>TpaManager — Singleton</h3>
+      <ul>
+        <li>Stockage en memoire : <code>Map&lt;UUID, TpaRequest&gt;</code> — cle = UUID du joueur qui doit repondre.</li>
+        <li>Un joueur ne peut avoir qu'une seule demande en attente en tant que demandeur ET en tant que cible.</li>
+        <li>Nouvelle demande recue alors qu'une est deja en attente : annulation de l'ancienne, remplacement.</li>
+        <li>Expiration via <code>EriScheduler.delay()</code> — si la demande n'a pas ete traitee, elle est supprimee et les deux joueurs sont notifies.</li>
+        <li>Cooldown post-teleportation : <code>tpaCooldown</code> applique au demandeur.</li>
+      </ul>
+
+      <h3>TpaRequest — Structure de donnee</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">TpaRequest</span> {
+    <span class="kw">public enum</span> <span class="cl">Type</span> { TPA, TPAHERE }
+
+    <span class="kw">public final</span> <span class="cl">UUID</span>     requester;   <span class="cm">// Joueur qui a execute /tpa ou /tpahere</span>
+    <span class="kw">public final</span> <span class="cl">UUID</span>     target;      <span class="cm">// Joueur qui doit repondre</span>
+    <span class="kw">public final</span> <span class="cl">Type</span>    type;        <span class="cm">// TPA = requester se teleporte, TPAHERE = target se teleporte</span>
+    <span class="kw">public final</span> <span class="kw">long</span>    createdAt;   <span class="cm">// System.currentTimeMillis()</span>
+    <span class="kw">public</span> <span class="cl">ScheduledTask</span> expiryTask;  <span class="cm">// Task EriScheduler pour l'expiration</span>
+}</div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content">
+          <strong>Cas limite :</strong> si le demandeur ou la cible se deconnecte avant l'acceptation,
+          la demande est annulee immediatement via l'event <code>PlayerEvent.PlayerLoggedOutEvent</code>.
+          Le <code>TpaManager</code> s'abonne a cet event via <code>EriEvents</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── S6 : BACK ─── -->
+    <div class="section-card" id="s6">
+      <h2><span class="s-num">06</span> Systeme Back — /back</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <p>
+        La commande <code>/back</code> teleporte le joueur a sa derniere position notable : soit sa derniere
+        position avant une teleportation, soit sa derniere position de mort. C'est une commande tres
+        utile pour recuperer son loot apres une mort inattendue.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Parametre</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Syntaxe</td><td><code>/back</code></td></tr>
+            <tr><td>Permission</td><td><code>command.back</code></td></tr>
+            <tr><td>Warmup</td><td><span class="tag-no">Non</span> (teleportation immediate)</td></tr>
+            <tr><td>Cooldown</td><td><span class="tag-yes">backCooldown</span> (defaut 60s)</td></tr>
+            <tr><td>Persistance</td><td><span class="tag-no">Memoire uniquement</span> (reset a la deconnexion)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Sources de la position de retour</h3>
+      <ul>
+        <li><strong>Mort :</strong> position au moment de la mort, via l'event <code>LivingDeathEvent</code> (filtre sur <code>EntityPlayerMP</code>). Priorite haute.</li>
+        <li><strong>Teleportation :</strong> position du joueur juste avant toute teleportation effectuee par ce systeme (spawn, home, warp, tpa, rtp, admin tp).</li>
+        <li>L'evenement le plus recent l'emporte : si le joueur meurt puis fait <code>/spawn</code>, <code>/back</code> le retourne au point de spawn (derniere teleportation), pas au lieu de mort.</li>
+      </ul>
+
+      <h3>BackTracker — Classe utilitaire</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">BackTracker</span> {
+    <span class="kw">private static final</span> <span class="cl">Map</span>&lt;<span class="cl">UUID</span>, <span class="cl">SavedLocation</span>&gt; lastPositions = <span class="kw">new</span> <span class="cl">HashMap</span>&lt;&gt;();
+
+    <span class="cm">// Appelee par chaque commande de tp ET par l'event de mort</span>
+    <span class="kw">public static void</span> <span class="fn">save</span>(<span class="cl">EntityPlayerMP</span> player) {
+        lastPositions.<span class="fn">put</span>(player.<span class="fn">getUniqueID</span>(),
+            <span class="kw">new</span> <span class="cl">SavedLocation</span>(player.world, player.posX, player.posY, player.posZ,
+                                player.rotationYaw, player.rotationPitch));
+    }
+
+    <span class="kw">public static</span> <span class="cl">SavedLocation</span> <span class="fn">get</span>(<span class="cl">UUID</span> uuid) {
+        <span class="kw">return</span> lastPositions.<span class="fn">get</span>(uuid); <span class="cm">// null si aucune position enregistree</span>
+    }
+
+    <span class="cm">// Nettoyer a la deconnexion du joueur</span>
+    <span class="kw">public static void</span> <span class="fn">clear</span>(<span class="cl">UUID</span> uuid) { lastPositions.<span class="fn">remove</span>(uuid); }
+}</div>
+
+      <h3>Comportement</h3>
+      <ul>
+        <li>Si aucune position n'est enregistree (joueur n'a jamais teleporte ni est mort depuis sa connexion) → message d'erreur : <em>"Aucune position de retour disponible."</em></li>
+        <li>Apres le <code>/back</code> → la position de retour est consommee (une seule utilisation par position).</li>
+        <li>La position de retour du <code>/back</code> lui-meme est sauvegardee dans <code>BackTracker</code> (permet un double <code>/back</code> pour faire des allers-retours).</li>
+      </ul>
+    </div>
+
+    <!-- ─── S7 : RTP ─── -->
+    <div class="section-card" id="s7">
+      <h2><span class="s-num cyan-num">07</span> Teleportation Aleatoire — /rtp</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <p>
+        La commande <code>/rtp</code> teleporte le joueur a un emplacement aleatoire dans le monde principal,
+        a une distance configurable du spawn. Elle garantit un atterrissage sur un sol solide (pas dans
+        le vide, pas dans la lave, pas dans l'eau). Elle est desactivee dans la dimension monde minage.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Parametre</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Syntaxe</td><td><code>/rtp</code></td></tr>
+            <tr><td>Permission</td><td><code>command.rtp</code></td></tr>
+            <tr><td>Warmup</td><td><span class="tag-yes">Oui</span> — utilise le warmup standard (3s)</td></tr>
+            <tr><td>Cooldown</td><td><span class="tag-yes">rtpCooldown</span> (defaut 300s / 5 min)</td></tr>
+            <tr><td>Dimension autorisee</td><td>Overworld uniquement (dimension 0)</td></tr>
+            <tr><td>Rayon min</td><td><code>rtpMinRadius</code> (defaut 1000 blocs du spawn)</td></tr>
+            <tr><td>Rayon max</td><td><code>rtpMaxRadius</code> (defaut 5000 blocs du spawn)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Algorithme de recherche de position (RtpHelper)</h3>
+      <div class="ascii-diagram"><span class="av">RtpHelper.findSafeLocation(world, minRadius, maxRadius)</span>
+
+  <span class="as">Boucle (max 10 tentatives)</span>
+  <span class="op">│</span>
+  <span class="op">├─</span> <span class="as">Generer angle aleatoire (0-360°)</span>
+  <span class="op">├─</span> <span class="as">Generer distance aleatoire [minRadius, maxRadius]</span>
+  <span class="op">├─</span> <span class="as">Calculer X = spawnX + cos(angle) * distance</span>
+  <span class="op">├─</span> <span class="as">Calculer Z = spawnZ + sin(angle) * distance</span>
+  <span class="op">├─</span> <span class="as">Forcer le chargement du chunk (ChunkLoader)</span>
+  <span class="op">├─</span> <span class="as">Trouver Y : descendre depuis 255 jusqu'au premier bloc solide</span>
+  <span class="op">│</span>
+  <span class="op">├─ [</span><span class="ar">Echec</span><span class="op">]</span> <span class="as">Y &lt; 5 (vide)</span>
+  <span class="op">├─ [</span><span class="ar">Echec</span><span class="op">]</span> <span class="as">Bloc sous les pieds = LAVA</span>
+  <span class="op">├─ [</span><span class="ar">Echec</span><span class="op">]</span> <span class="as">Bloc au niveau des pieds ou de la tete != AIR</span>
+  <span class="op">└─ [</span><span class="ag">OK</span><span class="op">]</span> <span class="as">Retourner (X, Y+1, Z)</span>
+
+  <span class="as">Si 10 tentatives echouees → message d'erreur, cooldown non applique</span></div>
+
+      <h3>Comportement</h3>
+      <ul>
+        <li>Si le joueur est dans la dimension monde minage → message d'erreur : <em>"Le RTP n'est pas disponible dans la dimension minage."</em></li>
+        <li>Le calcul de la position est effectue de maniere synchrone (simple scan Y, pas de generation de chunks complexe).</li>
+        <li>Apres teleportation reussie → position precedente sauvegardee dans <code>BackTracker</code> + cooldown applique.</li>
+        <li>Si la recherche echoue → le cooldown N'est PAS applique (le joueur peut reessayer immediatement).</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content">
+          <strong>Performance :</strong> forcer le chargement d'un chunk distant peut provoquer une
+          legere latence. Le calcul est fait en main thread, mais reste acceptable car la boucle
+          est limitee a 10 iterations maximum et le scan Y est O(255).
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── S8 : ADMIN TP ─── -->
+    <div class="section-card" id="s8">
+      <h2><span class="s-num red-num">08</span> Administration — /tp, /tphere, /tppos</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <p>
+        Ces commandes sont reservees aux administrateurs et operateurs. Elles ne sont soumises ni au
+        warmup ni au cooldown. Elles permettent une gestion rapide des joueurs sur le serveur.
+        La position precedente du joueur deplace est sauvegardee dans <code>BackTracker</code>.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Syntaxe</th><th>Permission</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>/tp</td>
+              <td><code>/tp &lt;joueur&gt;</code></td>
+              <td><code>command.tp</code> <span class="tag-adm">Admin</span></td>
+              <td>Se teleporter vers un joueur instantanement</td>
+            </tr>
+            <tr>
+              <td>/tphere</td>
+              <td><code>/tphere &lt;joueur&gt;</code></td>
+              <td><code>command.tphere</code> <span class="tag-adm">Admin</span></td>
+              <td>Teleporter un joueur vers soi instantanement</td>
+            </tr>
+            <tr>
+              <td>/tppos</td>
+              <td><code>/tppos &lt;x&gt; &lt;y&gt; &lt;z&gt;</code></td>
+              <td><code>command.tppos</code> <span class="tag-adm">Admin</span></td>
+              <td>Se teleporter a des coordonnees precises</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Details /tp &lt;joueur&gt;</h3>
+      <ul>
+        <li>L'auto-completion liste tous les joueurs en ligne.</li>
+        <li>La position de l'executant est sauvegardee dans <code>BackTracker</code> avant la teleportation.</li>
+        <li>Message de confirmation : <em>"Teleportation vers [joueur] effectuee."</em></li>
+      </ul>
+
+      <h3>Details /tphere &lt;joueur&gt;</h3>
+      <ul>
+        <li>L'auto-completion liste tous les joueurs en ligne.</li>
+        <li>La position du joueur deplace est sauvegardee dans <code>BackTracker</code> (il pourra utiliser <code>/back</code>).</li>
+        <li>Notification au joueur deplace : <em>"Vous avez ete teleporte vers [admin] par [admin]."</em></li>
+      </ul>
+
+      <h3>Details /tppos &lt;x&gt; &lt;y&gt; &lt;z&gt;</h3>
+      <ul>
+        <li>Les arguments X, Y, Z sont des entiers ou des decimaux.</li>
+        <li>La dimension cible est celle de l'executant (pas de changement de dimension via cette commande).</li>
+        <li>Verification Y : si Y &lt; 0 ou Y &gt; 255 → message d'erreur.</li>
+        <li>Position precedente sauvegardee dans <code>BackTracker</code>.</li>
+      </ul>
+    </div>
+
+    <!-- ─── S9 : WARMUP ─── -->
+    <div class="section-card" id="s9">
+      <h2><span class="s-num">09</span> Systeme de Warmup — Delai avant Teleportation</h2>
+
+      <h3 class="first">Concept</h3>
+      <p>
+        Le warmup est un delai obligatoire entre le declenchement d'une teleportation et son execution.
+        Durant ce delai, si le joueur se deplace de plus de 0.5 bloc, la teleportation est annulee.
+        Un retour visuel clair (titre/actionbar) informe le joueur du compte a rebours.
+      </p>
+
+      <h3>Classe TeleportWarmup</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">TeleportWarmup</span> {
+
+    <span class="cm">/**
+     * Demarre un warmup pour le joueur.
+     * @param player    Le joueur concerne
+     * @param seconds   Duree du warmup (depuis CommandConfig)
+     * @param onSuccess Callback execute a la fin du warmup
+     * @param onCancel  Callback execute si annulation (mouvement ou deconnexion)
+     */</span>
+    <span class="kw">public static void</span> <span class="fn">start</span>(<span class="cl">EntityPlayerMP</span> player, <span class="kw">int</span> seconds,
+                                 <span class="cl">Runnable</span> onSuccess, <span class="cl">Runnable</span> onCancel) {
+
+        <span class="cl">BlockPos</span> startPos = player.<span class="fn">getPosition</span>();
+        <span class="kw">final</span> <span class="kw">int</span> totalTicks = seconds * <span class="nu">20</span>;
+        <span class="kw">final</span> <span class="kw">int</span>[] ticksElapsed = {<span class="nu">0</span>};
+
+        <span class="cm">// Affiche le titre initial</span>
+        <span class="fn">sendWarmupTitle</span>(player, seconds);
+
+        <span class="cm">// Memoriser la task pour pouvoir l'annuler</span>
+        <span class="kw">final</span> <span class="cl">ScheduledTask</span>[] taskHolder = {<span class="kw">null</span>};
+        taskHolder[<span class="nu">0</span>] = <span class="cl">EriScheduler</span>.<span class="fn">repeat</span>(<span class="nu">20</span>, () -> {
+            <span class="kw">if</span> (!player.<span class="fn">isEntityAlive</span>()) {
+                taskHolder[<span class="nu">0</span>].<span class="fn">cancel</span>(); <span class="fn">onCancel</span>.<span class="fn">run</span>(); <span class="kw">return</span>;
+            }
+            ticksElapsed[<span class="nu">0</span>] += <span class="nu">20</span>;
+            <span class="kw">int</span> secondsLeft = seconds - (ticksElapsed[<span class="nu">0</span>] / <span class="nu">20</span>);
+
+            <span class="cm">// Verification mouvement</span>
+            <span class="kw">if</span> (<span class="cl">CommandConfig</span>.warmupCancelOnMove) {
+                <span class="kw">double</span> dx = player.posX - startPos.<span class="fn">getX</span>();
+                <span class="kw">double</span> dz = player.posZ - startPos.<span class="fn">getZ</span>();
+                <span class="kw">if</span> (<span class="cl">Math</span>.<span class="fn">sqrt</span>(dx*dx + dz*dz) > <span class="nu">0.5</span>) {
+                    taskHolder[<span class="nu">0</span>].<span class="fn">cancel</span>();
+                    <span class="fn">sendCancelTitle</span>(player);
+                    <span class="fn">onCancel</span>.<span class="fn">run</span>(); <span class="kw">return</span>;
+                }
+            }
+
+            <span class="kw">if</span> (ticksElapsed[<span class="nu">0</span>] >= totalTicks) {
+                taskHolder[<span class="nu">0</span>].<span class="fn">cancel</span>();
+                <span class="fn">onSuccess</span>.<span class="fn">run</span>();
+            } <span class="kw">else</span> {
+                <span class="fn">sendWarmupTitle</span>(player, secondsLeft);
+            }
+        });
+
+        <span class="cm">// Stocker la task active pour l'annuler si le joueur redemarre /spawn, /home, etc.</span>
+        <span class="cl">ActiveWarmups</span>.<span class="fn">put</span>(player.<span class="fn">getUniqueID</span>(), taskHolder[<span class="nu">0</span>]);
+    }
+}</div>
+
+      <h3>Retour visuel</h3>
+      <ul>
+        <li><strong>Titre :</strong> grande police centree affichant <em>"Teleportation dans Xs..."</em> avec sous-titre <em>"Ne bougez pas"</em>. Couleur degradee de or vers vert au fil du compte a rebours.</li>
+        <li><strong>Annulation :</strong> titre rouge <em>"Teleportation annulee !"</em> + son d'erreur.</li>
+        <li>Les titres sont envoyes via <code>player.connection.sendPacket(new SPacketTitle(...))</code>.</li>
+      </ul>
+
+      <h3>ActiveWarmups</h3>
+      <p>
+        Un <code>Map&lt;UUID, ScheduledTask&gt;</code> en memoire reference les warmups actifs. Si un joueur
+        lance une nouvelle commande de teleportation alors qu'un warmup est en cours, l'ancien est
+        annule silencieusement et le nouveau demarre. Cela evite les conflits de teleportation simultanee.
+      </p>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content">
+          <strong>Bonne pratique :</strong> le warmup n'est pas utilise pour les commandes admin
+          (<code>/tp</code>, <code>/tphere</code>, <code>/tppos</code>) et pour <code>/back</code>.
+          Ces commandes teleportent instantanement.
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── S10 : COOLDOWN ─── -->
+    <div class="section-card" id="s10">
+      <h2><span class="s-num">10</span> Systeme de Cooldown</h2>
+
+      <h3 class="first">Architecture</h3>
+      <p>
+        Le <code>CooldownManager</code> est un singleton en memoire gerant les cooldowns par joueur et
+        par type de commande. Les cooldowns ne persistent pas au redemarrage du serveur — c'est intentionnel
+        et simplifie l'implementation sans recourir a du stockage supplementaire.
+      </p>
+
+      <h3>CooldownManager</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">CooldownManager</span> {
+    <span class="kw">private static final</span> <span class="cl">CooldownManager</span> <span class="op">INSTANCE</span> = <span class="kw">new</span> <span class="cl">CooldownManager</span>();
+    <span class="kw">public static</span> <span class="cl">CooldownManager</span> <span class="fn">getInstance</span>() { <span class="kw">return</span> <span class="op">INSTANCE</span>; }
+
+    <span class="cm">// Structure : UUID joueur → (cle commande → timestamp expiration en ms)</span>
+    <span class="kw">private final</span> <span class="cl">Map</span>&lt;<span class="cl">UUID</span>, <span class="cl">Map</span>&lt;<span class="ty">String</span>, <span class="ty">Long</span>&gt;&gt; cooldowns = <span class="kw">new</span> <span class="cl">HashMap</span>&lt;&gt;();
+
+    <span class="cm">/** Retourne true si le joueur est en cooldown pour cette commande */</span>
+    <span class="kw">public boolean</span> <span class="fn">isOnCooldown</span>(<span class="cl">UUID</span> uuid, <span class="ty">String</span> key) {
+        <span class="cl">Map</span>&lt;<span class="ty">String</span>, <span class="ty">Long</span>&gt; map = cooldowns.<span class="fn">get</span>(uuid);
+        <span class="kw">if</span> (map == <span class="kw">null</span>) <span class="kw">return false</span>;
+        <span class="ty">Long</span> expiry = map.<span class="fn">get</span>(key);
+        <span class="kw">return</span> expiry != <span class="kw">null</span> &amp;&amp; <span class="cl">System</span>.<span class="fn">currentTimeMillis</span>() &lt; expiry;
+    }
+
+    <span class="cm">/** Retourne le temps restant en secondes (0 si pas en cooldown) */</span>
+    <span class="kw">public int</span> <span class="fn">getRemaining</span>(<span class="cl">UUID</span> uuid, <span class="ty">String</span> key) {
+        <span class="cl">Map</span>&lt;<span class="ty">String</span>, <span class="ty">Long</span>&gt; map = cooldowns.<span class="fn">get</span>(uuid);
+        <span class="kw">if</span> (map == <span class="kw">null</span>) <span class="kw">return</span> <span class="nu">0</span>;
+        <span class="ty">Long</span> expiry = map.<span class="fn">get</span>(key);
+        <span class="kw">if</span> (expiry == <span class="kw">null</span>) <span class="kw">return</span> <span class="nu">0</span>;
+        <span class="kw">return</span> (<span class="kw">int</span>) <span class="cl">Math</span>.<span class="fn">max</span>(<span class="nu">0</span>, (expiry - <span class="cl">System</span>.<span class="fn">currentTimeMillis</span>()) / <span class="nu">1000</span>);
+    }
+
+    <span class="cm">/** Applique un cooldown de 'seconds' secondes */</span>
+    <span class="kw">public void</span> <span class="fn">set</span>(<span class="cl">UUID</span> uuid, <span class="ty">String</span> key, <span class="kw">int</span> seconds) {
+        cooldowns.<span class="fn">computeIfAbsent</span>(uuid, k -> <span class="kw">new</span> <span class="cl">HashMap</span>&lt;&gt;())
+                 .<span class="fn">put</span>(key, <span class="cl">System</span>.<span class="fn">currentTimeMillis</span>() + (seconds * <span class="nu">1000L</span>));
+    }
+
+    <span class="cm">/** Nettoyer a la deconnexion (optionnel, evite les fuites memoire) */</span>
+    <span class="kw">public void</span> <span class="fn">clear</span>(<span class="cl">UUID</span> uuid) { cooldowns.<span class="fn">remove</span>(uuid); }
+}</div>
+
+      <h3>Cles de cooldown utilisees</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Cle CooldownManager</th><th>Configurable via</th></tr></thead>
+          <tbody>
+            <tr><td>/spawn</td><td><code>"spawn"</code></td><td><code>spawnCooldown</code></td></tr>
+            <tr><td>/home</td><td><code>"home"</code></td><td><code>homeCooldown</code></td></tr>
+            <tr><td>/warp</td><td><code>"warp"</code></td><td><code>warpCooldown</code></td></tr>
+            <tr><td>/tpa / /tpahere</td><td><code>"tpa"</code></td><td><code>tpaCooldown</code></td></tr>
+            <tr><td>/back</td><td><code>"back"</code></td><td><code>backCooldown</code></td></tr>
+            <tr><td>/rtp</td><td><code>"rtp"</code></td><td><code>rtpCooldown</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Message de cooldown</h3>
+      <div class="code-block"><span class="cm">// Format uniforme pour tous les cooldowns</span>
+<span class="cl">EriChat</span>.<span class="fn">create</span>()
+    .<span class="fn">text</span>(<span class="st">"[Commandes] "</span>).<span class="fn">color</span>(<span class="cl">TextFormatting</span>.RED).<span class="fn">bold</span>()
+    .<span class="fn">text</span>(<span class="st">"Cette commande est en cooldown. Reessayez dans "</span>).<span class="fn">color</span>(<span class="cl">TextFormatting</span>.GRAY)
+    .<span class="fn">text</span>(remaining + <span class="st">"s"</span>).<span class="fn">color</span>(<span class="cl">TextFormatting</span>.GOLD).<span class="fn">bold</span>()
+    .<span class="fn">text</span>(<span class="st">"."</span>).<span class="fn">color</span>(<span class="cl">TextFormatting</span>.GRAY)
+    .<span class="fn">to</span>(player);</div>
+    </div>
+
+    <!-- ─── S11 : PERMISSIONS ─── -->
+    <div class="section-card" id="s11">
+      <h2><span class="s-num gold-num">11</span> Integration Permissions &amp; Rangs</h2>
+
+      <h3 class="first">Permissions booleennes</h3>
+      <p>
+        Les permissions standard sont resolues via l'existant <code>RankManager.hasPermission(player, "node")</code>
+        qui supporte la negation (<code>-node</code>), les wildcards (<code>node.*</code>) et l'heritage recursif.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Permission</th><th>Description</th><th>Grade minimum suggere</th></tr></thead>
+          <tbody>
+            <tr><td><code>command.setspawn</code></td><td>Definir le spawn du serveur</td><td>Admin/OP</td></tr>
+            <tr><td><code>command.setwarp</code></td><td>Creer un warp</td><td>Admin/OP</td></tr>
+            <tr><td><code>command.delwarp</code></td><td>Supprimer un warp</td><td>Admin/OP</td></tr>
+            <tr><td><code>command.tpa</code></td><td>Envoyer une demande /tpa</td><td>Membre</td></tr>
+            <tr><td><code>command.tpahere</code></td><td>Envoyer une demande /tpahere</td><td>VIP+</td></tr>
+            <tr><td><code>command.back</code></td><td>Utiliser /back</td><td>Membre</td></tr>
+            <tr><td><code>command.rtp</code></td><td>Utiliser /rtp</td><td>Membre</td></tr>
+            <tr><td><code>command.tp</code></td><td>Teleportation admin /tp</td><td>Modérateur+</td></tr>
+            <tr><td><code>command.tphere</code></td><td>Teleportation admin /tphere</td><td>Modérateur+</td></tr>
+            <tr><td><code>command.tppos</code></td><td>Teleportation par coordonnees</td><td>Modérateur+</td></tr>
+            <tr><td><code>warp.&lt;nom&gt;</code></td><td>Acces a un warp specifique</td><td>Variable par warp</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Permission a valeur entiere — homes.max</h3>
+      <p>
+        La permission <code>homes.max=N</code> est une extension du systeme de permissions existant.
+        Elle encode une valeur entiere dans le noeud de permission. Elle n'est pas booleenne : la methode
+        <code>RankManager.getPermissionValue(player, "homes.max", defaultValue)</code> doit etre ajoutee.
+      </p>
+
+      <h3>Implementation de getPermissionValue</h3>
+      <div class="code-block"><span class="cm">// A ajouter dans RankManager.java</span>
+
+<span class="cm">/**
+ * Extrait la valeur entiere d'une permission de la forme "key=N".
+ * Scanne tous les grades du joueur (avec heritage) et retourne la valeur la plus haute.
+ * Si aucune permission de ce type n'est trouvee, retourne defaultValue.
+ *
+ * @param player       Le joueur
+ * @param key          La cle de permission (ex. "homes.max")
+ * @param defaultValue Valeur par defaut si aucun grade ne definit la permission
+ * @return La valeur entiere la plus haute trouvee parmi tous les grades
+ */</span>
+<span class="kw">public int</span> <span class="fn">getPermissionValue</span>(<span class="cl">EntityPlayerMP</span> player, <span class="ty">String</span> key, <span class="kw">int</span> defaultValue) {
+    <span class="kw">if</span> (player.<span class="fn">canUseCommand</span>(<span class="nu">2</span>, <span class="st">""</span>)) <span class="kw">return</span> <span class="cl">Integer</span>.MAX_VALUE; <span class="cm">// OP = illimite</span>
+
+    <span class="kw">int</span> max = defaultValue;
+    <span class="ty">String</span> prefix = key + <span class="st">"="</span>;
+
+    <span class="cm">// 1. Verifier les permissions custom du joueur</span>
+    <span class="cl">List</span>&lt;<span class="ty">String</span>&gt; playerPerms = playerPermissions.<span class="fn">get</span>(player.<span class="fn">getUniqueID</span>().<span class="fn">toString</span>());
+    <span class="kw">if</span> (playerPerms != <span class="kw">null</span>) {
+        <span class="kw">for</span> (<span class="ty">String</span> p : playerPerms) {
+            <span class="kw">if</span> (p.<span class="fn">startsWith</span>(prefix)) {
+                <span class="kw">try</span> { max = <span class="cl">Math</span>.<span class="fn">max</span>(max, <span class="cl">Integer</span>.<span class="fn">parseInt</span>(p.<span class="fn">substring</span>(prefix.<span class="fn">length</span>()))); }
+                <span class="kw">catch</span> (<span class="cl">NumberFormatException</span> ignored) {}
+            }
+        }
+    }
+
+    <span class="cm">// 2. Verifier les permissions du grade (avec heritage)</span>
+    <span class="cl">RankInfo</span> rank = <span class="fn">getPlayerRank</span>(player.<span class="fn">getUniqueID</span>());
+    <span class="kw">if</span> (rank != <span class="kw">null</span>) {
+        <span class="cl">Set</span>&lt;<span class="ty">String</span>&gt; effective = <span class="cl">PermissionResolver</span>.<span class="fn">getEffectivePermissions</span>(rank, <span class="fn">rankLookup</span>());
+        <span class="kw">for</span> (<span class="ty">String</span> p : effective) {
+            <span class="kw">if</span> (p.<span class="fn">startsWith</span>(prefix)) {
+                <span class="kw">try</span> { max = <span class="cl">Math</span>.<span class="fn">max</span>(max, <span class="cl">Integer</span>.<span class="fn">parseInt</span>(p.<span class="fn">substring</span>(prefix.<span class="fn">length</span>()))); }
+                <span class="kw">catch</span> (<span class="cl">NumberFormatException</span> ignored) {}
+            }
+        }
+    }
+    <span class="kw">return</span> max;
+}</div>
+
+      <h3>Exemple de configuration de grade (JSON)</h3>
+      <div class="code-block">{
+  <span class="st">"name"</span>: <span class="st">"&6VIP"</span>,
+  <span class="st">"priority"</span>: <span class="nu">10</span>,
+  <span class="st">"prefix"</span>: <span class="st">"&6[VIP] "</span>,
+  <span class="st">"inherits"</span>: [<span class="st">"default"</span>],
+  <span class="st">"permissions"</span>: [
+    <span class="st">"homes.max=5"</span>,         <span class="cm">// Ce grade permet 5 homes</span>
+    <span class="st">"command.tpa"</span>,
+    <span class="st">"command.tpahere"</span>,
+    <span class="st">"command.back"</span>,
+    <span class="st">"command.rtp"</span>,
+    <span class="st">"warp.marche"</span>,
+    <span class="st">"warp.pvp"</span>
+  ]
+}</div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content">
+          <strong>Heritage :</strong> si le grade VIP herite du grade PREMIUM (qui definit <code>homes.max=10</code>),
+          la methode retournera 10 (la valeur la plus haute parmi tous les grades dans la chaine d'heritage).
+          Cela permet une escalade fluide des limites selon la hierarchie des grades.
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── S12 : STRUCTURES DE DONNEES ─── -->
+    <div class="section-card" id="s12">
+      <h2><span class="s-num">12</span> Structures de Donnees</h2>
+
+      <h3 class="first">Vue d'ensemble par type de stockage</h3>
+
+      <div class="two-col">
+        <div class="mini-card">
+          <div class="mini-card-title">WorldSavedData (persistant)</div>
+          <ul>
+            <li><strong>SpawnData</strong> — point de spawn unique</li>
+            <li><strong>WarpWorldData</strong> — ensemble des warps</li>
+          </ul>
+        </div>
+        <div class="mini-card">
+          <div class="mini-card-title">EriData (persistant joueur)</div>
+          <ul>
+            <li><strong>HomePlayerData</strong> — homes par joueur</li>
+          </ul>
+        </div>
+        <div class="mini-card">
+          <div class="mini-card-title">Memoire (reset au restart)</div>
+          <ul>
+            <li><strong>CooldownManager</strong> — cooldowns actifs</li>
+            <li><strong>BackTracker</strong> — positions de retour</li>
+            <li><strong>TpaManager</strong> — demandes TPA en attente</li>
+            <li><strong>ActiveWarmups</strong> — warmups en cours</li>
+          </ul>
+        </div>
+        <div class="mini-card">
+          <div class="mini-card-title">Fichiers config (JSON)</div>
+          <ul>
+            <li><strong>CommandConfig</strong> — tous les parametres</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Schema de serialisation des positions</h3>
+      <p>
+        Toutes les positions sont serialisees sous la forme de chaine de caracteres comma-separated
+        compatible avec le type <code>Map&lt;String, String&gt;</code> d'EriData et les champs <code>String</code>
+        de WorldSavedData.
+      </p>
+      <div class="code-block"><span class="cm">// Format : "dimensionName,x,y,z,yaw,pitch"</span>
+<span class="cm">// Exemple : "overworld,-142.5,64.0,351.0,-90.0,0.0"</span>
+<span class="cm">// Exemple nether : "the_nether,50.0,80.0,-30.0,45.0,5.0"</span>
+
+<span class="kw">public class</span> <span class="cl">LocationSerializer</span> {
+    <span class="kw">public static</span> <span class="ty">String</span> <span class="fn">serialize</span>(<span class="cl">World</span> world, <span class="kw">double</span> x, <span class="kw">double</span> y, <span class="kw">double</span> z,
+                                          <span class="kw">float</span> yaw, <span class="kw">float</span> pitch) {
+        <span class="ty">String</span> dimName = world.provider.<span class="fn">getDimensionType</span>().<span class="fn">getName</span>();
+        <span class="kw">return</span> dimName + <span class="st">","</span> + x + <span class="st">","</span> + y + <span class="st">","</span> + z + <span class="st">","</span> + yaw + <span class="st">","</span> + pitch;
+    }
+
+    <span class="kw">public static</span> <span class="cl">SavedLocation</span> <span class="fn">deserialize</span>(<span class="ty">String</span> s) {
+        <span class="ty">String</span>[] parts = s.<span class="fn">split</span>(<span class="st">","</span>);
+        <span class="kw">return new</span> <span class="cl">SavedLocation</span>(parts[<span class="nu">0</span>],
+            <span class="cl">Double</span>.<span class="fn">parseDouble</span>(parts[<span class="nu">1</span>]), <span class="cl">Double</span>.<span class="fn">parseDouble</span>(parts[<span class="nu">2</span>]),
+            <span class="cl">Double</span>.<span class="fn">parseDouble</span>(parts[<span class="nu">3</span>]),
+            <span class="cl">Float</span>.<span class="fn">parseFloat</span>(parts[<span class="nu">4</span>]), <span class="cl">Float</span>.<span class="fn">parseFloat</span>(parts[<span class="nu">5</span>]));
+    }
+}</div>
+
+      <h3>SavedLocation — POJO commun</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">SavedLocation</span> {
+    <span class="kw">public final</span> <span class="ty">String</span> worldName;
+    <span class="kw">public final</span> <span class="kw">double</span> x, y, z;
+    <span class="kw">public final</span> <span class="kw">float</span>  yaw, pitch;
+
+    <span class="cm">// Helper : teleporter un joueur vers cette position</span>
+    <span class="kw">public void</span> <span class="fn">teleport</span>(<span class="cl">EntityPlayerMP</span> player, <span class="cl">MinecraftServer</span> server) {
+        <span class="cl">WorldServer</span> world = server.<span class="fn">getWorld</span>(
+            <span class="cl">DimensionManager</span>.<span class="fn">getDimensionForName</span>(worldName));
+        <span class="kw">if</span> (world == <span class="kw">null</span>) { <span class="cm">/* message d'erreur */</span> <span class="kw">return</span>; }
+        player.<span class="fn">teleportTo</span>(world, x, y, z, yaw, pitch);
+    }
+}</div>
+    </div>
+
+    <!-- ─── S13 : CONFIGURATION ─── -->
+    <div class="section-card" id="s13">
+      <h2><span class="s-num green-num">13</span> Configuration — CommandConfig</h2>
+
+      <h3 class="first">CommandConfig.java</h3>
+      <p>
+        Toutes les options configurables du systeme sont centralisees dans <code>CommandConfig.java</code>
+        dans le package <code>fr.eriniumgroup.eriniumfaction.config</code>. Ce fichier suit le meme
+        pattern que les configs existantes (<code>FactionConfig</code>, <code>EconomyConfig</code>).
+        Il est charge depuis un fichier JSON dans <code>config/EriniumFaction/commands.json</code>.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Cle</th><th>Type</th><th>Defaut</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>spawnWarmup</code></td><td>int</td><td>3</td><td>Delai en secondes avant teleportation /spawn</td></tr>
+            <tr><td><code>spawnCooldown</code></td><td>int</td><td>30</td><td>Delai en secondes entre deux /spawn</td></tr>
+            <tr><td><code>homeWarmup</code></td><td>int</td><td>3</td><td>Delai en secondes avant teleportation /home</td></tr>
+            <tr><td><code>homeCooldown</code></td><td>int</td><td>10</td><td>Delai en secondes entre deux /home</td></tr>
+            <tr><td><code>homeMaxDefault</code></td><td>int</td><td>1</td><td>Nombre de homes par defaut si aucun grade ne definit homes.max</td></tr>
+            <tr><td><code>homeDeleteConfirm</code></td><td>boolean</td><td>true</td><td>Demander confirmation avant suppression d'un home</td></tr>
+            <tr><td><code>warpWarmup</code></td><td>int</td><td>3</td><td>Delai en secondes avant teleportation /warp</td></tr>
+            <tr><td><code>warpCooldown</code></td><td>int</td><td>15</td><td>Delai en secondes entre deux /warp</td></tr>
+            <tr><td><code>tpaTimeout</code></td><td>int</td><td>60</td><td>Duree en secondes avant expiration d'une demande TPA</td></tr>
+            <tr><td><code>tpaWarmup</code></td><td>int</td><td>3</td><td>Delai en secondes avant teleportation TPA apres acceptation</td></tr>
+            <tr><td><code>tpaCooldown</code></td><td>int</td><td>30</td><td>Delai en secondes entre deux /tpa</td></tr>
+            <tr><td><code>backCooldown</code></td><td>int</td><td>60</td><td>Delai en secondes entre deux /back</td></tr>
+            <tr><td><code>rtpCooldown</code></td><td>int</td><td>300</td><td>Delai en secondes entre deux /rtp (5 minutes)</td></tr>
+            <tr><td><code>rtpMinRadius</code></td><td>int</td><td>1000</td><td>Distance minimale du spawn pour /rtp (blocs)</td></tr>
+            <tr><td><code>rtpMaxRadius</code></td><td>int</td><td>5000</td><td>Distance maximale du spawn pour /rtp (blocs)</td></tr>
+            <tr><td><code>warmupCancelOnMove</code></td><td>boolean</td><td>true</td><td>Annuler le warmup si le joueur bouge de plus de 0.5 bloc</td></tr>
+            <tr><td><code>rtpMaxAttempts</code></td><td>int</td><td>10</td><td>Nombre max de tentatives de recherche de position RTP</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Exemple de commands.json</h3>
+      <div class="code-block">{
+  <span class="st">"spawnWarmup"</span>: <span class="nu">3</span>,
+  <span class="st">"spawnCooldown"</span>: <span class="nu">30</span>,
+  <span class="st">"homeWarmup"</span>: <span class="nu">3</span>,
+  <span class="st">"homeCooldown"</span>: <span class="nu">10</span>,
+  <span class="st">"homeMaxDefault"</span>: <span class="nu">1</span>,
+  <span class="st">"homeDeleteConfirm"</span>: <span class="kw">true</span>,
+  <span class="st">"warpWarmup"</span>: <span class="nu">3</span>,
+  <span class="st">"warpCooldown"</span>: <span class="nu">15</span>,
+  <span class="st">"tpaTimeout"</span>: <span class="nu">60</span>,
+  <span class="st">"tpaWarmup"</span>: <span class="nu">3</span>,
+  <span class="st">"tpaCooldown"</span>: <span class="nu">30</span>,
+  <span class="st">"backCooldown"</span>: <span class="nu">60</span>,
+  <span class="st">"rtpCooldown"</span>: <span class="nu">300</span>,
+  <span class="st">"rtpMinRadius"</span>: <span class="nu">1000</span>,
+  <span class="st">"rtpMaxRadius"</span>: <span class="nu">5000</span>,
+  <span class="st">"warmupCancelOnMove"</span>: <span class="kw">true</span>,
+  <span class="st">"rtpMaxAttempts"</span>: <span class="nu">10</span>
+}</div>
+    </div>
+
+    <!-- ─── S14 : ARCHITECTURE ─── -->
+    <div class="section-card" id="s14">
+      <h2><span class="s-num">14</span> Architecture Technique</h2>
+
+      <h3 class="first">Structure des packages</h3>
+      <div class="ascii-diagram"><span class="av">fr.eriniumgroup.eriniumfaction.command/</span>
+<span class="op">├─</span> <span class="ac">CommandManager.java</span>          <span class="as">Enregistrement de toutes les commandes + init config</span>
+<span class="op">├─</span> <span class="ac">CommandConfig.java</span>           <span class="as">Chargement/sauvegarde de commands.json</span>
+<span class="op">├─</span> <span class="ac">CooldownManager.java</span>         <span class="as">Singleton — cooldowns en memoire</span>
+<span class="op">├─</span> <span class="ac">TeleportWarmup.java</span>          <span class="as">Warmup partage, titles, annulation mouvement</span>
+<span class="op">├─</span> <span class="ac">ActiveWarmups.java</span>           <span class="as">Map UUID → ScheduledTask pour warmup actif</span>
+<span class="op">├─</span> <span class="ac">SavedLocation.java</span>           <span class="as">POJO position + methode teleport()</span>
+<span class="op">├─</span> <span class="ac">LocationSerializer.java</span>      <span class="as">serialize() / deserialize() pour Map String,String</span>
+<span class="op">│</span>
+<span class="op">├─ spawn/</span>
+<span class="op">│   ├─</span> <span class="ac">SetSpawnCommand.java</span>     <span class="as">/setspawn — admin, stocke dans SpawnData</span>
+<span class="op">│   ├─</span> <span class="ac">SpawnCommand.java</span>        <span class="as">/spawn — warmup, cooldown, BackTracker</span>
+<span class="op">│   └─</span> <span class="ac">SpawnData.java</span>           <span class="as">WorldSavedData — point de spawn unique</span>
+<span class="op">│</span>
+<span class="op">├─ home/</span>
+<span class="op">│   ├─</span> <span class="ac">SetHomeCommand.java</span>      <span class="as">/sethome — EriData, check homes.max</span>
+<span class="op">│   ├─</span> <span class="ac">HomeCommand.java</span>         <span class="as">/home — warmup, cooldown, auto-complete joueur</span>
+<span class="op">│   ├─</span> <span class="ac">DelHomeCommand.java</span>      <span class="as">/delhome — auto-complete, confirmation</span>
+<span class="op">│   ├─</span> <span class="ac">HomesCommand.java</span>        <span class="as">/homes — liste EriChat</span>
+<span class="op">│   └─</span> <span class="ac">HomePlayerData.java</span>      <span class="as">@EriData PLAYER persistOnDeath=true</span>
+<span class="op">│</span>
+<span class="op">├─ warp/</span>
+<span class="op">│   ├─</span> <span class="ac">SetWarpCommand.java</span>      <span class="as">/setwarp — admin, stocke dans WarpWorldData</span>
+<span class="op">│   ├─</span> <span class="ac">DelWarpCommand.java</span>      <span class="as">/delwarp — admin, confirmation</span>
+<span class="op">│   ├─</span> <span class="ac">WarpCommand.java</span>         <span class="as">/warp — filtrage perm, warmup, cooldown</span>
+<span class="op">│   ├─</span> <span class="ac">WarpsCommand.java</span>        <span class="as">/warps — liste filtree par permission</span>
+<span class="op">│   └─</span> <span class="ac">WarpWorldData.java</span>       <span class="as">WorldSavedData — Map nom → donnees warp</span>
+<span class="op">│</span>
+<span class="op">├─ tpa/</span>
+<span class="op">│   ├─</span> <span class="ac">TpaCommand.java</span>          <span class="as">/tpa — requete, EriChat clickable</span>
+<span class="op">│   ├─</span> <span class="ac">TpaHereCommand.java</span>      <span class="as">/tpahere — requete inverse</span>
+<span class="op">│   ├─</span> <span class="ac">TpAcceptCommand.java</span>     <span class="as">/tpaccept /tpyes — warmup TPA</span>
+<span class="op">│   ├─</span> <span class="ac">TpDenyCommand.java</span>       <span class="as">/tpdeny /tpno — annulation</span>
+<span class="op">│   ├─</span> <span class="ac">TpaManager.java</span>          <span class="as">Singleton — Map UUID → TpaRequest</span>
+<span class="op">│   └─</span> <span class="ac">TpaRequest.java</span>          <span class="as">POJO (requester, target, type, expiryTask)</span>
+<span class="op">│</span>
+<span class="op">├─ back/</span>
+<span class="op">│   ├─</span> <span class="ac">BackCommand.java</span>         <span class="as">/back — cooldown, consume BackTracker</span>
+<span class="op">│   └─</span> <span class="ac">BackTracker.java</span>         <span class="as">Map UUID → SavedLocation (memoire)</span>
+<span class="op">│</span>
+<span class="op">├─ rtp/</span>
+<span class="op">│   ├─</span> <span class="ac">RtpCommand.java</span>          <span class="as">/rtp — check dimension, warmup, cooldown</span>
+<span class="op">│   └─</span> <span class="ac">RtpHelper.java</span>           <span class="as">Algo recherche position safe (10 tentatives)</span>
+<span class="op">│</span>
+<span class="op">└─ admin/</span>
+    <span class="op">├─</span> <span class="ac">TpCommand.java</span>            <span class="as">/tp &lt;joueur&gt; — admin, BackTracker</span>
+    <span class="op">├─</span> <span class="ac">TpHereCommand.java</span>        <span class="as">/tphere &lt;joueur&gt; — admin, BackTracker cible</span>
+    <span class="op">└─</span> <span class="ac">TpPosCommand.java</span>         <span class="as">/tppos &lt;x&gt; &lt;y&gt; &lt;z&gt; — admin, BackTracker</span></div>
+
+      <h3>Enregistrement des commandes</h3>
+      <div class="code-block"><span class="cm">// Dans CommonProxy.java, handler FMLServerStartingEvent</span>
+<span class="cm">// (ou dans un listener dedie CommandManager)</span>
+<span class="kw">public void</span> <span class="fn">serverStarting</span>(<span class="cl">FMLServerStartingEvent</span> event) {
+    <span class="cm">// Charger la config</span>
+    <span class="cl">CommandConfig</span>.<span class="fn">load</span>(configDir);
+
+    <span class="cm">// Enregistrer toutes les commandes</span>
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">SetSpawnCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">SpawnCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">SetHomeCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">HomeCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">DelHomeCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">HomesCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">SetWarpCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">DelWarpCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">WarpCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">WarpsCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">TpaCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">TpaHereCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">TpAcceptCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">TpDenyCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">BackCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">RtpCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">TpCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">TpHereCommand</span>.<span class="fn">create</span>());
+    event.<span class="fn">registerServerCommand</span>(<span class="cl">TpPosCommand</span>.<span class="fn">create</span>());
+}</div>
+
+      <h3>Pattern de commande (EriCommand)</h3>
+      <div class="code-block"><span class="cm">// Exemple complet pour SetHomeCommand</span>
+<span class="kw">public class</span> <span class="cl">SetHomeCommand</span> {
+    <span class="kw">public static</span> <span class="cl">ICommand</span> <span class="fn">create</span>() {
+        <span class="kw">return</span> <span class="cl">EriCommand</span>.<span class="fn">create</span>(<span class="st">"sethome"</span>)
+            .<span class="fn">permission</span>(<span class="nu">0</span>)
+            .<span class="fn">description</span>(<span class="st">"Definir un home personnel"</span>)
+            .<span class="fn">arg</span>(<span class="cl">StringArg</span>.<span class="fn">of</span>(<span class="st">"nom"</span>).<span class="fn">optional</span>(<span class="st">"home"</span>))
+            .<span class="fn">runs</span>(ctx -> {
+                <span class="cl">EntityPlayerMP</span> player = ctx.<span class="fn">getSenderAsPlayerMP</span>();
+                <span class="kw">if</span> (player == <span class="kw">null</span>) <span class="kw">return</span>;
+                <span class="ty">String</span> name = ctx.<span class="fn">getString</span>(<span class="st">"nom"</span>).<span class="fn">toLowerCase</span>();
+
+                <span class="cm">// Validation nom</span>
+                <span class="kw">if</span> (!name.<span class="fn">matches</span>(<span class="st">"[a-z0-9_]{1,16}"</span>)) {
+                    <span class="fn">msg</span>(ctx, <span class="cl">TextFormatting</span>.RED, <span class="st">"Nom invalide. Alphanumerique, max 16 caracteres."</span>); <span class="kw">return</span>;
+                }
+
+                <span class="cl">HomePlayerData</span> data = <span class="cl">DataManager</span>.<span class="fn">get</span>(player, <span class="cl">HomePlayerData</span>.class);
+                <span class="kw">int</span> maxHomes = <span class="cl">RankManager</span>.<span class="fn">getInstance</span>().<span class="fn">getPermissionValue</span>(
+                    player, <span class="st">"homes.max"</span>, <span class="cl">CommandConfig</span>.homeMaxDefault);
+
+                <span class="kw">if</span> (!data.homes.<span class="fn">containsKey</span>(name) &amp;&amp; data.homes.<span class="fn">size</span>() >= maxHomes) {
+                    <span class="fn">msg</span>(ctx, <span class="cl">TextFormatting</span>.RED, <span class="st">"Vous avez atteint votre limite de homes ("</span> + maxHomes + <span class="st">")."</span>);
+                    <span class="kw">return</span>;
+                }
+
+                data.homes.<span class="fn">put</span>(name, <span class="cl">LocationSerializer</span>.<span class="fn">serialize</span>(
+                    player.world, player.posX, player.posY, player.posZ,
+                    player.rotationYaw, player.rotationPitch));
+                <span class="cl">DataManager</span>.<span class="fn">save</span>(player, <span class="cl">HomePlayerData</span>.class);
+                <span class="fn">msg</span>(ctx, <span class="cl">TextFormatting</span>.GREEN, <span class="st">"Home '"</span> + name + <span class="st">"' sauvegarde !"</span>);
+            })
+            .<span class="fn">build</span>();
+    }
+}</div>
+    </div>
+
+    <!-- ─── S15 : AUTO-COMPLETION ─── -->
+    <div class="section-card" id="s15">
+      <h2><span class="s-num cyan-num">15</span> Auto-completion Contextuelle</h2>
+
+      <h3 class="first">Principe</h3>
+      <p>
+        Conformement aux conventions de code du projet, <strong>tous les arguments de commande doivent avoir
+        de l'auto-completion</strong>. L'auto-completion est contextuelle : elle filtre les suggestions
+        en fonction du joueur executant la commande (ses homes, les warps auxquels il a acces, etc.).
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Argument</th><th>Source des suggestions</th><th>Filtre</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>/home</td>
+              <td><code>nom</code></td>
+              <td>Homes du joueur executant</td>
+              <td><code>DataManager.get(player, HomePlayerData.class).homes.keySet()</code></td>
+            </tr>
+            <tr>
+              <td>/delhome</td>
+              <td><code>nom</code></td>
+              <td>Homes du joueur executant</td>
+              <td>Identique a /home</td>
+            </tr>
+            <tr>
+              <td>/warp</td>
+              <td><code>nom</code></td>
+              <td>Warps auxquels le joueur a acces</td>
+              <td><code>RankManager.hasPermission(player, "warp." + warpName)</code></td>
+            </tr>
+            <tr>
+              <td>/delwarp</td>
+              <td><code>nom</code></td>
+              <td>Tous les warps (admin)</td>
+              <td>Aucun — admin voit tout</td>
+            </tr>
+            <tr>
+              <td>/tpa</td>
+              <td><code>joueur</code></td>
+              <td>Joueurs en ligne</td>
+              <td><code>PlayerArg.of("joueur")</code> — fourni par EriAPI</td>
+            </tr>
+            <tr>
+              <td>/tpahere</td>
+              <td><code>joueur</code></td>
+              <td>Joueurs en ligne</td>
+              <td>Identique a /tpa</td>
+            </tr>
+            <tr>
+              <td>/tp admin</td>
+              <td><code>joueur</code></td>
+              <td>Joueurs en ligne</td>
+              <td><code>PlayerArg.of("joueur")</code></td>
+            </tr>
+            <tr>
+              <td>/tphere</td>
+              <td><code>joueur</code></td>
+              <td>Joueurs en ligne</td>
+              <td><code>PlayerArg.of("joueur")</code></td>
+            </tr>
+            <tr>
+              <td>/tppos</td>
+              <td>x, y, z</td>
+              <td>Position actuelle du joueur</td>
+              <td>Suggestions dynamiques : coordonnees actuelles comme valeur par defaut</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Implementation de l'auto-completion dynamique</h3>
+      <div class="code-block"><span class="cm">// Supplier de noms de homes pour le joueur executant</span>
+<span class="cm">// Utilise dans HomeCommand et DelHomeCommand</span>
+<span class="kw">private static final</span> <span class="cl">Function</span>&lt;<span class="cl">CommandContext</span>, <span class="ty">String</span>[]&gt; HOME_SUPPLIER = ctx -> {
+    <span class="cl">EntityPlayerMP</span> player = ctx.<span class="fn">getSenderAsPlayerMP</span>();
+    <span class="kw">if</span> (player == <span class="kw">null</span>) <span class="kw">return new</span> <span class="ty">String</span>[<span class="nu">0</span>];
+    <span class="cl">HomePlayerData</span> data = <span class="cl">DataManager</span>.<span class="fn">get</span>(player, <span class="cl">HomePlayerData</span>.class);
+    <span class="kw">return</span> data.homes.<span class="fn">keySet</span>().<span class="fn">toArray</span>(<span class="kw">new</span> <span class="ty">String</span>[<span class="nu">0</span>]);
+};
+
+<span class="cm">// Supplier de warps filtres par permission</span>
+<span class="kw">private static final</span> <span class="cl">Function</span>&lt;<span class="cl">CommandContext</span>, <span class="ty">String</span>[]&gt; WARP_SUPPLIER = ctx -> {
+    <span class="cl">EntityPlayerMP</span> player = ctx.<span class="fn">getSenderAsPlayerMP</span>();
+    <span class="cl">WarpWorldData</span> warps = <span class="cl">WarpWorldData</span>.<span class="fn">get</span>(<span class="cm">/* overworld */</span>);
+    <span class="kw">return</span> warps.warps.<span class="fn">keySet</span>().<span class="fn">stream</span>()
+        .<span class="fn">filter</span>(name -> player == <span class="kw">null</span> ||
+                <span class="cl">RankManager</span>.<span class="fn">getInstance</span>().<span class="fn">hasPermission</span>(player, <span class="st">"warp."</span> + name))
+        .<span class="fn">toArray</span>(<span class="ty">String</span>[]::new);
+};
+
+<span class="cm">// Usage dans EriCommand (la methode exacte depend de l'API EriCommand)</span>
+cmd.<span class="fn">arg</span>(<span class="cl">StringArg</span>.<span class="fn">of</span>(<span class="st">"nom"</span>).<span class="fn">suggestsDynamic</span>(HOME_SUPPLIER));</div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content">
+          <strong>Securite de l'auto-completion :</strong> la liste des warps dans l'auto-completion de
+          <code>/warp</code> est filtree par permission. Un joueur ne voit que les warps auxquels il a
+          acces. Cela empeche la decouverte de warps prives par enumeration Tab.
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── S16 : PLAN DE TESTS ─── -->
+    <div class="section-card" id="s16">
+      <h2><span class="s-num">16</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests — Systeme Spawn</h3>
+      <ul>
+        <li>Executer <code>/setspawn</code> sans permission → refus.</li>
+        <li>Executer <code>/setspawn</code> avec permission → confirmation + SpawnData mis a jour.</li>
+        <li>Executer <code>/spawn</code> sans spawn configure → message d'erreur explicite.</li>
+        <li>Executer <code>/spawn</code> → warmup demarre, compte a rebours visible.</li>
+        <li>Bouger pendant le warmup → annulation + message.</li>
+        <li>Ne pas bouger → teleportation au spawn.</li>
+        <li>Tenter <code>/spawn</code> immediatement apres → cooldown affiche.</li>
+        <li>Attendre la fin du cooldown → commande refonctionnelle.</li>
+      </ul>
+
+      <h3>Tests — Systeme Homes</h3>
+      <ul>
+        <li>Creer un home avec nom par defaut (<code>/sethome</code>) → <code>home</code> cree.</li>
+        <li>Creer un home avec nom specifique (<code>/sethome base2</code>) → <code>base2</code> cree.</li>
+        <li>Tenter de creer un home au-dela de la limite du grade → refus.</li>
+        <li>Teleporter avec <code>/home</code> → warmup → teleportation → BackTracker mis a jour.</li>
+        <li>Appeler <code>/home inconnu</code> → message d'erreur avec liste des homes valides.</li>
+        <li>Supprimer un home avec <code>/delhome</code> → auto-completion fonctionne, home supprime.</li>
+        <li>Lister les homes avec <code>/homes</code> → affichage correct des coordonnees.</li>
+        <li>Mort du joueur → homes persistent (persistOnDeath=true).</li>
+        <li>Grade VIP avec <code>homes.max=5</code> → peut creer 5 homes.</li>
+        <li>Heritage : grade VIP herite de PREMIUM (homes.max=10) → limite effective = 10.</li>
+      </ul>
+
+      <h3>Tests — Systeme Warps</h3>
+      <ul>
+        <li>Admin cree un warp via <code>/setwarp pvp</code> → WarpWorldData mis a jour, persiste au reload.</li>
+        <li>Joueur sans permission <code>warp.pvp</code> → non visible en auto-completion, acces refuse.</li>
+        <li>Joueur avec permission <code>warp.pvp</code> → visible en auto-completion, acces autorise.</li>
+        <li>Warp vers une autre dimension → verifie que le changement de dimension fonctionne correctement.</li>
+        <li>Admin supprime un warp → disparait de la liste pour tous les joueurs.</li>
+      </ul>
+
+      <h3>Tests — Systeme TPA</h3>
+      <ul>
+        <li>Joueur A envoie <code>/tpa B</code> → B recoit le message chat avec boutons cliquables.</li>
+        <li>B clique [ACCEPTER] → warmup pour A → teleportation de A vers B.</li>
+        <li>A envoie <code>/tpahere B</code> → B recoit invitation → B accepte → warmup pour B → B se teleporte vers A.</li>
+        <li>B clique [REFUSER] → les deux joueurs sont notifies.</li>
+        <li>Demande non repondue pendant <code>tpaTimeout</code> secondes → expiration automatique.</li>
+        <li>B se deconnecte avant acceptation → demande annulee.</li>
+        <li>A essaie d'envoyer une seconde demande → remplace la premiere.</li>
+        <li>Cooldown <code>tpaCooldown</code> applique correctement apres teleportation.</li>
+      </ul>
+
+      <h3>Tests — /back</h3>
+      <ul>
+        <li>Teleporter via <code>/spawn</code> puis <code>/back</code> → retour a la position pre-spawn.</li>
+        <li>Mourir puis <code>/back</code> → retour au lieu de mort.</li>
+        <li>Double <code>/back</code> → aller-retour possible.</li>
+        <li>Deconnexion et reconnexion → <code>/back</code> echoue (memoire reinitalisee).</li>
+        <li>Cooldown <code>backCooldown</code> respecte.</li>
+      </ul>
+
+      <h3>Tests — /rtp</h3>
+      <ul>
+        <li>Executer <code>/rtp</code> dans le monde minage → refus.</li>
+        <li>Executer <code>/rtp</code> dans l'Overworld → teleportation dans [rtpMinRadius, rtpMaxRadius].</li>
+        <li>Position de destination : sol solide, pas de lava sous les pieds, air aux pieds et a la tete.</li>
+        <li>Echec de recherche (10 tentatives) → cooldown non applique.</li>
+        <li>Cooldown <code>rtpCooldown</code> (5 min) applique apres succes.</li>
+      </ul>
+
+      <h3>Tests — Admin TP</h3>
+      <ul>
+        <li><code>/tp JoueurB</code> → teleportation immediate, BackTracker de l'admin mis a jour.</li>
+        <li><code>/tphere JoueurB</code> → B teleporte, B recoit notification, BackTracker de B mis a jour.</li>
+        <li><code>/tppos 100 64 200</code> → teleportation precise, BackTracker mis a jour.</li>
+        <li><code>/tppos 100 -5 200</code> → refus (Y invalide).</li>
+        <li>Aucun warmup, aucun cooldown pour les commandes admin.</li>
+      </ul>
+
+      <h3>Tests — homes.max valeur entiere</h3>
+      <ul>
+        <li>Grade sans <code>homes.max</code> → utilise <code>homeMaxDefault</code> (defaut : 1).</li>
+        <li>Grade avec <code>homes.max=5</code> → limite = 5.</li>
+        <li>Grade A heritant de Grade B (<code>homes.max=3</code>) et Grade C (<code>homes.max=7</code>) → valeur retournee = 7.</li>
+        <li>OP → <code>Integer.MAX_VALUE</code> (illimite).</li>
+        <li>Permission custom joueur <code>homes.max=20</code> → prioritaire sur le grade.</li>
+      </ul>
+
+      <h3>Tests — Persistence</h3>
+      <ul>
+        <li>Creer spawn, homes, warps → restart du serveur → toutes les donnees intact.</li>
+        <li>Homes survivent a la mort du joueur.</li>
+        <li>Cooldowns sont reinitialises apres restart (comportement attendu).</li>
+        <li>WarpWorldData recharge correctement apres <code>/reload</code> si applicable.</li>
+      </ul>
+    </div>
+
+  </main>
+</div>
+
+<!-- MOBILE TOGGLE -->
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<script>
+  // Active nav link on scroll
+  const links = document.querySelectorAll('.nav-link');
+  const sections = document.querySelectorAll('.section-card');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const link = document.querySelector('.nav-link[href="#' + e.target.id + '"]');
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.25 });
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

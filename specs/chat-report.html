@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Systeme de Report Chat | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --pink:      #E91E8C;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.16) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(231,76,60,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 60% 10%, rgba(0,229,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet-l) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet-l); border-radius: 4px; }
+
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--pink); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 4px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, var(--red) 50%, var(--orange) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 680px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet { color: var(--violet-l); border-color: rgba(107,47,160,0.4);  background: rgba(107,47,160,0.1); }
+  .badge-cyan   { color: var(--cyan);     border-color: rgba(0,229,255,0.3);    background: rgba(0,229,255,0.07); }
+  .badge-green  { color: var(--green);    border-color: rgba(46,204,113,0.3);   background: rgba(46,204,113,0.07); }
+  .badge-red    { color: var(--red);      border-color: rgba(231,76,60,0.35);   background: rgba(231,76,60,0.08); }
+  .badge-gold   { color: var(--gold);     border-color: rgba(241,196,15,0.3);   background: rgba(241,196,15,0.07); }
+  .badge-pink   { color: var(--pink);     border-color: rgba(233,30,140,0.35);  background: rgba(233,30,140,0.08); }
+  .badge-orange { color: var(--orange);   border-color: rgba(230,126,34,0.35);  background: rgba(230,126,34,0.08); }
+
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1) { animation-delay: .05s; }
+  .section-card:nth-child(2) { animation-delay: .10s; }
+  .section-card:nth-child(3) { animation-delay: .15s; }
+  .section-card:nth-child(4) { animation-delay: .20s; }
+  .section-card:nth-child(5) { animation-delay: .25s; }
+  .section-card:nth-child(6) { animation-delay: .30s; }
+  .section-card:nth-child(7) { animation-delay: .35s; }
+  .section-card:nth-child(8) { animation-delay: .40s; }
+  .section-card:nth-child(9) { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #c0342a 0%, var(--red) 100%); }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a7a40 0%, var(--green) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #c0960a 0%, var(--gold) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #b05a10 0%, var(--orange) 100%); color: #0A0A0F; }
+  .section-card h2 .s-num.pink-num   { background: linear-gradient(135deg, #a01060 0%, var(--pink) 100%); }
+
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '›'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.16); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.07); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw  { color: #C792EA; } .ty  { color: #FFCB6B; } .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; } .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; } .nu  { color: #F78C6C; } .op  { color: #89DDFF; }
+
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.07);  border: 1px solid rgba(231,76,60,0.22);  }
+
+  .arch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin: 18px 0; }
+  .arch-card { background: rgba(5,5,10,0.55); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 16px 18px; }
+  .arch-card-name { font-size: 13px; font-weight: 700; color: var(--violet-l); font-family: 'JetBrains Mono', 'Consolas', monospace; margin-bottom: 6px; }
+  .arch-card-desc { font-size: 12px; color: var(--slate); line-height: 1.5; }
+
+  .checklist { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; }
+  .checklist-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13.5px; color: var(--slate); line-height: 1.5; }
+  .checklist-item::before { content: '□'; color: var(--violet-l); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .checklist-item strong { color: var(--text); }
+
+  /* FLOW DIAGRAM */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 18px 0;
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 14px 0;
+    border-left: 2px solid rgba(107,47,160,0.3);
+    margin-left: 16px;
+    padding-left: 20px;
+    position: relative;
+  }
+
+  .flow-step::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 18px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--violet-l);
+    border: 2px solid var(--bg);
+  }
+
+  .flow-step:last-child { border-left-color: transparent; }
+
+  .flow-step-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .flow-step-desc {
+    font-size: 13px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  /* REPORT CARD PREVIEW */
+  .report-preview {
+    background: rgba(5,5,10,0.70);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 13px;
+    margin: 16px 0;
+    line-height: 1.8;
+  }
+
+  .report-icon { color: #E74C3C; cursor: pointer; }
+  .report-icon:hover { text-decoration: underline; }
+  .report-faction { color: #F1C40F; }
+  .report-name { color: #FFFFFF; font-weight: 600; }
+  .report-msg { color: #AAAAAA; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 32px 24px 60px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a href="../roadmap.html" class="sidebar-back">&#8592; Roadmap</a>
+
+    <div class="sidebar-title">Sections</div>
+    <a href="#contexte"     class="nav-link"><span class="num">01</span>Contexte &amp; Objectifs</a>
+    <a href="#icone"        class="nav-link"><span class="num">02</span>Icone Cliquable dans le Chat</a>
+    <a href="#donnees"      class="nav-link"><span class="num">03</span>Structure de Donnees Report</a>
+    <a href="#report-cmd"   class="nav-link"><span class="num">04</span>Commande /report</a>
+    <a href="#reports-cmd"  class="nav-link"><span class="num">05</span>Commande /reports</a>
+    <a href="#automute"     class="nav-link"><span class="num">06</span>Auto-Mute par Reports</a>
+    <a href="#integration"  class="nav-link"><span class="num">07</span>Integration ChatManager</a>
+    <a href="#architecture" class="nav-link"><span class="num">08</span>Architecture</a>
+    <a href="#config"       class="nav-link"><span class="num">09</span>Configuration</a>
+    <a href="#permissions"  class="nav-link"><span class="num">10</span>Permissions</a>
+    <a href="#tests"        class="nav-link"><span class="num">11</span>Plan de Tests</a>
+  </aside>
+
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">EriniumFaction · Cahier des charges</div>
+      <h1>Systeme de Report Chat</h1>
+      <p>Signalement de messages inappropriés directement depuis le chat via une icône cliquable. Outils de consultation et d'action pour les modérateurs. Auto-mute configurable en cas de signalements répétés.</p>
+      <div class="header-badges">
+        <span class="badge badge-red">Moderation</span>
+        <span class="badge badge-violet">Chat Integration</span>
+        <span class="badge badge-cyan">EriChat</span>
+        <span class="badge badge-gold">Anti-Spam</span>
+        <span class="badge badge-pink">Planifie</span>
+      </div>
+    </div>
+
+    <!-- 01. CONTEXTE -->
+    <div class="section-card" id="contexte">
+      <h2><span class="s-num">01</span>Contexte &amp; Objectifs</h2>
+      <h3 class="first">Pourquoi ce systeme</h3>
+      <p>Sur un serveur de 500-1000 joueurs, le chat est actif et les modérateurs ne peuvent pas tout lire. Le système de report permet aux joueurs de signaler un message en un clic, sans avoir à mémoriser une commande ou copier un texte. Les modérateurs reçoivent les reports en temps réel et peuvent agir directement depuis le chat.</p>
+      <h3>Objectifs</h3>
+      <ul>
+        <li><strong>Friction minimale</strong> — un clic sur l'icône suffit pour signaler, pas besoin de copier le message</li>
+        <li><strong>Icône invisible pour l'auteur</strong> — le joueur qui envoie un message ne voit pas son propre icône de report</li>
+        <li><strong>Cooldown anti-spam</strong> — un joueur ne peut pas flood les reports (1 report par minute)</li>
+        <li><strong>Buffer consultable</strong> — les 50 derniers reports sont accessibles aux mods via /reports</li>
+        <li><strong>Auto-mute</strong> — si un joueur accumule trop de reports en peu de temps, il est muté automatiquement</li>
+        <li><strong>Intégration ChatManager</strong> — s'appuie sur le système de chat existant, pas de mixin fragile</li>
+      </ul>
+      <div class="info-box info">
+        <span class="icon">ℹ</span>
+        <div class="content"><strong>Dependance :</strong> Ce système requiert que le système d'administration (administration.html) soit implémenté en premier, car l'auto-mute appelle <code>AdminManager.applyMute()</code> pour enregistrer la sanction au casier judiciaire.</div>
+      </div>
+    </div>
+
+    <!-- 02. ICONE CLIQUABLE -->
+    <div class="section-card" id="icone">
+      <h2><span class="s-num red-num">02</span>Icone Cliquable dans le Chat</h2>
+      <h3 class="first">Apercu visuel</h3>
+      <p>Chaque message dans le chat est précédé d'une icône rouge cliquable. Voici comment un message apparaît pour les autres joueurs :</p>
+      <div class="report-preview">
+        <span class="report-icon" title="Cliquer pour signaler">&#9888;</span>
+        <span class="report-faction"> [Guerriers] </span>
+        <span class="report-name">JoueurXYZ</span>
+        <span class="report-msg">: Bonjour à tous !</span>
+      </div>
+      <p>L'auteur du message voit son propre message <strong>sans</strong> l'icône :</p>
+      <div class="report-preview">
+        <span class="report-faction">[Guerriers] </span>
+        <span class="report-name">JoueurXYZ</span>
+        <span class="report-msg">: Bonjour à tous !</span>
+      </div>
+      <h3>Construction du ITextComponent</h3>
+      <div class="code-block"><span class="cm">// Construction de l'icône de report — ReportManager.buildReportIcon()</span>
+<span class="kw">public static</span> <span class="ty">ITextComponent</span> <span class="fn">buildReportIcon</span>(String targetName, <span class="kw">int</span> messageId) {
+    <span class="ty">TextComponentString</span> icon <span class="op">=</span> <span class="kw">new</span> <span class="ty">TextComponentString</span>(<span class="st">"⚠ "</span>);
+    <span class="ty">Style</span> style <span class="op">=</span> <span class="kw">new</span> <span class="ty">Style</span>();
+    style.<span class="fn">setColor</span>(TextFormatting.RED);
+    style.<span class="fn">setBold</span>(<span class="kw">true</span>);
+
+    <span class="cm">// Clic → exécute /report &lt;pseudo&gt; Message+inappropriate</span>
+    style.<span class="fn">setClickEvent</span>(<span class="kw">new</span> <span class="ty">ClickEvent</span>(
+        ClickEvent.Action.RUN_COMMAND,
+        <span class="st">"/report "</span> <span class="op">+</span> targetName <span class="op">+</span> <span class="st">" Message inapproprié"</span>
+    ));
+
+    <span class="cm">// Hover → texte d'aide</span>
+    style.<span class="fn">setHoverEvent</span>(<span class="kw">new</span> <span class="ty">HoverEvent</span>(
+        HoverEvent.Action.SHOW_TEXT,
+        <span class="kw">new</span> <span class="ty">TextComponentString</span>(<span class="st">"§7Cliquer pour signaler ce message\n§8ID: #"</span> <span class="op">+</span> messageId)
+    ));
+
+    icon.<span class="fn">setStyle</span>(style);
+    <span class="kw">return</span> icon;
+}</div>
+      <h3>ID de message</h3>
+      <p>Chaque message reçoit un identifiant entier incrémental (<code>messageIdCounter</code> dans ReportManager, thread-safe via AtomicInteger). L'ID est visible dans le hover de l'icône et permet d'identifier quel message exact a été signalé lors de la consultation du buffer.</p>
+      <h3>Distribution selective</h3>
+      <div class="flow">
+        <div class="flow-step">
+          <div>
+            <div class="flow-step-title">ServerChatEvent</div>
+            <div class="flow-step-desc">Le message est intercepté avant distribution. ReportManager.onChat() est appelé.</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div>
+            <div class="flow-step-title">Attribution d'un ID</div>
+            <div class="flow-step-desc">Un ID unique est assigné via <code>messageIdCounter.getAndIncrement()</code>. Le message est mis en buffer (50 derniers).</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div>
+            <div class="flow-step-title">Construction du message complet</div>
+            <div class="flow-step-desc">Le composant final est : <code>[icône] + message original</code>. L'icône est un ITextComponent séparé prepend au message existant.</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div>
+            <div class="flow-step-title">Distribution</div>
+            <div class="flow-step-desc">L'event est cancelled. Le message <strong>avec</strong> icône est envoyé à tous les joueurs SAUF l'auteur. L'auteur reçoit le message <strong>sans</strong> icône (message original).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03. STRUCTURE DONNEES -->
+    <div class="section-card" id="donnees">
+      <h2><span class="s-num">03</span>Structure de Donnees</h2>
+      <h3 class="first">ReportEntry — un report</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">ReportEntry</span> {
+    <span class="kw">public final int</span>    messageId;     <span class="cm">// ID unique du message signalé</span>
+    <span class="kw">public final</span> String  reporterName;  <span class="cm">// Pseudo du signaleur</span>
+    <span class="kw">public final</span> UUID    reporterUUID;
+    <span class="kw">public final</span> String  targetName;    <span class="cm">// Pseudo du signalé</span>
+    <span class="kw">public final</span> UUID    targetUUID;
+    <span class="kw">public final</span> String  message;       <span class="cm">// Contenu du message signalé (tronqué à 256 chars)</span>
+    <span class="kw">public final</span> String  reason;        <span class="cm">// Raison choisie par le signaleur</span>
+    <span class="kw">public final long</span>   timestamp;     <span class="cm">// System.currentTimeMillis()</span>
+    <span class="kw">public</span>       boolean dismissed;    <span class="cm">// Ignoré par un mod via /reports</span>
+}</div>
+      <h3>Buffer de messages recents — MessageEntry</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">MessageEntry</span> {
+    <span class="kw">public final int</span>    id;
+    <span class="kw">public final</span> String  authorName;
+    <span class="kw">public final</span> UUID    authorUUID;
+    <span class="kw">public final</span> String  content;    <span class="cm">// Message brut (sans formatage chat)</span>
+    <span class="kw">public final long</span>   timestamp;
+}</div>
+      <h3>Stockage en memoire</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="ty">ReportManager</span> {
+    <span class="cm">// Buffer circulaire des 50 derniers reports</span>
+    <span class="kw">private final</span> ArrayDeque&lt;ReportEntry&gt; reportsBuffer <span class="op">=</span> <span class="kw">new</span> ArrayDeque&lt;&gt;(<span class="nu">50</span>);
+
+    <span class="cm">// Buffer circulaire des 100 derniers messages (pour associer un report à son message)</span>
+    <span class="kw">private final</span> ArrayDeque&lt;MessageEntry&gt; messagesBuffer <span class="op">=</span> <span class="kw">new</span> ArrayDeque&lt;&gt;(<span class="nu">100</span>);
+
+    <span class="cm">// Cooldown : UUID → timestamp du dernier report envoyé</span>
+    <span class="kw">private final</span> Map&lt;UUID, Long&gt; lastReportTime <span class="op">=</span> <span class="kw">new</span> HashMap&lt;&gt;();
+
+    <span class="cm">// Reports par cible dans la fenêtre glissante (UUID → liste de timestamps)</span>
+    <span class="kw">private final</span> Map&lt;UUID, List&lt;Long&gt;&gt; reportsAgainst <span class="op">=</span> <span class="kw">new</span> HashMap&lt;&gt;();
+
+    <span class="cm">// Compteur de messages (AtomicInteger pour thread-safety)</span>
+    <span class="kw">private final</span> AtomicInteger messageIdCounter <span class="op">=</span> <span class="kw">new</span> AtomicInteger(<span class="nu">1</span>);
+}</div>
+      <div class="info-box warn">
+        <span class="icon">⚠</span>
+        <div class="content"><strong>Stockage volatile :</strong> Le buffer de reports est uniquement en mémoire et ne survit pas aux redémarrages. Il représente les signalements actifs de la session en cours. Pour un historique long terme, les reports déclenchant une sanction sont enregistrés dans le casier judiciaire via AdminManager.</div>
+      </div>
+    </div>
+
+    <!-- 04. /report -->
+    <div class="section-card" id="report-cmd">
+      <h2><span class="s-num gold-num">04</span>Commande /report</h2>
+      <h3 class="first">Syntaxe</h3>
+      <div class="code-block">/report &lt;joueur&gt; [raison]</div>
+      <h3>Comportement</h3>
+      <ul>
+        <li><strong>Permission :</strong> aucune — tout le monde peut signaler</li>
+        <li><strong>Cooldown :</strong> 1 report par minute par joueur (configurable). Message si trop tôt : <em>"Vous avez déjà signalé un joueur récemment. Attendez {N} secondes."</em></li>
+        <li><strong>Auto-raison :</strong> si la raison est omise, elle vaut <code>"Message inapproprié"</code></li>
+        <li><strong>Confirmation au signaleur :</strong> <em>"[REPORT] Votre signalement a été transmis aux modérateurs."</em> (message discret, en gris)</li>
+        <li><strong>Alerte aux mods :</strong> tous les joueurs en ligne avec la permission <code>eriniumfaction.mod.lookup</code> reçoivent l'alerte en rouge</li>
+        <li><strong>Enregistrement :</strong> le report est ajouté au buffer avec timestamp, recherche du dernier message de la cible dans messagesBuffer</li>
+        <li><strong>Pas de report de soi-même :</strong> vérification <code>sender == target</code></li>
+      </ul>
+      <h3>Alerte aux moderateurs</h3>
+      <div class="code-block"><span class="cm">// Message aux mods (via EriChat pour le formatage riche)</span>
+EriChat.<span class="fn">create</span>()
+    .text(<span class="st">"[REPORT] "</span>).color(TextFormatting.RED).bold()
+    .text(reporterName).color(TextFormatting.YELLOW)
+    .text(<span class="st">" a signalé "</span>).color(TextFormatting.GRAY)
+    .text(targetName).color(TextFormatting.WHITE).bold()
+    .text(<span class="st">"\nDernier message : \""</span>).color(TextFormatting.GRAY)
+    .text(lastMessage).color(TextFormatting.WHITE)  <span class="cm">// tronqué à 80 chars</span>
+    .text(<span class="st">"\"\nRaison : "</span>).color(TextFormatting.GRAY)
+    .text(reason).color(TextFormatting.GOLD)
+    .text(<span class="st">" | "</span>).color(TextFormatting.DARK_GRAY)
+    .text(<span class="st">"[Mute]"</span>).color(TextFormatting.RED).bold()
+    .command(<span class="st">"/mute "</span> <span class="op">+</span> targetName <span class="op">+</span> <span class="st">" 30m Report joueur"</span>)
+    .hover(<span class="st">"Muter "</span> <span class="op">+</span> targetName <span class="op">+</span> <span class="st">" 30 minutes"</span>)
+    .text(<span class="st">" "</span>)
+    .text(<span class="st">"[Warn]"</span>).color(TextFormatting.GOLD).bold()
+    .command(<span class="st">"/warn "</span> <span class="op">+</span> targetName <span class="op">+</span> <span class="st">" Report joueur"</span>)
+    .hover(<span class="st">"Avertir "</span> <span class="op">+</span> targetName)
+    .<span class="fn">toPlayersWithPermission</span>(<span class="st">"eriniumfaction.mod.lookup"</span>);</div>
+      <h3>Gestion du cooldown</h3>
+      <div class="code-block"><span class="cm">// Vérification du cooldown — O(1)</span>
+<span class="kw">long</span> now <span class="op">=</span> System.<span class="fn">currentTimeMillis</span>();
+<span class="kw">long</span> lastTime <span class="op">=</span> lastReportTime.<span class="fn">getOrDefault</span>(player.<span class="fn">getUniqueID</span>(), <span class="nu">0L</span>);
+<span class="kw">long</span> cooldownMs <span class="op">=</span> config.reportCooldownSeconds <span class="op">*</span> <span class="nu">1000L</span>;
+
+<span class="kw">if</span> (now <span class="op">-</span> lastTime <span class="op">&lt;</span> cooldownMs) {
+    <span class="kw">long</span> remaining <span class="op">=</span> (cooldownMs <span class="op">-</span> (now <span class="op">-</span> lastTime)) <span class="op">/</span> <span class="nu">1000</span>;
+    <span class="cm">// Envoyer message d'erreur au joueur</span>
+    <span class="kw">return</span>;
+}
+lastReportTime.<span class="fn">put</span>(player.<span class="fn">getUniqueID</span>(), now);</div>
+    </div>
+
+    <!-- 05. /reports -->
+    <div class="section-card" id="reports-cmd">
+      <h2><span class="s-num cyan-num">05</span>Commande /reports</h2>
+      <h3 class="first">Syntaxe</h3>
+      <div class="code-block">/reports [page]</div>
+      <h3>Comportement</h3>
+      <ul>
+        <li><strong>Permission :</strong> <code>eriniumfaction.mod.reports</code></li>
+        <li>Affiche les reports du buffer, du plus récent au plus ancien</li>
+        <li>8 reports par page, pagination via ChatPaginator</li>
+        <li>En-tête : <em>"=== Reports récents ({N} signalements) ==="</em></li>
+        <li>Chaque entrée : <strong>[heure]</strong> <em>Signaleur</em> a signalé <strong>Cible</strong> — <em>"message tronqué"</em> — Raison</li>
+        <li>Actions cliquables sur chaque ligne : <code>[Mute 30m]</code> <code>[Warn]</code> <code>[Ignorer]</code></li>
+        <li>Les reports ignorés (dismissed=true) sont affichés en grisé</li>
+        <li>Si aucun report : <em>"Aucun report récent."</em></li>
+      </ul>
+      <h3>Affichage avec ChatPaginator</h3>
+      <div class="code-block"><span class="cm">// En-tête</span>
+EriChat.<span class="fn">create</span>()
+    .text(<span class="st">"═══ Reports récents ("</span> <span class="op">+</span> count <span class="op">+</span> <span class="st">") ═══"</span>).color(TextFormatting.DARK_RED).bold()
+    .to(sender);
+
+<span class="cm">// Par report dans la pagination</span>
+<span class="kw">for</span> (<span class="ty">ReportEntry</span> r : reports) {
+    EriChat.<span class="fn">create</span>()
+        .text(<span class="st">"["</span> <span class="op">+</span> <span class="fn">formatHour</span>(r.timestamp) <span class="op">+</span> <span class="st">"] "</span>).color(TextFormatting.DARK_GRAY)
+        .text(r.reporterName).color(TextFormatting.YELLOW)
+        .text(<span class="st">" → "</span>).color(TextFormatting.GRAY)
+        .text(r.targetName).color(TextFormatting.WHITE).bold()
+        .text(<span class="st">" — \""</span> <span class="op">+</span> <span class="fn">truncate</span>(r.message, <span class="nu">50</span>) <span class="op">+</span> <span class="st">"\""</span>).color(TextFormatting.GRAY)
+        .text(<span class="st">" "</span>)
+        .text(<span class="st">"[M]"</span>).color(TextFormatting.RED).command(<span class="st">"/mute "</span> <span class="op">+</span> r.targetName <span class="op">+</span> <span class="st">" 30m Report"</span>).hover(<span class="st">"Muter 30min"</span>)
+        .text(<span class="st">" "</span>)
+        .text(<span class="st">"[W]"</span>).color(TextFormatting.GOLD).command(<span class="st">"/warn "</span> <span class="op">+</span> r.targetName <span class="op">+</span> <span class="st">" Report joueur"</span>).hover(<span class="st">"Avertir"</span>)
+        .text(<span class="st">" "</span>)
+        .text(<span class="st">"[✓]"</span>).color(TextFormatting.GREEN).command(<span class="st">"/reports dismiss "</span> <span class="op">+</span> r.messageId).hover(<span class="st">"Ignorer ce report"</span>)
+        .to(sender);
+}</div>
+      <h3>Sous-commande dismiss</h3>
+      <div class="code-block">/reports dismiss &lt;messageId&gt;  — <span class="cm">marque un report comme ignoré (dismissed=true)</span></div>
+    </div>
+
+    <!-- 06. AUTO-MUTE -->
+    <div class="section-card" id="automute">
+      <h2><span class="s-num orange-num">06</span>Auto-Mute par Reports</h2>
+      <h3 class="first">Principe</h3>
+      <p>Si un joueur reçoit trop de signalements dans une fenêtre de temps courte, il est muté automatiquement. Cette fonctionnalité est configurable et peut être désactivée.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Parametre</th><th>Defaut</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>autoMuteAfterReports</td><td>5</td><td>Nombre de reports uniques dans la fenêtre pour déclencher l'auto-mute</td></tr>
+            <tr><td>autoMuteReportWindow</td><td>10 minutes</td><td>Fenêtre glissante en minutes</td></tr>
+            <tr><td>autoMuteDuration</td><td>15 minutes</td><td>Durée du mute automatique déclenché par les reports</td></tr>
+            <tr><td>autoMuteEnabled</td><td>true</td><td>Activer ou désactiver l'auto-mute par reports</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Implementation</h3>
+      <div class="code-block"><span class="cm">// Appelé dans ReportManager.addReport() après chaque nouveau report</span>
+<span class="kw">private void</span> <span class="fn">checkAutoMute</span>(UUID targetUUID, String targetName) {
+    <span class="kw">if</span> (!config.autoMuteEnabled) <span class="kw">return</span>;
+
+    List&lt;Long&gt; times <span class="op">=</span> reportsAgainst.<span class="fn">computeIfAbsent</span>(targetUUID, k <span class="op">-></span> <span class="kw">new</span> ArrayList&lt;&gt;());
+    <span class="kw">long</span> now <span class="op">=</span> System.<span class="fn">currentTimeMillis</span>();
+    <span class="kw">long</span> windowMs <span class="op">=</span> config.autoMuteReportWindowMinutes <span class="op">*</span> <span class="nu">60_000L</span>;
+
+    <span class="cm">// Purger les timestamps hors fenêtre</span>
+    times.<span class="fn">removeIf</span>(t <span class="op">-></span> now <span class="op">-</span> t <span class="op">></span> windowMs);
+    times.<span class="fn">add</span>(now);
+
+    <span class="kw">if</span> (times.<span class="fn">size</span>() <span class="op">>=</span> config.autoMuteAfterReports) {
+        <span class="cm">// Déclencher le mute via AdminManager</span>
+        AdminManager.<span class="fn">getInstance</span>().<span class="fn">applyMute</span>(
+            targetUUID, targetName,
+            config.autoMuteDurationSeconds,
+            <span class="st">"[AUTO] Signalements multiples ("</span> <span class="op">+</span> times.<span class="fn">size</span>() <span class="op">+</span> <span class="st">" reports en "</span> <span class="op">+</span> config.autoMuteReportWindowMinutes <span class="op">+</span> <span class="st">"min)"</span>,
+            <span class="st">"SYSTEME"</span>
+        );
+        times.<span class="fn">clear</span>(); <span class="cm">// Reset pour éviter le spam de mutes</span>
+
+        <span class="cm">// Broadcast aux mods</span>
+        AdminManager.<span class="fn">getInstance</span>().<span class="fn">broadcastToStaff</span>(
+            <span class="st">"[AUTO-REPORT] "</span> <span class="op">+</span> targetName <span class="op">+</span> <span class="st">" muté automatiquement ("</span> <span class="op">+</span> times.<span class="fn">size</span>() <span class="op">+</span> <span class="st">" reports)"</span>
+        );
+    }
+}</div>
+      <h3>Reports uniques uniquement</h3>
+      <p>Pour éviter qu'un seul joueur déclenche l'auto-mute en envoyant 5 reports, le système compte les reporters <strong>uniques</strong> : si JoueurA reporte 5 fois la même personne, cela ne compte que pour 1. Il faut 5 reporters différents pour déclencher l'auto-mute.</p>
+    </div>
+
+    <!-- 07. INTEGRATION CHATMANAGER -->
+    <div class="section-card" id="integration">
+      <h2><span class="s-num">07</span>Integration ChatManager</h2>
+      <h3 class="first">Point d'integration</h3>
+      <p>L'injection de l'icône se fait dans le handler de l'événement <code>ServerChatEvent</code>. C'est le point le plus propre : l'event est cancellable, les ITextComponent sont accessibles, et la distribution manuelle aux joueurs permet de différencier l'auteur des autres.</p>
+      <div class="code-block"><span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onServerChat</span>(<span class="ty">ServerChatEvent</span> event) {
+    <span class="ty">EntityPlayerMP</span> author <span class="op">=</span> event.<span class="fn">getPlayer</span>();
+    <span class="ty">ITextComponent</span> originalMsg <span class="op">=</span> event.<span class="fn">getComponent</span>();
+
+    <span class="cm">// Vérification mute (AdminManager)</span>
+    <span class="kw">if</span> (AdminManager.<span class="fn">getInstance</span>().<span class="fn">isMuted</span>(author)) {
+        <span class="cm">// ... envoyer message "vous êtes muet"</span>
+        event.<span class="fn">setCanceled</span>(<span class="kw">true</span>);
+        <span class="kw">return</span>;
+    }
+
+    <span class="cm">// Enregistrer le message dans le buffer</span>
+    <span class="kw">int</span> msgId <span class="op">=</span> ReportManager.<span class="fn">getInstance</span>().<span class="fn">recordMessage</span>(author, originalMsg.<span class="fn">getUnformattedText</span>());
+
+    <span class="cm">// Construire la version "avec icône"</span>
+    <span class="ty">TextComponentString</span> reportIcon <span class="op">=</span> ReportManager.<span class="fn">buildReportIcon</span>(author.<span class="fn">getName</span>(), msgId);
+    <span class="ty">ITextComponent</span> withIcon <span class="op">=</span> reportIcon.<span class="fn">appendSibling</span>(originalMsg);
+
+    <span class="cm">// Distribution manuelle — cancel l'event Forge normal</span>
+    event.<span class="fn">setCanceled</span>(<span class="kw">true</span>);
+
+    <span class="ty">MinecraftServer</span> server <span class="op">=</span> author.<span class="fn">getServer</span>();
+    <span class="kw">for</span> (<span class="ty">EntityPlayerMP</span> player : server.<span class="fn">getPlayerList</span>().<span class="fn">getPlayers</span>()) {
+        <span class="kw">if</span> (player.<span class="fn">getUniqueID</span>().<span class="fn">equals</span>(author.<span class="fn">getUniqueID</span>())) {
+            <span class="cm">// L'auteur reçoit le message sans icône</span>
+            player.<span class="fn">sendMessage</span>(originalMsg);
+        } <span class="kw">else</span> {
+            <span class="cm">// Les autres reçoivent le message avec icône</span>
+            player.<span class="fn">sendMessage</span>(withIcon);
+        }
+    }
+}</div>
+      <div class="info-box tip">
+        <span class="icon">✓</span>
+        <div class="content"><strong>Compatible avec le chat faction :</strong> Si le ChatManager gère déjà différents canaux (faction, allié, global), le hook de report s'applique sur les messages du canal global uniquement. Les messages privés (/msg) n'ont pas d'icône de report.</div>
+      </div>
+    </div>
+
+    <!-- 08. ARCHITECTURE -->
+    <div class="section-card" id="architecture">
+      <h2><span class="s-num">08</span>Architecture</h2>
+      <div class="arch-grid">
+        <div class="arch-card">
+          <div class="arch-card-name">ReportManager</div>
+          <div class="arch-card-desc">Singleton principal. Buffer des reports et des messages. Cooldown tracking. Auto-mute logic. Construction des ITextComponent d'icône.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">ReportEntry</div>
+          <div class="arch-card-desc">POJO immuable. Représente un signalement : reporter, cible, message, raison, timestamp, dismissed.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">MessageEntry</div>
+          <div class="arch-card-desc">POJO immuable. Représente un message chat avec son ID, son auteur et son contenu brut. Buffer de 100 messages max.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">ReportCommand</div>
+          <div class="arch-card-desc">Gère /report (public) et /reports (mod). Sous-commande dismiss. Auto-complétion sur les pseudos.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">ReportEventHandler</div>
+          <div class="arch-card-desc">@Mod.EventBusSubscriber. Hook ServerChatEvent pour l'injection de l'icône et la distribution sélective.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-name">ReportConfig</div>
+          <div class="arch-card-desc">Configuration : cooldown, buffer size, seuils auto-mute, durée auto-mute.</div>
+        </div>
+      </div>
+      <h3>Package</h3>
+      <div class="code-block">fr.eriniumgroup.eriniumfaction.admin.report/
+  ReportManager.java
+  ReportCommand.java
+  ReportConfig.java
+  ReportEventHandler.java
+  data/
+    ReportEntry.java
+    MessageEntry.java</div>
+    </div>
+
+    <!-- 09. CONFIGURATION -->
+    <div class="section-card" id="config">
+      <h2><span class="s-num">09</span>Configuration</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Cle</th><th>Type</th><th>Defaut</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>reportCooldownSeconds</td><td>int</td><td>60</td><td>Délai minimum entre deux reports du même joueur (secondes)</td></tr>
+            <tr><td>maxReportsBuffer</td><td>int</td><td>50</td><td>Nombre max de reports conservés en mémoire</td></tr>
+            <tr><td>maxMessagesBuffer</td><td>int</td><td>100</td><td>Nombre max de messages récents conservés pour référence</td></tr>
+            <tr><td>autoMuteEnabled</td><td>bool</td><td>true</td><td>Activer l'auto-mute par reports</td></tr>
+            <tr><td>autoMuteAfterReports</td><td>int</td><td>5</td><td>Reporters uniques déclenchant l'auto-mute</td></tr>
+            <tr><td>autoMuteReportWindow</td><td>int</td><td>10</td><td>Fenêtre en minutes pour l'auto-mute</td></tr>
+            <tr><td>autoMuteDurationSeconds</td><td>int</td><td>900</td><td>Durée du mute auto par reports (900 = 15min)</td></tr>
+            <tr><td>showReportIconInChat</td><td>bool</td><td>true</td><td>Activer/désactiver l'icône ⚠ dans le chat</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 10. PERMISSIONS -->
+    <div class="section-card" id="permissions">
+      <h2><span class="s-num">10</span>Permissions</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Permission</th><th>Usage</th><th>Niveau</th></tr></thead>
+          <tbody>
+            <tr><td>(aucune)</td><td>/report — tout le monde peut signaler</td><td>Joueur</td></tr>
+            <tr><td>eriniumfaction.mod.reports</td><td>/reports — voir la liste des reports</td><td>Modérateur</td></tr>
+            <tr><td>eriniumfaction.mod.reports</td><td>Recevoir les alertes de reports en temps réel</td><td>Modérateur</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 11. PLAN DE TESTS -->
+    <div class="section-card" id="tests">
+      <h2><span class="s-num">11</span>Plan de Tests</h2>
+      <div class="checklist">
+        <div class="checklist-item"><strong>Icône dans le chat</strong> — envoyer un message et vérifier que l'icône ⚠ apparaît pour les autres joueurs mais pas pour l'auteur</div>
+        <div class="checklist-item"><strong>Clic sur icône</strong> — cliquer sur l'icône et vérifier que /report est exécuté automatiquement</div>
+        <div class="checklist-item"><strong>Hover</strong> — survoler l'icône et vérifier le texte d'aide et l'ID du message</div>
+        <div class="checklist-item"><strong>/report manuel</strong> — envoyer /report Joueur Raison et vérifier la confirmation + alerte aux mods</div>
+        <div class="checklist-item"><strong>Cooldown</strong> — tenter deux reports en moins d'une minute et vérifier le message d'erreur</div>
+        <div class="checklist-item"><strong>Auto-mute</strong> — simuler 5 reporters uniques dans la fenêtre et vérifier le mute automatique</div>
+        <div class="checklist-item"><strong>Reports uniques</strong> — vérifier qu'un seul joueur ne peut pas déclencher l'auto-mute seul</div>
+        <div class="checklist-item"><strong>/reports</strong> — vérifier la liste paginée avec actions cliquables</div>
+        <div class="checklist-item"><strong>/reports dismiss</strong> — marquer un report comme ignoré et vérifier l'affichage grisé</div>
+        <div class="checklist-item"><strong>Messages privés</strong> — vérifier que les /msg n'ont pas d'icône de report</div>
+        <div class="checklist-item"><strong>Pas de report de soi-même</strong> — vérifier le message d'erreur</div>
+        <div class="checklist-item"><strong>Buffer plein</strong> — dépasser 50 reports et vérifier que les plus anciens sont supprimés</div>
+        <div class="checklist-item"><strong>Performance</strong> — vérifier aucun lag perceptible avec 500+ joueurs actifs dans le chat</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>

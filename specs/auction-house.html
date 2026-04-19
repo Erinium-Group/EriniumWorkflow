@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Hotel des Ventes (HDV) | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #4AE0E0; --aetherite: #9B59B6; --erinium: #FFD700;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(74,224,224,0.09) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(255,215,0,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, #4AE0E0 40%, #FFD700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '>'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Architecture Technique</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Structures de Donnees</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Page Marche (Vente Directe)</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Page Lucky Block</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Page Encheres</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Page Statistiques</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Page Mes Ventes</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Packets Reseau</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Commandes &amp; Permissions</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Configuration</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Cas Limites &amp; Securite</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Hotel des Ventes (HDV)</h1>
+      <p>Systeme economique central permettant aux joueurs de vendre et acheter des items contre Dollars et Eris, avec vente directe, systeme de Lucky Blocks, encheres, et statistiques de marche en temps reel.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-gold">Dual Currency ($+Eris)</span>
+        <span class="badge badge-violet">Lucky Blocks</span>
+        <span class="badge badge-cyan">Encheres</span>
+        <span class="badge badge-green">Stats Marche</span>
+        <span class="badge badge-orange">Integration Mail</span>
+        <span class="badge badge-red">Anti-Duplication</span>
+      </div>
+    </div>
+
+    <!-- S1 — CONTEXTE & OBJECTIFS -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Vision du systeme</h3>
+      <p>Le HDV est la <strong>place de marche centralisee</strong> du serveur. Il remplace les shops manuels joueur-a-joueur par un systeme automatise, equitable et transparent. Les joueurs deposent des items a vendre, fixent un prix, et les acheteurs parcourent le catalogue. L'argent et les items sont echanges automatiquement.</p>
+      <p>Le HDV propose <strong>quatre modes de commerce</strong> distincts :</p>
+      <ul>
+        <li><strong>Vente directe (Marche) :</strong> deposer des items a un prix fixe par unite. L'acheteur choisit la quantite et paie immediatement.</li>
+        <li><strong>Lucky Block :</strong> le vendeur remplit une grille 3x9 avec des items, fixe un prix par bloc. L'acheteur achete un bloc mystere contenant un item aleatoire de la grille. Mecanique de gacha/loterie integree.</li>
+        <li><strong>Encheres :</strong> le vendeur met un item aux encheres avec un prix de depart et une duree. Les joueurs surencherissent. Le plus offrant gagne a la fin du timer.</li>
+        <li><strong>Statistiques :</strong> le joueur place un item pour voir un graphe des ventes des 7 derniers jours (quantite vendue x prix unitaire moyen).</li>
+      </ul>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Economie saine :</strong> le HDV est le pilier de l'economie. Toutes les transactions sont tracees et les prix visibles favorisent l'equilibre offre/demande.</li>
+        <li><strong>Double monnaie :</strong> chaque vente accepte Dollars OU Eris (pas les deux en meme temps). Le vendeur choisit la devise. Cela donne de la valeur aux deux monnaies.</li>
+        <li><strong>Fun via Lucky Blocks :</strong> le systeme de Lucky Block ajoute une dimension ludique/gacha. Les joueurs peuvent tenter leur chance pour obtenir des items rares a prix reduit.</li>
+        <li><strong>Transparence :</strong> les stats de marche permettent aux joueurs de fixer des prix justes bases sur l'historique reel des ventes.</li>
+        <li><strong>Anti-scam :</strong> tout passe par le serveur. Pas de triche possible cote client.</li>
+      </ul>
+
+      <h3>Ce que le systeme ne fait pas</h3>
+      <ul>
+        <li><strong>Pas de vente en personne :</strong> le HDV n'a pas de "shop physique" dans le monde. C'est un GUI accessible partout.</li>
+        <li><strong>Pas de negociation :</strong> les prix sont fixes (sauf encheres). Pas de systeme d'offre/contre-offre.</li>
+        <li><strong>Pas de credit :</strong> le joueur doit avoir l'argent disponible au moment de l'achat. Pas de paiement differe.</li>
+        <li><strong>Pas de taxe :</strong> en V1, pas de commission prelevee par le systeme. A ajouter en V2 si necessaire pour le sink d'argent.</li>
+      </ul>
+    </section>
+
+    <!-- S2 — ARCHITECTURE TECHNIQUE -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Architecture Technique</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <div class="ascii-diagram"><span class="ac">+------------------+</span>
+<span class="ac">| GuiHDV           |</span>  <span class="as">(Client — extends EriGuiScreen)</span>
+<span class="ac">| - TabView        |</span>  <span class="as">5 onglets : Marche, Lucky Block, Encheres, Stats, Mes Ventes</span>
+<span class="ac">+--------+---------+</span>
+         <span class="as">|  GuiNetworkHandler packets</span>
+         <span class="as">v</span>
+<span class="av">+------------------+</span>
+<span class="av">| HDVManager       |</span>  <span class="as">(Serveur — Singleton)</span>
+<span class="av">| - listings[]     |</span>  <span class="as">Ventes directes</span>
+<span class="av">| - luckyBlocks[]  |</span>  <span class="as">Lucky Blocks</span>
+<span class="av">| - auctions[]     |</span>  <span class="as">Encheres actives</span>
+<span class="av">| - statsHistory[] |</span>  <span class="as">Historique 7 jours</span>
+<span class="av">+--------+---------+</span>
+         <span class="as">|</span>
+         <span class="as">v</span>
+<span class="ag">+------------------+</span>     <span class="ay">+------------------+</span>
+<span class="ag">| WorldSavedData   |</span>     <span class="ay">| MailManager      |</span>
+<span class="ag">| AuctionWorldData |</span>----><span class="ay">| (livraison async)|</span>
+<span class="ag">| "erinium_hdv"    |</span>     <span class="ay">+------------------+</span>
+<span class="ag">+------------------+</span></div>
+
+      <h3>Package</h3>
+      <p>Toutes les classes du HDV dans <code>fr.eriniumgroup.eriniumfaction.hdv</code>.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Classe</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td>HDVManager</td><td>Singleton serveur. Gere toutes les listings, lucky blocks, encheres. API publique pour les autres systemes.</td></tr>
+            <tr><td>HDVListing</td><td>POJO d'une vente directe : vendeur, item, quantite restante, prix unitaire, devise, timestamp, expiration.</td></tr>
+            <tr><td>HDVLuckyBlock</td><td>POJO d'un lucky block : vendeur, grille 27 slots, prix par bloc, devise, slots restants.</td></tr>
+            <tr><td>HDVAuction</td><td>POJO d'une enchere : vendeur, item, prix de depart, enchere actuelle, meilleur encherisseur, duree, timestamp fin.</td></tr>
+            <tr><td>HDVStatsEntry</td><td>POJO d'une entree statistique : item ID, quantite vendue, prix unitaire, timestamp.</td></tr>
+            <tr><td>AuctionWorldData</td><td>Extends WorldSavedData. Stocke toutes les listings, lucky blocks, encheres et stats dans le world save. Cle : "erinium_hdv". Serialisation NBT via readFromNBT()/writeToNBT().</td></tr>
+            <tr><td>HDVConfig</td><td>Configuration : durees, limites, frais, etc.</td></tr>
+            <tr><td>GuiHDV</td><td>GUI principal (extends EriGuiScreen) avec TabView pour les 5 pages.</td></tr>
+            <tr><td>GuiHDVMarket</td><td>Page Marche (vente directe) — recherche, filtres, achat.</td></tr>
+            <tr><td>GuiHDVLucky</td><td>Page Lucky Block — creation et achat de lucky blocks.</td></tr>
+            <tr><td>GuiHDVAuction</td><td>Page Encheres — liste des encheres, surenchere.</td></tr>
+            <tr><td>GuiHDVStats</td><td>Page Stats — graphes de prix (LineChart EriAPI).</td></tr>
+            <tr><td>GuiHDVMySales</td><td>Page Mes Ventes — gestion des listings actives.</td></tr>
+            <tr><td>HDVAuctionTask</td><td>Tache planifiee (EriScheduler) qui verifie les encheres expirees chaque seconde.</td></tr>
+            <tr><td>HDVCommand</td><td>Commande /hdv pour ouvrir le GUI.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Stockage — WorldSavedData</h3>
+      <div class="code-block"><span class="cm">// Acces au stockage</span>
+<span class="ty">AuctionWorldData</span> data = (<span class="ty">AuctionWorldData</span>) world.getMapStorage()
+    .getOrLoadData(<span class="ty">AuctionWorldData</span>.<span class="kw">class</span>, <span class="st">"erinium_hdv"</span>);
+<span class="kw">if</span> (data == <span class="kw">null</span>) {
+    data = <span class="kw">new</span> <span class="ty">AuctionWorldData</span>(<span class="st">"erinium_hdv"</span>);
+    world.getMapStorage().setData(<span class="st">"erinium_hdv"</span>, data);
+}
+
+<span class="cm">// Structure NBT interne</span>
+<span class="cm">// AuctionWorldData contient des sous-maps :</span>
+<span class="cm">//   - "listings"   : NBTTagList de HDVListing serialises</span>
+<span class="cm">//   - "luckyblocks": NBTTagList de HDVLuckyBlock serialises</span>
+<span class="cm">//   - "auctions"   : NBTTagList de HDVAuction serialises</span>
+<span class="cm">//   - "stats"      : NBTTagCompound avec sous-cles par jour (7 jours max)</span>
+<span class="cm">// Les ItemStacks sont serialises via ItemStack.writeToNBT()/new ItemStack(nbt)</span></div>
+
+      <p>Le HDV utilise un <code>AuctionWorldData extends WorldSavedData</code> unique stocke dans le world save. Toutes les donnees (listings, lucky blocks, encheres, historique des prix) sont dans un seul NBT compound. Le chargement complet en memoire au demarrage est acceptable car le volume est borne (limites par joueur).</p>
+
+      <p>Raison du choix WorldSavedData :</p>
+      <ul>
+        <li><strong>Reset saisonnier :</strong> quand le monde est reset pour une nouvelle saison, toutes les donnees HDV sont automatiquement wipees avec le monde. Aucun nettoyage manuel necessaire. Les joueurs ne peuvent PAS conserver des listings ou des items HDV entre saisons.</li>
+        <li><strong>Coherence economique :</strong> le HDV fait partie de l'economie du monde. Un reset de monde = un reset complet du marche.</li>
+        <li><strong>Serialisation NBT native :</strong> les ItemStacks sont sauvegardes avec <code>ItemStack.writeToNBT()</code> / <code>new ItemStack(nbt)</code>, le format le plus fiable pour Minecraft.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Sauvegarde :</strong> Appeler <code>auctionWorldData.markDirty()</code> apres chaque modification. WorldSavedData est sauvegarde automatiquement par Minecraft lors des sauvegardes monde periodiques et a l'arret du serveur. Pour les operations critiques (achat, enchere), appeler <code>world.getMapStorage().saveAllData()</code> immediatement pour forcer la persistence.</div>
+      </div>
+    </section>
+
+    <!-- S3 — STRUCTURES DE DONNEES -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Structures de Donnees</h2>
+
+      <h3 class="first">HDVListing (Vente Directe)</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">HDVListing</span> {
+    <span class="kw">private final</span> <span class="ty">UUID</span> id;                <span class="cm">// ID unique de la listing</span>
+    <span class="kw">private final</span> <span class="ty">UUID</span> sellerUUID;         <span class="cm">// UUID du vendeur</span>
+    <span class="kw">private final</span> <span class="ty">String</span> sellerName;       <span class="cm">// Nom affiche du vendeur (cache)</span>
+    <span class="kw">private final</span> <span class="ty">ItemStack</span> itemTemplate;   <span class="cm">// Template de l'item (1 exemplaire avec NBT)</span>
+    <span class="kw">private</span> <span class="ty">int</span> quantityRemaining;         <span class="cm">// Quantite restante a vendre</span>
+    <span class="kw">private final</span> <span class="ty">long</span> unitPrice;          <span class="cm">// Prix par unite</span>
+    <span class="kw">private final</span> <span class="ty">CurrencyType</span> currency;   <span class="cm">// DOLLARS ou ERIS</span>
+    <span class="kw">private final</span> <span class="ty">long</span> createdAt;          <span class="cm">// Timestamp creation</span>
+    <span class="kw">private final</span> <span class="ty">long</span> expiresAt;          <span class="cm">// Timestamp expiration</span>
+}</div>
+
+      <h3>HDVLuckyBlock</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">HDVLuckyBlock</span> {
+    <span class="kw">private final</span> <span class="ty">UUID</span> id;
+    <span class="kw">private final</span> <span class="ty">UUID</span> sellerUUID;
+    <span class="kw">private final</span> <span class="ty">String</span> sellerName;
+    <span class="kw">private final</span> <span class="ty">ItemStack[]</span> slots;       <span class="cm">// 27 slots (3 rows x 9). Null = slot vide.</span>
+    <span class="kw">private final</span> <span class="ty">boolean[]</span> slotsWon;      <span class="cm">// Quels slots ont deja ete gagnes</span>
+    <span class="kw">private final</span> <span class="ty">ItemStack[]</span> previewSlots; <span class="cm">// Copie figee a la creation pour l'apercu public</span>
+    <span class="kw">private</span> <span class="ty">int</span> remainingBlocks;           <span class="cm">// Nombre de blocs restants a acheter</span>
+    <span class="kw">private final</span> <span class="ty">long</span> pricePerBlock;      <span class="cm">// Prix par lucky block</span>
+    <span class="kw">private final</span> <span class="ty">CurrencyType</span> currency;
+    <span class="kw">private final</span> <span class="ty">long</span> createdAt;
+    <span class="kw">private final</span> <span class="ty">long</span> expiresAt;
+}</div>
+
+      <h3>HDVAuction</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">HDVAuction</span> {
+    <span class="kw">private final</span> <span class="ty">UUID</span> id;
+    <span class="kw">private final</span> <span class="ty">UUID</span> sellerUUID;
+    <span class="kw">private final</span> <span class="ty">String</span> sellerName;
+    <span class="kw">private final</span> <span class="ty">ItemStack</span> item;           <span class="cm">// L'item mis aux encheres</span>
+    <span class="kw">private final</span> <span class="ty">long</span> startingPrice;       <span class="cm">// Prix de depart</span>
+    <span class="kw">private</span> <span class="ty">long</span> currentBid;               <span class="cm">// Enchere actuelle (= startingPrice si aucune enchere)</span>
+    <span class="kw">private</span> <span class="ty">UUID</span> highestBidderUUID;        <span class="cm">// UUID du meilleur encherisseur (null si aucun)</span>
+    <span class="kw">private</span> <span class="ty">String</span> highestBidderName;      <span class="cm">// Nom cache du meilleur encherisseur</span>
+    <span class="kw">private final</span> <span class="ty">CurrencyType</span> currency;
+    <span class="kw">private final</span> <span class="ty">long</span> endsAt;             <span class="cm">// Timestamp de fin de l'enchere</span>
+    <span class="kw">private final</span> <span class="ty">long</span> createdAt;
+    <span class="kw">private</span> <span class="ty">boolean</span> ended;               <span class="cm">// Flag de fin (traite par AuctionTask)</span>
+}</div>
+
+      <h3>CurrencyType (enum)</h3>
+      <div class="code-block"><span class="kw">public enum</span> <span class="cl">CurrencyType</span> {
+    <span class="an">DOLLARS</span>,  <span class="cm">// Monnaie principale ($)</span>
+    <span class="an">ERIS</span>;    <span class="cm">// Monnaie premium (Eris)</span>
+
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">getSymbol</span>() { ... }     <span class="cm">// "$" ou "E"</span>
+    <span class="kw">public</span> <span class="ty">int</span> <span class="fn">getColor</span>() { ... }          <span class="cm">// Vert pour $, Cyan pour Eris</span>
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">getTranslationKey</span>() { ... }
+}</div>
+
+      <h3>HDVStatsEntry</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">HDVStatsEntry</span> {
+    <span class="kw">private final</span> <span class="ty">String</span> itemId;          <span class="cm">// "minecraft:diamond", "eriniumfaction:faction_sword"</span>
+    <span class="kw">private final</span> <span class="ty">int</span> itemMeta;            <span class="cm">// Metadata de l'item (damage value)</span>
+    <span class="kw">private final</span> <span class="ty">int</span> quantitySold;       <span class="cm">// Quantite vendue dans cette transaction</span>
+    <span class="kw">private final</span> <span class="ty">long</span> unitPrice;         <span class="cm">// Prix unitaire de cette transaction</span>
+    <span class="kw">private final</span> <span class="ty">CurrencyType</span> currency;
+    <span class="kw">private final</span> <span class="ty">long</span> timestamp;
+}</div>
+    </section>
+
+    <!-- S4 — PAGE MARCHE -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Page Marche (Vente Directe)</h2>
+
+      <h3 class="first">Interface — Vue acheteur</h3>
+      <div class="ascii-diagram"><span class="ac">+====================================================================+</span>
+<span class="ac">|</span> <span class="ay">HOTEL DES VENTES</span>   <span class="as">[Marche] [Lucky] [Encheres] [Stats] [Mes Ventes]</span> <span class="ac">|</span>
+<span class="ac">|====================================================================|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Recherche: [________________________]  Devise: [$ / Eris]</span>       <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Tri: [Prix croissant v]  Categorie: [Tous v]</span>                   <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">--------------------------------------------------------------</span>  <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Diamant]</span>        64x  |  <span class="ag">$150/u</span>  |  <span class="as">Vendeur123</span>  | <span class="ac">[Acheter]</span>  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Fer]</span>           128x  |   <span class="ag">$10/u</span>  |  <span class="as">Player456</span>   | <span class="ac">[Acheter]</span>  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Epee Dia SV]</span>    1x  | <span class="ac">50E/u</span>   |  <span class="as">PvPKing</span>     | <span class="ac">[Acheter]</span>  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Perle Ender]</span>   16x  |   <span class="ag">$25/u</span>  |  <span class="as">Trader789</span>   | <span class="ac">[Acheter]</span>  <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Page 1/12</span>                              <span class="as">[&lt; Prev]  [Next &gt;]</span>      <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">[+ VENDRE UN ITEM]</span>                                              <span class="ac">|</span>
+<span class="ac">+====================================================================+</span></div>
+
+      <h3>Popup d'achat</h3>
+      <p>Quand le joueur clique [Acheter], une popup apparait :</p>
+      <ul>
+        <li><strong>Affichage :</strong> icone de l'item, nom, prix unitaire, vendeur.</li>
+        <li><strong>Champ quantite :</strong> NumericField (EriAPI) avec min=1, max=quantite disponible. Boutons rapides x1, x16, x64, MAX.</li>
+        <li><strong>Prix total :</strong> calcule en temps reel (quantite x prix unitaire). Affiche en gros.</li>
+        <li><strong>Solde joueur :</strong> affiche le solde actuel dans la devise concernee.</li>
+        <li><strong>Bouton Confirmer :</strong> grise si solde insuffisant. Texte "Acheter pour $X" ou "Acheter pour XE".</li>
+      </ul>
+
+      <h3>Popup de mise en vente</h3>
+      <p>Quand le joueur clique [+ VENDRE UN ITEM] :</p>
+      <ul>
+        <li><strong>Selection item :</strong> le joueur clique sur un item de son inventaire (rendu dans le GUI, pas un Container Forge). L'item est mis en surbrillance.</li>
+        <li><strong>Quantite :</strong> NumericField, max = quantite possedee de cet item exact (meme ID + meme NBT).</li>
+        <li><strong>Prix unitaire :</strong> NumericField (min=1). Le joueur fixe le prix PAR UNITE.</li>
+        <li><strong>Devise :</strong> RadioGroup (Dollars / Eris).</li>
+        <li><strong>Prix total affiche :</strong> quantite x prix unitaire (informatif seulement).</li>
+        <li><strong>Bouton Confirmer :</strong> retire les items de l'inventaire du joueur et cree la listing.</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Retrait des items :</strong> Les items sont retires de l'inventaire du joueur cote SERVEUR au moment de la creation de la listing. Le serveur verifie que le joueur possede bien les items en quantite suffisante. Cela previent la duplication.</div>
+      </div>
+
+      <h3>Recherche et filtres</h3>
+      <ul>
+        <li><strong>Recherche :</strong> TextField avec recherche par nom d'item (localized). Filtrage cote serveur pour eviter d'envoyer toutes les listings au client.</li>
+        <li><strong>Filtre devise :</strong> Dollars, Eris, ou Tous.</li>
+        <li><strong>Tri :</strong> Prix croissant, Prix decroissant, Plus recent, Plus ancien.</li>
+        <li><strong>Categorie :</strong> Armes, Armures, Outils, Blocs, Materiaux, Nourriture, Potions, Divers. Basees sur les classes d'items Forge (ItemSword, ItemArmor, etc.).</li>
+        <li><strong>Pagination :</strong> 10 listings par page. Navigation Prev/Next.</li>
+      </ul>
+    </section>
+
+    <!-- S5 — PAGE LUCKY BLOCK -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num orange-num">05</span> Page Lucky Block</h2>
+
+      <h3 class="first">Concept</h3>
+      <p>Le Lucky Block est une mecanique de <strong>gacha integree au HDV</strong>. Le vendeur cree un "Lucky Block" en remplissant une grille de 3 lignes x 9 colonnes (27 slots) avec des items de son inventaire. Il fixe un prix par "bloc". Les acheteurs paient le prix d'un bloc et recoivent <strong>un item aleatoire</strong> parmi ceux de la grille.</p>
+
+      <h3>Creation d'un Lucky Block (vendeur)</h3>
+      <div class="ascii-diagram"><span class="ac">+====================================================================+</span>
+<span class="ac">|</span>  <span class="ay">CREER UN LUCKY BLOCK</span>                                              <span class="ac">|</span>
+<span class="ac">|====================================================================|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Remplissez la grille avec les items a mettre en jeu :</span>            <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Dia][Dia][Fer][Fer][Fer][Or ][Or ][  ][  ]</span>  <span class="as">Ligne 1</span>            <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Fer][Fer][Fer][Fer][Or ][Or ][Or ][  ][  ]</span>  <span class="as">Ligne 2</span>            <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Or ][Or ][Or ][Or ][Or ][Boi][Boi][  ][  ]</span>  <span class="as">Ligne 3</span>            <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Slots remplis : 18/27</span>                                           <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Prix par bloc :</span> <span class="ag">[$______]</span>  <span class="as">Devise :</span> <span class="ac">[$ / Eris]</span>                <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Revenu max estimee :</span> <span class="ag">$X * 18 blocs = $Y</span>                          <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>                                           <span class="ag">[  CONFIRMER  ]</span>          <span class="ac">|</span>
+<span class="ac">+====================================================================+</span></div>
+      <ul>
+        <li><strong>Grille :</strong> le joueur clique sur un slot vide de la grille, puis clique sur un item de son inventaire pour le placer. Clic droit sur un slot rempli pour le retirer.</li>
+        <li><strong>Minimum :</strong> au moins 3 slots doivent etre remplis pour creer un Lucky Block.</li>
+        <li><strong>Items retires :</strong> les items sont retires de l'inventaire au moment de la confirmation (serveur).</li>
+        <li><strong>Prix par bloc :</strong> le vendeur fixe le prix que chaque acheteur paiera pour un tirage.</li>
+        <li><strong>Nombre de blocs :</strong> egal au nombre de slots remplis. Chaque bloc correspond a exactement un slot.</li>
+      </ul>
+
+      <h3>Achat d'un Lucky Block (acheteur)</h3>
+      <ul>
+        <li><strong>Vue liste :</strong> les Lucky Blocks actifs sont listes avec : nom du vendeur, prix par bloc, nombre de blocs restants, et un <strong>apercu des items possibles</strong>.</li>
+        <li><strong>Apercu :</strong> l'apercu montre les items qui ETAIENT dans la grille a la creation (<code>previewSlots</code>). Ce preview est <strong>fige et ne change JAMAIS</strong> apres la creation, meme quand des blocs sont achetes. Les acheteurs ne savent donc pas quels items ont deja ete gagnes.</li>
+        <li><strong>Achat :</strong> le joueur clique "Acheter un bloc", paie le prix, et recoit un item aleatoire parmi les slots restants.</li>
+        <li><strong>Livraison :</strong> l'item gagne est ajoute directement a l'inventaire du joueur. Si l'inventaire est plein, l'item est envoye par mail.</li>
+        <li><strong>Animation :</strong> une animation de "roulette" montre les items defiler avant de s'arreter sur l'item gagne (purement cosmetique cote client, le resultat est deja decide cote serveur).</li>
+      </ul>
+
+      <h3>Regles du tirage</h3>
+      <ul>
+        <li><strong>Selection aleatoire :</strong> le serveur choisit un slot aleatoire parmi les slots NON ENCORE GAGNES. Chaque slot a une probabilite egale (1/N ou N = slots restants).</li>
+        <li><strong>Pas de remplacement :</strong> une fois un slot gagne, il est retire du pool. Le dernier acheteur recoit le dernier item restant avec certitude.</li>
+        <li><strong>Preview inchange :</strong> le preview public montre toujours les 27 slots originaux. L'acheteur voit "Diamant, Fer, Or..." mais ne sait pas si le Diamant a deja ete gagne.</li>
+      </ul>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Anti-triche Lucky Block :</strong> Le tirage aleatoire DOIT utiliser <code>SecureRandom</code> (pas <code>Random</code>) pour eviter la prediction. Le resultat est decide cote serveur AVANT d'envoyer l'animation au client. Le client ne recoit que le resultat final, pas le seed.</div>
+      </div>
+    </section>
+
+    <!-- S6 — PAGE ENCHERES -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num red-num">06</span> Page Encheres</h2>
+
+      <h3 class="first">Interface</h3>
+      <div class="ascii-diagram"><span class="ac">+====================================================================+</span>
+<span class="ac">|</span> <span class="ay">ENCHERES ACTIVES</span>                                                   <span class="ac">|</span>
+<span class="ac">|====================================================================|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Epee Dia SV]</span>  | Actuelle: <span class="ag">$1,200</span> | <span class="as">PvPKing</span> | <span class="ar">Fin: 2h34m</span> | <span class="ac">[Encherir]</span><span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Armure P4]</span>    | Actuelle: <span class="ac">85E</span>    | <span class="as">-</span>       | <span class="ar">Fin: 5h12m</span> | <span class="ac">[Encherir]</span><span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Totem]</span>        | Actuelle: <span class="ag">$3,500</span> | <span class="as">Rich01</span>  | <span class="ar">Fin: 23m</span>   | <span class="ac">[Encherir]</span><span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">[+ METTRE AUX ENCHERES]</span>                                         <span class="ac">|</span>
+<span class="ac">+====================================================================+</span></div>
+
+      <h3>Creation d'une enchere</h3>
+      <ul>
+        <li><strong>Item :</strong> le joueur selectionne un item de son inventaire (un seul stack).</li>
+        <li><strong>Prix de depart :</strong> NumericField, minimum 1.</li>
+        <li><strong>Devise :</strong> RadioGroup (Dollars / Eris).</li>
+        <li><strong>Duree :</strong> choix parmi des presets : 1h, 6h, 12h, 24h, 48h, 72h.</li>
+        <li><strong>Confirmation :</strong> l'item est retire de l'inventaire. L'enchere est creee.</li>
+        <li><strong>Non annulable :</strong> une enchere ne peut PAS etre annulee par le vendeur une fois creee. Cela protege les encherisseurs.</li>
+      </ul>
+
+      <h3>Surenchere</h3>
+      <ul>
+        <li><strong>Montant minimum :</strong> la surenchere doit etre au moins <code>currentBid + minBidIncrement</code>. L'increment minimum est configurable (defaut: 10% du prix actuel, minimum 1).</li>
+        <li><strong>Debit immediat :</strong> le montant de l'enchere est debite immediatement du compte du joueur. Cela garantit que l'encherisseur a les fonds.</li>
+        <li><strong>Remboursement automatique :</strong> quand un joueur est surencheri, son montant est rembourse immediatement (si en ligne) ou par mail (si hors ligne).</li>
+        <li><strong>Extension de duree :</strong> si une enchere est placee dans les 5 dernieres minutes, la duree est etendue de 5 minutes (anti-snipe). Maximum 3 extensions par enchere.</li>
+      </ul>
+
+      <h3>Fin de l'enchere</h3>
+      <ul>
+        <li><strong>Gagnant :</strong> l'item est envoye au gagnant par mail (type AUCTION, message "Enchere gagnee — [Item]").</li>
+        <li><strong>Vendeur :</strong> l'argent (montant de l'enchere finale) est envoye au vendeur par mail (type AUCTION, message "Votre enchere pour [Item] s'est terminee — +$X").</li>
+        <li><strong>Aucun encherisseur :</strong> si personne n'a encheri, l'item est renvoye au vendeur par mail (type AUCTION, message "Votre enchere pour [Item] n'a recu aucune offre").</li>
+        <li><strong>Verification :</strong> la tache <code>HDVAuctionTask</code> verifie chaque seconde (20 ticks) si des encheres ont expire et les traite.</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Anti-snipe :</strong> L'extension de 5 minutes empeche les joueurs de placer une enchere a la derniere seconde pour gagner sans laisser le temps aux autres de reagir. Avec un maximum de 3 extensions, une enchere peut durer au plus 15 minutes de plus que prevu.</div>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#128295;</span>
+        <div class="content"><strong>Implementation — livraison hors ligne :</strong> utiliser <code>MailManager.getInstance().sendMail(UUID, ...)</code> pour envoyer les items et l'argent aux joueurs hors ligne. Le MailManager fonctionne par UUID et ne necessite pas que le joueur soit connecte. Les commandes admin (<code>/mailadmin</code>, <code>/rank</code>, <code>/money</code>) supportent egalement les UUID pour cibler des joueurs hors ligne.</div>
+      </div>
+    </section>
+
+    <!-- S7 — PAGE STATISTIQUES -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num cyan-num">07</span> Page Statistiques</h2>
+
+      <h3 class="first">Interface</h3>
+      <div class="ascii-diagram"><span class="ac">+====================================================================+</span>
+<span class="ac">|</span> <span class="ay">STATISTIQUES DE MARCHE</span>                                             <span class="ac">|</span>
+<span class="ac">|====================================================================|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Placez un item pour voir ses stats :</span>  <span class="ay">[  Diamant  ]</span>              <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">Prix moyen (7j) : $142/u</span>    <span class="as">Volume total : 1,847 unites</span>         <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">Prix min : $95/u</span>            <span class="as">Prix max : $210/u</span>                   <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ac">         EVOLUTION DU PRIX (7 JOURS)</span>                              <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag"> $200|</span>                          <span class="ag">*</span>                              <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag"> $150|</span>      <span class="ag">*---*</span>         <span class="ag">*---*</span>   <span class="ag">\</span>                           <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag"> $100|</span>  <span class="ag">*--/</span>      <span class="ag">\---*--/</span>         <span class="ag">*</span>                        <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">  $50|</span>                                                          <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">     +---+---+---+---+---+---+---</span>                               <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">      L   Ma  Me  J   V   S   D</span>                                 <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ac">         VOLUME QUOTIDIEN</span>                                        <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av"> 400|</span>               <span class="av">###</span>                                         <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av"> 300|</span>         <span class="av">###</span>   <span class="av">###   ###</span>                                   <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av"> 200|</span>   <span class="av">###   ###</span>   <span class="av">###   ###   ###</span>                             <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av"> 100|</span>   <span class="av">###   ###   ###   ###   ###   ###</span>                       <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">     +---+---+---+---+---+---+---</span>                               <span class="ac">|</span>
+<span class="ac">+====================================================================+</span></div>
+
+      <h3>Fonctionnement</h3>
+      <ul>
+        <li><strong>Selection item :</strong> le joueur clique sur un item de son inventaire (l'item n'est PAS consomme, juste utilise pour identifier le type). Ou champ de recherche par nom.</li>
+        <li><strong>Graphe prix :</strong> LineChart (EriAPI) affichant le prix unitaire moyen par jour sur 7 jours. Chaque point = moyenne ponderee des ventes du jour.</li>
+        <li><strong>Graphe volume :</strong> BarChart (EriAPI) affichant la quantite totale vendue par jour.</li>
+        <li><strong>Stats textuelles :</strong> prix moyen 7j, volume total, prix min, prix max.</li>
+        <li><strong>Dual devise :</strong> un toggle Dollars/Eris pour voir les stats par devise.</li>
+      </ul>
+
+      <h3>Collecte des donnees</h3>
+      <p>Chaque vente completee (directe ou enchere) genere un <code>HDVStatsEntry</code> qui est ajoute a la sous-cle du jour dans le WorldSavedData (format cle : "YYYY-MM-DD"). Les entrees de plus de 7 jours sont supprimees automatiquement lors du cleanup periodique.</p>
+    </section>
+
+    <!-- S8 — PAGE MES VENTES -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num green-num">08</span> Page Mes Ventes</h2>
+
+      <h3 class="first">Interface</h3>
+      <div class="ascii-diagram"><span class="ac">+====================================================================+</span>
+<span class="ac">|</span> <span class="ay">MES VENTES</span>                                                         <span class="ac">|</span>
+<span class="ac">|====================================================================|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">VENTES DIRECTES (3)</span>                                               <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Diamant]</span>     32/64 restants  |  <span class="ag">$150/u</span>  | <span class="ar">[Annuler]</span>            <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Fer]</span>        128/128 restants |   <span class="ag">$10/u</span>  | <span class="ar">[Annuler]</span>            <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Charbon]</span>     0/64 restants   |    <span class="ag">$5/u</span>  | <span class="as">[Vendu !]</span>            <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="av">LUCKY BLOCKS (1)</span>                                                 <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[LB #1]</span>       12/18 restants  | <span class="ag">$200/bloc</span> | <span class="ar">[Annuler]</span>           <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ar">ENCHERES (1)</span>                                                     <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Totem]</span>  Actuelle: <span class="ag">$3,500</span> | <span class="as">Rich01</span> | <span class="ar">Fin: 23m</span> | <span class="as">(Non annulable)</span> <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">+====================================================================+</span></div>
+
+      <h3>Actions</h3>
+      <ul>
+        <li><strong>Annuler vente directe :</strong> les items restants sont rendus a l'inventaire du joueur. Si l'inventaire est plein, les items sont envoyes par mail.</li>
+        <li><strong>Annuler Lucky Block :</strong> les items des slots NON GAGNES sont rendus. Les slots deja gagnes par des acheteurs sont perdus (deja livres).</li>
+        <li><strong>Encheres :</strong> NON annulables. Affichage informatif seulement (enchere actuelle, temps restant, encherisseur).</li>
+        <li><strong>Ventes completes :</strong> les ventes dont tous les items sont vendus sont affichees avec un badge "Vendu !" pendant 24h puis disparaissent.</li>
+      </ul>
+    </section>
+
+    <!-- S9 — PACKETS RESEAU -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num orange-num">09</span> Packets Reseau</h2>
+
+      <h3 class="first">Packets via GuiNetworkHandler</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Action</th><th>Direction</th><th>Payload</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>hdv_open</td><td>C &rarr; S</td><td>String tab (market/lucky/auction/stats/sales)</td><td>Ouvre le HDV sur un onglet specifique.</td></tr>
+            <tr><td>hdv_market_list</td><td>S &rarr; C</td><td>NBTTagList des listings (page, filtres appliques)</td><td>Liste des ventes pour la page demandee.</td></tr>
+            <tr><td>hdv_market_search</td><td>C &rarr; S</td><td>String query, String sort, String category, String currency, int page</td><td>Recherche/filtre sur le marche.</td></tr>
+            <tr><td>hdv_market_buy</td><td>C &rarr; S</td><td>UUID listingId, int quantity</td><td>Achat d'items sur le marche.</td></tr>
+            <tr><td>hdv_market_sell</td><td>C &rarr; S</td><td>int inventorySlot, int quantity, long unitPrice, String currency</td><td>Mise en vente d'un item.</td></tr>
+            <tr><td>hdv_lucky_list</td><td>S &rarr; C</td><td>NBTTagList des lucky blocks actifs</td><td>Liste des lucky blocks disponibles.</td></tr>
+            <tr><td>hdv_lucky_buy</td><td>C &rarr; S</td><td>UUID luckyBlockId</td><td>Achat d'un bloc lucky.</td></tr>
+            <tr><td>hdv_lucky_result</td><td>S &rarr; C</td><td>ItemStack won, int[] animationSequence</td><td>Resultat du tirage + sequence d'animation.</td></tr>
+            <tr><td>hdv_lucky_create</td><td>C &rarr; S</td><td>int[] inventorySlots, long pricePerBlock, String currency</td><td>Creation d'un lucky block.</td></tr>
+            <tr><td>hdv_auction_list</td><td>S &rarr; C</td><td>NBTTagList des encheres actives</td><td>Liste des encheres.</td></tr>
+            <tr><td>hdv_auction_bid</td><td>C &rarr; S</td><td>UUID auctionId, long bidAmount</td><td>Surenchere.</td></tr>
+            <tr><td>hdv_auction_create</td><td>C &rarr; S</td><td>int inventorySlot, long startPrice, String currency, int durationHours</td><td>Creation d'une enchere.</td></tr>
+            <tr><td>hdv_stats_query</td><td>C &rarr; S</td><td>String itemId, int itemMeta, String currency</td><td>Demande de stats pour un item.</td></tr>
+            <tr><td>hdv_stats_result</td><td>S &rarr; C</td><td>NBTTagList (daily data points over 7 days)</td><td>Donnees stats pour les graphes.</td></tr>
+            <tr><td>hdv_my_sales</td><td>S &rarr; C</td><td>NBTTagList (listings + lucky blocks + auctions du joueur)</td><td>Listings du joueur.</td></tr>
+            <tr><td>hdv_cancel</td><td>C &rarr; S</td><td>UUID listingId, String type (listing/lucky)</td><td>Annulation d'une vente directe ou lucky block.</td></tr>
+            <tr><td>hdv_result</td><td>S &rarr; C</td><td>boolean success, String errorKey</td><td>Resultat generique d'une operation.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- S10 — COMMANDES & PERMISSIONS -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num red-num">10</span> Commandes &amp; Permissions</h2>
+
+      <h3 class="first">Commandes joueur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Description</th><th>Permission</th></tr></thead>
+          <tbody>
+            <tr><td>/hdv</td><td>Ouvre le HDV sur la page Marche</td><td>Aucune</td></tr>
+            <tr><td>/hdv lucky</td><td>Ouvre le HDV sur la page Lucky Block</td><td>Aucune</td></tr>
+            <tr><td>/hdv auction</td><td>Ouvre le HDV sur la page Encheres</td><td>Aucune</td></tr>
+            <tr><td>/hdv stats</td><td>Ouvre le HDV sur la page Stats</td><td>Aucune</td></tr>
+            <tr><td>/hdv sales</td><td>Ouvre le HDV sur la page Mes Ventes</td><td>Aucune</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Commandes administrateur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Description</th><th>Permission</th></tr></thead>
+          <tbody>
+            <tr><td>/hdvadmin remove &lt;listingId&gt;</td><td>Supprime une listing/lucky/enchere. Items renvoyes au vendeur par mail.</td><td>eriniumfaction.hdv.admin.remove</td></tr>
+            <tr><td>/hdvadmin clear &lt;player&gt;</td><td>Supprime toutes les listings d'un joueur. Items renvoyes par mail.</td><td>eriniumfaction.hdv.admin.clear</td></tr>
+            <tr><td>/hdvadmin clearall</td><td>Supprime TOUTES les listings du HDV. Confirmation requise.</td><td>eriniumfaction.hdv.admin.clearall</td></tr>
+            <tr><td>/hdvadmin stats</td><td>Affiche les stats du HDV : nombre de listings, encheres, volume total.</td><td>eriniumfaction.hdv.admin.stats</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Keybind</h3>
+      <p>Touche configurable (defaut: <code>H</code>) enregistree via <code>EriKeys.create("eriniumfaction.open_hdv")</code> avec <code>KeyContext.IN_GAME</code>.</p>
+    </section>
+
+    <!-- S11 — CONFIGURATION -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num">11</span> Configuration</h2>
+
+      <h3 class="first">Fichier : config/eriniumfaction/hdv.cfg</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Parametre</th><th>Type</th><th>Defaut</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>hdv.maxListingsPerPlayer</td><td>int</td><td>20</td><td>Nombre max de ventes directes actives par joueur.</td></tr>
+            <tr><td>hdv.maxLuckyBlocksPerPlayer</td><td>int</td><td>5</td><td>Nombre max de lucky blocks actifs par joueur.</td></tr>
+            <tr><td>hdv.maxAuctionsPerPlayer</td><td>int</td><td>3</td><td>Nombre max d'encheres actives par joueur.</td></tr>
+            <tr><td>hdv.listingExpirationHours</td><td>int</td><td>168</td><td>Duree de vie d'une vente directe (defaut: 7 jours).</td></tr>
+            <tr><td>hdv.luckyBlockExpirationHours</td><td>int</td><td>168</td><td>Duree de vie d'un lucky block.</td></tr>
+            <tr><td>hdv.auctionDurations</td><td>int[]</td><td>[1,6,12,24,48,72]</td><td>Durees d'enchere proposees (heures).</td></tr>
+            <tr><td>hdv.minBidIncrementPercent</td><td>int</td><td>10</td><td>Pourcentage minimum de surenchere (10 = +10% minimum).</td></tr>
+            <tr><td>hdv.antiSnipeMinutes</td><td>int</td><td>5</td><td>Extension anti-snipe en minutes.</td></tr>
+            <tr><td>hdv.antiSnipeMaxExtensions</td><td>int</td><td>3</td><td>Nombre max d'extensions anti-snipe.</td></tr>
+            <tr><td>hdv.luckyBlockMinSlots</td><td>int</td><td>3</td><td>Nombre min de slots remplis pour creer un lucky block.</td></tr>
+            <tr><td>hdv.statsRetentionDays</td><td>int</td><td>7</td><td>Nombre de jours de conservation des stats de prix dans le WorldSavedData.</td></tr>
+            <tr><td>hdv.blacklistedItems</td><td>String[]</td><td>[]</td><td>Items interdits a la vente (format "modid:name:meta").</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- S12 — CAS LIMITES & SECURITE -->
+    <section class="section-card" id="s12">
+      <h2><span class="s-num red-num">12</span> Cas Limites &amp; Securite</h2>
+
+      <h3 class="first">Anti-duplication</h3>
+      <ul>
+        <li><strong>Retrait serveur :</strong> les items sont retires de l'inventaire du joueur cote SERVEUR quand il cree une listing/lucky/enchere. Le client n'a aucun controle.</li>
+        <li><strong>Verification de possession :</strong> le serveur verifie le slot d'inventaire specifie et compare l'item avec ce que le client pretend vendre. Si ca ne correspond pas, refus.</li>
+        <li><strong>Race condition achat :</strong> les achats sont synchronises par un lock sur la listing. Deux joueurs achetant le meme item en meme temps : le premier est traite, le second recoit "Quantite insuffisante".</li>
+        <li><strong>NBT matching :</strong> pour les ventes directes, l'item est stocke en template. L'acheteur recoit des copies exactes du template (meme NBT). Pas de substitution possible.</li>
+      </ul>
+
+      <h3>Anti-abus economiques</h3>
+      <ul>
+        <li><strong>Self-buy :</strong> un joueur ne peut PAS acheter ses propres items (vente directe + lucky blocks). Exception: il peut encherir sur ses propres encheres (pour augmenter le prix) mais c'est a ses risques.</li>
+        <li><strong>Prix aberrants :</strong> prix minimum = 1, prix maximum = configurable (defaut: 1,000,000,000). Empeche les transferts deguises a 0$ et les overflow.</li>
+        <li><strong>Items blacklisted :</strong> certains items ne peuvent pas etre vendus (bedrock, command blocks, items admin, etc.). Liste configurable.</li>
+        <li><strong>Stacks invalides :</strong> verification que l'item est un ItemStack valide (pas null, pas vide, pas count 0).</li>
+      </ul>
+
+      <h3>Deconnexion pendant operation</h3>
+      <ul>
+        <li><strong>Pendant la creation d'un Lucky Block :</strong> si le joueur se deconnecte apres avoir "place" des items dans la grille (cote client) mais avant de confirmer, rien ne se passe — les items n'ont pas ete retires.</li>
+        <li><strong>Pendant un achat :</strong> le serveur traite les packets de maniere atomique. Soit l'achat est completement traite avant la deconnexion, soit il ne l'est pas du tout.</li>
+        <li><strong>Enchere en cours :</strong> la deconnexion n'affecte pas les encheres. L'enchere continue. Le remboursement est envoye par mail si necessaire.</li>
+      </ul>
+
+      <h3>Expiration</h3>
+      <ul>
+        <li><strong>Ventes directes :</strong> apres expiration, les items restants sont renvoyes au vendeur par mail.</li>
+        <li><strong>Lucky Blocks :</strong> apres expiration, les items des slots NON GAGNES sont renvoyes au vendeur par mail.</li>
+        <li><strong>Encheres :</strong> gerees par <code>HDVAuctionTask</code> (voir section Encheres).</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Rate limiting :</strong> Limiter les operations HDV a 10 actions par joueur par minute (achats + mises en vente + encheres). Cela previent les bots et les scripts. Chaque joueur a un compteur decrement toutes les 6 secondes.</div>
+      </div>
+    </section>
+
+    <!-- S13 — PLAN DE TESTS -->
+    <section class="section-card" id="s13">
+      <h2><span class="s-num gold-num">13</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests Marche</h3>
+      <ul class="checklist">
+        <li><strong>Vente + Achat :</strong> joueur A vend 64 diamants a $150/u. Joueur B achete 32. Verifier : B recoit 32 diamants, B debite $4,800, listing mise a jour (32 restants), A recoit $4,800 par mail.</li>
+        <li><strong>Achat quantite exacte :</strong> acheter les 64 restants. Listing supprimee. Items livres.</li>
+        <li><strong>Achat quantite superieure :</strong> tenter d'acheter 100 quand il en reste 64. Verifier le refus.</li>
+        <li><strong>Solde insuffisant :</strong> tenter d'acheter sans assez d'argent. Verifier le refus.</li>
+        <li><strong>Annulation :</strong> annuler une vente avec 32/64 restants. Verifier 32 items renvoyes.</li>
+        <li><strong>Self-buy :</strong> tenter d'acheter son propre item. Verifier le refus.</li>
+        <li><strong>Limite listings :</strong> creer 21 listings (limite 20). Verifier le refus de la 21e.</li>
+      </ul>
+
+      <h3>Tests Lucky Block</h3>
+      <ul class="checklist">
+        <li><strong>Creation :</strong> remplir 18 slots, confirmer. Verifier items retires de l'inventaire, lucky block cree avec 18 blocs.</li>
+        <li><strong>Achat :</strong> acheter un bloc. Verifier item aleatoire recu, blocs restants = 17.</li>
+        <li><strong>Apercu inchange :</strong> acheter 5 blocs. Verifier que le preview montre toujours les 18 items originaux.</li>
+        <li><strong>Dernier bloc :</strong> acheter le dernier bloc. Verifier que le joueur recoit l'item restant avec certitude.</li>
+        <li><strong>Minimum slots :</strong> tenter de creer un lucky block avec 2 slots. Verifier le refus.</li>
+        <li><strong>Annulation :</strong> annuler avec 12/18 restants. Verifier 12 items renvoyes.</li>
+      </ul>
+
+      <h3>Tests Encheres</h3>
+      <ul class="checklist">
+        <li><strong>Creation + Bid :</strong> creer une enchere a $100. Joueur B encheri $150. Verifier : B debite $150, enchere mise a jour.</li>
+        <li><strong>Surenchere :</strong> joueur C encheri $200. Verifier : B rembourse $150 (mail ou direct), C debite $200.</li>
+        <li><strong>Increment minimum :</strong> tenter d'encherir $155 sur $150 (increment < 10%). Verifier le refus.</li>
+        <li><strong>Fin enchere :</strong> attendre la fin. Verifier : gagnant recoit l'item par mail, vendeur recoit l'argent par mail.</li>
+        <li><strong>Aucun encherisseur :</strong> attendre la fin sans enchere. Verifier : item renvoye au vendeur.</li>
+        <li><strong>Anti-snipe :</strong> encherir dans les 5 dernieres minutes. Verifier l'extension de 5 minutes.</li>
+        <li><strong>Non annulable :</strong> tenter d'annuler une enchere. Verifier le refus.</li>
+        <li><strong>Self-bid :</strong> le vendeur encheri sur sa propre enchere. Verifier le debit correct.</li>
+      </ul>
+
+      <h3>Tests Stats</h3>
+      <ul class="checklist">
+        <li><strong>Affichage :</strong> effectuer 10 ventes de diamants sur 3 jours. Verifier que le graphe affiche correctement les 3 points de donnees.</li>
+        <li><strong>Pas de donnees :</strong> chercher un item jamais vendu. Verifier message "Aucune donnee".</li>
+        <li><strong>Retention :</strong> verifier que les stats de plus de 7 jours sont supprimees.</li>
+      </ul>
+
+      <h3>Tests de securite</h3>
+      <ul class="checklist">
+        <li><strong>Packet forge :</strong> envoyer un packet d'achat avec un slot d'inventaire inexistant. Verifier pas de crash.</li>
+        <li><strong>Race condition :</strong> deux joueurs achetent le dernier item en meme temps. Verifier qu'un seul recoit l'item.</li>
+        <li><strong>Duplication :</strong> vendre un item puis tenter de le re-vendre (le slot est vide). Verifier le refus.</li>
+        <li><strong>Blacklist :</strong> tenter de vendre un item blackliste. Verifier le refus.</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+<script>
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', () => document.getElementById('sidebar').classList.remove('open'));
+});
+window.addEventListener('scroll', () => {
+  const sections = document.querySelectorAll('.section-card[id]');
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  document.querySelectorAll('.nav-link').forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+</body>
+</html>

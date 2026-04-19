@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guide de Visibilite — Lancement EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(245,158,11,0.06) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+
+  /* Main */
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+
+  /* Badges */
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; display: inline-block; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+
+  /* Section cards */
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+  .section-card:nth-child(14) { animation-delay: .70s; }
+  .section-card:nth-child(15) { animation-delay: .75s; }
+  .section-card:nth-child(16) { animation-delay: .80s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul, .section-card ol { list-style: none; display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '\203A'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ol li { font-size: 14px; color: var(--slate); padding-left: 24px; position: relative; counter-increment: step; }
+  .section-card ol li::before { content: counter(step); position: absolute; left: 0; color: var(--cyan); font-weight: 700; font-size: 12px; background: rgba(0,229,255,0.1); border-radius: 4px; padding: 0 6px; }
+  .section-card ol { counter-reset: step; }
+  .section-card ul li strong, .section-card ol li strong { color: var(--text); }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  /* Info boxes */
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+
+  /* Priority tags */
+  .prio-critique { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.12); color: var(--red); border: 1px solid rgba(231,76,60,0.3); letter-spacing: 0.05em; text-transform: uppercase; }
+  .prio-eleve    { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(230,126,34,0.12); color: var(--orange); border: 1px solid rgba(230,126,34,0.3); letter-spacing: 0.05em; text-transform: uppercase; }
+  .prio-moyen    { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(241,196,15,0.12); color: var(--gold); border: 1px solid rgba(241,196,15,0.3); letter-spacing: 0.05em; text-transform: uppercase; }
+  .prio-optionnel{ display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(136,146,164,0.12); color: var(--slate); border: 1px solid rgba(136,146,164,0.3); letter-spacing: 0.05em; text-transform: uppercase; }
+
+  /* Cost summary cards */
+  .cost-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+  .cost-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 20px; text-align: center; }
+  .cost-card.free    { border-top: 3px solid var(--green); }
+  .cost-card.mid     { border-top: 3px solid var(--gold); }
+  .cost-card.comfort { border-top: 3px solid var(--violet-l); }
+  .cost-card-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); margin-bottom: 8px; }
+  .cost-card.free    .cost-card-amount { color: var(--green); }
+  .cost-card.mid     .cost-card-amount { color: var(--gold); }
+  .cost-card.comfort .cost-card-amount { color: var(--violet-l); }
+  .cost-card-amount { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+  .cost-card-desc { font-size: 12px; color: var(--slate); }
+
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Mobile */
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .cost-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Marketing Guide</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Planning Global</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Discord</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> TikTok &amp; Shorts</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> YouTube Long</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Twitter / X</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Reddit</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Listes de Serveurs</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Influenceurs</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Beta Fermee</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Recrutement Staff</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> SEO &amp; Web</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Trailer &amp; Assets</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Pub Payante</a>
+    <a class="nav-link" href="#s14"><span class="num">14</span> Parrainage &amp; Retention</a>
+    <a class="nav-link" href="#s15"><span class="num">15</span> Checklist Finale</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <!-- Header -->
+    <header class="page-header">
+      <div class="eyebrow">Strategie de lancement</div>
+      <h1>Guide de Visibilite — Lancement EriniumFaction</h1>
+      <p>Plan d'action complet de mars a juillet 2026 pour transformer un serveur Minecraft inconnu en communaute active de plusieurs centaines de joueurs. Chaque methode est detaillee avec cout, effort, portee estimee et etapes concretes.</p>
+      <div class="header-badges">
+        <span class="badge badge-green">Cout minimum : 0 EUR</span>
+        <span class="badge badge-gold">Recommande : 50-150 EUR</span>
+        <span class="badge badge-violet">Confortable : 200-400 EUR</span>
+        <span class="badge badge-cyan">Mars &rarr; Juillet 2026</span>
+      </div>
+    </header>
+
+    <!-- Budget overview -->
+    <div class="cost-grid">
+      <div class="cost-card free">
+        <div class="cost-card-label">Budget Minimum</div>
+        <div class="cost-card-amount">0 EUR</div>
+        <div class="cost-card-desc">Discord + reseaux sociaux + listes gratuites + hustle pur</div>
+      </div>
+      <div class="cost-card mid">
+        <div class="cost-card-label">Budget Recommande</div>
+        <div class="cost-card-amount">50-150 EUR</div>
+        <div class="cost-card-desc">Domaine + listes premium + micro-influenceurs</div>
+      </div>
+      <div class="cost-card comfort">
+        <div class="cost-card-label">Budget Confortable</div>
+        <div class="cost-card-amount">200-400 EUR</div>
+        <div class="cost-card-desc">Pub payante + influenceurs moyens + branding pro</div>
+      </div>
+    </div>
+
+    <!-- ==================== SECTION 1 ==================== -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Planning Global — Timeline Mars-Juillet 2026</h2>
+
+      <p>Chaque mois a un objectif precis. Ne pas tout faire en meme temps : construire la hype progressivement.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Mois</th>
+              <th>Phase</th>
+              <th>Objectifs cles</th>
+              <th>Actions prioritaires</th>
+              <th>KPI cible</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Mars 2026</td>
+              <td><span class="badge badge-violet">Fondations</span></td>
+              <td>Poser l'infrastructure communautaire et les assets</td>
+              <td>Creer Discord, comptes reseaux, logo, banniere, premiere video teaser, wiki en ligne, inscription sur 5+ listes de serveurs</td>
+              <td>100 membres Discord, 3 posts reseaux</td>
+            </tr>
+            <tr>
+              <td>Avril 2026</td>
+              <td><span class="badge badge-cyan">Teasing</span></td>
+              <td>Generer de la curiosite, montrer le contenu unique</td>
+              <td>Devlogs hebdo (Discord + YouTube), 2 TikToks/semaine, posts Reddit, lancer la beta fermee (30-50 places), recruter les premiers staff</td>
+              <td>300 membres Discord, 50 candidatures beta</td>
+            </tr>
+            <tr>
+              <td>Mai 2026</td>
+              <td><span class="badge badge-green">Beta &amp; Feedback</span></td>
+              <td>Tester avec les premiers joueurs, creer des ambassadeurs</td>
+              <td>Beta fermee active, contenu beta (clips, screenshots), ajuster selon feedback, trailer officiel en production, contacter influenceurs</td>
+              <td>500 membres Discord, 30 beta-testeurs actifs</td>
+            </tr>
+            <tr>
+              <td>Juin 2026</td>
+              <td><span class="badge badge-gold">Pre-lancement</span></td>
+              <td>Maximiser la hype avant l'ouverture</td>
+              <td>Trailer officiel publie, push influenceurs, campagne pub optionnelle, systeme de parrainage actif, inscription ouverte, compteur J-X sur Discord</td>
+              <td>1000 membres Discord, trailer 5k+ vues</td>
+            </tr>
+            <tr>
+              <td>Juillet 2026</td>
+              <td><span class="badge badge-red">LANCEMENT</span></td>
+              <td>Ouvrir le serveur, retenir les joueurs, maintenir le rythme</td>
+              <td>Ouverture publique, event de lancement (1 semaine), vote rewards actifs, contenu quotidien sur les reseaux, retention via events hebdo, corriger les bugs en direct</td>
+              <td>100+ joueurs simultanes le jour J, 50+ la premiere semaine</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Regle d'or :</strong> Ne JAMAIS lancer sans au moins 500 personnes au courant de l'existence du serveur. Un lancement a 10 joueurs tue le serveur — personne ne reste sur un serveur vide. Mieux vaut repousser d'un mois que lancer trop tot.</div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 2 ==================== -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num green-num">02</span> Discord <span class="badge badge-green">Gratuit</span></h2>
+
+      <p>Discord est le <strong>coeur de la communaute</strong>. C'est la ou les joueurs s'engagent, discutent, et deviennent des ambassadeurs. Un Discord bien fait convertit les curieux en joueurs fideles.</p>
+
+      <h3 class="first">Structure des salons recommandee</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Categorie</th><th>Salons</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>ACCUEIL</td><td>#regles, #roles, #bienvenue</td><td>Auto-roles, regles claires, message de bienvenue avec bot</td></tr>
+            <tr><td>ANNONCES</td><td>#annonces, #devlogs, #changelog</td><td>Pings @everyone pour les annonces majeures uniquement</td></tr>
+            <tr><td>COMMUNAUTE</td><td>#general, #memes, #screenshots, #suggestions</td><td>Espaces libres pour l'engagement</td></tr>
+            <tr><td>SUPPORT</td><td>#faq, #aide, #tickets</td><td>Systeme de tickets (bot Ticket Tool ou similaire)</td></tr>
+            <tr><td>VOCAL</td><td>Lounge, Faction 1-5, Staff</td><td>Salons vocaux pour jouer ensemble</td></tr>
+            <tr><td>STAFF</td><td>#staff-chat, #moderation-log, #todo</td><td>Prive, visible staff uniquement</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Bots essentiels (tous gratuits)</h3>
+      <ul>
+        <li><strong>MEE6 ou Carl-bot</strong> — Auto-roles, bienvenue, moderation, niveaux</li>
+        <li><strong>Ticket Tool</strong> — Systeme de tickets support</li>
+        <li><strong>YAGPDB</strong> — Auto-moderation, commandes custom, reaction roles</li>
+        <li><strong>Statbot</strong> — Statistiques du serveur (croissance, activite)</li>
+      </ul>
+
+      <h3>Devlogs hebdomadaires — format</h3>
+      <p>Chaque semaine, poster un devlog dans #devlogs. Format recommande :</p>
+      <ul>
+        <li><strong>Titre accrocheur</strong> — ex: "Devlog #4 — Les artefacts legendaires arrivent"</li>
+        <li><strong>3-5 points cles</strong> de ce qui a ete fait cette semaine</li>
+        <li><strong>1-2 screenshots ou GIFs</strong> du contenu en developpement</li>
+        <li><strong>Teaser de la semaine prochaine</strong> — generer l'attente</li>
+        <li><strong>Question a la communaute</strong> — "Quel artefact vous excite le plus ?" pour generer de l'engagement</li>
+      </ul>
+
+      <h3>Systeme de parrainage Discord</h3>
+      <ol>
+        <li>Creer un lien d'invitation permanent avec tracking (vanity URL si possible)</li>
+        <li>Utiliser un bot de parrainage (InviteTracker gratuit) pour suivre qui invite qui</li>
+        <li>Recompenses : 3 invites = role "Recruteur", 10 invites = role "Ambassadeur" + badge en jeu, 25 invites = kit de lancement exclusif</li>
+        <li>Afficher un leaderboard des parrains dans un salon dedie</li>
+      </ol>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Astuce :</strong> Poster les devlogs le <strong>vendredi soir (19h-21h)</strong> — c'est le pic d'activite Discord pour la communaute gaming FR. Les gens scrollent en attendant de jouer le week-end.</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metrique</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Cout</td><td><span class="badge badge-green">0 EUR</span></td></tr>
+            <tr><td>Effort</td><td>3-5h setup initial + 2h/semaine maintenance</td></tr>
+            <tr><td>Portee estimee</td><td>Directe : membres du serveur. Indirecte : virale via partage d'invites</td></tr>
+            <tr><td>Priorite</td><td><span class="prio-critique">CRITIQUE</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 3 ==================== -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num red-num">03</span> TikTok &amp; YouTube Shorts <span class="badge badge-green">Gratuit</span></h2>
+
+      <p>Le format court (15-60 secondes) est le <strong>levier de croissance le plus puissant en 2026</strong>. Un seul TikTok viral peut amener des centaines de joueurs. L'algo favorise les petits comptes avec du contenu engageant.</p>
+
+      <h3 class="first">Types de contenus qui marchent</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Type</th><th>Description</th><th>Potentiel viral</th><th>Exemple</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Build showcase</td><td>Timelapse ou reveal de builds impressionnants</td><td><span class="badge badge-red">Tres eleve</span></td><td>"J'ai construit une base faction en 7 jours..."</td></tr>
+            <tr><td>PvP clips</td><td>Combats intenses, clutches, 1v5</td><td><span class="badge badge-red">Tres eleve</span></td><td>"Ce gars pensait avoir gagne..."</td></tr>
+            <tr><td>Feature reveal</td><td>Montrer une feature unique du serveur</td><td><span class="badge badge-orange">Eleve</span></td><td>"Ce serveur MC a des artefacts legendaires"</td></tr>
+            <tr><td>Progression</td><td>Avant/apres, jour 1 vs jour 100</td><td><span class="badge badge-orange">Eleve</span></td><td>"Ma faction jour 1 vs jour 30"</td></tr>
+            <tr><td>Tutorial rapide</td><td>Tip en 30 sec sur une mecanique du serveur</td><td><span class="badge badge-gold">Moyen</span></td><td>"3 choses que tu savais pas sur EriniumFaction"</td></tr>
+            <tr><td>Meme/humor</td><td>Moments droles, fails, situations absurdes</td><td><span class="badge badge-red">Tres eleve</span></td><td>"Quand ta faction te trahit..."</td></tr>
+            <tr><td>Storytelling</td><td>Mini-serie narrative sur le serveur</td><td><span class="badge badge-orange">Eleve</span></td><td>"L'histoire de la guerre des factions #1"</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Frequence et planning</h3>
+      <ul>
+        <li><strong>Minimum :</strong> 3 videos/semaine (lundi, mercredi, vendredi)</li>
+        <li><strong>Ideal :</strong> 1 video/jour pendant la phase pre-lancement</li>
+        <li><strong>Horaires FR optimaux :</strong> 18h-20h en semaine, 12h-14h le week-end</li>
+        <li><strong>Cross-post :</strong> Chaque video doit etre postee sur TikTok ET YouTube Shorts ET Instagram Reels — meme contenu, 3x la portee</li>
+      </ul>
+
+      <h3>Tips algorithmiques (2026)</h3>
+      <ol>
+        <li><strong>Hook dans les 2 premieres secondes</strong> — question, affirmation choc, visuel impressionnant. "Ce serveur Minecraft va changer votre vie" &gt; "Salut aujourd'hui on va voir..."</li>
+        <li><strong>Texte a l'ecran</strong> — 80% des viewers regardent sans son. Le texte superpose est obligatoire.</li>
+        <li><strong>Boucle parfaite</strong> — la fin ramene au debut, l'algo detecte les re-watches</li>
+        <li><strong>Hashtags :</strong> #minecraft #minecraftfaction #minecraftserver #minecraftpvp #faction #mcfaction #eriniumfaction (5-8 hashtags max)</li>
+        <li><strong>Engagement :</strong> Terminer par une question ou un CTA — "Vous rejoindriez cette faction ?"</li>
+        <li><strong>Repondre a CHAQUE commentaire</strong> dans la premiere heure — l'algo boost les videos avec beaucoup de commentaires</li>
+      </ol>
+
+      <h3>Outils gratuits</h3>
+      <ul>
+        <li><strong>CapCut (gratuit)</strong> — Montage video, sous-titres auto, effets, templates</li>
+        <li><strong>OBS Studio (gratuit)</strong> — Enregistrement ecran avec ReplayMod</li>
+        <li><strong>ReplayMod (gratuit)</strong> — Replay Minecraft pour les plans cinematiques</li>
+        <li><strong>DaVinci Resolve (gratuit)</strong> — Alternative pro a CapCut pour le montage avance</li>
+        <li><strong>Canva (gratuit)</strong> — Miniatures si besoin</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#128161;</span>
+        <div class="content"><strong>Strategie secrete :</strong> Poster la premiere video TikTok <strong>sans mentionner le nom du serveur</strong>. Juste du gameplay impressionnant. Les commentaires demanderont "c'est quoi ce serveur ?" et l'algo detecte l'engagement. Repondre a chaque commentaire avec l'IP/Discord = conversion maximale.</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metrique</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Cout</td><td><span class="badge badge-green">0 EUR</span></td></tr>
+            <tr><td>Effort</td><td>1-2h par video (enregistrement + montage)</td></tr>
+            <tr><td>Portee estimee</td><td>500-50 000 vues par video (variable, un viral peut atteindre 500k+)</td></tr>
+            <tr><td>Priorite</td><td><span class="prio-critique">CRITIQUE</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 4 ==================== -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num cyan-num">04</span> YouTube Long Format <span class="badge badge-green">Gratuit</span></h2>
+
+      <p>Les videos longues (5-20 min) construisent la <strong>credibilite et l'engagement profond</strong>. Un joueur qui regarde 15 minutes de contenu est 10x plus susceptible de rejoindre qu'un viewer de TikTok.</p>
+
+      <h3 class="first">Types de videos a produire</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Type</th><th>Duree</th><th>Quand</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Trailer officiel</td><td>1-2 min</td><td>Juin (pre-lancement)</td><td>Video cinematique avec ReplayMod + shaders. Musique epique. Montrer les features cles en 90 secondes. C'est la video la plus importante.</td></tr>
+            <tr><td>Devlog video</td><td>5-10 min</td><td>Bi-mensuel (avril-juin)</td><td>Montrer le developpement en cours, les decisions de design, le behind-the-scenes. Les gens adorent voir la fabrication.</td></tr>
+            <tr><td>Tour du serveur</td><td>10-15 min</td><td>Juin-Juillet</td><td>Guide complet de toutes les features : factions, PvP, enchantements, biomes, artefacts, machines. Le viewer doit se dire "je DOIS essayer ca".</td></tr>
+            <tr><td>Tutorial debutant</td><td>8-12 min</td><td>Juillet (lancement)</td><td>"Comment bien debuter sur EriniumFaction" — guide etape par etape pour les nouveaux joueurs</td></tr>
+            <tr><td>Let's Play serie</td><td>15-25 min</td><td>Post-lancement</td><td>Serie "De zero a la meilleure faction" — contenu regulier qui maintient l'interet</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Etapes pour le trailer officiel</h3>
+      <ol>
+        <li><strong>Script</strong> — Ecrire un script de 90 secondes. Structure : intro mysterieuse (10s) &rarr; reveal du monde (20s) &rarr; features uniques (30s) &rarr; PvP/action (20s) &rarr; call to action (10s)</li>
+        <li><strong>Captures</strong> — Utiliser ReplayMod avec shaders (BSL/Complementary) pour des plans cinematiques. Varier les angles : aerien, premiere personne, tracking shots</li>
+        <li><strong>Montage</strong> — CapCut ou DaVinci Resolve. Cuts rapides (2-3s par plan max), synchroniser sur la musique</li>
+        <li><strong>Musique</strong> — Utiliser des musiques libres de droits (NCS, Epidemic Sound version gratuite, Pixabay Audio). Choisir un morceau epique/cinematique</li>
+        <li><strong>Texte</strong> — Titres minimalistes sur les features cles. Police clean, animations simples</li>
+        <li><strong>CTA final</strong> — "IP : play.eriniumfaction.fr | Discord dans la description"</li>
+        <li><strong>Miniature</strong> — Image 1280x720 avec le logo, un rendu du monde, et un texte court</li>
+      </ol>
+
+      <h3>SEO YouTube</h3>
+      <ul>
+        <li><strong>Titre :</strong> Inclure "Minecraft", "Faction", "Serveur" — ex: "Le Meilleur Serveur Faction Minecraft 2026 | EriniumFaction Trailer"</li>
+        <li><strong>Description :</strong> 3-4 lignes descriptives, IP du serveur, lien Discord, liens reseaux, timestamps</li>
+        <li><strong>Tags :</strong> minecraft faction server, serveur faction minecraft, minecraft pvp, minecraft mod, erinium faction</li>
+        <li><strong>Miniature :</strong> Visage/emotion + texte court + couleurs vives. Ne pas utiliser du texte petit illisible</li>
+      </ul>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metrique</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Cout</td><td><span class="badge badge-green">0 EUR</span></td></tr>
+            <tr><td>Effort</td><td>Trailer : 10-20h. Devlogs : 3-5h chacun</td></tr>
+            <tr><td>Portee estimee</td><td>Trailer : 1k-10k vues. Devlogs : 200-2k vues</td></tr>
+            <tr><td>Priorite</td><td><span class="prio-eleve">ELEVE</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 5 ==================== -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num">05</span> Twitter / X <span class="badge badge-green">Gratuit</span></h2>
+
+      <p>Twitter/X est ideal pour le <strong>networking avec d'autres createurs</strong> et pour la communaute Minecraft anglophone. Le reach organique est faible mais les connexions sont precieuses.</p>
+
+      <h3 class="first">Strategie de contenu</h3>
+      <ul>
+        <li><strong>Screenshots avec shaders</strong> — 1-2 par semaine. Minecraft + shaders = likes garantis</li>
+        <li><strong>Threads de devlog</strong> — Un thread de 5-8 tweets montrant le processus de dev. Les threads performent bien sur X</li>
+        <li><strong>GIFs de gameplay</strong> — Courts clips en GIF de features uniques</li>
+        <li><strong>Polls</strong> — "Quelle feature voulez-vous en priorite ?" — engagement gratuit</li>
+        <li><strong>Quote tweets</strong> — Reagir aux actualites Minecraft, se positionner dans la conversation</li>
+      </ul>
+
+      <h3>Hashtags cles</h3>
+      <ul>
+        <li><strong>FR :</strong> #Minecraft #ServeurMinecraft #Faction #MinecraftFR #PvP #MinecraftServer</li>
+        <li><strong>EN :</strong> #Minecraft #MinecraftServer #FactionServer #MinecraftPvP #IndieGameDev #GameDev</li>
+        <li><strong>Specifiques :</strong> #EriniumFaction #MinecraftModded #Forge1122</li>
+      </ul>
+
+      <h3>Networking</h3>
+      <ol>
+        <li>Suivre et interagir avec 20-30 comptes de la communaute MC (createurs, serveurs, moddeurs)</li>
+        <li>Commenter regulierement sur leurs posts (commentaires pertinents, pas du spam)</li>
+        <li>Partager le travail des autres avec un commentaire genuins — la reciprocite fonctionne</li>
+        <li>Rejoindre les "Minecraft Twitter" spaces quand il y en a</li>
+      </ol>
+
+      <h3>Format de post type</h3>
+      <ul>
+        <li><strong>Hook :</strong> Premiere ligne accrocheuse (c'est tout ce qu'on voit sans cliquer "voir plus")</li>
+        <li><strong>Contenu :</strong> 2-4 lignes avec les details</li>
+        <li><strong>Media :</strong> TOUJOURS une image ou un GIF (les posts sans media sont invisibles)</li>
+        <li><strong>CTA :</strong> "RT si vous joueriez a ca" ou lien Discord</li>
+      </ul>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metrique</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Cout</td><td><span class="badge badge-green">0 EUR</span></td></tr>
+            <tr><td>Effort</td><td>30 min/jour (posts + interactions)</td></tr>
+            <tr><td>Portee estimee</td><td>50-500 impressions par tweet (debut), 1k-5k avec constance</td></tr>
+            <tr><td>Priorite</td><td><span class="prio-moyen">MOYEN</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 6 ==================== -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num orange-num">06</span> Reddit <span class="badge badge-green">Gratuit</span></h2>
+
+      <p>Reddit peut generer un <strong>afflux massif et soudain</strong> de joueurs si un post perce. Mais les regles sont strictes — un faux pas = ban permanent du subreddit.</p>
+
+      <h3 class="first">Subreddits cibles</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Subreddit</th><th>Membres</th><th>Type de post autorise</th><th>Regles cles</th><th>Potentiel</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>r/mcservers</td><td>~250k</td><td>Promotion directe de serveur</td><td>1 post max / semaine par serveur. Tag obligatoire [Modded] [PvP]. Inclure IP, version, description</td><td><span class="badge badge-red">Tres eleve</span></td></tr>
+            <tr><td>r/minecraft</td><td>~8M</td><td>Screenshots, builds, creations</td><td>PAS de promotion serveur directe. Poster du contenu visuel impressionnant. Mentionner le serveur dans les commentaires uniquement si quelqu'un demande</td><td><span class="badge badge-red">Tres eleve</span></td></tr>
+            <tr><td>r/feedthebeast</td><td>~500k</td><td>Contenu mod, showcases techniques</td><td>Focus sur les aspects modding/technique. Montrer les features custom du mod. Pas de promo serveur directe</td><td><span class="badge badge-orange">Eleve</span></td></tr>
+            <tr><td>r/minecraftfactions</td><td>~15k</td><td>Promotion directe, discussions faction</td><td>Communaute plus petite mais ultra-ciblee. Posts de promo OK. Repondre aux threads "LF faction server"</td><td><span class="badge badge-orange">Eleve</span></td></tr>
+            <tr><td>r/admincraft</td><td>~80k</td><td>Discussions techniques serveur</td><td>Pas de promo directe. Partager des retours d'experience techniques. Networking avec d'autres admins</td><td><span class="badge badge-gold">Moyen</span></td></tr>
+            <tr><td>r/MinecraftServer</td><td>~30k</td><td>Promotion directe</td><td>Regles plus souples. Poster regulierement. Inclure screenshots</td><td><span class="badge badge-gold">Moyen</span></td></tr>
+            <tr><td>r/MinecraftBuddies</td><td>~200k</td><td>Recherche de joueurs</td><td>Posts type "rejoignez notre communaute". Format personnel, pas corporatif</td><td><span class="badge badge-gold">Moyen</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Etapes concretes</h3>
+      <ol>
+        <li><strong>Creer un compte Reddit dedie</strong> au projet (ex: u/EriniumFaction). Le faire 2-3 semaines AVANT de poster (les nouveaux comptes sont flagges comme spam)</li>
+        <li><strong>Accumuler du karma</strong> — Commenter utilement sur r/minecraft et r/feedthebeast pendant 2 semaines. Poster des screenshots sympas. Repondre a des questions techniques</li>
+        <li><strong>Premier post r/mcservers</strong> — Suivre le format du subreddit exactement. Tag, description, IP, screenshot obligatoire. Poster le samedi matin (peak traffic)</li>
+        <li><strong>Poster sur r/minecraft</strong> — Un screenshot magnifique du monde custom avec shaders. Titre descriptif sans mention du serveur. Si les gens demandent, repondre avec le lien Discord</li>
+        <li><strong>Reposter sur r/mcservers</strong> chaque semaine avec du contenu frais (nouveau screenshot, nouvelle feature). Ne JAMAIS reposter le meme contenu</li>
+        <li><strong>Repondre a TOUT</strong> — Chaque commentaire merite une reponse. Les posts avec beaucoup de commentaires remontent dans l'algo</li>
+      </ol>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>ATTENTION :</strong> Reddit detecte et bannit le vote manipulation. Ne JAMAIS demander a des amis de upvote vos posts. Ne pas utiliser de multi-comptes. Un ban sur r/minecraft est quasi-irreversible.</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metrique</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Cout</td><td><span class="badge badge-green">0 EUR</span></td></tr>
+            <tr><td>Effort</td><td>2-3h/semaine (redaction + interactions)</td></tr>
+            <tr><td>Portee estimee</td><td>100-10 000 vues par post (variable). Un post viral r/minecraft = 100k+ vues</td></tr>
+            <tr><td>Priorite</td><td><span class="prio-eleve">ELEVE</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 7 ==================== -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num gold-num">07</span> Listes de Serveurs Minecraft <span class="badge badge-green">Gratuit</span><span class="badge badge-gold" style="margin-left:8px">0-30 EUR/mois</span></h2>
+
+      <p>Les listes de serveurs sont le <strong>canal d'acquisition le plus stable</strong>. Les joueurs qui cherchent un serveur vont sur ces sites. Etre bien classe = flux constant de nouveaux joueurs.</p>
+
+      <h3 class="first">Sites a inscrire (par ordre de priorite)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Site</th><th>URL</th><th>Langue</th><th>Cout</th><th>Impact</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Minecraft-Server-List</td><td>minecraft-server-list.com</td><td>EN</td><td><span class="badge badge-green">Gratuit</span></td><td><span class="badge badge-red">Tres eleve</span></td><td>Le plus gros site EN. Systeme de vote important</td></tr>
+            <tr><td>TopG</td><td>topg.org</td><td>EN</td><td><span class="badge badge-green">Gratuit</span></td><td><span class="badge badge-orange">Eleve</span></td><td>Multi-jeux mais forte section MC. Vote quotidien</td></tr>
+            <tr><td>Minecraft-MP</td><td>minecraft-mp.com</td><td>EN</td><td><span class="badge badge-green">Gratuit</span></td><td><span class="badge badge-orange">Eleve</span></td><td>Bon trafic, categories detaillees</td></tr>
+            <tr><td>Planet Minecraft</td><td>planetminecraft.com</td><td>EN</td><td><span class="badge badge-green">Gratuit</span></td><td><span class="badge badge-red">Tres eleve</span></td><td>Communaute active. Page serveur + page projet mod possible</td></tr>
+            <tr><td>Serveurs-Minecraft.org</td><td>serveurs-minecraft.org</td><td>FR</td><td><span class="badge badge-green">Gratuit</span></td><td><span class="badge badge-orange">Eleve</span></td><td>Premier site FR. Vote rewards essentiels</td></tr>
+            <tr><td>ServeursMinecraft.com</td><td>serveursminecraft.com</td><td>FR</td><td><span class="badge badge-green">Gratuit</span></td><td><span class="badge badge-gold">Moyen</span></td><td>Second site FR majeur</td></tr>
+            <tr><td>Top-Serveurs.net</td><td>top-serveurs.net</td><td>FR</td><td><span class="badge badge-green">Gratuit</span></td><td><span class="badge badge-gold">Moyen</span></td><td>Bonne visibilite FR, categories faction</td></tr>
+            <tr><td>Minecraft Servers</td><td>minecraftservers.org</td><td>EN</td><td><span class="badge badge-green">Gratuit</span></td><td><span class="badge badge-gold">Moyen</span></td><td>Simple mais efficace</td></tr>
+            <tr><td>MC-Index</td><td>mc-index.com</td><td>EN</td><td><span class="badge badge-green">Gratuit</span></td><td><span class="badge badge-gold">Moyen</span></td><td>Communaute plus petite, moins de competition</td></tr>
+            <tr><td>TopMinecraftServers</td><td>topminecraftservers.org</td><td>EN</td><td><span class="badge badge-green">Gratuit</span></td><td><span class="badge badge-gold">Moyen</span></td><td>Bon pour le SEO backlinks</td></tr>
+            <tr><td>Minecraft Server List (premium)</td><td>minecraft-server-list.com/premium</td><td>EN</td><td><span class="badge badge-gold">15-30 EUR/mois</span></td><td><span class="badge badge-red">Tres eleve</span></td><td>Place garantie en haut de page. A considerer apres le lancement</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Systeme de Vote Rewards (NuVotifier)</h3>
+      <p>Les vote rewards sont <strong>essentiels</strong> pour maintenir le classement sur les listes. Chaque vote fait monter le serveur dans le classement.</p>
+      <ol>
+        <li><strong>Installer NuVotifier</strong> — Plugin Bukkit/Forge qui recoit les votes depuis les sites de listes</li>
+        <li><strong>Configurer un vote listener</strong> — Quand un joueur vote, il recoit une recompense en jeu</li>
+        <li><strong>Recompenses suggerees :</strong></li>
+      </ol>
+      <ul>
+        <li>1 vote = 1 cle de vote (ouvre un coffre de vote avec loot aleatoire)</li>
+        <li>5 votes consecutifs = bonus x2 sur le prochain vote</li>
+        <li>30 votes dans le mois = titre exclusif "Electeur du Mois"</li>
+        <li>Top 3 voteurs du mois = recompense speciale (kit rare, cosmetic, etc.)</li>
+      </ul>
+
+      <h3>Optimiser la page du serveur</h3>
+      <ul>
+        <li><strong>Banniere :</strong> Image 468x60 ou 728x90 selon le site. Claire, lisible, avec le nom du serveur et les features cles</li>
+        <li><strong>Description :</strong> 2-3 paragraphes avec les features uniques, la version, les mods, le type de gameplay. Utiliser du formatage (gras, listes) quand c'est supporte</li>
+        <li><strong>Tags :</strong> Faction, PvP, Modded, Custom Enchants, 1.12.2, Custom Biomes, Artefacts</li>
+        <li><strong>Mettre a jour</strong> la description a chaque mise a jour majeure</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Astuce :</strong> Creer une commande <strong>/vote</strong> en jeu qui affiche les liens de vote de tous les sites. Le joueur n'a pas a chercher — un clic et il vote. Plus c'est facile, plus ils votent.</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metrique</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Cout</td><td><span class="badge badge-green">0 EUR</span> (gratuit) a <span class="badge badge-gold">30 EUR/mois</span> (premium)</td></tr>
+            <tr><td>Effort</td><td>3-5h setup initial (toutes les listes) + 15 min/mois maintenance</td></tr>
+            <tr><td>Portee estimee</td><td>10-50 joueurs/mois en organique (gratuit), 50-200/mois (premium + vote rewards actifs)</td></tr>
+            <tr><td>Priorite</td><td><span class="prio-critique">CRITIQUE</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 8 ==================== -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num">08</span> Influenceurs <span class="badge badge-green">Gratuit</span><span class="badge badge-gold" style="margin-left:8px">0-100+ EUR</span></h2>
+
+      <p>Un seul influenceur peut amener plus de joueurs que des semaines de travail sur les reseaux. La cle : <strong>cibler les bons influenceurs</strong> (petits mais engages) et avoir un pitch irresistible.</p>
+
+      <h3 class="first">Categories d'influenceurs</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Taille</th><th>Abonnes</th><th>Cout estime</th><th>Portee</th><th>Taux conversion</th><th>Strategie</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Nano</td><td>500-5k</td><td><span class="badge badge-green">Gratuit</span> (acces serveur + rang VIP)</td><td>200-2k vues</td><td>5-10% (tres engage)</td><td>Proposer un acces beta exclusif. Ce sont souvent des passionnes qui acceptent par interet genuins</td></tr>
+            <tr><td>Micro</td><td>5k-25k</td><td><span class="badge badge-gold">0-50 EUR</span> ou echange de services</td><td>2k-15k vues</td><td>3-7%</td><td>Proposer un partenariat : contenu gratuit en echange de visibilite. Certains acceptent du gratuit si le serveur est interessant</td></tr>
+            <tr><td>Small</td><td>25k-100k</td><td><span class="badge badge-gold">50-200 EUR</span></td><td>10k-60k vues</td><td>2-5%</td><td>Payer pour une video sponsorisee. Negocier : video + mention en description + lien Discord</td></tr>
+            <tr><td>Medium</td><td>100k-500k</td><td><span class="badge badge-red">200-1000 EUR</span></td><td>50k-300k vues</td><td>1-3%</td><td>Investissement important. Ne faire qu'avec un budget confortable. ROI mesurable</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Ou trouver des influenceurs Minecraft</h3>
+      <ul>
+        <li><strong>YouTube :</strong> Chercher "serveur faction minecraft", "minecraft faction let's play", "serveur minecraft modde". Trier par date de publication pour trouver les createurs actifs</li>
+        <li><strong>TikTok :</strong> Hashtags #minecraftfaction, #minecraftserver, #minecraftfr. Regarder qui fait des videos de serveurs</li>
+        <li><strong>Twitter/X :</strong> Chercher des createurs MC FR avec 1k-10k followers. Plus accessibles que les gros</li>
+        <li><strong>Discord :</strong> Serveurs communautaires Minecraft FR. Les membres actifs avec des chaines YT/TikTok</li>
+        <li><strong>Planet Minecraft :</strong> Section "createurs" — moddeurs et builders avec une audience</li>
+      </ul>
+
+      <h3>Template de DM (premier contact)</h3>
+      <div class="info-box info">
+        <span class="icon">&#128172;</span>
+        <div class="content">
+          <strong>Objet : Partenariat serveur Minecraft — [NomInfluenceur]</strong><br><br>
+          Salut [Prenom] ! Je suis [ton nom], dev du serveur EriniumFaction. Je suis ton contenu depuis un moment, j'ai bien aime ta video sur [reference specifique a leur contenu].<br><br>
+          On developpe un serveur faction 1.12.2 avec un mod custom complet : 36 biomes uniques, artefacts legendaires, systeme d'enchantement custom, PvP 1.8... Le tout avec 500-1000 joueurs simultanes vises.<br><br>
+          On cherche des createurs passionnes pour la phase beta. En echange d'une video/stream, on t'offre :<br>
+          - Acces beta exclusif avant tout le monde<br>
+          - Rang [Partenaire] permanent avec avantages en jeu<br>
+          - Credit dans les annonces officielles<br>
+          [Si budget : + Remuneration de X EUR pour la video]<br><br>
+          Interesse ? Je peux t'envoyer un dossier de presse avec screenshots et trailer.<br><br>
+          A bientot !
+        </div>
+      </div>
+
+      <h3>Regles d'or</h3>
+      <ol>
+        <li><strong>Personnaliser CHAQUE message</strong> — Mentionner une de leurs videos specifiques. Les copier-coller generiques finissent a la poubelle</li>
+        <li><strong>Preparer un dossier de presse</strong> — PDF ou page web avec : description du serveur, 10 screenshots HD, lien trailer, features cles, IP, Discord</li>
+        <li><strong>Ne pas insister</strong> — Un relance max apres 1 semaine. Si pas de reponse, passer au suivant</li>
+        <li><strong>Mesurer le ROI</strong> — Donner un code promo unique a chaque influenceur pour tracker les conversions</li>
+        <li><strong>Privilegier les nano/micro</strong> — 10 nanos a 0 EUR &gt; 1 medium a 500 EUR en terme de ROI pour un lancement</li>
+      </ol>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metrique</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Cout</td><td><span class="badge badge-green">0 EUR</span> (nanos) a <span class="badge badge-red">1000+ EUR</span> (mediums)</td></tr>
+            <tr><td>Effort</td><td>5-10h (recherche + contact + suivi pour 20 influenceurs)</td></tr>
+            <tr><td>Portee estimee</td><td>1k-100k vues totales selon le budget et la taille des influenceurs</td></tr>
+            <tr><td>Priorite</td><td><span class="prio-eleve">ELEVE</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 9 ==================== -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num green-num">09</span> Beta Fermee <span class="badge badge-green">Gratuit</span></h2>
+
+      <p>La beta fermee cree un sentiment d'<strong>exclusivite et d'urgence</strong>. Les joueurs qui participent deviennent vos meilleurs ambassadeurs — ils ont un sentiment d'appartenance unique.</p>
+
+      <h3 class="first">Structure de la beta</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Parametre</th><th>Valeur recommandee</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Nombre de places</td><td><strong>30-50 joueurs</strong> (assez pour tester, assez peu pour l'exclusivite)</td></tr>
+            <tr><td>Duree</td><td><strong>4-6 semaines</strong> (mai-juin 2026)</td></tr>
+            <tr><td>Horaires</td><td>Sessions planifiees : mercredi 20h-23h + samedi 14h-18h (permet de concentrer les joueurs)</td></tr>
+            <tr><td>Wipe au lancement</td><td><strong>Oui</strong> — Annoncer clairement que tout sera wipe a l'ouverture publique</td></tr>
+            <tr><td>NDA</td><td>Non — Encourager les participants a partager des screenshots/clips (marketing gratuit)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Formulaire de candidature (Google Forms gratuit)</h3>
+      <p>Questions a inclure :</p>
+      <ol>
+        <li>Pseudo Minecraft (pour whitelist)</li>
+        <li>Age (pour adapter la communication)</li>
+        <li>Experience en serveurs faction (debutant/intermediaire/expert)</li>
+        <li>Combien d'heures par semaine pouvez-vous jouer ?</li>
+        <li>Avez-vous une chaine YouTube/TikTok ? (lien) — Prioriser les createurs de contenu</li>
+        <li>Pourquoi voulez-vous participer a la beta ? (pour mesurer la motivation)</li>
+        <li>Acceptez-vous de signaler les bugs et de donner votre avis ? (engagement)</li>
+        <li>Pseudo Discord (obligatoire)</li>
+      </ol>
+
+      <h3>Badge et recompenses fondateur</h3>
+      <ul>
+        <li><strong>Titre en jeu :</strong> [Fondateur] en or devant le pseudo — permanent et exclusif</li>
+        <li><strong>Role Discord :</strong> "Beta Fondateur" avec couleur doree — visible a vie</li>
+        <li><strong>Cape ou cosmetic :</strong> Cape exclusive "Fondateur" visible par tous les joueurs</li>
+        <li><strong>Mention dans les credits :</strong> Page "credits" du wiki avec tous les noms des beta-testeurs</li>
+        <li><strong>Kit de lancement :</strong> Au lancement public, les fondateurs recoivent un kit de depart ameliore</li>
+      </ul>
+
+      <h3>Etapes concretes</h3>
+      <ol>
+        <li>Creer le formulaire Google Forms (15 min)</li>
+        <li>Poster l'annonce sur Discord, Twitter, Reddit, TikTok avec le lien du formulaire</li>
+        <li>Laisser les candidatures ouvertes 1-2 semaines</li>
+        <li>Selectionner les 30-50 meilleurs profils (prioriser les createurs de contenu et les joueurs experimentes)</li>
+        <li>Envoyer les invitations par Discord DM avec le lien du serveur Discord beta (salon prive)</li>
+        <li>Creer un salon #feedback-beta et #bugs-beta sur Discord</li>
+        <li>Faire un channel #beta-highlights pour les meilleurs moments (contenu marketing gratuit)</li>
+        <li>Organiser un event de cloture de beta avec annonce de la date de lancement</li>
+      </ol>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Astuce :</strong> Afficher un <strong>compteur de places restantes</strong> sur l'annonce. "12/50 places restantes" cree l'urgence. Meme si toutes les places ne sont pas prises, le sentiment de rarete fonctionne.</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metrique</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Cout</td><td><span class="badge badge-green">0 EUR</span></td></tr>
+            <tr><td>Effort</td><td>3h setup + 5h/semaine pendant la beta (moderation, feedback, bug reports)</td></tr>
+            <tr><td>Portee estimee</td><td>30-50 ambassadeurs actifs qui parleront du serveur a leur reseau</td></tr>
+            <tr><td>Priorite</td><td><span class="prio-critique">CRITIQUE</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 10 ==================== -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num cyan-num">10</span> Recrutement Staff <span class="badge badge-green">Gratuit</span></h2>
+
+      <p>Un staff motive et competent est la <strong>colonne vertebrale</strong> du serveur. Un seul mauvais moderateur peut detruire la reputation en une journee.</p>
+
+      <h3 class="first">Postes a pourvoir</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Poste</th><th>Nombre</th><th>Responsabilites</th><th>Competences requises</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Moderateur</td><td>4-6</td><td>Moderation chat et Discord, gestion des conflits, signalements de triche, support joueurs</td><td>Maturite, patience, experience MC, disponibilite (minimum 10h/semaine)</td></tr>
+            <tr><td>Builder</td><td>2-3</td><td>Spawn, arenes, structures decoratives, events maps</td><td>Portfolio de builds, maitrise WorldEdit/Voxel, creativite</td></tr>
+            <tr><td>Community Manager</td><td>1-2</td><td>Gestion Discord, annonces, reseaux sociaux, engagement communaute</td><td>Redaction, creativite, connaissance des reseaux sociaux, reactivite</td></tr>
+            <tr><td>Testeur QA</td><td>2-3</td><td>Tests de features avant mise en production, rapports de bugs structures</td><td>Rigueur, capacite a reproduire des bugs, redaction claire</td></tr>
+            <tr><td>Graphiste (optionnel)</td><td>1</td><td>Miniatures, bannieres, assets visuels pour les reseaux</td><td>Canva/Photoshop, sens esthetique, rapidite</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Ou recruter</h3>
+      <ul>
+        <li><strong>Discord du serveur</strong> — Les membres les plus actifs et matures sont les meilleurs candidats. Poster une annonce dans #recrutement</li>
+        <li><strong>r/mcstaff</strong> — Subreddit dedie au recrutement de staff Minecraft</li>
+        <li><strong>r/MinecraftBuddies</strong> — Joueurs motivees cherchant des projets</li>
+        <li><strong>Serveurs Discord MC FR</strong> — Les communautes francophones Minecraft ont des salons recrutement</li>
+        <li><strong>Forums Minecraft</strong> — MinecraftForum.net section "Server Recruitment"</li>
+        <li><strong>Beta-testeurs</strong> — Les meilleurs beta-testeurs sont des candidats ideaux (ils connaissent deja le serveur)</li>
+      </ul>
+
+      <h3>Processus de recrutement</h3>
+      <ol>
+        <li><strong>Formulaire de candidature</strong> (Google Forms) : pseudo, age, experience, disponibilite, motivation, lien Discord</li>
+        <li><strong>Entretien vocal Discord</strong> (15-20 min) : verifier la maturite, la motivation et la compatibilite avec l'equipe</li>
+        <li><strong>Periode d'essai</strong> (2 semaines) : le candidat est "Staff en essai" avec des permissions limitees</li>
+        <li><strong>Validation</strong> : apres 2 semaines sans probleme, promotion au rang complet</li>
+        <li><strong>Formation</strong> : document interne avec les regles, les commandes, les procedures de moderation</li>
+      </ol>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Regle critique :</strong> Ne JAMAIS donner les permissions admin/OP a un staff recrute en ligne sans periode d'essai. Les griefs de staff malveillants sont la premiere cause de mort de serveurs Minecraft.</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metrique</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Cout</td><td><span class="badge badge-green">0 EUR</span></td></tr>
+            <tr><td>Effort</td><td>5-10h (formulaire + entretiens + formation)</td></tr>
+            <tr><td>Portee estimee</td><td>Indirecte : un bon staff retient les joueurs, un mauvais les fait fuir</td></tr>
+            <tr><td>Priorite</td><td><span class="prio-eleve">ELEVE</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 11 ==================== -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num green-num">11</span> SEO &amp; Presence Web <span class="badge badge-green">Gratuit</span><span class="badge badge-gold" style="margin-left:8px">0-10 EUR/an</span></h2>
+
+      <p>Le SEO est un <strong>investissement a long terme</strong>. Un wiki bien reference sur Google amene des joueurs pendant des mois sans effort supplementaire.</p>
+
+      <h3 class="first">Le wiki comme outil SEO</h3>
+      <p>Le wiki du serveur est deja un site web. Chaque page est une porte d'entree potentielle depuis Google.</p>
+      <ul>
+        <li><strong>Pages cibles :</strong> "serveur faction minecraft 1.12.2", "serveur minecraft modde", "enchantements custom minecraft", "artefacts minecraft"</li>
+        <li><strong>Structure :</strong> Chaque page doit avoir un titre H1 unique, une meta description, du contenu riche (1000+ mots), des images avec alt text</li>
+        <li><strong>Mots-cles :</strong> Integrer naturellement les termes que les joueurs cherchent sur Google</li>
+        <li><strong>Liens internes :</strong> Chaque page link vers les pages connexes du wiki</li>
+      </ul>
+
+      <h3>Nom de domaine</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Option</th><th>Cout</th><th>Avantages</th><th>Inconvenients</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>GitHub Pages (gratuit)</td><td><span class="badge badge-green">0 EUR</span></td><td>Gratuit, HTTPS automatique, fiable, hebergement wiki</td><td>URL en .github.io, pas de nom custom sans domaine</td></tr>
+            <tr><td>Domaine .fr</td><td><span class="badge badge-gold">5-8 EUR/an</span></td><td>eriniumfaction.fr — pro, memorable, SEO FR boost</td><td>Renouvellement annuel</td></tr>
+            <tr><td>Domaine .com</td><td><span class="badge badge-gold">8-12 EUR/an</span></td><td>eriniumfaction.com — universel, international</td><td>Plus cher, renouvellement annuel</td></tr>
+            <tr><td>Cloudflare Pages</td><td><span class="badge badge-green">0 EUR</span></td><td>CDN gratuit, HTTPS, deploiement auto depuis Git</td><td>Necessite un domaine pour le nom custom</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Landing page</h3>
+      <p>Une page d'accueil simple mais efficace qui convertit les visiteurs en joueurs.</p>
+      <ol>
+        <li><strong>Hero section :</strong> Banniere epique + nom du serveur + tagline + bouton "Rejoindre" (copie l'IP) + bouton Discord</li>
+        <li><strong>Features :</strong> 4-6 cartes avec icones montrant les features uniques (factions, 36 biomes, artefacts, PvP 1.8, enchantements custom, etc.)</li>
+        <li><strong>Trailer embed :</strong> Video YouTube integree</li>
+        <li><strong>Comment rejoindre :</strong> 3 etapes simples (1. Installer Forge 1.12.2, 2. Ajouter le modpack, 3. Rejoindre play.eriniumfaction.fr)</li>
+        <li><strong>Footer :</strong> Liens Discord, Twitter, YouTube, TikTok, wiki</li>
+      </ol>
+
+      <h3>Etapes concretes SEO</h3>
+      <ol>
+        <li>Deployer le wiki sur GitHub Pages ou Cloudflare Pages</li>
+        <li>Acheter un domaine (optionnel mais recommande) et le pointer vers l'hebergement</li>
+        <li>Ajouter les meta tags SEO sur chaque page du wiki (title, description, og:image)</li>
+        <li>Soumettre le sitemap a Google Search Console (gratuit)</li>
+        <li>Creer une fiche Google My Business si applicable (gratuit, boost SEO local)</li>
+        <li>Backlinks : chaque inscription sur une liste de serveurs = un backlink gratuit vers le site</li>
+      </ol>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metrique</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Cout</td><td><span class="badge badge-green">0 EUR</span> (GitHub Pages) a <span class="badge badge-gold">10 EUR/an</span> (domaine)</td></tr>
+            <tr><td>Effort</td><td>5-10h setup + 1h/mois maintenance SEO</td></tr>
+            <tr><td>Portee estimee</td><td>10-100 visiteurs/mois via Google (croissant dans le temps)</td></tr>
+            <tr><td>Priorite</td><td><span class="prio-moyen">MOYEN</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 12 ==================== -->
+    <section class="section-card" id="s12">
+      <h2><span class="s-num gold-num">12</span> Trailer &amp; Assets Visuels <span class="badge badge-green">Gratuit</span><span class="badge badge-gold" style="margin-left:8px">0-50 EUR</span></h2>
+
+      <p>Les visuels sont la <strong>premiere impression</strong>. Un serveur avec des assets professionnels est percu comme plus serieux et attire plus de joueurs.</p>
+
+      <h3 class="first">Assets necessaires</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Asset</th><th>Dimensions</th><th>Utilisation</th><th>Outil recommande</th><th>Cout</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Logo</td><td>512x512 PNG</td><td>Discord, Twitter, YouTube, wiki, partout</td><td>Canva (gratuit) ou Fiverr (15-30 EUR)</td><td><span class="badge badge-green">0 EUR</span> a <span class="badge badge-gold">30 EUR</span></td></tr>
+            <tr><td>Banniere Discord</td><td>960x540</td><td>Banniere du serveur Discord</td><td>Canva gratuit</td><td><span class="badge badge-green">0 EUR</span></td></tr>
+            <tr><td>Banniere YouTube</td><td>2560x1440</td><td>Header de la chaine YouTube</td><td>Canva gratuit</td><td><span class="badge badge-green">0 EUR</span></td></tr>
+            <tr><td>Miniatures YT</td><td>1280x720</td><td>Miniatures des videos YouTube</td><td>Canva gratuit</td><td><span class="badge badge-green">0 EUR</span></td></tr>
+            <tr><td>Banniere liste serveurs</td><td>468x60</td><td>Banniere affichee sur les sites de listes</td><td>Canva ou Photopea (gratuit)</td><td><span class="badge badge-green">0 EUR</span></td></tr>
+            <tr><td>Screenshots HD</td><td>1920x1080</td><td>Reddit, Discord, wiki, listes serveurs</td><td>ReplayMod + BSL Shaders (gratuit)</td><td><span class="badge badge-green">0 EUR</span></td></tr>
+            <tr><td>Trailer video</td><td>1920x1080 60fps</td><td>YouTube, Discord, landing page</td><td>ReplayMod + CapCut/DaVinci (gratuit)</td><td><span class="badge badge-green">0 EUR</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Workflow de creation du trailer</h3>
+      <ol>
+        <li><strong>Preparation (jour 1-2) :</strong> Installer ReplayMod + shader pack (BSL ou Complementary). Preparer les scenes a filmer : spawn, base faction, PvP, biomes custom, features uniques</li>
+        <li><strong>Capture (jour 3-5) :</strong> Enregistrer chaque scene en mode replay (ReplayMod). Faire des camera paths fluides : travelling, drone shots, zoom-ins. Capturer au minimum 3 minutes de rush pour 90 secondes de montage final</li>
+        <li><strong>Montage (jour 6-7) :</strong> Importer dans CapCut ou DaVinci Resolve. Selectionner les meilleurs plans. Synchroniser les cuts sur la musique. Ajouter des titres textuels minimalistes sur les features cles</li>
+        <li><strong>Musique :</strong> Choisir une musique libre de droits. Sources : NCS (YouTube), Pixabay Audio, Free Music Archive. Style : epique/cinematique, montee en puissance</li>
+        <li><strong>Finitions :</strong> Color grading leger (contraste, saturation). Transition de fin avec logo + IP + Discord. Export en 1080p 60fps MP4</li>
+        <li><strong>Distribution :</strong> Upload YouTube + embed Discord + landing page + partage sur tous les reseaux</li>
+      </ol>
+
+      <h3>Tips pour des screenshots qui performent</h3>
+      <ul>
+        <li><strong>Shaders obligatoires</strong> — BSL, Complementary, ou SEUS Renewed. Les screenshots sans shaders n'attirent pas l'attention</li>
+        <li><strong>Golden hour</strong> — Capturer au lever ou coucher du soleil pour la lumiere chaude</li>
+        <li><strong>Composition</strong> — Regle des tiers. Mettre le sujet principal sur un point de force</li>
+        <li><strong>Resolution</strong> — Capturer en 4K si possible (rescale a 1080p pour le partage = qualite superieure)</li>
+        <li><strong>Variete</strong> — Montrer differents aspects : builds, PvP, nature, exploration, GUI custom</li>
+      </ul>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metrique</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Cout</td><td><span class="badge badge-green">0 EUR</span> (tout gratuit) a <span class="badge badge-gold">50 EUR</span> (logo Fiverr)</td></tr>
+            <tr><td>Effort</td><td>Logo : 2-4h. Bannieres : 1-2h. Trailer : 15-25h. Screenshots : 2-3h</td></tr>
+            <tr><td>Portee estimee</td><td>Multiplicateur sur tous les autres canaux (un bon visuel double le taux de clic partout)</td></tr>
+            <tr><td>Priorite</td><td><span class="prio-eleve">ELEVE</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 13 ==================== -->
+    <section class="section-card" id="s13">
+      <h2><span class="s-num red-num">13</span> Publicite Payante <span class="badge badge-red">Optionnel — Investissement</span></h2>
+
+      <p>La pub payante est un <strong>accelerateur</strong>, pas une necessite. Elle est rentable uniquement si tout le reste est deja en place (Discord actif, contenu de qualite, landing page). Ne JAMAIS acheter de pub avant d'avoir un serveur pret a accueillir des joueurs.</p>
+
+      <h3 class="first">Comparatif des plateformes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Plateforme</th><th>Budget minimum</th><th>Cout par clic (CPC)</th><th>Public cible</th><th>Format</th><th>ROI estime</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>TikTok Ads</td><td>20 EUR/jour min</td><td>0.05-0.20 EUR</td><td>13-24 ans, gamers</td><td>Video 15-60s (reutiliser vos TikToks organiques)</td><td><span class="badge badge-green">Eleve</span> — Le meilleur ROI pour le gaming en 2026</td></tr>
+            <tr><td>YouTube Ads (in-stream)</td><td>10 EUR/jour</td><td>0.03-0.15 EUR par vue</td><td>Viewers Minecraft</td><td>Pre-roll 15-30s (trailer coupe court)</td><td><span class="badge badge-gold">Moyen</span> — Bon ciblage par interet/chaine</td></tr>
+            <tr><td>Reddit Ads</td><td>5 EUR/jour</td><td>0.50-2.00 EUR</td><td>r/minecraft, r/gaming</td><td>Image + texte (format post natif)</td><td><span class="badge badge-gold">Moyen</span> — CPC eleve mais audience ultra-ciblee</td></tr>
+            <tr><td>Google Ads (Search)</td><td>5 EUR/jour</td><td>0.30-1.50 EUR</td><td>"serveur minecraft faction"</td><td>Annonce texte sur Google</td><td><span class="badge badge-gold">Moyen</span> — Intent eleve (les gens cherchent activement)</td></tr>
+            <tr><td>Instagram/Facebook Ads</td><td>5 EUR/jour</td><td>0.10-0.50 EUR</td><td>13-24 ans, interet gaming</td><td>Video ou carrousel</td><td><span class="badge badge-slate">Faible</span> — Pas le meilleur canal pour le gaming MC</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Budget recommande par phase</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Phase</th><th>Budget suggere</th><th>Plateforme</th><th>Objectif</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Pre-lancement (juin)</td><td>50-100 EUR total</td><td>TikTok Ads</td><td>Booster le trailer/teaser, amener vers Discord</td></tr>
+            <tr><td>Lancement (juillet semaine 1)</td><td>50-150 EUR total</td><td>TikTok + YouTube Ads</td><td>Maximiser la visibilite le jour J et la semaine suivante</td></tr>
+            <tr><td>Post-lancement (juillet+)</td><td>20-50 EUR/mois</td><td>Google Ads (search)</td><td>Capter les recherches "serveur faction minecraft" en continu</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Etapes pour TikTok Ads (meilleur ROI)</h3>
+      <ol>
+        <li>Creer un compte TikTok Ads Manager (ads.tiktok.com)</li>
+        <li>Selectionner l'objectif "Trafic" (vers le lien Discord ou la landing page)</li>
+        <li>Ciblage : 13-24 ans, interets "Gaming", "Minecraft", pays France + Belgique + Suisse + Canada</li>
+        <li>Budget : 20 EUR/jour pendant 3-5 jours = 60-100 EUR total</li>
+        <li>Creative : Reutiliser votre meilleur TikTok organique (celui avec le plus de vues). L'algo de pub fonctionne mieux avec du contenu organique que du contenu "pub"</li>
+        <li>CTA : "En savoir plus" avec lien vers Discord ou landing page</li>
+        <li>Mesurer : Suivre les clics, les jointures Discord, les connexions serveur pendant la campagne</li>
+        <li>Optimiser : Couper les pubs qui ne performent pas apres 48h, doubler le budget sur celles qui marchent</li>
+      </ol>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Regle d'or de la pub payante :</strong> Ne depenser de l'argent en pub que si le serveur est PRET. Amener 500 personnes sur un serveur bugge ou vide = argent jete. Mieux vaut investir 0 EUR en pub et avoir un lancement organique solide.</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metrique</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Cout</td><td><span class="badge badge-gold">50 EUR</span> (minimum utile) a <span class="badge badge-red">400+ EUR</span> (campagne complete)</td></tr>
+            <tr><td>Effort</td><td>3-5h setup + 30 min/jour monitoring</td></tr>
+            <tr><td>Portee estimee</td><td>10k-100k impressions selon le budget</td></tr>
+            <tr><td>Priorite</td><td><span class="prio-optionnel">OPTIONNEL</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 14 ==================== -->
+    <section class="section-card" id="s14">
+      <h2><span class="s-num green-num">14</span> Parrainage &amp; Retention <span class="badge badge-green">Gratuit</span></h2>
+
+      <p>Acquerir des joueurs ne sert a rien s'ils partent apres 2 jours. La retention est <strong>plus importante que l'acquisition</strong>. Un joueur qui reste 1 mois en amene 3 autres naturellement.</p>
+
+      <h3 class="first">Systeme de parrainage en jeu</h3>
+      <ol>
+        <li><strong>Commande /parrain [pseudo]</strong> — Le nouveau joueur renseigne qui l'a invite</li>
+        <li><strong>Verification :</strong> Le parrain est valide uniquement si le filleul atteint 5h de jeu (eviter les abus)</li>
+        <li><strong>Recompenses parrain :</strong></li>
+      </ol>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Palier</th><th>Recompense parrain</th><th>Recompense filleul</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1 filleul valide</td><td>500 coins en jeu + 1 cle rare</td><td>Kit de bienvenue ameliore</td></tr>
+            <tr><td>3 filleuls valides</td><td>Titre [Recruteur] + 2000 coins</td><td>—</td></tr>
+            <tr><td>5 filleuls valides</td><td>Titre [Ambassadeur] + cape exclusive + 5000 coins</td><td>—</td></tr>
+            <tr><td>10 filleuls valides</td><td>Titre [Legendaire] dore + role Discord special + kit mensuel gratuit</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Vote rewards (quotidien)</h3>
+      <ul>
+        <li><strong>Vote quotidien</strong> sur 3-5 sites de listes = recompenses cumulatives</li>
+        <li>1 vote = 1 cle de vote (loot box avec items aleatoires)</li>
+        <li>Combo 7 jours consecutifs = bonus x2 pendant 24h</li>
+        <li>Combo 30 jours = cle legendaire + titre "Electeur devoue"</li>
+        <li><strong>Classement mensuel</strong> des top voteurs affiche au spawn et sur Discord</li>
+      </ul>
+
+      <h3>Events reguliers (retention a long terme)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Frequence</th><th>Type d'event</th><th>Description</th><th>Effort</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Quotidien</td><td>Quete du jour</td><td>Objectif simple qui change chaque jour (tuer 50 mobs, miner 100 blocs, etc.). Recompense : coins + XP</td><td>Automatise (systeme de challenges existant)</td></tr>
+            <tr><td>Hebdomadaire</td><td>Event PvP</td><td>Tournoi faction vs faction, KOTH (King of the Hill), arene libre. Recompenses aux vainqueurs</td><td>1-2h staff (setup + animation)</td></tr>
+            <tr><td>Bi-mensuel</td><td>Concours builds</td><td>Theme impose, vote de la communaute, prix pour les 3 meilleurs</td><td>30 min setup + 1h jugement</td></tr>
+            <tr><td>Mensuel</td><td>Saison / Update</td><td>Nouvelle feature majeure, reset partiel, nouveau contenu. Annonce 1 semaine avant</td><td>Variable (developpement)</td></tr>
+            <tr><td>Ponctuel</td><td>Events speciaux</td><td>Noel, Halloween, anniversaire du serveur, crossover events</td><td>5-10h (preparation + assets + tests)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Metriques de retention a suivre</h3>
+      <ul>
+        <li><strong>D1 (retention jour 1) :</strong> % de joueurs qui reviennent le lendemain. Cible : &gt;40%</li>
+        <li><strong>D7 (retention semaine 1) :</strong> % de joueurs encore actifs apres 7 jours. Cible : &gt;25%</li>
+        <li><strong>D30 (retention mois 1) :</strong> % de joueurs encore actifs apres 30 jours. Cible : &gt;15%</li>
+        <li><strong>Temps de session moyen :</strong> Cible : &gt;45 min par session</li>
+        <li><strong>Joueurs simultanes :</strong> Courbe a suivre quotidiennement. Si elle baisse, agir immediatement (event, annonce, contenu)</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Strategie de retention #1 :</strong> Envoyer un <strong>message Discord automatique</strong> aux joueurs qui n'ont pas joue depuis 3 jours. "Tu nous manques sur EriniumFaction ! Un nouvel event commence ce week-end, viens recuperer ton bonus de retour." Simple mais extremement efficace.</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metrique</th><th>Valeur</th></tr></thead>
+          <tbody>
+            <tr><td>Cout</td><td><span class="badge badge-green">0 EUR</span></td></tr>
+            <tr><td>Effort</td><td>Systeme parrainage : 5-10h dev. Events : 3-5h/semaine ongoing</td></tr>
+            <tr><td>Portee estimee</td><td>+30-50% retention avec systeme de parrainage + events reguliers</td></tr>
+            <tr><td>Priorite</td><td><span class="prio-critique">CRITIQUE</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 15 ==================== -->
+    <section class="section-card" id="s15">
+      <h2><span class="s-num red-num">15</span> Checklist Recapitulative</h2>
+
+      <p>Tableau final de <strong>TOUTES les actions</strong> a realiser, classees par priorite et chronologie. Utiliser comme to-do list.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Action</th><th>Quand</th><th>Cout</th><th>Priorite</th><th>Statut</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="5" style="background: rgba(107,47,160,0.12); color: var(--violet-l); font-weight: 700; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 16px;">Mars 2026 — Fondations</td>
+            </tr>
+            <tr><td>Creer le serveur Discord (salons, roles, bots)</td><td>Semaine 1</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-critique">CRITIQUE</span></td><td>&#9744;</td></tr>
+            <tr><td>Creer les comptes reseaux (Twitter, TikTok, YouTube, Instagram)</td><td>Semaine 1</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-critique">CRITIQUE</span></td><td>&#9744;</td></tr>
+            <tr><td>Creer le logo et les bannieres (Canva)</td><td>Semaine 1-2</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-eleve">ELEVE</span></td><td>&#9744;</td></tr>
+            <tr><td>S'inscrire sur 5+ listes de serveurs (gratuit)</td><td>Semaine 2</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-critique">CRITIQUE</span></td><td>&#9744;</td></tr>
+            <tr><td>Publier le premier teaser TikTok/Shorts</td><td>Semaine 2-3</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-eleve">ELEVE</span></td><td>&#9744;</td></tr>
+            <tr><td>Deployer le wiki en ligne (GitHub Pages)</td><td>Semaine 3</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-moyen">MOYEN</span></td><td>&#9744;</td></tr>
+            <tr><td>Creer le compte Reddit et commencer a karma-farmer</td><td>Semaine 3</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-eleve">ELEVE</span></td><td>&#9744;</td></tr>
+            <tr><td>Prendre 10+ screenshots HD avec shaders</td><td>Semaine 3-4</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-eleve">ELEVE</span></td><td>&#9744;</td></tr>
+
+            <tr>
+              <td colspan="5" style="background: rgba(0,229,255,0.08); color: var(--cyan); font-weight: 700; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 16px;">Avril 2026 — Teasing</td>
+            </tr>
+            <tr><td>Premier devlog Discord + YouTube</td><td>Semaine 1</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-critique">CRITIQUE</span></td><td>&#9744;</td></tr>
+            <tr><td>3 TikToks/Shorts par semaine (rythme regulier)</td><td>Continu</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-critique">CRITIQUE</span></td><td>&#9744;</td></tr>
+            <tr><td>Premier post Reddit (r/mcservers)</td><td>Semaine 2</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-eleve">ELEVE</span></td><td>&#9744;</td></tr>
+            <tr><td>Post r/minecraft (screenshot sans promo)</td><td>Semaine 2-3</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-eleve">ELEVE</span></td><td>&#9744;</td></tr>
+            <tr><td>Lancer les candidatures beta fermee (formulaire)</td><td>Semaine 3</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-critique">CRITIQUE</span></td><td>&#9744;</td></tr>
+            <tr><td>Publier l'annonce recrutement staff</td><td>Semaine 3-4</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-eleve">ELEVE</span></td><td>&#9744;</td></tr>
+            <tr><td>Threads Twitter hebdomadaires</td><td>Continu</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-moyen">MOYEN</span></td><td>&#9744;</td></tr>
+
+            <tr>
+              <td colspan="5" style="background: rgba(46,204,113,0.08); color: var(--green); font-weight: 700; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 16px;">Mai 2026 — Beta &amp; Feedback</td>
+            </tr>
+            <tr><td>Ouvrir la beta fermee (30-50 joueurs)</td><td>Semaine 1</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-critique">CRITIQUE</span></td><td>&#9744;</td></tr>
+            <tr><td>Selectionner et former le staff</td><td>Semaine 1-2</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-eleve">ELEVE</span></td><td>&#9744;</td></tr>
+            <tr><td>Collecter du contenu beta (clips, screenshots des testeurs)</td><td>Continu</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-eleve">ELEVE</span></td><td>&#9744;</td></tr>
+            <tr><td>Contacter 20+ nano/micro influenceurs</td><td>Semaine 2-3</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-eleve">ELEVE</span></td><td>&#9744;</td></tr>
+            <tr><td>Commencer la production du trailer officiel</td><td>Semaine 3-4</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-critique">CRITIQUE</span></td><td>&#9744;</td></tr>
+            <tr><td>S'inscrire sur les 5+ listes restantes</td><td>Semaine 4</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-moyen">MOYEN</span></td><td>&#9744;</td></tr>
+
+            <tr>
+              <td colspan="5" style="background: rgba(241,196,15,0.08); color: var(--gold); font-weight: 700; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 16px;">Juin 2026 — Pre-lancement</td>
+            </tr>
+            <tr><td>Publier le trailer officiel (YouTube + TikTok + Discord)</td><td>Semaine 1-2</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-critique">CRITIQUE</span></td><td>&#9744;</td></tr>
+            <tr><td>Configurer le systeme de vote rewards (NuVotifier)</td><td>Semaine 2</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-eleve">ELEVE</span></td><td>&#9744;</td></tr>
+            <tr><td>Activer le systeme de parrainage en jeu</td><td>Semaine 2</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-eleve">ELEVE</span></td><td>&#9744;</td></tr>
+            <tr><td>Acheter un domaine (optionnel)</td><td>Semaine 2-3</td><td><span class="badge badge-gold">5-12 EUR</span></td><td><span class="prio-moyen">MOYEN</span></td><td>&#9744;</td></tr>
+            <tr><td>Lancer campagne pub TikTok (optionnel, 50-100 EUR)</td><td>Semaine 3-4</td><td><span class="badge badge-gold">50-100 EUR</span></td><td><span class="prio-optionnel">OPTIONNEL</span></td><td>&#9744;</td></tr>
+            <tr><td>Compteur J-X sur Discord + posts de hype quotidiens</td><td>Semaine 3-4</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-eleve">ELEVE</span></td><td>&#9744;</td></tr>
+            <tr><td>Annoncer la date de lancement officielle</td><td>Semaine 4</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-critique">CRITIQUE</span></td><td>&#9744;</td></tr>
+            <tr><td>Verifier que TOUT est pret (serveur, mods, staff, wiki, listes)</td><td>Semaine 4</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-critique">CRITIQUE</span></td><td>&#9744;</td></tr>
+
+            <tr>
+              <td colspan="5" style="background: rgba(231,76,60,0.08); color: var(--red); font-weight: 700; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 16px;">Juillet 2026 — LANCEMENT</td>
+            </tr>
+            <tr><td>OUVERTURE PUBLIQUE DU SERVEUR</td><td>Jour J</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-critique">CRITIQUE</span></td><td>&#9744;</td></tr>
+            <tr><td>Event de lancement (1 semaine avec bonus XP, events PvP, drop rates)</td><td>Semaine 1</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-critique">CRITIQUE</span></td><td>&#9744;</td></tr>
+            <tr><td>Post quotidien sur tous les reseaux (TikTok, Twitter, Reddit)</td><td>Semaine 1</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-critique">CRITIQUE</span></td><td>&#9744;</td></tr>
+            <tr><td>Campagne pub YouTube Ads (optionnel, 50-150 EUR)</td><td>Semaine 1</td><td><span class="badge badge-gold">50-150 EUR</span></td><td><span class="prio-optionnel">OPTIONNEL</span></td><td>&#9744;</td></tr>
+            <tr><td>Suivi metriques retention (D1, D7)</td><td>Continu</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-critique">CRITIQUE</span></td><td>&#9744;</td></tr>
+            <tr><td>Events hebdomadaires (PvP, concours, quetes)</td><td>Continu</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-eleve">ELEVE</span></td><td>&#9744;</td></tr>
+            <tr><td>Relancer les joueurs inactifs (message Discord auto)</td><td>Continu</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-eleve">ELEVE</span></td><td>&#9744;</td></tr>
+            <tr><td>Ajuster la strategie selon les metriques</td><td>Continu</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="prio-eleve">ELEVE</span></td><td>&#9744;</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3>Resume des couts</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Poste</th><th>Minimum</th><th>Recommande</th><th>Confortable</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Discord + Reseaux sociaux</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="badge badge-green">0 EUR</span></td><td><span class="badge badge-green">0 EUR</span></td></tr>
+            <tr><td>Listes de serveurs</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="badge badge-green">0 EUR</span></td><td><span class="badge badge-gold">30 EUR/mois</span></td></tr>
+            <tr><td>Domaine</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="badge badge-gold">8 EUR/an</span></td><td><span class="badge badge-gold">12 EUR/an</span></td></tr>
+            <tr><td>Logo (Fiverr)</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="badge badge-green">0 EUR</span></td><td><span class="badge badge-gold">30 EUR</span></td></tr>
+            <tr><td>Influenceurs</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="badge badge-gold">50 EUR</span></td><td><span class="badge badge-gold">200 EUR</span></td></tr>
+            <tr><td>Publicite payante</td><td><span class="badge badge-green">0 EUR</span></td><td><span class="badge badge-gold">100 EUR</span></td><td><span class="badge badge-red">300 EUR</span></td></tr>
+            <tr><td><strong>TOTAL</strong></td><td><strong><span class="badge badge-green">0 EUR</span></strong></td><td><strong><span class="badge badge-gold">~158 EUR</span></strong></td><td><strong><span class="badge badge-violet">~572 EUR</span></strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#128161;</span>
+        <div class="content"><strong>Conclusion :</strong> La majorite du travail de visibilite est <strong>gratuit mais chronophage</strong>. L'investissement principal n'est pas financier — c'est le temps. Avec de la constance (3-5h par semaine de creation de contenu + community management), un budget de 0 EUR peut suffire a lancer un serveur viable. L'argent est un accelerateur, pas une necessite.</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Mobile nav toggle -->
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<!-- Active nav link tracker -->
+<script>
+  const sections = document.querySelectorAll('.section-card[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector('.nav-link[href="#' + entry.target.id + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -75% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Systeme d'Electricite RF | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #4AE0E0; --aetherite: #9B59B6; --erinium: #FFD700;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+    --rf-red: #FF4444; --rf-orange: #FF8800; --rf-yellow: #FFD700;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(255,68,68,0.07) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(255,215,0,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, #FF8800 40%, #FFD700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.35); background: rgba(230,126,34,0.08); }
+  .badge-valterite{ color: var(--valterite);border-color: rgba(74,224,224,0.35); background: rgba(74,224,224,0.08); }
+  .badge-aetherite{ color: var(--aetherite);border-color: rgba(155,89,182,0.35); background: rgba(155,89,182,0.08); }
+  .badge-erinium  { color: var(--erinium);  border-color: rgba(255,215,0,0.35);  background: rgba(255,215,0,0.08); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h2 .s-num.rf-num     { background: linear-gradient(135deg, #b83200 0%, #FF6600 100%); }
+  .section-card h2 .s-num.valterite-num { background: linear-gradient(135deg, #1a8080 0%, var(--valterite) 100%); }
+  .section-card h2 .s-num.aetherite-num { background: linear-gradient(135deg, #5c2d6e 0%, var(--aetherite) 100%); }
+  .section-card h2 .s-num.erinium-num   { background: linear-gradient(135deg, #a07800 0%, var(--erinium) 100%); color: #1a1200; }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '›'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .ascii-diagram .ab { color: var(--rare); }
+  .ascii-diagram .am { color: var(--aetherite); }
+  .ascii-diagram .avt { color: var(--valterite); }
+  .ascii-diagram .aer { color: var(--erinium); }
+  .ascii-diagram .aor { color: var(--orange); }
+  .ascii-diagram .arf { color: #FF4444; }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  /* Generator cards */
+  .gen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin: 20px 0; }
+  .gen-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 22px 20px; }
+  .gen-card.coal     { border-top: 3px solid #888; }
+  .gen-card.valterite { border-top: 3px solid var(--valterite); }
+  .gen-card.aetherite { border-top: 3px solid var(--aetherite); }
+  .gen-card.erinium   { border-top: 3px solid var(--erinium); }
+  .gen-card.solar     { border-top: 3px solid #FFD700; }
+  .gen-card-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .gen-card.coal     .gen-card-name { color: #AAAAAA; }
+  .gen-card.valterite .gen-card-name { color: var(--valterite); }
+  .gen-card.aetherite .gen-card-name { color: var(--aetherite); }
+  .gen-card.erinium   .gen-card-name { color: var(--erinium); }
+  .gen-card.solar     .gen-card-name { color: #FFD700; }
+  .gen-card-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); margin-bottom: 14px; }
+  .gen-card-stat { font-size: 12px; color: var(--slate); margin: 5px 0; }
+  .gen-card-stat strong { color: var(--text); }
+  .gen-rf { font-size: 22px; font-weight: 800; margin: 8px 0 4px; color: #FF6600; }
+  /* Checklist */
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .gen-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } .gen-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Standard RF / Forge Energy</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Generateurs</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Batteries</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> GUI des Machines</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Recettes de Craft</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Architecture Technique</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Features Futures RF</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Textures &amp; Assets</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges · EriniumFaction</div>
+      <h1>Systeme d'Electricite RF</h1>
+      <p>Generateurs et batteries bases sur le standard Redstone Flux (RF) de l'ecosysteme Forge. Cinq generateurs allant du charbon au noyau Erinium, quatre niveaux de batteries, et une fondation pour les features industrielles futures.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-orange">5 generateurs</span>
+        <span class="badge badge-cyan">4 batteries</span>
+        <span class="badge badge-green">Forge Energy compatible</span>
+        <span class="badge badge-gold">1 200 RF/t max</span>
+        <span class="badge badge-erinium">100M RF stockage max</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Vision du systeme</h3>
+      <p>EriniumFaction introduit un systeme d'electricite base sur le standard <strong>Redstone Flux (RF)</strong> de l'ecosysteme Forge. RF est le standard d'energie le plus repandu dans les mods Forge 1.12.2 — utilise par Thermal Expansion, EnderIO, Mekanism, Applied Energistics 2, etc. Ce systeme offre une <strong>couche de progression industrielle</strong> distincte de la progression PvP classique, et ouvre la porte a des features a forte valeur ajoutee.</p>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Progression industrielle :</strong> ajouter un axe de jeu ou les joueurs investissent dans la production et le stockage d'energie pour debloquer des fonctionnalites avancees.</li>
+        <li><strong>Economie d'energie :</strong> les generateurs et batteries cree une economie emergente — les factions qui maitrisent le RF obtiennent des avantages defensifs et logistiques.</li>
+        <li><strong>Compatibilite native :</strong> nos blocs implementent les interfaces Forge Energy standard, compatibles avec tout mod utilisant RF ou FE sur le serveur.</li>
+        <li><strong>Fondation pour le futur :</strong> chaque feature avancee (bouclier, teleporteur, tourelle) consommera du RF produit par ce systeme.</li>
+        <li><strong>Performance serveur :</strong> les TileEntities ne tick que si elles ont du travail effectif — critere absolu sur un serveur 500-1000 joueurs.</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Perimetre du mod :</strong> Les cables de transport d'energie seront geres par un mod externe dote de vrais modeles 3D (ex. : Immersive Engineering, Thermal Dynamics). Notre mod fournit uniquement les <strong>generateurs</strong> (production) et les <strong>batteries</strong> (stockage), qui exposent la capability <code>CapabilityEnergy.ENERGY</code> sur toutes leurs faces.</div>
+      </div>
+
+      <h3>Ce que le systeme ne fait pas</h3>
+      <ul>
+        <li><strong>Pas de cables propres :</strong> le transport d'energie inter-blocs est delegu a un mod externe. Nos blocs poussent/recoivent via les faces adjacentes uniquement.</li>
+        <li><strong>Pas de multiblocs complexes :</strong> chaque generateur est un bloc unique, pas une structure multibloc.</li>
+        <li><strong>Pas de GUI EriGuiScreen :</strong> les GUIs de machines utilisent le systeme Container + GuiContainer de Forge (compatible Forge 1.12.2, identique aux fours et tables de craft vanilla).</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S2 — STANDARD RF / FORGE ENERGY ═══ -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Standard RF / Forge Energy</h2>
+
+      <h3 class="first">Historique et compatibilite</h3>
+      <p>En Minecraft 1.12.2, Forge a integre le systeme <strong>Forge Energy</strong> (interfaces <code>IEnergyStorage</code>, <code>IEnergyProvider</code>, <code>IEnergyReceiver</code>) qui est nativement compatible avec le standard RF de CoFH. Le ratio est <strong>1:1</strong> — 1 RF = 1 FE. Tout mod qui utilise l'une ou l'autre API peut interagir avec nos blocs sans configuration supplementaire.</p>
+
+      <h3>Unites de mesure</h3>
+      <ul>
+        <li><strong>RF</strong> (Redstone Flux) : unite d'energie de base. Valeur stockee en <code>int</code> ou <code>long</code> selon la capacite.</li>
+        <li><strong>RF/t</strong> (RF par tick) : debit de production ou de consommation. 20 ticks = 1 seconde. Un generateur a 40 RF/t produit 800 RF/seconde.</li>
+        <li><strong>MRF</strong> (mega RF) : usage courant pour les grandes capacites. 1 MRF = 1 000 000 RF.</li>
+      </ul>
+
+      <h3>Interfaces Forge implementees</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Interface</th><th>Implemente par</th><th>Role</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>IEnergyStorage</code></td><td>Generateurs + Batteries</td><td>Stockage interne, receiveEnergy, extractEnergy, getEnergyStored, getMaxEnergyStored</td></tr>
+            <tr><td><code>IEnergyProvider</code></td><td>Generateurs + Batteries</td><td>Pousse l'energie vers les blocs adjacents chaque tick</td></tr>
+            <tr><td><code>IEnergyReceiver</code></td><td>Batteries uniquement</td><td>Accepte l'energie entrante sur les faces configurees</td></tr>
+            <tr><td><code>ITickable</code></td><td>Generateurs + Batteries</td><td>Logique de production / distribution chaque tick serveur</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Capability Forge :</strong> L'energie est exposee via <code>CapabilityEnergy.ENERGY</code> dans la methode <code>getCapability(Capability, EnumFacing)</code> de la TileEntity. La face <code>null</code> (interne) retourne toujours la capability. Les faces specifiques peuvent etre configurees (voir Section 05 — GUI Batteries).</div>
+      </div>
+
+      <h3>Modele de distribution</h3>
+      <p>Chaque tick, les generateurs et batteries qui ont de l'energie disponible iterent les 6 faces adjacentes. Pour chaque face, si le bloc voisin expose <code>CapabilityEnergy.ENERGY</code> et peut recevoir de l'energie (<code>canReceive() == true</code>), on appelle <code>receiveEnergy()</code> avec la valeur minimale entre le debit max du generateur et la capacite libre du recepteur. L'energie est distribuee equitablement entre toutes les faces qui en acceptent.</p>
+    </section>
+
+    <!-- ═══ S3 — GENERATEURS ═══ -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num orange-num">03</span> Generateurs — Machines de Production</h2>
+
+      <p>Cinq generateurs couvrent la totalite de la progression, du joueur debutant au joueur endgame Erinium. Chaque generateur occupe un bloc unique, a une orientation (FACING), et expose un GUI via le systeme Container.</p>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <div class="gen-grid">
+        <div class="gen-card coal">
+          <div class="gen-card-name">Coal Generator</div>
+          <div class="gen-card-sub">Tier Basique · Fer</div>
+          <div class="gen-rf">40 RF/t</div>
+          <div class="gen-card-stat"><strong>Capacite :</strong> 50 000 RF</div>
+          <div class="gen-card-stat"><strong>Combustible :</strong> Charbon / Bois</div>
+          <div class="gen-card-stat"><strong>ID :</strong> coal_generator</div>
+        </div>
+        <div class="gen-card valterite">
+          <div class="gen-card-name">Valterite Dynamo</div>
+          <div class="gen-card-sub">Tier Valterite · Cyan</div>
+          <div class="gen-rf">120 RF/t</div>
+          <div class="gen-card-stat"><strong>Capacite :</strong> 200 000 RF</div>
+          <div class="gen-card-stat"><strong>Combustible :</strong> Charbon / Valterite Raw</div>
+          <div class="gen-card-stat"><strong>ID :</strong> valterite_dynamo</div>
+        </div>
+        <div class="gen-card aetherite">
+          <div class="gen-card-name">Aetherite Reactor</div>
+          <div class="gen-card-sub">Tier Aetherite · Violet</div>
+          <div class="gen-rf">400 RF/t</div>
+          <div class="gen-card-stat"><strong>Capacite :</strong> 1 000 000 RF</div>
+          <div class="gen-card-stat"><strong>Combustible :</strong> Aetherite Crystal</div>
+          <div class="gen-card-stat"><strong>ID :</strong> aetherite_reactor</div>
+        </div>
+        <div class="gen-card erinium">
+          <div class="gen-card-name">Erinium Core</div>
+          <div class="gen-card-sub">Tier Erinium · Or</div>
+          <div class="gen-rf">1 200 RF/t</div>
+          <div class="gen-card-stat"><strong>Capacite :</strong> 5 000 000 RF</div>
+          <div class="gen-card-stat"><strong>Combustible :</strong> Erinium Fragment</div>
+          <div class="gen-card-stat"><strong>ID :</strong> erinium_core</div>
+        </div>
+        <div class="gen-card solar">
+          <div class="gen-card-name">Solar Panel</div>
+          <div class="gen-card-sub">Passif · Diamant + Verre</div>
+          <div class="gen-rf">0–20 RF/t</div>
+          <div class="gen-card-stat"><strong>Capacite :</strong> 10 000 RF</div>
+          <div class="gen-card-stat"><strong>Combustible :</strong> Aucun (solaire)</div>
+          <div class="gen-card-stat"><strong>ID :</strong> solar_panel</div>
+        </div>
+      </div>
+
+      <h3>3.1 — Generateur a Charbon (Coal Generator)</h3>
+      <ul>
+        <li><strong>Tier :</strong> Basique — craft en fer + redstone</li>
+        <li><strong>Production :</strong> 40 RF/t (800 RF/seconde)</li>
+        <li><strong>Capacite interne :</strong> 50 000 RF</li>
+        <li><strong>Combustibles acceptes :</strong> tous les combustibles du four vanilla (charbon, bois, planches, bois de charbon, etc.) — utiliser <code>TileEntityFurnace.isItemFuel(itemStack)</code></li>
+        <li><strong>Rendement charbon :</strong> 1600 ticks de combustion = 64 000 RF par charbon (1600 × 40 RF/t)</li>
+        <li><strong>Rendement bois :</strong> 300 ticks = 12 000 RF par buche</li>
+        <li><strong>Comportement :</strong> si la capacite interne est pleine, la combustion s'arrete (ne gaspille pas le combustible)</li>
+      </ul>
+
+      <h3>3.2 — Generateur Valterite (Valterite Dynamo)</h3>
+      <ul>
+        <li><strong>Tier :</strong> Valterite — investissement mid-game</li>
+        <li><strong>Production :</strong> 120 RF/t (2 400 RF/seconde)</li>
+        <li><strong>Capacite interne :</strong> 200 000 RF</li>
+        <li><strong>Combustibles acceptes :</strong> charbon (tous les combustibles four vanilla) + <strong>Valterite Raw</strong> (combustible exclusif)</li>
+        <li><strong>Rendement charbon :</strong> 1600 ticks = 192 000 RF par charbon (rendement ameliore grace au tier)</li>
+        <li><strong>Rendement Valterite Raw :</strong> 3200 ticks = 384 000 RF par Valterite Raw</li>
+        <li><strong>Avantage cumulatif :</strong> meme avec du charbon ordinaire, le dynamo Valterite produit 3× plus de RF qu'un Coal Generator</li>
+      </ul>
+
+      <h3>3.3 — Reacteur Aetherite (Aetherite Reactor)</h3>
+      <ul>
+        <li><strong>Tier :</strong> Aetherite — investissement high-game</li>
+        <li><strong>Production :</strong> 400 RF/t (8 000 RF/seconde)</li>
+        <li><strong>Capacite interne :</strong> 1 000 000 RF (1 MRF)</li>
+        <li><strong>Combustible exclusif :</strong> Aetherite Crystal uniquement (pas de charbon)</li>
+        <li><strong>Rendement Aetherite Crystal :</strong> 6400 ticks (320 secondes) = 2 560 000 RF par cristal</li>
+        <li><strong>Note design :</strong> le reacteur necessite un approvisionnement continu en cristaux — encourage la construction d'une chaine de production</li>
+      </ul>
+
+      <h3>3.4 — Noyau d'Erinium (Erinium Core)</h3>
+      <ul>
+        <li><strong>Tier :</strong> Erinium — endgame absolu</li>
+        <li><strong>Production :</strong> 1 200 RF/t (24 000 RF/seconde)</li>
+        <li><strong>Capacite interne :</strong> 5 000 000 RF (5 MRF)</li>
+        <li><strong>Combustible exclusif :</strong> Erinium Fragment uniquement</li>
+        <li><strong>Rendement Erinium Fragment :</strong> 12 800 ticks (640 secondes) = 15 360 000 RF par fragment</li>
+        <li><strong>Usage typique :</strong> alimentation des boucliers de faction, tourelles, et extracteurs de minerais en continu</li>
+      </ul>
+
+      <h3>3.5 — Panneau Solaire (Solar Panel)</h3>
+      <ul>
+        <li><strong>Tier :</strong> Basique (diamant + verre) — haut cout initial, production passive</li>
+        <li><strong>Production jour clair :</strong> 20 RF/t — condition : <code>world.isDaytime() &amp;&amp; !world.isRaining()</code></li>
+        <li><strong>Production jour nuageux / pluie :</strong> 5 RF/t — condition : <code>world.isDaytime() &amp;&amp; world.isRaining()</code></li>
+        <li><strong>Production nuit :</strong> 0 RF/t — condition : <code>!world.isDaytime()</code></li>
+        <li><strong>Capacite interne :</strong> 10 000 RF (tampon de nuit)</li>
+        <li><strong>Contrainte :</strong> le bloc immediatement au-dessus doit etre <code>Blocks.AIR</code> ou un bloc transparent — verifier <code>world.canSeeSky(pos.up())</code></li>
+        <li><strong>Pas de slot combustible :</strong> TileEntity ITickable mais sans inventaire interne</li>
+      </ul>
+
+      <h3>Tableau comparatif des generateurs</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Generateur</th>
+              <th>Production</th>
+              <th>Capacite</th>
+              <th>Combustible</th>
+              <th>RF / unite combustible</th>
+              <th>ID bloc</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Coal Generator</td>
+              <td style="color:#FF6600">40 RF/t</td>
+              <td>50 000 RF</td>
+              <td>Charbon / Bois</td>
+              <td>64 000 RF / charbon</td>
+              <td><code>coal_generator</code></td>
+            </tr>
+            <tr>
+              <td style="color:var(--valterite)">Valterite Dynamo</td>
+              <td style="color:#FF6600">120 RF/t</td>
+              <td>200 000 RF</td>
+              <td>Charbon / Valterite Raw</td>
+              <td>384 000 RF / Valterite Raw</td>
+              <td><code>valterite_dynamo</code></td>
+            </tr>
+            <tr>
+              <td style="color:var(--aetherite)">Aetherite Reactor</td>
+              <td style="color:#FF6600">400 RF/t</td>
+              <td>1 000 000 RF</td>
+              <td>Aetherite Crystal</td>
+              <td>2 560 000 RF / cristal</td>
+              <td><code>aetherite_reactor</code></td>
+            </tr>
+            <tr>
+              <td style="color:var(--erinium)">Erinium Core</td>
+              <td style="color:#FF6600">1 200 RF/t</td>
+              <td>5 000 000 RF</td>
+              <td>Erinium Fragment</td>
+              <td>15 360 000 RF / fragment</td>
+              <td><code>erinium_core</code></td>
+            </tr>
+            <tr>
+              <td style="color:#FFD700">Solar Panel</td>
+              <td style="color:#FF6600">0–20 RF/t</td>
+              <td>10 000 RF</td>
+              <td>Aucun (passif)</td>
+              <td>Illimite (solaire)</td>
+              <td><code>solar_panel</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ S4 — BATTERIES ═══ -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num valterite-num">04</span> Batteries — Blocs de Stockage</h2>
+
+      <p>Quatre niveaux de batteries correspondent aux quatre tiers de materiaux du mod. Les batteries acceptent l'energie de toutes les faces configurees et la redistribuent vers les blocs adjacents. Elles sont le coeur de toute installation RF serieuse.</p>
+
+      <h3 class="first">Tableau comparatif des batteries</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Batterie</th>
+              <th>Capacite</th>
+              <th>Debit max E/S</th>
+              <th>Materiau</th>
+              <th>ID bloc</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Basic Cell</td>
+              <td>100 000 RF</td>
+              <td style="color:#FF6600">200 RF/t</td>
+              <td>Fer + Redstone</td>
+              <td><code>basic_cell</code></td>
+            </tr>
+            <tr>
+              <td style="color:var(--valterite)">Valterite Cell</td>
+              <td>1 000 000 RF</td>
+              <td style="color:#FF6600">1 000 RF/t</td>
+              <td>Lingot de Valterite</td>
+              <td><code>valterite_cell</code></td>
+            </tr>
+            <tr>
+              <td style="color:var(--aetherite)">Aetherite Cell</td>
+              <td>10 000 000 RF</td>
+              <td style="color:#FF6600">5 000 RF/t</td>
+              <td>Cristal d'Aetherite</td>
+              <td><code>aetherite_cell</code></td>
+            </tr>
+            <tr>
+              <td style="color:var(--erinium)">Erinium Cell</td>
+              <td>100 000 000 RF</td>
+              <td style="color:#FF6600">20 000 RF/t</td>
+              <td>Fragment d'Erinium</td>
+              <td><code>erinium_cell</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>4.1 — Batterie Basique (Basic Cell)</h3>
+      <ul>
+        <li><strong>Capacite :</strong> 100 000 RF</li>
+        <li><strong>Debit entree max :</strong> 200 RF/t — evite la surcharge accidentelle</li>
+        <li><strong>Debit sortie max :</strong> 200 RF/t</li>
+        <li><strong>Materiau :</strong> Fer + Redstone + Bloc de Lapis (voir recette Section 06)</li>
+        <li><strong>Usage typique :</strong> tampon local pour un Coal Generator, alimentation d'une seule machine</li>
+      </ul>
+
+      <h3>4.2 — Batterie Valterite (Valterite Cell)</h3>
+      <ul>
+        <li><strong>Capacite :</strong> 1 000 000 RF (1 MRF) — 10× la Basic Cell</li>
+        <li><strong>Debit entree/sortie max :</strong> 1 000 RF/t</li>
+        <li><strong>Usage typique :</strong> stockage pour un Valterite Dynamo, alimentation de plusieurs machines</li>
+      </ul>
+
+      <h3>4.3 — Batterie Aetherite (Aetherite Cell)</h3>
+      <ul>
+        <li><strong>Capacite :</strong> 10 000 000 RF (10 MRF)</li>
+        <li><strong>Debit entree/sortie max :</strong> 5 000 RF/t</li>
+        <li><strong>Usage typique :</strong> reservoir central d'une faction, alimentation du bouclier de faction</li>
+      </ul>
+
+      <h3>4.4 — Batterie Erinium (Erinium Cell)</h3>
+      <ul>
+        <li><strong>Capacite :</strong> 100 000 000 RF (100 MRF) — stockage maximal</li>
+        <li><strong>Debit entree/sortie max :</strong> 20 000 RF/t</li>
+        <li><strong>Usage typique :</strong> hub energetique d'une grande faction endgame, alimentation simultanée de tourelles, bouclier, teleporteurs</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Persistance NBT :</strong> Le niveau d'energie stocke est sauvegarde dans le NBT de la TileEntity a chaque modification. En cas de crash serveur, l'energie est conservee. Le niveau de charge est aussi lu depuis le NBT au chargement du chunk.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S5 — GUI DES MACHINES ═══ -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num green-num">05</span> GUI des Machines</h2>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Systeme GUI :</strong> Les GUIs des machines utilisent le systeme Forge <strong>Container + GuiContainer</strong> (comme les fours, tables de craft, et notre table d'enchantement custom dans FactionChestGuiHandler). PAS EriGuiScreen — les machines doivent etre accessibles depuis le serveur sans client-side.</div>
+      </div>
+
+      <h3 class="first">GUI des Generateurs</h3>
+      <p>Chaque generateur partage le meme layout de GUI, adapte par une couleur de theme (gris pour Coal, cyan pour Valterite, violet pour Aetherite, or pour Erinium, jaune pour Solar).</p>
+      <ul>
+        <li><strong>Slot combustible :</strong> un slot en bas a gauche — accepte uniquement les combustibles valides pour ce generateur</li>
+        <li><strong>Animation de flamme :</strong> flamme animee (4 frames) au-dessus du slot combustible, active/inactive selon l'etat de combustion — utiliser le champ <code>burnTime</code> synchronise via <code>IIntArray</code></li>
+        <li><strong>Barre d'energie RF :</strong> barre verticale a droite, hauteur proportionnelle au niveau d'energie. Couleur : rouge (0-25%) → orange (25-50%) → jaune (50-75%) → vert (75-100%)</li>
+        <li><strong>Affichage numerique energie :</strong> label au-dessus de la barre — format <code>12 500 / 50 000 RF</code></li>
+        <li><strong>Affichage debit :</strong> label en bas — format <code>40 RF/t</code> quand actif, <code>0 RF/t</code> quand inactif</li>
+        <li><strong>Temps restant combustible :</strong> label sous la flamme — format <code>~80s</code> base sur le <code>burnTime</code> restant</li>
+      </ul>
+
+      <h3>GUI Panneau Solaire</h3>
+      <ul>
+        <li>Pas de slot combustible (pas d'inventaire)</li>
+        <li>Barre d'energie RF verticale</li>
+        <li>Affichage numerique energie</li>
+        <li>Indicateur d'etat : <code>Production : 20 RF/t</code> (jour clair) / <code>5 RF/t</code> (pluie) / <code>Inactif</code> (nuit)</li>
+        <li>Icone soleil/lune indiquant la condition actuelle</li>
+      </ul>
+
+      <h3>GUI des Batteries</h3>
+      <ul>
+        <li><strong>Grande barre d'energie RF :</strong> barre verticale centrale, largeur proportionnelle a la capacite affichee</li>
+        <li><strong>Affichage numerique energie :</strong> format <code>250 000 / 1 000 000 RF</code> — format lisible avec espaces comme separateurs de milliers</li>
+        <li><strong>Debit entree en temps reel :</strong> label <code>Entree : +500 RF/t</code> mis a jour toutes les 20 ticks</li>
+        <li><strong>Debit sortie en temps reel :</strong> label <code>Sortie : -200 RF/t</code></li>
+        <li><strong>Configuration face par face :</strong> 6 boutons representant les 6 faces (NORTH, SOUTH, EAST, WEST, UP, DOWN). Chaque face peut etre configuree en :
+          <ul style="margin-top: 8px;">
+            <li><strong>Entree (BLUE) :</strong> la face accepte l'energie entrante</li>
+            <li><strong>Sortie (ORANGE) :</strong> la face fournit de l'energie sortante</li>
+            <li><strong>Desactivee (GREY) :</strong> aucune interaction sur cette face</li>
+          </ul>
+        </li>
+        <li><strong>Persistance face config :</strong> la configuration des faces est stockee en NBT (<code>faceModes[6]</code> int array, valeurs 0/1/2)</li>
+      </ul>
+
+      <h3>Synchronisation Container → GUI</h3>
+      <p>Les donnees dynamiques (energie stockee, burnTime, debit) sont synchronisees via <code>IIntArray</code> (Forge 1.12.2 : <code>addTrackingInt</code> dans le Container). Le client recoit les mises a jour automatiquement. Pour les grandes valeurs (capacite 100M RF), utiliser deux champs <code>int</code> (high/low 32 bits) ou caster en <code>long</code> cote serveur avant de splitter.</p>
+    </section>
+
+    <!-- ═══ S6 — RECETTES DE CRAFT ═══ -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num gold-num">06</span> Recettes de Craft</h2>
+
+      <p>Neuf blocs au total. Les recettes sont enregistrees via <code>EriRecipe.shaped()</code> dans <code>EnergyRecipes.java</code>. Chaque recette est intentionnellement chere pour refleter l'investissement significatif que represente une installation RF.</p>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Legende des diagrammes :</strong> Les lettres representent les ingredients dans la grille de craft 3×3. La rangee du haut est la premiere ligne, rangee du bas = derniere ligne. Les espaces representent des cases vides.</div>
+      </div>
+
+      <h3 class="first">Generateurs</h3>
+
+      <p><strong style="color:#AAAAAA">Coal Generator</strong> — I=Lingot de Fer, R=Redstone, F=Four (Block furnace)</p>
+      <div class="ascii-diagram"><span class="as">I R I</span>    <span class="as">← Fer, Redstone, Fer</span>
+<span class="as">I F I</span>    <span class="as">← Fer, Four, Fer</span>
+<span class="as">I I I</span>    <span class="as">← 3x Lingot de Fer</span>
+
+<span class="as">Pattern : "IRI" / "IFI" / "III"</span>
+<span class="as">Ingredients : 7x Lingot de Fer + 1x Redstone + 1x Four</span></div>
+
+      <p><strong style="color:var(--valterite)">Valterite Dynamo</strong> — V=Lingot de Valterite, R=Redstone, F=Coal Generator</p>
+      <div class="ascii-diagram"><span class="avt">V R V</span>    <span class="as">← Valterite, Redstone, Valterite</span>
+<span class="avt">V F V</span>    <span class="as">← Valterite, Coal Generator, Valterite</span>
+<span class="avt">V R V</span>    <span class="as">← Valterite, Redstone, Valterite</span>
+
+<span class="as">Pattern : "VRV" / "VFV" / "VRV"</span>
+<span class="as">Ingredients : 6x Lingot de Valterite + 2x Redstone + 1x Coal Generator</span></div>
+
+      <p><strong style="color:var(--aetherite)">Aetherite Reactor</strong> — A=Cristal d'Aetherite, D=Diamant, N=Nether Star</p>
+      <div class="ascii-diagram"><span class="am">A D A</span>    <span class="as">← Aetherite Crystal, Diamant, Aetherite Crystal</span>
+<span class="am">A N A</span>    <span class="as">← Aetherite Crystal, Nether Star, Aetherite Crystal</span>
+<span class="am">A D A</span>    <span class="as">← Aetherite Crystal, Diamant, Aetherite Crystal</span>
+
+<span class="as">Pattern : "ADA" / "ANA" / "ADA"</span>
+<span class="as">Ingredients : 6x Aetherite Crystal + 2x Diamant + 1x Nether Star</span></div>
+
+      <p><strong style="color:var(--erinium)">Erinium Core</strong> — E=Fragment d'Erinium, N=Nether Star, R=Bloc de Redstone</p>
+      <div class="ascii-diagram"><span class="aer">E N E</span>    <span class="as">← Erinium Fragment, Nether Star, Erinium Fragment</span>
+<span class="aer">N R N</span>    <span class="as">← Nether Star, Bloc de Redstone, Nether Star</span>
+<span class="aer">E N E</span>    <span class="as">← Erinium Fragment, Nether Star, Erinium Fragment</span>
+
+<span class="as">Pattern : "ENE" / "NRN" / "ENE"</span>
+<span class="as">Ingredients : 4x Erinium Fragment + 4x Nether Star + 1x Bloc de Redstone</span>
+<span class="as">Note : recette la plus couteuse du jeu (4 Nether Stars)</span></div>
+
+      <p><strong style="color:#FFD700">Solar Panel</strong> — G=Verre, D=Diamant, R=Redstone, I=Lingot de Fer</p>
+      <div class="ascii-diagram"><span class="ay">G G G</span>    <span class="as">← 3x Verre</span>
+<span class="ay">D R D</span>    <span class="as">← Diamant, Redstone, Diamant</span>
+<span class="as">I I I</span>    <span class="as">← 3x Lingot de Fer</span>
+
+<span class="as">Pattern : "GGG" / "DRD" / "III"</span>
+<span class="as">Ingredients : 3x Verre + 2x Diamant + 1x Redstone + 3x Lingot de Fer</span></div>
+
+      <h3>Batteries</h3>
+
+      <p><strong>Basic Cell</strong> — I=Lingot de Fer, R=Redstone, L=Bloc de Lapis</p>
+      <div class="ascii-diagram"><span class="as">I R I</span>    <span class="as">← Fer, Redstone, Fer</span>
+<span class="as">R L R</span>    <span class="as">← Redstone, Bloc de Lapis, Redstone</span>
+<span class="as">I R I</span>    <span class="as">← Fer, Redstone, Fer</span>
+
+<span class="as">Pattern : "IRI" / "RLR" / "IRI"</span>
+<span class="as">Ingredients : 4x Lingot de Fer + 4x Redstone + 1x Bloc de Lapis</span></div>
+
+      <p><strong style="color:var(--valterite)">Valterite Cell</strong> — V=Lingot de Valterite, R=Redstone, L=Bloc de Lapis</p>
+      <div class="ascii-diagram"><span class="avt">V R V</span>    <span class="as">← Valterite, Redstone, Valterite</span>
+<span class="avt">R L R</span>    <span class="as">← Redstone, Bloc de Lapis, Redstone</span>
+<span class="avt">V R V</span>    <span class="as">← Valterite, Redstone, Valterite</span>
+
+<span class="as">Pattern : "VRV" / "RLR" / "VRV"</span>
+<span class="as">Ingredients : 4x Lingot de Valterite + 4x Redstone + 1x Bloc de Lapis</span></div>
+
+      <p><strong style="color:var(--aetherite)">Aetherite Cell</strong> — A=Cristal d'Aetherite, R=Bloc de Redstone, D=Bloc de Diamant</p>
+      <div class="ascii-diagram"><span class="am">A R A</span>    <span class="as">← Aetherite Crystal, Bloc de Redstone, Aetherite Crystal</span>
+<span class="am">R D R</span>    <span class="as">← Bloc de Redstone, Bloc de Diamant, Bloc de Redstone</span>
+<span class="am">A R A</span>    <span class="as">← Aetherite Crystal, Bloc de Redstone, Aetherite Crystal</span>
+
+<span class="as">Pattern : "ARA" / "RDR" / "ARA"</span>
+<span class="as">Ingredients : 4x Aetherite Crystal + 4x Bloc de Redstone + 1x Bloc de Diamant</span></div>
+
+      <p><strong style="color:var(--erinium)">Erinium Cell</strong> — E=Fragment d'Erinium, R=Bloc de Redstone, N=Nether Star</p>
+      <div class="ascii-diagram"><span class="aer">E R E</span>    <span class="as">← Erinium Fragment, Bloc de Redstone, Erinium Fragment</span>
+<span class="aer">R N R</span>    <span class="as">← Bloc de Redstone, Nether Star, Bloc de Redstone</span>
+<span class="aer">E R E</span>    <span class="as">← Erinium Fragment, Bloc de Redstone, Erinium Fragment</span>
+
+<span class="as">Pattern : "ERE" / "RNR" / "ERE"</span>
+<span class="as">Ingredients : 4x Erinium Fragment + 4x Bloc de Redstone + 1x Nether Star</span></div>
+    </section>
+
+    <!-- ═══ S7 — ARCHITECTURE TECHNIQUE ═══ -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num">07</span> Architecture Technique</h2>
+
+      <h3 class="first">Structure des packages</h3>
+      <div class="code-block"><span class="cm">// Package racine : fr.eriniumgroup.eriniumfaction.energy/</span>
+
+<span class="ty">energy/</span>
+<span class="op">├──</span> <span class="ty">generator/</span>
+<span class="op">│   ├──</span> <span class="cl">TileGeneratorBase.java</span>       <span class="cm">— TileEntity abstraite pour tous les generateurs</span>
+<span class="op">│   │                                  </span> <span class="cm">  implements ITickable, IEnergyStorage, IEnergyProvider</span>
+<span class="op">│   ├──</span> <span class="cl">TileCoalGenerator.java</span>       <span class="cm">— Generateur charbon (fuel = TileEntityFurnace.isItemFuel)</span>
+<span class="op">│   ├──</span> <span class="cl">TileValteriteDynamo.java</span>     <span class="cm">— Dynamo Valterite (fuel = charbon + Valterite Raw)</span>
+<span class="op">│   ├──</span> <span class="cl">TileAetheriteReactor.java</span>    <span class="cm">— Reacteur Aetherite (fuel = Aetherite Crystal only)</span>
+<span class="op">│   ├──</span> <span class="cl">TileEriniumCore.java</span>         <span class="cm">— Noyau Erinium (fuel = Erinium Fragment only)</span>
+<span class="op">│   ├──</span> <span class="cl">TileSolarPanel.java</span>          <span class="cm">— Panneau solaire (pas d'inventaire, production passive)</span>
+<span class="op">│   ├──</span> <span class="cl">BlockGenerator.java</span>          <span class="cm">— Classe de bloc generique (FACING property, etat on/off)</span>
+<span class="op">│   ├──</span> <span class="cl">ContainerGenerator.java</span>      <span class="cm">— Container Forge pour le GUI generateur (IIntArray sync)</span>
+<span class="op">│   └──</span> <span class="cl">GuiGenerator.java</span>            <span class="cm">— GuiContainer (flamme, barre RF, labels)</span>
+<span class="op">├──</span> <span class="ty">storage/</span>
+<span class="op">│   ├──</span> <span class="cl">TileEnergyCell.java</span>          <span class="cm">— TileEntity batteries (capacite/debit selon type)</span>
+<span class="op">│   ├──</span> <span class="cl">BlockEnergyCell.java</span>         <span class="cm">— Classe de bloc (4 etats visuels par niveau de charge)</span>
+<span class="op">│   ├──</span> <span class="cl">ContainerEnergyCell.java</span>     <span class="cm">— Container avec config face par face</span>
+<span class="op">│   └──</span> <span class="cl">GuiEnergyCell.java</span>           <span class="cm">— GuiContainer avec boutons face config + grande barre RF</span>
+<span class="op">├──</span> <span class="cl">EnergyBlocks.java</span>              <span class="cm">— Registration de tous les blocs + TileEntities</span>
+<span class="op">├──</span> <span class="cl">EnergyRecipes.java</span>             <span class="cm">— Toutes les recettes (EriRecipe.shaped)</span>
+<span class="op">└──</span> <span class="cl">EnergyGuiHandler.java</span>          <span class="cm">— IGuiHandler (ou ajout dans FactionChestGuiHandler)</span></div>
+
+      <h3>TileGeneratorBase — logique commune</h3>
+      <div class="code-block"><span class="kw">public abstract class</span> <span class="cl">TileGeneratorBase</span> <span class="kw">extends</span> <span class="cl">TileEntity</span> <span class="kw">implements</span> <span class="cl">ITickable</span>, <span class="cl">IEnergyStorage</span> {
+
+    <span class="cm">// Energie stockee (int suffit pour les generateurs &lt;= 5M RF)</span>
+    <span class="kw">protected int</span> <span class="fn">energyStored</span>;
+    <span class="kw">protected int</span> <span class="fn">maxEnergy</span>;         <span class="cm">// defini par sous-classe</span>
+    <span class="kw">protected int</span> <span class="fn">rfPerTick</span>;         <span class="cm">// production par tick</span>
+    <span class="kw">protected int</span> <span class="fn">burnTime</span>;          <span class="cm">// ticks restants pour le combustible actuel</span>
+    <span class="kw">protected int</span> <span class="fn">totalBurnTime</span>;     <span class="cm">// duree totale du combustible actuel (pour la flamme)</span>
+
+    <span class="cm">// Inventaire combustible (1 slot pour les generateurs a combustible)</span>
+    <span class="kw">protected</span> <span class="cl">ItemStackHandler</span> <span class="fn">fuelHandler</span> = <span class="kw">new</span> <span class="cl">ItemStackHandler</span>(<span class="nu">1</span>);
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">update</span>() {
+        <span class="cm">// OPTIMISATION : ne tick que si necessaire</span>
+        <span class="kw">if</span> (world.isRemote) <span class="kw">return</span>;
+
+        <span class="kw">boolean</span> <span class="fn">wasActive</span> = burnTime > <span class="nu">0</span>;
+
+        <span class="kw">if</span> (burnTime > <span class="nu">0</span>) {
+            burnTime--;
+            <span class="kw">if</span> (energyStored + rfPerTick &lt;= maxEnergy) {
+                energyStored += rfPerTick;
+                <span class="fn">markDirty</span>();
+            }
+        }
+
+        <span class="cm">// Essayer de charger le prochain combustible si energie non pleine</span>
+        <span class="kw">if</span> (burnTime == <span class="nu">0</span> &amp;&amp; energyStored &lt; maxEnergy) {
+            <span class="fn">tryConsumeFuel</span>();
+        }
+
+        <span class="cm">// Pousser l'energie vers les blocs adjacents</span>
+        <span class="kw">if</span> (energyStored > <span class="nu">0</span>) {
+            <span class="fn">pushEnergyToNeighbors</span>();
+        }
+
+        <span class="cm">// Mise a jour du blockstate on/off si changement d'etat</span>
+        <span class="kw">boolean</span> <span class="fn">isActive</span> = burnTime > <span class="nu">0</span>;
+        <span class="kw">if</span> (wasActive != isActive) {
+            <span class="fn">updateBlockState</span>(isActive);
+        }
+    }
+
+    <span class="kw">protected void</span> <span class="fn">pushEnergyToNeighbors</span>() {
+        <span class="kw">for</span> (<span class="cl">EnumFacing</span> facing : <span class="cl">EnumFacing</span>.values()) {
+            <span class="cl">TileEntity</span> neighbor = world.<span class="fn">getTileEntity</span>(pos.<span class="fn">offset</span>(facing));
+            <span class="kw">if</span> (neighbor == <span class="kw">null</span>) <span class="kw">continue</span>;
+            <span class="cl">IEnergyStorage</span> storage = neighbor.<span class="fn">getCapability</span>(
+                <span class="cl">CapabilityEnergy</span>.ENERGY, facing.<span class="fn">getOpposite</span>());
+            <span class="kw">if</span> (storage != <span class="kw">null</span> &amp;&amp; storage.<span class="fn">canReceive</span>()) {
+                <span class="kw">int</span> toSend = <span class="cl">Math</span>.<span class="fn">min</span>(energyStored, rfPerTick);
+                <span class="kw">int</span> received = storage.<span class="fn">receiveEnergy</span>(toSend, <span class="kw">false</span>);
+                energyStored -= received;
+                <span class="kw">if</span> (received > <span class="nu">0</span>) <span class="fn">markDirty</span>();
+            }
+        }
+    }
+
+    <span class="cm">// writeToNBT / readFromNBT : sauvegarder energyStored, burnTime, fuelHandler</span>
+}</div>
+
+      <h3>TileEnergyCell — logique batterie</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">TileEnergyCell</span> <span class="kw">extends</span> <span class="cl">TileEntity</span> <span class="kw">implements</span> <span class="cl">ITickable</span>, <span class="cl">IEnergyStorage</span> {
+
+    <span class="cm">// Pour Erinium Cell : capacite 100M → utiliser long</span>
+    <span class="kw">private long</span> <span class="fn">energyStored</span>;
+    <span class="kw">private final long</span> <span class="fn">maxEnergy</span>;
+    <span class="kw">private final int</span> <span class="fn">maxTransfer</span>;
+
+    <span class="cm">// Configuration des faces : 0=OFF, 1=ENTREE, 2=SORTIE</span>
+    <span class="kw">private final int</span>[] <span class="fn">faceModes</span> = <span class="kw">new int</span>[<span class="nu">6</span>]; <span class="cm">// index = EnumFacing.getIndex()</span>
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">update</span>() {
+        <span class="kw">if</span> (world.isRemote) <span class="kw">return</span>;
+        <span class="cm">// Pousser l'energie sur les faces configurees en SORTIE</span>
+        <span class="kw">if</span> (energyStored > <span class="nu">0</span>) {
+            <span class="fn">pushEnergyToOutputFaces</span>();
+        }
+    }
+
+    <span class="cm">// La capability est exposee par face selon la configuration</span>
+    <span class="an">@Override</span>
+    <span class="kw">public</span> &lt;T&gt; T <span class="fn">getCapability</span>(<span class="cl">Capability</span>&lt;T&gt; capability, <span class="cl">EnumFacing</span> facing) {
+        <span class="kw">if</span> (capability == <span class="cl">CapabilityEnergy</span>.ENERGY) {
+            <span class="kw">if</span> (facing == <span class="kw">null</span>) <span class="kw">return</span> <span class="kw">this</span>; <span class="cm">// acces interne toujours</span>
+            <span class="kw">int</span> mode = faceModes[facing.<span class="fn">getIndex</span>()];
+            <span class="kw">if</span> (mode != <span class="nu">0</span>) <span class="kw">return</span> <span class="kw">this</span>;   <span class="cm">// ENTREE ou SORTIE = capability exposee</span>
+        }
+        <span class="kw">return super</span>.<span class="fn">getCapability</span>(capability, facing);
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public boolean</span> <span class="fn">canReceive</span>() {
+        <span class="cm">// Retourne true si au moins une face est en mode ENTREE</span>
+        <span class="kw">for</span> (<span class="kw">int</span> mode : faceModes) <span class="kw">if</span> (mode == <span class="nu">1</span>) <span class="kw">return true</span>;
+        <span class="kw">return false</span>;
+    }
+}</div>
+
+      <h3>Optimisation TPS — regles obligatoires</h3>
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Serveur 500-1000 joueurs :</strong> Des dizaines de TileEntities RF potentiellement actives en meme temps. Chaque regle ci-dessous est non-negociable.</div>
+      </div>
+      <ul>
+        <li><strong>Early return si inactif :</strong> <code>if (burnTime == 0 &amp;&amp; energyStored == 0) return;</code> — un bloc vide et froid ne fait rien</li>
+        <li><strong>Early return client-side :</strong> toujours la premiere instruction de <code>update()</code></li>
+        <li><strong>markDirty() conditionnel :</strong> appeler uniquement si l'energie a reellement change</li>
+        <li><strong>Distribution limitee :</strong> pousser au maximum <code>rfPerTick</code> RF par tick, meme si la batterie contient bien plus</li>
+        <li><strong>Pas d'allocation dans update() :</strong> ne pas creer de <code>new ArrayList</code>, <code>new ItemStack</code>, etc. dans la boucle de tick</li>
+        <li><strong>Solar Panel :</strong> verifier <code>world.isDaytime()</code> en premier — si nuit et energie = 0, retour immediat</li>
+        <li><strong>Batch markDirty :</strong> pour le solar panel qui produit 5-20 RF/t, grouper les saves toutes les 10 ticks minimum</li>
+      </ul>
+
+      <h3>Registration des blocs et TileEntities</h3>
+      <div class="code-block"><span class="cm">// Dans EnergyBlocks.java — appelé depuis CommonProxy.preInit()</span>
+<span class="kw">public static void</span> <span class="fn">register</span>() {
+    <span class="cm">// Enregistrer les TileEntities</span>
+    <span class="cl">GameRegistry</span>.<span class="fn">registerTileEntity</span>(<span class="cl">TileCoalGenerator</span>.<span class="kw">class</span>, <span class="st">"coal_generator"</span>);
+    <span class="cl">GameRegistry</span>.<span class="fn">registerTileEntity</span>(<span class="cl">TileValteriteDynamo</span>.<span class="kw">class</span>, <span class="st">"valterite_dynamo"</span>);
+    <span class="cm">// ... etc pour chaque TileEntity</span>
+
+    <span class="cm">// IGuiHandler — ajouter les GUI_IDs dans EnergyGuiHandler.java</span>
+    <span class="cm">// GUI_ID 300 = coal_generator, 301 = valterite_dynamo, ...</span>
+    <span class="cm">// GUI_ID 310 = basic_cell, 311 = valterite_cell, ...</span>
+    <span class="cl">NetworkRegistry</span>.INSTANCE.<span class="fn">registerGuiHandler</span>(<span class="cl">EriniumFaction</span>.INSTANCE, <span class="kw">new</span> <span class="cl">EnergyGuiHandler</span>());
+}</div>
+
+      <h3>Serialisation NBT — champs obligatoires</h3>
+      <ul>
+        <li><code>energyStored</code> (int ou long selon capacite)</li>
+        <li><code>burnTime</code> (int, generateurs a combustible)</li>
+        <li><code>totalBurnTime</code> (int, pour l'animation de flamme)</li>
+        <li><code>fuelHandler</code> — via <code>ItemStackHandler.serializeNBT()</code></li>
+        <li><code>faceModes</code> — tableau int[6] pour les batteries</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S8 — FEATURES FUTURES RF ═══ -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num aetherite-num">08</span> Features Futures utilisant le RF</h2>
+
+      <p>Les generateurs et batteries de ce spec constituent la <strong>fondation energetique</strong> du serveur. Voici les cinq blocs consommateurs de RF qui s'appuient dessus et seront implementes dans des specs dedies.</p>
+
+      <div style="display:flex;flex-direction:column;gap:16px;margin-top:24px;">
+
+        <!-- 8.1 — Station de Recharge -->
+        <div class="artifact-card" style="background:rgba(5,5,10,0.5);border:1px solid var(--card-bdr);border-radius:var(--radius-sm);padding:20px 24px;border-left:3px solid var(--cyan);">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+            <span style="font-size:15px;font-weight:700;color:var(--cyan);">8.1 — Station de Recharge</span>
+            <span class="badge badge-cyan">charging_station</span>
+            <span class="badge badge-slate">500 000 RF cap.</span>
+          </div>
+          <p style="margin-bottom:10px;">Un bloc avec <strong>6 slots</strong> (casque, plastron, jambières, bottes, outil 1, outil 2). Le joueur place ses items dans les slots et la station repare automatiquement leur durabilite. Le joueur peut aussi se tenir <strong>sur le bloc</strong> pour reparer directement ce qu'il porte.</p>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead><tr style="border-bottom:1px solid rgba(0,229,255,0.2);">
+              <th style="padding:6px 12px;text-align:left;color:var(--slate);font-weight:600;">Parametre</th>
+              <th style="padding:6px 12px;text-align:left;color:var(--slate);font-weight:600;">Valeur</th>
+            </tr></thead>
+            <tbody>
+              <tr><td style="padding:6px 12px;color:var(--text);">Cout par point de durabilite</td><td style="padding:6px 12px;color:var(--cyan);font-weight:600;">100 RF / point</td></tr>
+              <tr style="background:rgba(0,229,255,0.03);"><td style="padding:6px 12px;color:var(--text);">Vitesse de reparation</td><td style="padding:6px 12px;color:var(--cyan);font-weight:600;">1 point / tick (20/sec)</td></tr>
+              <tr><td style="padding:6px 12px;color:var(--text);">Capacite interne</td><td style="padding:6px 12px;color:var(--cyan);font-weight:600;">500 000 RF</td></tr>
+              <tr style="background:rgba(0,229,255,0.03);"><td style="padding:6px 12px;color:var(--text);">Reparation armure equipee</td><td style="padding:6px 12px;color:var(--cyan);font-weight:600;">Joueur debout sur le bloc</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 8.2 — Raffinerie -->
+        <div class="artifact-card" style="background:rgba(5,5,10,0.5);border:1px solid var(--card-bdr);border-radius:var(--radius-sm);padding:20px 24px;border-left:3px solid var(--orange);">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+            <span style="font-size:15px;font-weight:700;color:var(--orange);">8.2 — Raffinerie</span>
+            <span class="badge badge-orange">refinery</span>
+            <span class="badge badge-slate">500 000 RF cap.</span>
+          </div>
+          <p style="margin-bottom:10px;">Un bloc qui <strong>double le rendement de fusion</strong> des minerais moddes uniquement. Ne fonctionne PAS avec les minerais vanilla (fer, or, etc.). Slot entree + slot sortie.</p>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px;">
+            <thead><tr style="border-bottom:1px solid rgba(230,126,34,0.2);">
+              <th style="padding:6px 12px;text-align:left;color:var(--slate);font-weight:600;">Minerai entree</th>
+              <th style="padding:6px 12px;text-align:left;color:var(--slate);font-weight:600;">Sortie</th>
+            </tr></thead>
+            <tbody>
+              <tr><td style="padding:6px 12px;color:var(--text);">1× Valterite Raw</td><td style="padding:6px 12px;color:var(--valterite);font-weight:600;">2× Lingots de Valterite</td></tr>
+              <tr style="background:rgba(230,126,34,0.03);"><td style="padding:6px 12px;color:var(--text);">1× Aetherite Raw</td><td style="padding:6px 12px;color:var(--aetherite);font-weight:600;">2× Cristaux d'Aetherite</td></tr>
+              <tr><td style="padding:6px 12px;color:var(--text);">1× Erinium Raw</td><td style="padding:6px 12px;color:var(--erinium);font-weight:600;">2× Fragments d'Erinium</td></tr>
+            </tbody>
+          </table>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--slate);">
+            <li><strong style="color:var(--text);">Consommation :</strong> 200 RF/t pendant l'operation</li>
+            <li><strong style="color:var(--text);">Duree :</strong> 10 secondes (200 ticks) par operation</li>
+          </ul>
+        </div>
+
+        <!-- 8.3 — Diffuseur d'Effets -->
+        <div class="artifact-card" style="background:rgba(5,5,10,0.5);border:1px solid var(--card-bdr);border-radius:var(--radius-sm);padding:20px 24px;border-left:3px solid var(--green);">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+            <span style="font-size:15px;font-weight:700;color:var(--green);">8.3 — Diffuseur d'Effets</span>
+            <span class="badge badge-green">effect_diffuser</span>
+            <span class="badge badge-slate">200 000 RF cap.</span>
+          </div>
+          <p style="margin-bottom:10px;">Un bloc qui applique des effets de potion a tous les <strong>membres de la faction</strong> dans un rayon de <strong>16 blocs</strong>. N'affecte pas les joueurs ennemis ou neutres — uniquement les membres et les allies. Detection via <code>FactionManager</code>.</p>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px;">
+            <thead><tr style="border-bottom:1px solid rgba(46,204,113,0.2);">
+              <th style="padding:6px 12px;text-align:left;color:var(--slate);font-weight:600;">Mode</th>
+              <th style="padding:6px 12px;text-align:left;color:var(--slate);font-weight:600;">Effet applique</th>
+            </tr></thead>
+            <tbody>
+              <tr><td style="padding:6px 12px;color:var(--text);">Mode 1</td><td style="padding:6px 12px;color:var(--green);">Speed I (Vitesse)</td></tr>
+              <tr style="background:rgba(46,204,113,0.03);"><td style="padding:6px 12px;color:var(--text);">Mode 2</td><td style="padding:6px 12px;color:var(--green);">Regeneration I</td></tr>
+              <tr><td style="padding:6px 12px;color:var(--text);">Mode 3</td><td style="padding:6px 12px;color:var(--green);">Resistance I</td></tr>
+            </tbody>
+          </table>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--slate);">
+            <li><strong style="color:var(--text);">Consommation :</strong> 300 RF/t en continu (0 RF/t quand inactif)</li>
+            <li><strong style="color:var(--text);">Re-application :</strong> effets rafraichis toutes les 3 secondes (duration 80 ticks par application)</li>
+            <li><strong style="color:var(--text);">Config GUI :</strong> un seul mode actif a la fois, selectionnable dans le GUI</li>
+          </ul>
+        </div>
+
+        <!-- 8.4 — Teleporteur de Faction -->
+        <div class="artifact-card" style="background:rgba(5,5,10,0.5);border:1px solid var(--card-bdr);border-radius:var(--radius-sm);padding:20px 24px;border-left:3px solid var(--violet-l);">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+            <span style="font-size:15px;font-weight:700;color:var(--violet-l);">8.4 — Teleporteur de Faction</span>
+            <span class="badge badge-violet">faction_teleporter</span>
+            <span class="badge badge-slate">5 000 000 RF cap.</span>
+          </div>
+          <p style="margin-bottom:10px;">Un bloc permettant aux membres de la faction de se teleporter entre deux teleporteurs places dans des <strong>chunks claim</strong>. Limite stricte : <strong>maximum 2 blocs teleporteurs par faction</strong>. Les deux extremites doivent etre alimentees en RF. L'energie est consommee sur le teleporteur de depart.</p>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px;">
+            <thead><tr style="border-bottom:1px solid rgba(107,47,160,0.2);">
+              <th style="padding:6px 12px;text-align:left;color:var(--slate);font-weight:600;">Parametre</th>
+              <th style="padding:6px 12px;text-align:left;color:var(--slate);font-weight:600;">Valeur</th>
+            </tr></thead>
+            <tbody>
+              <tr><td style="padding:6px 12px;color:var(--text);">Cout de base</td><td style="padding:6px 12px;color:var(--violet-l);font-weight:600;">10 000 RF</td></tr>
+              <tr style="background:rgba(107,47,160,0.03);"><td style="padding:6px 12px;color:var(--text);">Cout de distance</td><td style="padding:6px 12px;color:var(--violet-l);font-weight:600;">+1 000 RF / bloc</td></tr>
+              <tr><td style="padding:6px 12px;color:var(--text);">Warmup avant TP</td><td style="padding:6px 12px;color:var(--violet-l);font-weight:600;">3 secondes (annule si le joueur bouge)</td></tr>
+              <tr style="background:rgba(107,47,160,0.03);"><td style="padding:6px 12px;color:var(--text);">Limite par faction</td><td style="padding:6px 12px;color:var(--violet-l);font-weight:600;">2 teleporteurs maximum</td></tr>
+            </tbody>
+          </table>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--slate);">
+            <li><strong style="color:var(--text);">Acces :</strong> interdit aux joueurs ennemis — permission par role de faction configurable par le chef</li>
+            <li><strong style="color:var(--text);">Allies :</strong> acces allié activable/desactivable par le chef de faction</li>
+            <li><strong style="color:var(--text);">GUI :</strong> destination, distance, cout RF estime, RF disponible, bouton "Teleporter"</li>
+          </ul>
+        </div>
+
+        <!-- 8.5 — Pompe a XP -->
+        <div class="artifact-card" style="background:rgba(5,5,10,0.5);border:1px solid var(--card-bdr);border-radius:var(--radius-sm);padding:20px 24px;border-left:3px solid var(--gold);">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+            <span style="font-size:15px;font-weight:700;color:var(--gold);">8.5 — Pompe a XP</span>
+            <span class="badge badge-gold">xp_pump</span>
+            <span class="badge badge-slate">50 000 RF cap.</span>
+          </div>
+          <p style="margin-bottom:10px;">Un bloc qui aspire automatiquement les orbes d'XP dans un rayon de <strong>10 blocs</strong> et les stocke dans un reservoir interne. Les orbes sont attireées vers le bloc (effet magnetique visuel) avant d'etre absorbees. Se met en <strong>veille automatique</strong> quand aucune orbe n'est detectee (0 RF/t en veille).</p>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px;">
+            <thead><tr style="border-bottom:1px solid rgba(241,196,15,0.2);">
+              <th style="padding:6px 12px;text-align:left;color:var(--slate);font-weight:600;">Parametre</th>
+              <th style="padding:6px 12px;text-align:left;color:var(--slate);font-weight:600;">Valeur</th>
+            </tr></thead>
+            <tbody>
+              <tr><td style="padding:6px 12px;color:var(--text);">Rayon d'aspiration</td><td style="padding:6px 12px;color:var(--gold);font-weight:600;">10 blocs</td></tr>
+              <tr style="background:rgba(241,196,15,0.03);"><td style="padding:6px 12px;color:var(--text);">Reservoir XP interne</td><td style="padding:6px 12px;color:var(--gold);font-weight:600;">10 000 niveaux max</td></tr>
+              <tr><td style="padding:6px 12px;color:var(--text);">Consommation active</td><td style="padding:6px 12px;color:var(--gold);font-weight:600;">20 RF/t (0 RF/t en veille)</td></tr>
+            </tbody>
+          </table>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--slate);">
+            <li><strong style="color:var(--text);">Retrait XP GUI :</strong> boutons +1 niveau, +10 niveaux, +100 niveaux, tout retirer</li>
+            <li><strong style="color:var(--text);">Veille :</strong> passage automatique en veille si aucune orbe dans le rayon — reprise des que des orbes apparaissent</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══ S9 — TEXTURES & ASSETS ═══ -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num rf-num">09</span> Textures &amp; Assets</h2>
+
+      <h3 class="first">Generateurs — 5 blocs</h3>
+      <p>Chaque generateur necessite un set de textures complet. La face avant (FACING) est distincte des autres faces. L'etat on/off est gere via un <code>BlockStateProperty</code> POWERED de type boolean.</p>
+      <ul>
+        <li><strong>coal_generator :</strong> palette grise/rouge. Face avant : grille avec flamme (etat on = lueur). Textures : <code>coal_generator_front_on</code>, <code>coal_generator_front_off</code>, <code>coal_generator_side</code>, <code>coal_generator_top</code></li>
+        <li><strong>valterite_dynamo :</strong> palette cyan/acier. Face avant avec engrenages et lueur cyan en etat on</li>
+        <li><strong>aetherite_reactor :</strong> palette violet/noir. Face avant avec cristaux et rayonnement violet en etat on</li>
+        <li><strong>erinium_core :</strong> palette or/noir. Face avant avec noyau pulsant et halos dores en etat on</li>
+        <li><strong>solar_panel :</strong> palette bleue/argent. Une seule texture (pas d'etat on/off). Face superieure avec motif de cellules photovoltaiques</li>
+      </ul>
+
+      <h3>Batteries — 4 blocs</h3>
+      <p>Les batteries n'ont pas d'orientation (pas de FACING). Elles ont 4 etats visuels selon le niveau de charge, geres via une <code>IntegerProperty</code> CHARGE_LEVEL (0, 1, 2, 3).</p>
+      <ul>
+        <li><strong>CHARGE_LEVEL 0 :</strong> 0–25% — indicateurs eteints, bloc fonce</li>
+        <li><strong>CHARGE_LEVEL 1 :</strong> 25–50% — un indicateur allume, rouge/orange</li>
+        <li><strong>CHARGE_LEVEL 2 :</strong> 50–75% — deux indicateurs allumes, orange/jaune</li>
+        <li><strong>CHARGE_LEVEL 3 :</strong> 75–100% — tous indicateurs allumes, vert clair</li>
+        <li>Chaque batterie a 4 textures correspondant aux 4 niveaux + 1 texture de base pour les cotes</li>
+      </ul>
+
+      <h3>Blockstates JSON — structure obligatoire</h3>
+      <div class="code-block"><span class="cm">// Exemple : blockstates/coal_generator.json</span>
+{
+    <span class="st">"variants"</span>: {
+        <span class="st">"facing=north,powered=false"</span>: { <span class="st">"model"</span>: <span class="st">"eriniumfaction:coal_generator_off"</span> },
+        <span class="st">"facing=north,powered=true"</span>:  { <span class="st">"model"</span>: <span class="st">"eriniumfaction:coal_generator_on"</span> },
+        <span class="st">"facing=south,powered=false"</span>: { <span class="st">"model"</span>: <span class="st">"eriniumfaction:coal_generator_off"</span>, <span class="st">"y"</span>: <span class="nu">180</span> },
+        <span class="st">"facing=south,powered=true"</span>:  { <span class="st">"model"</span>: <span class="st">"eriniumfaction:coal_generator_on"</span>,  <span class="st">"y"</span>: <span class="nu">180</span> },
+        <span class="st">"facing=east,powered=false"</span>:  { <span class="st">"model"</span>: <span class="st">"eriniumfaction:coal_generator_off"</span>, <span class="st">"y"</span>: <span class="nu">90</span>  },
+        <span class="st">"facing=east,powered=true"</span>:   { <span class="st">"model"</span>: <span class="st">"eriniumfaction:coal_generator_on"</span>,  <span class="st">"y"</span>: <span class="nu">90</span>  },
+        <span class="st">"facing=west,powered=false"</span>:  { <span class="st">"model"</span>: <span class="st">"eriniumfaction:coal_generator_off"</span>, <span class="st">"y"</span>: <span class="nu">270</span> },
+        <span class="st">"facing=west,powered=true"</span>:   { <span class="st">"model"</span>: <span class="st">"eriniumfaction:coal_generator_on"</span>,  <span class="st">"y"</span>: <span class="nu">270</span> }
+    }
+}</div>
+
+      <h3>Dimensions et format des textures</h3>
+      <ul>
+        <li><strong>Format :</strong> PNG 32×32 pixels (compatible 1.12.2, bon compromis visuel/performance)</li>
+        <li><strong>Generation :</strong> SVG pixel art → ImageMagick → PNG selon workflow <code>docs/ASSETS_WORKFLOW.md</code></li>
+        <li><strong>Nommage :</strong> <code>textures/blocks/coal_generator_front_on.png</code>, <code>coal_generator_front_off.png</code>, <code>coal_generator_side.png</code>, <code>coal_generator_top.png</code></li>
+        <li><strong>Item :</strong> chaque bloc a un modele item pointant vers la texture de face off (<code>models/item/coal_generator.json</code>)</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S10 — PLAN DE TESTS ═══ -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num erinium-num">10</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests de registration et craft</h3>
+      <ul class="checklist">
+        <li>Les 9 blocs s'enregistrent sans erreur dans les logs (<code>RegistryEvent.Register&lt;Block&gt;</code>)</li>
+        <li>Chaque bloc a un item correspondant dans la creative tab EriniumFaction</li>
+        <li>Les 9 recettes de craft fonctionnent dans la table de craft vanilla</li>
+        <li>Les traductions FR et EN s'affichent correctement (tooltip, nom)</li>
+        <li>Les blockstates JSON chargent sans erreur (<code>[WARN]</code> dans la console = a corriger)</li>
+        <li>Chaque bloc pose et se casse normalement</li>
+        <li>Le drop (silk touch ou non) retourne bien l'item correspondant</li>
+      </ul>
+
+      <h3>Tests fonctionnels — Generateurs</h3>
+      <ul class="checklist">
+        <li><strong>Coal Generator :</strong> mettre 1 charbon → verifie que la combustion dure 1600 ticks (80s a 20 TPS)</li>
+        <li><strong>Coal Generator :</strong> la production RF s'arrete quand la capacite est pleine (pas de gaspillage de charbon)</li>
+        <li><strong>Coal Generator :</strong> le charbon est consomme uniquement quand l'energie interne est inferieure a max</li>
+        <li><strong>Valterite Dynamo :</strong> Valterite Raw produit exactement 384 000 RF (3200 ticks × 120 RF/t)</li>
+        <li><strong>Aetherite Reactor :</strong> Aetherite Crystal produit exactement 2 560 000 RF (6400 × 400)</li>
+        <li><strong>Erinium Core :</strong> Erinium Fragment produit exactement 15 360 000 RF (12800 × 1200)</li>
+        <li><strong>Solar Panel :</strong> produit 20 RF/t pendant le jour clair et 5 RF/t sous la pluie</li>
+        <li><strong>Solar Panel :</strong> produit 0 RF/t la nuit</li>
+        <li><strong>Solar Panel :</strong> ne produit pas si un bloc opaque est place au-dessus</li>
+        <li>L'etat visuel on/off du bloc se met a jour correctement</li>
+      </ul>
+
+      <h3>Tests fonctionnels — Batteries</h3>
+      <ul class="checklist">
+        <li><strong>Basic Cell :</strong> verifie que la capacite max est bien 100 000 RF (ne peut pas stocker plus)</li>
+        <li><strong>Basic Cell :</strong> le debit max entree est respecte (ne recoit pas plus de 200 RF/t)</li>
+        <li><strong>Erinium Cell :</strong> la capacite 100M RF est stockee correctement (verifier absence d'overflow int)</li>
+        <li>La configuration des faces (ENTREE/SORTIE/OFF) persiste apres un rechargement du chunk</li>
+        <li>L'energie persiste apres un rechargement de chunk (NBT correct)</li>
+        <li>L'etat visuel (CHARGE_LEVEL) se met a jour selon le niveau d'energie</li>
+      </ul>
+
+      <h3>Tests d'integration Forge Energy</h3>
+      <ul class="checklist">
+        <li>Placer un generateur adjacent a une batterie : l'energie se transfère automatiquement chaque tick</li>
+        <li>La capability <code>CapabilityEnergy.ENERGY</code> est exposee sur toutes les faces</li>
+        <li>Un mod externe utilisant RF (si present sur le serveur) peut recevoir l'energie des generateurs</li>
+        <li>La distribution est equitable entre plusieurs blocs adjacents recepteurs</li>
+        <li>Pas de doublon d'energie (pousser 40 RF/t ne cree pas 40 RF/t par face adjacente)</li>
+      </ul>
+
+      <h3>Tests GUI</h3>
+      <ul class="checklist">
+        <li>Clic droit sur chaque bloc ouvre le GUI correct</li>
+        <li>La barre RF se met a jour en temps reel dans le GUI</li>
+        <li>L'animation de flamme fonctionne et s'arrete quand le combustible est epuise</li>
+        <li>Le label debit affiche la bonne valeur (40/120/400/1200/0-20 RF/t)</li>
+        <li>Les boutons de configuration de face (batteries) fonctionnent et changent la couleur</li>
+        <li>Le GUI se ferme proprement a la destruction du bloc</li>
+        <li>Pas d'erreur de synchronisation Container entre serveur et client</li>
+      </ul>
+
+      <h3>Tests de performance (TPS)</h3>
+      <ul class="checklist">
+        <li>Spawner 100 Coal Generators actifs et mesurer l'impact en ms/tick (<code>/servperf</code> ou spark)</li>
+        <li>Verifier que les TileEntities inactives (energie pleine, pas de combustible) consomment 0ms/tick</li>
+        <li>Verifier absence de <code>markDirty()</code> abusif (log chunk saves via debug)</li>
+        <li>Pas d'allocation memoire dans la boucle de tick (verifier avec profiler JVM)</li>
+        <li>100 Solar Panels actifs : impact inferieur a 0.5ms/tick</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<script>
+// Highlight sidebar link based on scroll position
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+window.addEventListener('scroll', function() {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  navLinks.forEach(l => {
+    l.classList.remove('active');
+    if (l.getAttribute('href') === '#' + current) l.classList.add('active');
+  });
+}, { passive: true });
+</script>
+</body>
+</html>

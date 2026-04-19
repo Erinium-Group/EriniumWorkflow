@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Machines de Faction | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #4AE0E0; --aetherite: #9B59B6; --erinium: #FFD700;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(74,224,224,0.07) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(255,215,0,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, var(--cyan) 40%, var(--erinium) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.35); background: rgba(230,126,34,0.08); }
+  .badge-valterite{ color: var(--valterite);border-color: rgba(74,224,224,0.35); background: rgba(74,224,224,0.08); }
+  .badge-aetherite{ color: var(--aetherite);border-color: rgba(155,89,182,0.35); background: rgba(155,89,182,0.08); }
+  .badge-erinium  { color: var(--erinium);  border-color: rgba(255,215,0,0.35);  background: rgba(255,215,0,0.08); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); color: #1a1200; }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h2 .s-num.valterite-num { background: linear-gradient(135deg, #1a8080 0%, var(--valterite) 100%); }
+  .section-card h2 .s-num.aetherite-num { background: linear-gradient(135deg, #5c2d6e 0%, var(--aetherite) 100%); }
+  .section-card h2 .s-num.erinium-num   { background: linear-gradient(135deg, #a07800 0%, var(--erinium) 100%); color: #1a1200; }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '›'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .tag-val { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(74,224,224,0.10); color: var(--valterite); border: 1px solid rgba(74,224,224,0.25); letter-spacing: 0.05em; }
+  .tag-aeth { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(155,89,182,0.10); color: var(--aetherite); border: 1px solid rgba(155,89,182,0.25); letter-spacing: 0.05em; }
+  .tag-erin { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(255,215,0,0.10); color: var(--erinium); border: 1px solid rgba(255,215,0,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .ascii-diagram .ab { color: var(--rare); }
+  .ascii-diagram .am { color: var(--aetherite); }
+  .ascii-diagram .avt { color: var(--valterite); }
+  .ascii-diagram .aer { color: var(--erinium); }
+  .ascii-diagram .aor { color: var(--orange); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  .tier-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 20px 0; }
+  .tier-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 22px 20px; }
+  .tier-card.valterite { border-top: 3px solid var(--valterite); }
+  .tier-card.aetherite { border-top: 3px solid var(--aetherite); }
+  .tier-card.erinium   { border-top: 3px solid var(--erinium); }
+  .tier-card-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .tier-card.valterite .tier-card-name { color: var(--valterite); }
+  .tier-card.aetherite .tier-card-name { color: var(--aetherite); }
+  .tier-card.erinium   .tier-card-name { color: var(--erinium); }
+  .tier-card-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); margin-bottom: 14px; }
+  .tier-card-stat { font-size: 12px; color: var(--slate); margin: 5px 0; }
+  .tier-card-stat strong { color: var(--text); }
+  .tier-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; display: inline-block; margin-bottom: 12px; }
+  .tier-badge.val { color: var(--valterite); background: rgba(74,224,224,0.08); border: 1px solid rgba(74,224,224,0.25); }
+  .tier-badge.aeth { color: var(--aetherite); background: rgba(155,89,182,0.08); border: 1px solid rgba(155,89,182,0.25); }
+  .tier-badge.erin { color: var(--erinium); background: rgba(255,215,0,0.08); border: 1px solid rgba(255,215,0,0.25); }
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  .idea-card { background: rgba(5,5,10,0.5); border: 1px solid var(--card-bdr); border-radius: var(--radius-sm); padding: 20px 24px; margin: 12px 0; border-left: 3px solid var(--violet-l); }
+  .idea-card-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .idea-card p { font-size: 13px; color: var(--slate); margin-bottom: 0; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .tier-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Tourelle Automatique</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Detecteur de Mouvement</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Brouilleur de Tourelle</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Recettes de Craft</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Architecture Technique</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Integration</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Assets</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Equilibrage PvP</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges · EriniumFaction</div>
+      <h1>Machines de Faction — Combat &amp; Defense</h1>
+      <p>Systemes de defense et de surveillance automatises alimentes en RF pour proteger le territoire de faction meme quand les membres sont hors ligne : la Tourelle Automatique (tir sur les ennemis) et le Detecteur de Mouvement (alertes Discord webhook). Progression par tier Valterite, Aetherite, Erinium.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-valterite">Tier 1 Valterite</span>
+        <span class="badge badge-aetherite">Tier 2 Aetherite</span>
+        <span class="badge badge-erinium">Tier 3 Erinium</span>
+        <span class="badge badge-orange">Consommation RF</span>
+        <span class="badge badge-red">Defense territoire</span>
+        <span class="badge badge-cyan">Discord Webhook</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Probleme actuel</h3>
+      <p>Sur un serveur PvP Faction, les bases sont vulnerables quand tous les membres sont hors ligne. Les raids nocturnes ou en dehors des heures de jeu de la faction sont sans risque pour les attaquants. Les Machines de Faction introduisent une <strong>defense passive automatisee</strong> qui fonctionne 24h/24, oblige les attaquants a preparer leurs raids avec soin, et alerte les membres via Discord meme quand ils ne sont pas en jeu.</p>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Defense passive du territoire :</strong> les tourelles tirent automatiquement sur les ennemis, meme en l'absence totale de membres en ligne.</li>
+        <li><strong>Dissuasion par la visibilite :</strong> les attaquants voient les tourelles. Savoir qu'un territoire est fortifie change le calcul du raid.</li>
+        <li><strong>Surveillance 24/7 via Discord :</strong> le detecteur envoie des alertes webhook sur un serveur Discord, permettant aux membres de reagir meme offline.</li>
+        <li><strong>Progression par tier :</strong> Valterite (accessible, basique), Aetherite (efficace, milieu de jeu), Erinium (puissant, cout eleve, limite en nombre).</li>
+        <li><strong>Infrastructure RF requise :</strong> les machines consomment de l'energie. Une faction doit investir dans son reseau electrique pour maintenir ses defenses actives.</li>
+        <li><strong>Counterplay clair :</strong> les tourelles sont destructibles, contournables, et hackables avec le Brouilleur. Ce ne sont pas des murs invincibles.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Contrainte serveur 500-1000 joueurs :</strong> le scan de joueurs des tourelles utilise <code>world.getEntitiesWithinAABB</code> avec filtre EntityPlayer — jamais d'iteration sur <code>loadedEntityList</code>. Les detecteurs tickent en mode batche. Les appels webhook Discord sont TOUJOURS asynchrones via <code>EriScheduler.async()</code> — jamais sur le server thread.</div>
+      </div>
+
+      <h3>Ce que le systeme ne fait pas</h3>
+      <ul>
+        <li><strong>Les tourelles ne tuent pas instantanement :</strong> elles sont une aide au PvP, pas un remplacement. Un joueur bien equipe peut survivre et contre-attaquer.</li>
+        <li><strong>Le detecteur n'inflige aucun degat :</strong> c'est un systeme d'information uniquement. Il alerte, il ne bloque pas.</li>
+        <li><strong>Les machines ne fonctionnent que dans les chunks claim :</strong> impossible de placer une tourelle hors territoire. Les machines s'arretent si le chunk est unclaim.</li>
+        <li><strong>Pas de fonctionnement hors chunks charges :</strong> si aucun joueur n'est dans le chunk, la machine est en pause. Comportement naturel Minecraft — pas d'avantage injuste pour les factions online 24/7.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S2 — TOURELLE AUTOMATIQUE ═══ -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Tourelle Automatique</h2>
+
+      <h3 class="first">Principe general</h3>
+      <p>Une <strong>entite custom</strong> (pas un bloc) placee dans le territoire de la faction. Elle scanne automatiquement les joueurs ennemis dans son rayon, effectue un raycast de ligne de vue, tourne vers la cible, et tire des projectiles depuis son inventaire interne. Elle consomme du RF a chaque tir. Si le RF est epuise ou les munitions vides, elle cesse de tirer mais continue de surveiller et d'alerter la faction.</p>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Entite, pas un bloc :</strong> la tourelle est un <code>EntityLiving</code> custom. Elle se place au sol comme une armure stand, elle n'est pas poussable par les pistons, et elle n'a pas de gravite. Elle possede des HP et peut etre detruite au combat.</div>
+      </div>
+
+      <h3>2.1 — Tableau comparatif des 3 tiers</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Parametre</th>
+              <th><span style="color:var(--valterite)">Valterite</span></th>
+              <th><span style="color:var(--aetherite)">Aetherite</span></th>
+              <th><span style="color:var(--erinium)">Erinium</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Portee de detection</td><td>15 blocs</td><td>30 blocs</td><td>50 blocs</td></tr>
+            <tr><td>Degats par tir</td><td>3 coeurs (6 HP)</td><td>5 coeurs (10 HP)</td><td>8 coeurs (16 HP)</td></tr>
+            <tr><td>Cadence de tir</td><td>1 tir / 2 sec (40t)</td><td>1 tir / 1.5 sec (30t)</td><td>1 tir / 1 sec (20t)</td></tr>
+            <tr><td>Capacite munitions</td><td>128</td><td>256</td><td>512</td></tr>
+            <tr><td>Consommation par tir</td><td>50 RF</td><td>100 RF</td><td>200 RF</td></tr>
+            <tr><td>Capacite RF interne</td><td>50 000 RF</td><td>200 000 RF</td><td>500 000 RF</td></tr>
+            <tr><td>HP de la tourelle</td><td>50 HP (25 coeurs)</td><td>100 HP (50 coeurs)</td><td>200 HP (100 coeurs)</td></tr>
+            <tr><td>Rotation</td><td>360°</td><td>360°</td><td>360°</td></tr>
+            <tr><td>Nombre max par faction</td><td>4</td><td>3</td><td>2</td></tr>
+            <tr><td>ID interne</td><td><code>valterite_turret</code></td><td><code>aetherite_turret</code></td><td><code>erinium_turret</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="tier-grid">
+        <div class="tier-card valterite">
+          <div class="tier-badge val">TIER 1</div>
+          <div class="tier-card-name">Tourelle Valterite</div>
+          <div class="tier-card-sub">Debut de jeu — accessible</div>
+          <div class="tier-card-stat">Portee : <strong>15 blocs</strong></div>
+          <div class="tier-card-stat">Degats : <strong>3 coeurs / tir</strong></div>
+          <div class="tier-card-stat">Cadence : <strong>1 tir / 2 sec</strong></div>
+          <div class="tier-card-stat">RF max : <strong>50 000 RF</strong></div>
+          <div class="tier-card-stat">HP : <strong>50 HP</strong></div>
+          <div class="tier-card-stat">Max / faction : <strong>4</strong></div>
+        </div>
+        <div class="tier-card aetherite">
+          <div class="tier-badge aeth">TIER 2</div>
+          <div class="tier-card-name">Tourelle Aetherite</div>
+          <div class="tier-card-sub">Milieu de jeu — efficace</div>
+          <div class="tier-card-stat">Portee : <strong>30 blocs</strong></div>
+          <div class="tier-card-stat">Degats : <strong>5 coeurs / tir</strong></div>
+          <div class="tier-card-stat">Cadence : <strong>1 tir / 1.5 sec</strong></div>
+          <div class="tier-card-stat">RF max : <strong>200 000 RF</strong></div>
+          <div class="tier-card-stat">HP : <strong>100 HP</strong></div>
+          <div class="tier-card-stat">Max / faction : <strong>3</strong></div>
+        </div>
+        <div class="tier-card erinium">
+          <div class="tier-badge erin">TIER 3</div>
+          <div class="tier-card-name">Tourelle Erinium</div>
+          <div class="tier-card-sub">Fin de jeu — puissante</div>
+          <div class="tier-card-stat">Portee : <strong>50 blocs</strong></div>
+          <div class="tier-card-stat">Degats : <strong>8 coeurs / tir</strong></div>
+          <div class="tier-card-stat">Cadence : <strong>1 tir / 1 sec</strong></div>
+          <div class="tier-card-stat">RF max : <strong>500 000 RF</strong></div>
+          <div class="tier-card-stat">HP : <strong>200 HP</strong></div>
+          <div class="tier-card-stat">Max / faction : <strong>2</strong></div>
+        </div>
+      </div>
+
+      <h3>2.2 — Systeme de ciblage</h3>
+      <ul>
+        <li><strong>Scan periodique :</strong> la tourelle cherche des cibles toutes les <strong>10 ticks (0.5 sec)</strong> via <code>world.getEntitiesWithinAABB(EntityPlayer.class, aabb)</code>.</li>
+        <li><strong>Identification faction :</strong> seuls les joueurs ennemis ou neutres sont cibles. Les membres de la faction proprietaire et les factions alliees sont ignores.</li>
+        <li><strong>Ordre de priorite des cibles :</strong>
+          <ol style="padding-left: 20px; margin-top: 8px; display: flex; flex-direction: column; gap: 4px;">
+            <li style="font-size: 14px; color: var(--slate);"><strong style="color: var(--text);">1.</strong> Joueur qui attaque activement un membre de la faction dans le rayon</li>
+            <li style="font-size: 14px; color: var(--slate);"><strong style="color: var(--text);">2.</strong> Joueur le plus proche de la tourelle</li>
+            <li style="font-size: 14px; color: var(--slate);"><strong style="color: var(--text);">3.</strong> Joueur avec le moins de HP restants</li>
+          </ol>
+        </li>
+        <li><strong>Raycast de ligne de vue :</strong> avant de tirer, la tourelle effectue un raycast entre elle et la cible. Si un bloc solide est sur la trajectoire, elle ne tire pas et cherche une autre cible.</li>
+        <li><strong>Rotation smooth :</strong> la tourelle tourne progressivement pour faire face a la cible en cours (360°, aucun angle mort).</li>
+        <li><strong>Mode veille automatique :</strong> si aucun ennemi n'est detecte pendant <strong>30 secondes</strong> consecutives, la tourelle passe en mode veille (0 consommation RF/t). Elle se reveille instantanement quand un ennemi entre dans le rayon.</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Pas de tir en mode creatif / spectateur :</strong> la tourelle ignore completement les joueurs en mode creatif ou spectateur. Elle ignore aussi les joueurs dans une zone de safezone.</div>
+      </div>
+
+      <h3>2.3 — Types de munitions</h3>
+      <p>La tourelle dispose d'un inventaire interne pour les munitions. Elle consomme 1 munition par tir. Quand l'inventaire est vide, elle ne tire plus mais reste en mode detection et envoie une alerte chat a la faction.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Munition</th><th>Item requis</th><th>Degats</th><th>Effet special</th><th>Tier minimum</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Fleches standards</td>
+              <td><code>minecraft:arrow</code></td>
+              <td>Degats de base</td>
+              <td>Aucun</td>
+              <td><span class="tag-val">TOUS</span></td>
+            </tr>
+            <tr>
+              <td>Fleches de feu</td>
+              <td><code>tipped_arrow</code> (Fire)</td>
+              <td>Degats de base</td>
+              <td>Enflamme la cible 3 secondes</td>
+              <td><span class="tag-aeth">AETHERITE+</span></td>
+            </tr>
+            <tr>
+              <td>Projectile explosif</td>
+              <td>TNT + Gunpowder</td>
+              <td>Degats de base</td>
+              <td>Explosion AoE 2 blocs (degats joueurs, PAS les blocs)</td>
+              <td><span class="tag-erin">ERINIUM</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>2.4 — Vulnerabilites et counterplay</h3>
+      <ul>
+        <li><strong>Destructible en combat :</strong> la tourelle a des HP. Elle prend les degats normalement — epees, arcs, explosions. Elle peut etre detruite.</li>
+        <li><strong>Vulnerable a la TNT :</strong> une explosion dans son rayon lui inflige des degats. Avec suffisamment de TNT ou de fleches explosives, elle peut etre detruite avant d'etre a portee de tir.</li>
+        <li><strong>Attaque a distance :</strong> un arc a une portee de 50+ blocs. Une tourelle Valterite (portee 15 blocs) peut etre detruite a distance sans jamais etre dans son rayon de tir.</li>
+        <li><strong>Hackage avec le Brouilleur :</strong> l'item <em>Brouilleur de Tourelle</em> (voir Section 04) desactive une tourelle pendant 30 secondes quand utilise a moins de 5 blocs de distance.</li>
+        <li><strong>Contournement par les murs :</strong> la tourelle ne tire pas a travers les blocs solides. Un joueur peut creuser un tunnel en dessous ou sur le cote pour approcher en angle mort.</li>
+        <li><strong>Chunks non-charges :</strong> si aucun joueur n'est dans le chunk de la tourelle, celle-ci est en pause. Les raids peuvent commencer par un flanc non-charge.</li>
+      </ul>
+
+      <h3>2.5 — Regles de placement</h3>
+      <ul>
+        <li>La tourelle <strong>ne peut etre placee que dans un chunk claim</strong> de la faction du joueur posant l'item.</li>
+        <li>Le joueur doit avoir le rang <strong>Officier ou superieur</strong> dans sa faction pour placer une tourelle.</li>
+        <li>Limite par faction cumulative : 4 Valterite + 3 Aetherite + 2 Erinium = <strong>9 tourelles maximum</strong> par faction.</li>
+        <li>La tourelle ne peut pas etre poussee par les pistons et ne tombe pas (pas de gravite).</li>
+        <li>La tourelle stocke le <code>factionId</code> du poseur dans son NBT au moment du placement.</li>
+      </ul>
+
+      <h3>2.6 — GUI de la Tourelle</h3>
+      <p>Un clic droit sur la tourelle (par un membre de la faction) ouvre un <code>Container</code> / <code>GuiContainer</code> avec :</p>
+      <ul>
+        <li><strong>Slots d'inventaire munitions</strong> — grille pour charger les munitions (fleches, fleches de feu, projectiles explosifs)</li>
+        <li><strong>Barre d'energie RF</strong> — niveau actuel / capacite maximale</li>
+        <li><strong>Selecteur de mode</strong> — Actif / Veille forcee / Desactive</li>
+        <li><strong>Config de ciblage</strong> — Ennemis seulement / Ennemis + Neutres / Tous sauf faction</li>
+        <li><strong>Statistiques</strong> — Nombre de kills, tirs effectues, temps actif total</li>
+        <li><strong>Bouton "Recuperer"</strong> — demonte la tourelle et la remet en item dans l'inventaire (rang Officier+ requis). La tourelle conserve son etat RF et munitions dans son NBT.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Rang requis :</strong> seuls les membres de rang Officier ou superieur peuvent ouvrir le GUI, recuperer, ou modifier les parametres d'une tourelle. Les membres de rang inferieur voient uniquement les statistiques en lecture seule.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S3 — DETECTEUR DE MOUVEMENT ═══ -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num valterite-num">03</span> Detecteur de Mouvement</h2>
+
+      <h3 class="first">Principe general</h3>
+      <p>Un <strong>bloc avec TileEntity</strong> place dans le territoire de la faction. Il scanne les joueurs ennemis dans son rayon toutes les secondes, et envoie des alertes : dans le <strong>chat faction</strong> en jeu, et via un <strong>webhook Discord</strong> configure par le joueur. Il garde un historique interne des detections consultable dans son GUI.</p>
+
+      <h3>3.1 — Tableau comparatif des 3 tiers</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Parametre</th>
+              <th><span style="color:var(--valterite)">Valterite</span></th>
+              <th><span style="color:var(--aetherite)">Aetherite</span></th>
+              <th><span style="color:var(--erinium)">Erinium</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Rayon de detection</td><td>10 blocs</td><td>20 blocs</td><td>30 blocs</td></tr>
+            <tr><td>Cooldown entre alertes</td><td>30 secondes</td><td>15 secondes</td><td>5 secondes</td></tr>
+            <tr><td>Consommation RF</td><td>10 RF/s (200 RF/t)</td><td>10 RF/s</td><td>10 RF/s</td></tr>
+            <tr><td>Capacite RF interne</td><td>50 000 RF</td><td>100 000 RF</td><td>200 000 RF</td></tr>
+            <tr><td>Logs internes max</td><td>50 entrees</td><td>200 entrees</td><td>500 entrees</td></tr>
+            <tr><td>Mode furtif</td><td><span class="tag-no">NON</span></td><td><span class="tag-yes">OUI</span></td><td><span class="tag-yes">OUI</span></td></tr>
+            <tr><td>Filtres configurables</td><td>Ennemis seulement</td><td>Ennemis + Neutres</td><td>Tout configurable</td></tr>
+            <tr><td>ID interne</td><td><code>valterite_detector</code></td><td><code>aetherite_detector</code></td><td><code>erinium_detector</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.2 — Logique de detection</h3>
+      <ul>
+        <li><strong>Scan periodique :</strong> le <code>TileEntity</code> scanne les joueurs toutes les <strong>20 ticks (1 sec)</strong> via <code>world.getEntitiesWithinAABB</code>.</li>
+        <li><strong>Detection a l'entree :</strong> le detecteur ne spam pas d'alertes. Une alerte se declenche uniquement quand un joueur <em>entre</em> dans le rayon (apres en etre sorti). Un cooldown par joueur evite les double-alertes sur le seuil.</li>
+        <li><strong>Cooldown global :</strong> un minimum de temps entre deux alertes globales (30s / 15s / 5s selon le tier) empeche le flood du chat et du webhook Discord.</li>
+        <li><strong>Filtres configurables dans le GUI :</strong>
+          <ul style="margin-top: 8px; gap: 4px;">
+            <li><strong>Ennemis seulement</strong> — factions en relation "ennemi" (Valterite par defaut)</li>
+            <li><strong>Ennemis + Neutres</strong> — toute faction non-alliee (Aetherite+ par defaut)</li>
+            <li><strong>Tous sauf la faction</strong> — y compris les allies (Erinium, pour surveillance totale)</li>
+          </ul>
+        </li>
+        <li><strong>Les membres de la faction proprietaire sont toujours ignores.</strong></li>
+      </ul>
+
+      <h3>3.3 — Alertes Discord Webhook</h3>
+      <p>Le joueur configure l'URL du webhook dans le GUI. Quand une detection se produit, le serveur envoie un POST HTTP avec un embed Discord formate.</p>
+
+      <div class="code-block"><span class="cm">// Format de l'embed Discord envoye en webhook</span>
+{
+  <span class="st">"embeds"</span>: [{
+    <span class="st">"title"</span>: <span class="st">"🚨 INTRUSION DETECTEE"</span>,
+    <span class="st">"color"</span>: <span class="nu">15158332</span>,   <span class="cm">// Rouge #E74C3C</span>
+    <span class="st">"fields"</span>: [
+      { <span class="st">"name"</span>: <span class="st">"👤 Joueur"</span>,    <span class="st">"value"</span>: <span class="st">"EnemyPlayer"</span>,         <span class="st">"inline"</span>: <span class="kw">true</span>  },
+      { <span class="st">"name"</span>: <span class="st">"🏴 Faction"</span>,   <span class="st">"value"</span>: <span class="st">"EnnemiFaction"</span>,       <span class="st">"inline"</span>: <span class="kw">true</span>  },
+      { <span class="st">"name"</span>: <span class="st">"📍 Position"</span>,  <span class="st">"value"</span>: <span class="st">"X:1234 Y:64 Z:5678"</span>,  <span class="st">"inline"</span>: <span class="kw">false</span> },
+      { <span class="st">"name"</span>: <span class="st">"🕐 Heure"</span>,     <span class="st">"value"</span>: <span class="st">"14:32:15"</span>,            <span class="st">"inline"</span>: <span class="kw">true</span>  },
+      { <span class="st">"name"</span>: <span class="st">"📡 Detecteur"</span>, <span class="st">"value"</span>: <span class="st">"Aetherite — X:100 Y:65 Z:200"</span>, <span class="st">"inline"</span>: <span class="kw">true</span> }
+    ],
+    <span class="st">"footer"</span>: { <span class="st">"text"</span>: <span class="st">"EriniumFaction · Systeme de surveillance"</span> },
+    <span class="st">"timestamp"</span>: <span class="st">"2026-03-24T14:32:15Z"</span>
+  }]
+}</div>
+
+      <p>Points techniques critiques pour l'implementation :</p>
+      <ul>
+        <li><strong>Async obligatoire :</strong> l'envoi HTTP est fait via <code>EriScheduler.async()</code>. Il ne bloque jamais le server thread.</li>
+        <li><strong>Validation de l'URL :</strong> l'URL doit commencer par <code>https://discord.com/api/webhooks/</code> ou <code>https://discordapp.com/api/webhooks/</code>. Tout autre format est rejete avec un message d'erreur dans le GUI.</li>
+        <li><strong>Rate limiting Discord :</strong> maximum <strong>5 requetes webhook par minute par detecteur</strong>. Les requetes excedentaires sont mises en queue interne (taille max 10) et envoyees quand la fenetre se libere.</li>
+        <li><strong>Gestion des erreurs :</strong> si le webhook retourne 404 (URL invalide) ou 429 (rate limited), l'erreur est loggee dans l'historique interne du detecteur avec un timestamp.</li>
+        <li><strong>Chiffrement de l'URL :</strong> l'URL est stockee en NBT avec un chiffrement XOR simple (cle derivee du <code>factionId</code> en UTF-8) pour eviter qu'un joueur ennemi qui casse le bloc puisse lire l'URL du webhook avec un NBT reader. Ce n'est pas une securite absolue, c'est une protection de base contre le vol opportuniste.</li>
+      </ul>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Regle absolue :</strong> aucun appel reseau ne doit jamais etre effectue sur le server thread principal. Toute la logique HTTP (construction de la requete, envoi, traitement de la reponse) se fait dans le thread async. Seul le logging du resultat dans le NBT du TileEntity est effectue en retour sur le main thread via <code>thenSync()</code>.</div>
+      </div>
+
+      <h3>3.4 — Alertes en jeu</h3>
+      <ul>
+        <li><strong>Chat faction :</strong> message envoye a tous les membres de la faction en ligne — <code>[Detecteur] EnemyPlayer detecte a X:1234 Y:64 Z:5678</code></li>
+        <li><strong>Son d'alerte :</strong> un son de notification est joue a tous les membres de la faction en ligne (via <code>SoundManager</code> ou packet custom).</li>
+        <li><strong>Particules :</strong> en mode normal, le detecteur emet des particules rouges (<code>REDSTONE</code>) autour du bloc quand il detecte un intrus. Pas de particules en mode furtif.</li>
+      </ul>
+
+      <h3>3.5 — Mode Furtif (Aetherite+)</h3>
+      <ul>
+        <li>Aucune particule visible autour du bloc actif.</li>
+        <li>Aucun son emis par le bloc.</li>
+        <li>Le joueur detecte <strong>ne recoit aucune indication</strong> qu'il a ete repere.</li>
+        <li>Le bloc reste physiquement visible dans le monde — il n'est pas invisible, simplement silencieux.</li>
+        <li>Les alertes vers la faction et Discord fonctionnent normalement — seule la discre tion cote attaquant est activee.</li>
+      </ul>
+
+      <h3>3.6 — Logs internes</h3>
+      <p>Le <code>TileEntity</code> maintient un buffer circulaire de detections en NBT (les plus anciennes entrees sont supprimees quand le maximum est atteint). Chaque entree contient : nom du joueur, faction du joueur, coordonnees XYZ, timestamp Unix.</p>
+      <ul>
+        <li>Accessible en lecture dans le GUI (liste scrollable).</li>
+        <li>Exportable en item <strong>Rapport de Surveillance</strong> via un bouton dans le GUI (item custom avec NBT, lisible via clic droit comme le rapport de reconnaissance).</li>
+        <li>Bouton "Effacer les logs" — vide l'historique (rang Officier+ requis).</li>
+      </ul>
+
+      <h3>3.7 — GUI du Detecteur</h3>
+      <ul>
+        <li>Champ texte URL webhook Discord + bouton "Tester" (envoie un message de test immediatement)</li>
+        <li>Selecteur de filtre cibles (Ennemis / Ennemis+Neutres / Tous sauf faction)</li>
+        <li>Toggle Mode Furtif (Aetherite+ uniquement, grise pour Valterite)</li>
+        <li>Barre d'energie RF (niveau actuel / max)</li>
+        <li>Liste scrollable des logs de detection recents</li>
+        <li>Bouton "Exporter les logs" — genere un item Rapport de Surveillance dans l'inventaire du joueur</li>
+        <li>Bouton "Effacer les logs" (rang Officier+ uniquement)</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S4 — BROUILLEUR DE TOURELLE ═══ -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num red-num">04</span> Item Special — Brouilleur de Tourelle</h2>
+
+      <h3 class="first">Principe</h3>
+      <p>Un item utilisable qui permet aux attaquants de <strong>desactiver temporairement une tourelle ennemie</strong>. Il offre un counterplay direct et tangible aux defenses automatisees. Utilise a moins de 5 blocs d'une tourelle ennemie (clic droit en la ciblant), il la met hors service pendant 30 secondes.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Parametre</th><th>Valeur</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Craft</td><td>Erinium Fragment + Ender Pearl + Redstone Block (shaped, voir Section 05)</td></tr>
+            <tr><td>Durabilite</td><td>3 utilisations (barre de durabilite visible)</td></tr>
+            <tr><td>Portee d'utilisation</td><td>5 blocs (clic droit en direction de la tourelle)</td></tr>
+            <tr><td>Duree de brouillage</td><td>30 secondes</td></tr>
+            <tr><td>Cooldown d'utilisation</td><td>2 minutes entre chaque activation</td></tr>
+            <tr><td>Stack maximum</td><td>1 (pas d'empilement)</td></tr>
+            <tr><td>ID interne</td><td><code>turret_jammer</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Comportement en jeu</h3>
+      <ul>
+        <li>Quand une tourelle est brouillee : elle cesse de scanner, de tirer, et de tourner. Elle reste visible et destructible.</li>
+        <li>Un message est envoye au chat de la faction proprietaire : <code>[Tourelle] Tourelle a X:100 Y:65 Z:200 a ete brouillee ! (30 secondes)</code></li>
+        <li>La tourelle affiche des particules de static (gris/blanc) pendant le brouillage pour que les joueurs proches sachent qu'elle est hors service.</li>
+        <li>Apres 30 secondes, la tourelle reprend son fonctionnement normal automatiquement.</li>
+        <li>Un seul brouillage actif par tourelle a la fois — utiliser un deuxieme brouilleur sur une tourelle deja brouillee ne remet pas le timer a zero, mais n'est pas une erreur (l'item est consomme, le timer ne change pas).</li>
+        <li>La tourelle envoie une alerte a la faction quand elle revient en ligne apres un brouillage.</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Valeur strategique :</strong> le Brouilleur coute cher (Erinium + Ender Pearl + Redstone Block), n'a que 3 utilisations, et necessite de s'approcher a 5 blocs d'une tourelle active pour fonctionner. C'est un outil de raid precieux, pas un spam button. La faction defenseur est alertee immediatement, ce qui lui donne 30 secondes pour reagir.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S5 — RECETTES DE CRAFT ═══ -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num gold-num">05</span> Recettes de Craft</h2>
+
+      <h3 class="first">Tourelles (items placeurs)</h3>
+      <p>Les tourelles se craftent avec un <code>Dispenser</code> (vanilla) au centre, entour e de materiaux par tier. L'item resultant se place dans le monde comme un item normal.</p>
+
+<div class="ascii-diagram">
+<span class="ay">Tourelle Valterite</span>                  <span class="am">Tourelle Aetherite</span>                  <span class="aer">Tourelle Erinium</span>
+
+<span class="avt">V</span> <span class="as">I</span> <span class="avt">V</span>                              <span class="am">A</span> <span class="ac">D</span> <span class="am">A</span>                              <span class="aer">E</span> <span class="ay">N</span> <span class="aer">E</span>
+<span class="as">I</span> <span class="avt">T</span> <span class="avt">V</span>                              <span class="ac">D</span> <span class="am">T</span> <span class="ac">D</span>                              <span class="ay">N</span> <span class="aer">T</span> <span class="ay">N</span>
+<span class="avt">V</span> <span class="as">I</span> <span class="avt">V</span>                              <span class="am">A</span> <span class="ac">D</span> <span class="am">A</span>                              <span class="aer">E</span> <span class="ay">N</span> <span class="aer">E</span>
+
+<span class="avt">V</span> = Valterite Ingot                  <span class="am">A</span> = Aetherite Crystal                 <span class="aer">E</span> = Erinium Fragment
+<span class="as">I</span> = Iron Block                        <span class="ac">D</span> = Diamond                           <span class="ay">N</span> = Nether Star
+<span class="avt">T</span> = Dispenser                         <span class="am">T</span> = Dispenser                         <span class="aer">T</span> = Dispenser
+</div>
+
+      <h3>Detecteurs de Mouvement (blocs)</h3>
+      <p>Les detecteurs utilisent un <code>Observer</code> (vanilla) au centre, entour e de materiaux par tier et de Redstone.</p>
+
+<div class="ascii-diagram">
+<span class="ay">Detecteur Valterite</span>                 <span class="am">Detecteur Aetherite</span>                 <span class="aer">Detecteur Erinium</span>
+
+<span class="avt">V</span> <span class="ar">R</span> <span class="avt">V</span>                              <span class="am">A</span> <span class="ar">R</span> <span class="am">A</span>                              <span class="aer">E</span> <span class="ar">R</span> <span class="aer">E</span>
+<span class="ar">R</span> <span class="ac">O</span> <span class="ar">R</span>                              <span class="ar">R</span> <span class="ac">O</span> <span class="ar">R</span>                              <span class="ar">R</span> <span class="ac">O</span> <span class="ar">R</span>
+<span class="avt">V</span> <span class="ar">R</span> <span class="avt">V</span>                              <span class="am">A</span> <span class="ar">R</span> <span class="am">A</span>                              <span class="aer">E</span> <span class="ar">R</span> <span class="aer">E</span>
+
+<span class="avt">V</span> = Valterite Ingot                  <span class="am">A</span> = Aetherite Crystal                 <span class="aer">E</span> = Erinium Fragment
+<span class="ar">R</span> = Redstone (Valterite)             <span class="ar">R</span> = Redstone Block (Aetherite+)       <span class="ar">R</span> = Redstone Block
+<span class="ac">O</span> = Observer (vanilla)              <span class="ac">O</span> = Observer (vanilla)               <span class="ac">O</span> = Observer (vanilla)
+</div>
+
+      <h3>Brouilleur de Tourelle</h3>
+<div class="ascii-diagram">
+<span class="ay">Brouilleur de Tourelle</span>
+
+<span class="as">_</span> <span class="aer">E</span> <span class="as">_</span>
+<span class="ac">P</span> <span class="ar">R</span> <span class="ac">P</span>
+<span class="as">_</span> <span class="aer">E</span> <span class="as">_</span>
+
+<span class="aer">E</span> = Erinium Fragment
+<span class="ac">P</span> = Ender Pearl
+<span class="ar">R</span> = Redstone Block
+</div>
+
+    </section>
+
+    <!-- ═══ S6 — ARCHITECTURE TECHNIQUE ═══ -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num">06</span> Architecture Technique</h2>
+
+      <h3 class="first">Structure des packages</h3>
+<div class="ascii-diagram">
+<span class="ac">fr.eriniumgroup.eriniumfaction.</span><span class="av">machines</span><span class="ac">/</span>
+<span class="as">├──</span> <span class="av">turret</span><span class="ac">/</span>
+<span class="as">│   ├──</span> <span class="ay">EntityTurret.java</span>          <span class="as">— EntityLiving custom (3 tiers via champ TurretTier)</span>
+<span class="as">│   ├──</span> <span class="ay">TurretTier.java</span>            <span class="as">— Enum VALTERITE / AETHERITE / ERINIUM + stats</span>
+<span class="as">│   ├──</span> <span class="ay">TurretAI.java</span>              <span class="as">— Ciblage, raycast, rotation, tir</span>
+<span class="as">│   ├──</span> <span class="ay">TurretProjectile.java</span>      <span class="as">— EntityThrowable custom (3 types de munitions)</span>
+<span class="as">│   ├──</span> <span class="ay">ItemTurretPlacer.java</span>      <span class="as">— Item pour placer l'entite tourelle</span>
+<span class="as">│   ├──</span> <span class="ay">ContainerTurret.java</span>       <span class="as">— Container inventory + slots munitions</span>
+<span class="as">│   └──</span> <span class="ay">GuiTurret.java</span>             <span class="as">— GuiContainer (stats, RF, config)</span>
+<span class="as">├──</span> <span class="av">detector</span><span class="ac">/</span>
+<span class="as">│   ├──</span> <span class="ay">BlockDetector.java</span>         <span class="as">— Block avec TileEntity (PropertyEnum TIER)</span>
+<span class="as">│   ├──</span> <span class="ay">TileDetector.java</span>          <span class="as">— TileEntityTickable : detection + webhook</span>
+<span class="as">│   ├──</span> <span class="ay">DetectorTier.java</span>          <span class="as">— Enum VALTERITE / AETHERITE / ERINIUM + stats</span>
+<span class="as">│   ├──</span> <span class="ay">DiscordWebhookSender.java</span>  <span class="as">— Client HTTP async (HttpURLConnection, queue, rate limit)</span>
+<span class="as">│   ├──</span> <span class="ay">DetectorLog.java</span>           <span class="as">— POJO : joueur, faction, XYZ, timestamp</span>
+<span class="as">│   ├──</span> <span class="ay">ContainerDetector.java</span>     <span class="as">— Container GUI</span>
+<span class="as">│   └──</span> <span class="ay">GuiDetector.java</span>           <span class="as">— GuiContainer (webhook, logs, filtres)</span>
+<span class="as">├──</span> <span class="ay">TurretJammerItem.java</span>          <span class="as">— Item Brouilleur (durabilite, portee 5 blocs)</span>
+<span class="as">├──</span> <span class="ay">MachineItems.java</span>              <span class="as">— Registration ItemTurretPlacer (x3) + TurretJammer</span>
+<span class="as">├──</span> <span class="ay">MachineBlocks.java</span>             <span class="as">— Registration BlockDetector (x3)</span>
+<span class="as">└──</span> <span class="ay">MachineRecipes.java</span>            <span class="as">— 7 recettes shaped</span>
+</div>
+
+      <h3>Points techniques critiques</h3>
+      <ul>
+        <li><strong>EntityTurret extends EntityLiving :</strong> la tourelle est une vraie entite avec un renderer custom. Pour le debut du developpement, utiliser un modele placeholder simple (cube avec un cylindre — <code>ModelBox</code>). Le modele 3D definitif sera integre plus tard.</li>
+        <li><strong>Tier via enum + champ NBT :</strong> les 3 tiers partagent la meme classe <code>EntityTurret</code>. Le tier est stocke en NBT (<code>turretTier</code>) et lu a la creation de l'entite. <code>TurretTier</code> encapsule toutes les stats (portee, degats, cadence, RF max, HP).</li>
+        <li><strong>Inventaire interne :</strong> l'entite tourelle implem ente <code>IInventory</code> avec des slots de munitions. L'inventaire est serialise en NBT dans <code>writeEntityToNBT</code> / <code>readEntityFromNBT</code>.</li>
+        <li><strong>IEnergyStorage pour la tourelle :</strong> l'entite expose <code>IEnergyStorage</code> via une Capability Forge standard pour recevoir du RF depuis les cables du reseau electrique.</li>
+        <li><strong>DiscordWebhookSender :</strong> utilise <code>HttpURLConnection</code> (standard Java 8) pour les requetes POST. La classe maintient une queue circulaire (taille 10 max) et un compteur de requetes sur une fenetre glissante de 60 secondes (rate limiting 5/min). Elle s'integre avec <code>EriScheduler.async()</code>.</li>
+        <li><strong>Chiffrement XOR de l'URL :</strong> cle = bytes UTF-8 du factionId. Boucle XOR sur les bytes de l'URL. Stockage en Base64 dans le NBT. Dechiffrement a la lecture dans le TileEntity.</li>
+        <li><strong>Buffer circulaire des logs :</strong> liste NBT de <code>NBTTagCompound</code>. Quand la taille depasse le max du tier, la premiere entree est supprimee avant d'ajouter la nouvelle. Jamais de tri, jamais de tri par date — insertion en fin de liste.</li>
+        <li><strong>Performance :</strong> <code>world.getEntitiesWithinAABB(EntityPlayer.class, aabb)</code> est la methode correcte — elle utilise les quadrants de chunk, pas d'iteration sur toute la liste d'entites. L'AABB est calculee une seule fois par scan tick et cached.</li>
+        <li><strong>Protection contre la pose hors claim :</strong> dans <code>ItemTurretPlacer.onItemUse()</code>, verifier que le chunk est claim par la faction du joueur avant de spawner l'entite. Si non-claim : message d'erreur, aucune entite spawne, l'item n'est pas consomme.</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Compatibilite CleanRoom :</strong> pas d'imports <code>sun.*</code>, pas de reflection sur des champs <code>final</code>, pas d'ASM brut. <code>HttpURLConnection</code> est dans <code>java.net</code> — standard Java 8, compatible CleanRoom. Le renderer de la tourelle utilise <code>ModelRenderer</code> standard Forge, pas de bibliotheques lwjgl internes.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S7 — INTEGRATION ═══ -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num green-num">07</span> Integration avec les systemes existants</h2>
+
+      <h3 class="first">Systeme RF / Electricite</h3>
+      <ul>
+        <li>Les tourelles (<code>EntityTurret</code>) et les detecteurs (<code>TileDetector</code>) implementent tous les deux <code>IEnergyStorage</code> via une Capability Forge standard.</li>
+        <li>Les cables RF du systeme electrique peuvent se connecter directement aux detecteurs (TileEntity statique).</li>
+        <li>Pour les tourelles (entites mobiles), la reception RF se fait via interaction directe avec l'item "Chargeur RF" ou via une station de charge a placer a cote de la tourelle — a definir en accord avec le systeme RF.</li>
+      </ul>
+
+      <h3>FactionManager — Ciblage</h3>
+      <ul>
+        <li>La tourelle et le detecteur interrogent le <code>FactionManager</code> pour connaitre la relation entre la faction proprietaire et la faction du joueur detecte.</li>
+        <li>Relation <code>ALLY</code> → toujours ignore. Relation <code>ENEMY</code> ou <code>NEUTRAL</code> → cible selon la config du filtre.</li>
+        <li>Un joueur sans faction est traite comme <code>NEUTRAL</code>.</li>
+      </ul>
+
+      <h3>FactionProtection — Placement</h3>
+      <ul>
+        <li>Le placement d'une tourelle necessite que le chunk soit claim par la faction du joueur. Verifier via <code>FactionProtection.getOwnerFaction(chunkPos)</code>.</li>
+        <li>Si le chunk est unclaim apres le placement (via <code>/f unclaim</code>), la tourelle reste physiquement mais cesse de fonctionner (elle ne cible plus les joueurs, mais elle est toujours destructible).</li>
+        <li>La limite par faction (4/3/2 tourelles selon tier) est trackee dans les donnees de faction.</li>
+      </ul>
+
+      <h3>BlockHealth</h3>
+      <ul>
+        <li>Le bloc detecteur dispose d'HP via le systeme <code>BlockHealth</code> — il peut etre detruit progressivement.</li>
+        <li>L'entite tourelle gere ses propres HP directement (c'est une <code>EntityLiving</code>).</li>
+      </ul>
+
+      <h3>Safezone</h3>
+      <ul>
+        <li>Les tourelles ne tirent pas sur les joueurs qui se trouvent dans une zone de safezone, meme si cette zone est adjacente au territoire de la faction.</li>
+        <li>Les detecteurs detectent normalement (ils informent, ils ne tirent pas).</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S8 — ASSETS ═══ -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num aetherite-num">08</span> Assets</h2>
+
+      <h3 class="first">Textures requises (PNG 16x16)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Asset</th><th>Chemin</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Item Tourelle Valterite</td><td><code>textures/items/valterite_turret.png</code></td><td>Vue de face, couleur cyan #4AE0E0</td></tr>
+            <tr><td>Item Tourelle Aetherite</td><td><code>textures/items/aetherite_turret.png</code></td><td>Vue de face, couleur violet #9B59B6</td></tr>
+            <tr><td>Item Tourelle Erinium</td><td><code>textures/items/erinium_turret.png</code></td><td>Vue de face, couleur gold #FFD700</td></tr>
+            <tr><td>Brouilleur de Tourelle</td><td><code>textures/items/turret_jammer.png</code></td><td>Antenne + eclairs, couleur rouge/noir</td></tr>
+            <tr><td>Bloc Detecteur Valterite (cote)</td><td><code>textures/blocks/valterite_detector_side.png</code></td><td>Motif grille cyan sur fond gris</td></tr>
+            <tr><td>Bloc Detecteur Valterite (top)</td><td><code>textures/blocks/valterite_detector_top.png</code></td><td>Œil central cyan</td></tr>
+            <tr><td>Bloc Detecteur Aetherite (cote)</td><td><code>textures/blocks/aetherite_detector_side.png</code></td><td>Motif grille violet</td></tr>
+            <tr><td>Bloc Detecteur Aetherite (top)</td><td><code>textures/blocks/aetherite_detector_top.png</code></td><td>Œil central violet</td></tr>
+            <tr><td>Bloc Detecteur Erinium (cote)</td><td><code>textures/blocks/erinium_detector_side.png</code></td><td>Motif grille gold</td></tr>
+            <tr><td>Bloc Detecteur Erinium (top)</td><td><code>textures/blocks/erinium_detector_top.png</code></td><td>Œil central gold</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Modeles de l'entite Tourelle</h3>
+      <p>Pour le debut du developpement, un modele placeholder simple suffira. Structure proposee :</p>
+      <ul>
+        <li><strong>Base</strong> — cube 6x3x6 blocs (socle stable)</li>
+        <li><strong>Corps central</strong> — cube 4x4x4 avec rotation Y continue</li>
+        <li><strong>Canon</strong> — boite allongee 1x1x6 pointant vers la cible</li>
+        <li>La couleur du modele varie selon le tier : cyan pour Valterite, violet pour Aetherite, gold pour Erinium.</li>
+      </ul>
+
+      <h3>Traductions requises (fr_FR.lang / en_US.lang)</h3>
+      <ul>
+        <li><code>item.valterite_turret.name</code> → "Tourelle Valterite" / "Valterite Turret"</li>
+        <li><code>item.aetherite_turret.name</code> → "Tourelle Aetherite" / "Aetherite Turret"</li>
+        <li><code>item.erinium_turret.name</code> → "Tourelle Erinium" / "Erinium Turret"</li>
+        <li><code>item.turret_jammer.name</code> → "Brouilleur de Tourelle" / "Turret Jammer"</li>
+        <li><code>tile.valterite_detector.name</code> → "Detecteur Valterite" / "Valterite Detector"</li>
+        <li><code>tile.aetherite_detector.name</code> → "Detecteur Aetherite" / "Aetherite Detector"</li>
+        <li><code>tile.erinium_detector.name</code> → "Detecteur Erinium" / "Erinium Detector"</li>
+        <li>Messages chat faction, alertes brouillage, erreurs webhook</li>
+      </ul>
+    </section>
+
+    <!-- ═══ S9 — EQUILIBRAGE PVP ═══ -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num orange-num">09</span> Equilibrage PvP</h2>
+
+      <h3 class="first">Principes directeurs</h3>
+      <ul>
+        <li><strong>Les tourelles sont une aide, pas un remplacement du PvP.</strong> Un joueur full Erinium avec enchantements absorbe facilement les tirs d'une tourelle Valterite. Meme une tourelle Erinium (8 coeurs / tir) est dangereuse mais pas instantanement fatale si le joueur a de bons equipements et une protection.</li>
+        <li><strong>Progression des risques par tier :</strong> les tourelles Erinium sont puissantes (50 blocs de portee, 8 coeurs/tir) mais limitees a 2 par faction, couteuses en Nether Stars, et grosses consommatrices de RF (200 RF/tir). L'investissement est reel.</li>
+        <li><strong>Le Brouilleur garantit un counterplay clair.</strong> Un attaquant prepare peut desactiver une tourelle pour 30 secondes — suffisant pour traverser le territoire ou detruire la tourelle en securite.</li>
+        <li><strong>La distance est le meilleur contre.</strong> Un arc vanilla a 50+ blocs de portee. Une tourelle Valterite n'a que 15 blocs. Tous les tiers de tourelle peuvent etre detruits a distance sans risque depuis les tiers bas.</li>
+        <li><strong>Aucune tourelle ne fire en safezone.</strong> Les zones protegees restent protegees — les machines de faction ne peuvent pas etre utilisees pour contourner les protections serveur.</li>
+        <li><strong>Les chunks non-charges sont un facteur tactique.</strong> Un raid peut commencer par un flanc dont le chunk n'est pas charge (pas de joueurs ni d'entites proches). La tourelle de ce cote sera en pause.</li>
+        <li><strong>Le detecteur n'est pas une muraille.</strong> Il informe — il ne bloque pas. La reponse reste humaine. Si tous les membres sont offline et ne regardent pas Discord, l'alerte ne sert a rien. C'est voulu.</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>PvP 1.8 :</strong> le serveur utilise un mod PvP 1.8 (pas de cooldown d'attaque, jitter click). Les tourelles ne sont pas affectees par ce systeme — elles tirent selon leur propre cadence (tick-based). Le brouilleur ne beneficie d'aucun boost d'attack speed non plus. Toute la mecanique est basee sur le temps en ticks, pas sur l'attribut ATTACK_SPEED.</div>
+      </div>
+    </section>
+
+    <!-- ═══ S10 — PLAN DE TESTS ═══ -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num">10</span> Plan de Tests</h2>
+
+      <h3 class="first">Tourelle — Fonctionnement de base</h3>
+      <ul class="checklist">
+        <li><strong>Placement :</strong> tourelle placable uniquement dans un chunk claim de la faction du joueur</li>
+        <li><strong>Rang :</strong> un membre de rang inferieur a Officier ne peut pas placer la tourelle</li>
+        <li><strong>Limite faction :</strong> impossible de placer une 5e tourelle Valterite (ou 4e Aetherite, 3e Erinium)</li>
+        <li><strong>Ciblage :</strong> la tourelle cible un ennemi mais ignore un allie dans le meme rayon</li>
+        <li><strong>Raycast :</strong> la tourelle ne tire pas si un bloc solide est entre elle et la cible</li>
+        <li><strong>Mode veille :</strong> la tourelle passe en veille apres 30 secondes sans ennemi (0 consommation RF)</li>
+        <li><strong>Reveil :</strong> la tourelle se reveille immediatement quand un ennemi entre dans le rayon</li>
+        <li><strong>Munitions vides :</strong> la tourelle arrete de tirer et envoie une alerte chat faction</li>
+        <li><strong>RF epuise :</strong> la tourelle arrete de tirer quand son reservoir RF tombe a 0</li>
+        <li><strong>Destructibilite :</strong> la tourelle prend des degats et peut etre detruite</li>
+        <li><strong>Recuperation :</strong> le bouton Recuperer restitue l'item avec NBT (RF + munitions preserver)</li>
+        <li><strong>Creativite / Spectateur :</strong> la tourelle n'attaque pas un joueur en mode creatif ou spectateur</li>
+        <li><strong>Safezone :</strong> la tourelle ne tire pas sur un joueur dans une safezone adjacente</li>
+      </ul>
+
+      <h3>Detecteur — Fonctionnement de base</h3>
+      <ul class="checklist">
+        <li><strong>Detection a l'entree :</strong> l'alerte se declenche quand un ennemi entre dans le rayon, pas toutes les secondes</li>
+        <li><strong>Cooldown :</strong> pas de double alerte si l'ennemi reste dans le rayon — seulement a la prochaine entree</li>
+        <li><strong>Cooldown global :</strong> respecte le minimum entre alertes (30s / 15s / 5s selon tier)</li>
+        <li><strong>Filtre ennemis seulement :</strong> un neutre ne declenche pas d'alerte en mode "Ennemis seulement"</li>
+        <li><strong>Chat faction :</strong> l'alerte apparait dans le chat de tous les membres en ligne</li>
+        <li><strong>Mode furtif :</strong> pas de particules ni de son, le joueur detecte n'est pas notifie</li>
+        <li><strong>Logs :</strong> chaque detection est enregistree dans l'historique interne</li>
+        <li><strong>Buffer circulaire :</strong> les logs les plus anciens sont supprimes quand le max est atteint</li>
+        <li><strong>Export :</strong> le bouton "Exporter les logs" genere un item rapport</li>
+      </ul>
+
+      <h3>Webhook Discord</h3>
+      <ul class="checklist">
+        <li><strong>Validation URL :</strong> une URL invalide (pas discord.com/api/webhooks) est refusee avec message d'erreur dans le GUI</li>
+        <li><strong>Test webhook :</strong> le bouton "Tester" envoie un embed de test et affiche success/erreur</li>
+        <li><strong>Async :</strong> l'envoi d'un webhook ne provoque aucun lag mesurable sur le server thread</li>
+        <li><strong>Rate limiting :</strong> plus de 5 detections en 1 minute met les suivantes en queue (pas de perte, pas de spam)</li>
+        <li><strong>Erreur 404 :</strong> une URL de webhook invalide (webhook supprime) loggue l'erreur dans l'historique interne</li>
+        <li><strong>Chiffrement :</strong> le NBT du TileEntity ne contient pas l'URL en clair (verifier avec un NBT reader)</li>
+      </ul>
+
+      <h3>Brouilleur de Tourelle</h3>
+      <ul class="checklist">
+        <li><strong>Portee :</strong> fonctionne a 5 blocs ou moins, sans effet a 6 blocs ou plus</li>
+        <li><strong>Effet :</strong> la tourelle cesse de scanner et de tirer pendant 30 secondes exactement</li>
+        <li><strong>Alerte :</strong> la faction proprietaire recoit une alerte chat immediate</li>
+        <li><strong>Durabilite :</strong> l'item perd 1 durabilite a chaque utilisation, se casse apres 3 utilisations</li>
+        <li><strong>Cooldown :</strong> impossible d'utiliser le brouilleur deux fois en moins de 2 minutes</li>
+        <li><strong>Double brouillage :</strong> brouillerune tourelle deja brouillee consomme la durabilite mais ne change pas le timer</li>
+        <li><strong>Retour normal :</strong> la tourelle reprend son fonctionnement normal apres 30 secondes</li>
+      </ul>
+
+      <h3>Performance (500-1000 joueurs)</h3>
+      <ul class="checklist">
+        <li><strong>Scan tourelle :</strong> 20 tourelles actives simultanement n'ajoutent pas plus de 0.5ms/tick au TPS</li>
+        <li><strong>Scan detecteur :</strong> 30 detecteurs actifs simultanement n'ajoutent pas plus de 0.3ms/tick</li>
+        <li><strong>Webhook stress :</strong> 10 detections simultanees toutes dans la meme seconde — toutes async, aucun lag serveur</li>
+        <li><strong>Entites :</strong> les tourelles EntityLiving ne causent pas de fuite memoire (cleanup correct sur mort/casse)</li>
+        <li><strong>Chunks non-charges :</strong> une tourelle dont le chunk est decharge ne genere aucun tick</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+<script>
+document.getElementById('navToggle').addEventListener('click', function() {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+// Active nav highlighting
+var links = document.querySelectorAll('.nav-link');
+var sections = document.querySelectorAll('section[id]');
+window.addEventListener('scroll', function() {
+  var scrollY = window.scrollY;
+  sections.forEach(function(section) {
+    var top = section.offsetTop - 80;
+    var bottom = top + section.offsetHeight;
+    var id = section.getAttribute('id');
+    if (scrollY >= top && scrollY < bottom) {
+      links.forEach(function(l) { l.classList.remove('active'); });
+      var active = document.querySelector('.nav-link[href="#' + id + '"]');
+      if (active) active.classList.add('active');
+    }
+  });
+}, { passive: true });
+</script>
+</body>
+</html>

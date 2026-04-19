@@ -1,0 +1,2227 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Monde Minage | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+    /* Tier colors */
+    --valterite: #5B9BD5;
+    --aetherite: #A855F7;
+    --erinium:   #F59E0B;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 50% 90%, rgba(91,155,213,0.08) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 12px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-valterite { color: var(--valterite); border-color: rgba(91,155,213,0.4); background: rgba(91,155,213,0.1); }
+  .badge-aetherite { color: var(--aetherite); border-color: rgba(168,85,247,0.4); background: rgba(168,85,247,0.1); }
+  .badge-erinium   { color: var(--erinium);   border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.1); }
+
+  /* =========================================================
+     SECTION CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr { background: rgba(107,47,160,0.18); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+
+  .tier-valterite { color: var(--valterite); font-weight: 600; }
+  .tier-aetherite { color: var(--aetherite); font-weight: 600; }
+  .tier-erinium   { color: var(--erinium);   font-weight: 600; }
+  .tier-diamond   { color: #B9F2FF;          font-weight: 600; }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .cl  { color: #FFCB6B; }
+
+  /* =========================================================
+     ASCII DIAGRAMS
+  ========================================================= */
+  .ascii-diagram {
+    background: rgba(5,5,10,0.75);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 11.5px;
+    line-height: 1.65;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+  }
+
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+
+  /* =========================================================
+     INFO BOXES
+  ========================================================= */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2);   }
+
+  /* =========================================================
+     TIER CARDS (overview grid)
+  ========================================================= */
+  .tier-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .tier-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .tier-card {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    text-align: center;
+  }
+
+  .tier-card.cyan-top   { border-top: 3px solid var(--cyan); }
+  .tier-card.violet-top { border-top: 3px solid var(--violet-l); }
+  .tier-card.green-top  { border-top: 3px solid var(--green); }
+  .tier-card.gold-top   { border-top: 3px solid var(--gold); }
+  .tier-card.red-top    { border-top: 3px solid var(--red); }
+  .tier-card.valterite  { border-top: 3px solid var(--valterite); }
+  .tier-card.aetherite  { border-top: 3px solid var(--aetherite); }
+  .tier-card.erinium    { border-top: 3px solid var(--erinium); }
+
+  .tier-card-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .tier-card.valterite .tier-card-name { color: var(--valterite); }
+  .tier-card.aetherite .tier-card-name { color: var(--aetherite); }
+  .tier-card.erinium   .tier-card-name { color: var(--erinium); }
+  .tier-card.cyan-top  .tier-card-name { color: var(--cyan); }
+  .tier-card.violet-top .tier-card-name { color: var(--violet-l); }
+  .tier-card.green-top .tier-card-name { color: var(--green); }
+  .tier-card.gold-top  .tier-card-name { color: var(--gold); }
+  .tier-card.red-top   .tier-card-name { color: var(--red); }
+
+  .tier-card-tier {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin-bottom: 14px;
+  }
+
+  .tier-card-stat {
+    font-size: 12px;
+    color: var(--slate);
+    margin: 4px 0;
+  }
+
+  .tier-card-stat strong { color: var(--text); }
+
+  /* =========================================================
+     ANIMATIONS + DIVIDER
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-bdr), transparent);
+    margin: 24px 0;
+  }
+
+  /* =========================================================
+     MOBILE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,47,160,0.4);
+    transition: transform .2s;
+  }
+
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 50;
+      width: 260px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .tier-grid { grid-template-columns: 1fr; }
+    .tier-grid-2 { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    .section-card { padding: 24px 18px; }
+    .page-header h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+
+    <span class="sidebar-title">Sommaire</span>
+
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Dimension</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Generation de Minerais</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Protection des Joueurs</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Restrictions Territoriales</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Commande /minage</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Structure de Spawn</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Systeme de Reset</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Configuration</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Architecture Technique</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Integration Existante</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Monde Minage</h1>
+      <p>Dimension dediee a la recolte de ressources : invincibilite totale, minerais exclusifs, reset automatique toutes les 7 jours et structure de spawn flottante. Le monde principal reste intact.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">A faire</span>
+        <span class="badge badge-cyan">Dimension custom</span>
+        <span class="badge badge-green">PvE Safe Zone</span>
+        <span class="badge badge-valterite">Valterite exclusif</span>
+        <span class="badge badge-aetherite">Aetherite exclusif</span>
+        <span class="badge badge-erinium">Erinium exclusif</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <div class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Problematique</h3>
+      <p>Dans un serveur faction/PvP classique, le minage intensif des ressources rares (Valterite, Aetherite, Erinium) dans le monde principal pose plusieurs problemes majeurs :</p>
+      <ul>
+        <li><strong>Devastation du monde principal</strong> — les joueurs creusent des milliers de tunnels, rendant le monde "gruyere" et visuellement degrade</li>
+        <li><strong>Pression PvP constante</strong> — les mineurs sont des cibles faciles, rendant l'activite miniere frustrante</li>
+        <li><strong>Epuisement des ressources</strong> — sans systeme de renouvellement, les minerais rares disparaissent definitivement</li>
+        <li><strong>Inequite entre factions</strong> — les factions dominantes monopolisent les zones riches en minerais</li>
+      </ul>
+
+      <h3>Solution : Monde Minage dedié</h3>
+      <p>Le Monde Minage est une dimension parallele accessible via la commande <code>/minage</code>. Il sert exclusivement a la recolte de ressources et offre un environnement sur et equitable pour tous les joueurs.</p>
+
+      <div class="tier-grid">
+        <div class="tier-card green-top">
+          <div class="tier-card-name">Securite totale</div>
+          <div class="tier-card-tier">Benefice joueur</div>
+          <div class="tier-card-stat">Invincibilite complete</div>
+          <div class="tier-card-stat">Pas de PvP</div>
+          <div class="tier-card-stat">Pas de mobs dangereux</div>
+          <div class="tier-card-stat">Pas de lave souterraine</div>
+        </div>
+        <div class="tier-card cyan-top">
+          <div class="tier-card-name">Ressources fraiches</div>
+          <div class="tier-card-tier">Benefice economique</div>
+          <div class="tier-card-stat">Reset toutes les 7 jours</div>
+          <div class="tier-card-stat">Ores regeneres</div>
+          <div class="tier-card-stat">Densite configurable</div>
+          <div class="tier-card-stat">Equite entre factions</div>
+        </div>
+        <div class="tier-card violet-top">
+          <div class="tier-card-name">Monde principal intact</div>
+          <div class="tier-card-tier">Benefice visuel</div>
+          <div class="tier-card-stat">Pas de tunnels infinis</div>
+          <div class="tier-card-stat">Paysages preserves</div>
+          <div class="tier-card-stat">Claims non pollues</div>
+          <div class="tier-card-stat">Experience de jeu propre</div>
+        </div>
+      </div>
+
+      <h3>Regles fondamentales</h3>
+      <ul>
+        <li><strong>Invincibilite absolue</strong> — aucun type de degat ne peut tuer un joueur dans cette dimension (void, chute, lave, mobs, PvP)</li>
+        <li><strong>Pas de claims</strong> — la revendication territoriale est completement desactivee dans cette dimension</li>
+        <li><strong>Pas de lacs de lave souterrains</strong> — la generation de lacs de lave underground est supprimee pour un minage securise</li>
+        <li><strong>Minerais moddes exclusifs</strong> — Valterite, Aetherite et Erinium ne generent PAS dans l'Overworld, uniquement ici</li>
+        <li><strong>Minerais vanilla normaux</strong> — charbon, fer, or, diamant, etc. generent normalement dans les deux mondes</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Strategie economique</strong> — En confinant les minerais moddes au Monde Minage, on cree un cycle naturel : les joueurs doivent regulierement visiter la dimension pour se ravitailler, et le reset periodique garantit que personne ne peut stockpiler indefiniment un avantage. Cela equilibre la progression des factions et maintient une economie vivante.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S2 — DIMENSION ═══ -->
+    <div class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Dimension</h2>
+
+      <h3 class="first">Enregistrement de la dimension</h3>
+      <p>La dimension est enregistree au demarrage du serveur via l'API Forge standard. L'ID de dimension est configurable pour eviter les conflits avec d'autres mods.</p>
+
+      <div class="code-block"><span class="cm">// Dans MiningWorldManager.init() — appele depuis CommonProxy.preInit()</span>
+<span class="kw">public static final int</span> <span class="ty">MINING_DIM_ID</span> = <span class="ty">MiningConfig</span>.<span class="fn">miningWorldDimId</span>; <span class="cm">// defaut: 2</span>
+
+<span class="ty">DimensionManager</span>.<span class="fn">registerDimension</span>(<span class="ty">MINING_DIM_ID</span>, <span class="ty">DimensionType</span>.<span class="fn">register</span>(
+    <span class="st">"mining_world"</span>,
+    <span class="st">"_mining"</span>,
+    <span class="ty">MINING_DIM_ID</span>,
+    <span class="ty">MiningWorldProvider</span>::<span class="kw">new</span>,
+    <span class="kw">false</span>
+));</div>
+
+      <h3>WorldProvider custom</h3>
+      <p><code>MiningWorldProvider</code> etend <code>WorldProvider</code> et configure le comportement general de la dimension :</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Parametre</th>
+              <th>Valeur</th>
+              <th>Justification</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Generateur de terrain</td>
+              <td>MiningChunkGenerator</td>
+              <td>Terrain Overworld custom sans lacs de lave</td>
+            </tr>
+            <tr>
+              <td>Ciel</td>
+              <td>Similaire Overworld</td>
+              <td>Confort visuel, jour/nuit normal</td>
+            </tr>
+            <tr>
+              <td>Brouillard de void</td>
+              <td>Desactive</td>
+              <td>Prevention de confusion (pas de void dangereux)</td>
+            </tr>
+            <tr>
+              <td>Lumiere du soleil</td>
+              <td>Activee</td>
+              <td>Confort de minage, mobs ne spawnent pas la nuit</td>
+            </tr>
+            <tr>
+              <td>Spawn mobs</td>
+              <td>Activee (passifs uniquement)</td>
+              <td>Atmosphere vivante, XP farming possible</td>
+            </tr>
+            <tr>
+              <td>Pluie / meteo</td>
+              <td>Activee</td>
+              <td>Ambiance naturelle</td>
+            </tr>
+            <tr>
+              <td>can Respawn Here</td>
+              <td>false</td>
+              <td>Pas de lit de spawn dans cette dimension</td>
+            </tr>
+            <tr>
+              <td>Dimension Name</td>
+              <td>"Monde Minage"</td>
+              <td>Affiche dans la F3 debug screen</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Generation de terrain</h3>
+      <p><code>MiningChunkGenerator</code> enveloppe le generateur vanilla de l'Overworld (<code>ChunkGeneratorOverworld</code>) en interceptant la phase de population pour supprimer les lacs de lave souterrains.</p>
+
+      <p>Deux approches possibles, la seconde est preferee :</p>
+
+      <div class="code-block"><span class="cm">// Approche 1 : Intercepter ChunkGeneratorOverworld (Mixin)</span>
+<span class="cm">// @Inject dans populate() pour annuler LAVA_LAKE</span>
+
+<span class="cm">// Approche 2 (preferee) : EriEvents sur PopulateChunkEvent</span>
+<span class="ty">EriEvents</span>.<span class="fn">on</span>(<span class="ty">PopulateChunkEvent</span>.<span class="ty">Populate</span>.<span class="kw">class</span>)
+    .<span class="fn">filter</span>(e <span class="op">-></span> e.<span class="fn">getWorld</span>().<span class="fn">provider</span>.<span class="fn">getDimension</span>() == <span class="ty">MiningWorldManager</span>.<span class="ty">MINING_DIM_ID</span>)
+    .<span class="fn">filter</span>(e <span class="op">-></span> e.<span class="fn">getType</span>() == <span class="ty">PopulateChunkEvent</span>.<span class="ty">Populate</span>.<span class="ty">EventType</span>.<span class="ty">LAVA_LAKE</span>)
+    .<span class="fn">handle</span>(e <span class="op">-></span> e.<span class="fn">setCanceled</span>(<span class="kw">true</span>));</div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Lacs de lave de surface</strong> — Seuls les lacs de lave souterrains sont supprimes (Y &lt; 60). Les lacs de surface peuvent etre maintenus pour l'ambiance visuelle, mais les joueurs sont de toute facon invincibles. Il est recommande de supprimer egalement les lacs de surface pour rendre le monde plus praticable. Annuler l'event <code>LAVA_LAKE</code> supprime les deux.</div>
+      </div>
+
+      <h3>Coordonnees et topographie</h3>
+      <p>Le monde utilise la meme echelle de coordonnees que l'Overworld (1:1 — pas de ratio 8:1 comme le Nether). La topographie est similaire a l'Overworld vanilla : collines, caves, biomes normaux. La structure de spawn (ile flottante) est placee au centre (0, Y, 0) a chaque reset.</p>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>ID de dimension</strong> — L'ID par defaut est 2. Sur certains serveurs avec d'autres mods installes (ex : Twilight Forest = 7, Aether = 3, etc.), ce numero peut entrer en conflit. L'administrateur DOIT configurer <code>miningWorldDimId</code> en consequence. Une detection de conflit au demarrage (log WARN) est recommandee.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S3 — GENERATION DE MINERAIS ═══ -->
+    <div class="section-card" id="s3">
+      <h2><span class="s-num">03</span> Generation de Minerais</h2>
+
+      <h3 class="first">Principe d'exclusivite</h3>
+      <p>Les minerais moddes (Valterite, Aetherite, Erinium) ne generent UNIQUEMENT dans le Monde Minage. Cette exclusivite est enforcee dans <code>MiningOreGenerator</code> via un check de dimension, et dans <code>EriniumWorldGenerator</code> existant qui doit etre modifie pour ignorer ces ores dans l'Overworld.</p>
+
+      <div class="code-block"><span class="cm">// EriniumWorldGenerator.java — modification requise</span>
+<span class="an">@Override</span>
+<span class="kw">public void</span> <span class="fn">generate</span>(<span class="ty">Random</span> random, <span class="kw">int</span> chunkX, <span class="kw">int</span> chunkZ, <span class="ty">World</span> world,
+    <span class="ty">IChunkGenerator</span> chunkGenerator, <span class="ty">IChunkProvider</span> chunkProvider) {
+
+    <span class="kw">int</span> dimId = world.<span class="fn">provider</span>.<span class="fn">getDimension</span>();
+
+    <span class="cm">// Minerais vanilla : generent partout (Overworld + Mining)</span>
+    <span class="kw">if</span> (dimId == <span class="nu">0</span> || dimId == <span class="ty">MiningWorldManager</span>.<span class="ty">MINING_DIM_ID</span>) {
+        <span class="fn">generateVanillaOres</span>(random, chunkX, chunkZ, world);
+    }
+
+    <span class="cm">// Minerais moddes : UNIQUEMENT dans le monde minage</span>
+    <span class="kw">if</span> (dimId == <span class="ty">MiningWorldManager</span>.<span class="ty">MINING_DIM_ID</span>) {
+        <span class="fn">generateMiningOres</span>(random, chunkX, chunkZ, world);
+    }
+}</div>
+
+      <h3>Distribution des minerais moddes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Minerai</th>
+              <th>Y min</th>
+              <th>Y max</th>
+              <th>Taille veine</th>
+              <th>Veines / chunk</th>
+              <th>Multiplicateur</th>
+              <th>Tier</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="tier-valterite">valterite_ore</td>
+              <td>5</td>
+              <td>40</td>
+              <td>4-8</td>
+              <td>4</td>
+              <td>x1.5 (defaut)</td>
+              <td>T2</td>
+            </tr>
+            <tr>
+              <td class="tier-aetherite">aetherite_ore</td>
+              <td>5</td>
+              <td>25</td>
+              <td>2-5</td>
+              <td>2</td>
+              <td>x1.5 (defaut)</td>
+              <td>T3</td>
+            </tr>
+            <tr>
+              <td class="tier-erinium">erinium_ore</td>
+              <td>3</td>
+              <td>15</td>
+              <td>1-3</td>
+              <td>1</td>
+              <td>x1.5 (defaut)</td>
+              <td>T4</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Le multiplicateur <code>miningWorldOreMultiplier</code> s'applique au nombre de veines par chunk. Avec 1.5x, on genere 1.5 fois plus de veines qu'une configuration de base equivalente dans l'Overworld, compensant l'exclusivite dimensionnelle.</p>
+
+      <h3>Minerais vanilla dans le Monde Minage</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Minerai</th>
+              <th>Genere dans Overworld</th>
+              <th>Genere dans Monde Minage</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Charbon</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Generation vanilla standard</td>
+            </tr>
+            <tr>
+              <td>Fer</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Generation vanilla standard</td>
+            </tr>
+            <tr>
+              <td>Or</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Generation vanilla standard</td>
+            </tr>
+            <tr>
+              <td>Redstone</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Generation vanilla standard</td>
+            </tr>
+            <tr>
+              <td>Lapis</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Generation vanilla standard</td>
+            </tr>
+            <tr>
+              <td>Diamant</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Generation vanilla standard</td>
+            </tr>
+            <tr>
+              <td>Emeraude</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Generation vanilla standard</td>
+            </tr>
+            <tr>
+              <td class="tier-valterite">Valterite</td>
+              <td><span class="tag-no">NON</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Exclusif Monde Minage</td>
+            </tr>
+            <tr>
+              <td class="tier-aetherite">Aetherite</td>
+              <td><span class="tag-no">NON</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Exclusif Monde Minage</td>
+            </tr>
+            <tr>
+              <td class="tier-erinium">Erinium</td>
+              <td><span class="tag-no">NON</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>Exclusif Monde Minage</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Gemmes brutes</strong> — Les gemmes brutes (Rubis, Saphir, etc. du systeme Accessoires &amp; Gemmes) suivent la meme regle que les minerais dont elles dependent. Si elles dropent des blocs Valterite/Aetherite/Erinium, elles seront egalement exclusives au Monde Minage. La configuration <code>miningWorldOreMultiplier</code> influe aussi sur la chance de drop des gemmes brutes.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S4 — PROTECTION DES JOUEURS ═══ -->
+    <div class="section-card" id="s4">
+      <h2><span class="s-num green-num">04</span> Protection des Joueurs</h2>
+
+      <h3 class="first">Invincibilite totale</h3>
+      <p>Dans le Monde Minage, les joueurs sont completement invincibles. Toutes les sources de degats sont annulees via trois events Forge distincts pour une couverture complete :</p>
+
+      <div class="code-block"><span class="cm">// MiningWorldProtection.java</span>
+<span class="cm">// Annule TOUS les degats dans la dimension minage</span>
+
+<span class="ty">EriEvents</span>.<span class="fn">on</span>(<span class="ty">LivingAttackEvent</span>.<span class="kw">class</span>)
+    .<span class="fn">filter</span>(e <span class="op">-></span> e.<span class="fn">getEntityLiving</span>() <span class="kw">instanceof</span> <span class="ty">EntityPlayer</span>)
+    .<span class="fn">filter</span>(e <span class="op">-></span> <span class="fn">isInMiningDim</span>(e.<span class="fn">getEntityLiving</span>()))
+    .<span class="fn">handle</span>(e <span class="op">-></span> e.<span class="fn">setCanceled</span>(<span class="kw">true</span>));
+
+<span class="ty">EriEvents</span>.<span class="fn">on</span>(<span class="ty">LivingHurtEvent</span>.<span class="kw">class</span>)
+    .<span class="fn">filter</span>(e <span class="op">-></span> e.<span class="fn">getEntityLiving</span>() <span class="kw">instanceof</span> <span class="ty">EntityPlayer</span>)
+    .<span class="fn">filter</span>(e <span class="op">-></span> <span class="fn">isInMiningDim</span>(e.<span class="fn">getEntityLiving</span>()))
+    .<span class="fn">handle</span>(e <span class="op">-></span> e.<span class="fn">setCanceled</span>(<span class="kw">true</span>));
+
+<span class="ty">EriEvents</span>.<span class="fn">on</span>(<span class="ty">LivingDamageEvent</span>.<span class="kw">class</span>)
+    .<span class="fn">filter</span>(e <span class="op">-></span> e.<span class="fn">getEntityLiving</span>() <span class="kw">instanceof</span> <span class="ty">EntityPlayer</span>)
+    .<span class="fn">filter</span>(e <span class="op">-></span> <span class="fn">isInMiningDim</span>(e.<span class="fn">getEntityLiving</span>()))
+    .<span class="fn">handle</span>(e <span class="op">-></span> e.<span class="fn">setCanceled</span>(<span class="kw">true</span>));
+
+<span class="kw">private static boolean</span> <span class="fn">isInMiningDim</span>(<span class="ty">EntityLivingBase</span> entity) {
+    <span class="kw">return</span> entity.<span class="fn">world</span>.<span class="fn">provider</span>.<span class="fn">getDimension</span>() == <span class="ty">MiningWorldManager</span>.<span class="ty">MINING_DIM_ID</span>;
+}</div>
+
+      <h3>Sources de degats couvertes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Source de degat</th>
+              <th>Event annule</th>
+              <th>Protege</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>PvP (attaque joueur)</td>
+              <td>LivingAttackEvent</td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+            <tr>
+              <td>Mobs hostiles</td>
+              <td>LivingAttackEvent</td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+            <tr>
+              <td>Chute</td>
+              <td>LivingHurtEvent (DamageSource.FALL)</td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+            <tr>
+              <td>Lave / feu</td>
+              <td>LivingHurtEvent (LAVA/IN_FIRE)</td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+            <tr>
+              <td>Noyade</td>
+              <td>LivingHurtEvent (DROWN)</td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+            <tr>
+              <td>Faim</td>
+              <td>LivingHurtEvent (STARVE)</td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+            <tr>
+              <td>Poisons / effets</td>
+              <td>LivingDamageEvent</td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+            <tr>
+              <td>Explosions</td>
+              <td>LivingAttackEvent</td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+            <tr>
+              <td>Void (Y &lt; 0)</td>
+              <td>Teleportation d'urgence</td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Protection contre le void</h3>
+      <p>Le void ne genere pas de <code>DamageSource</code> standard avant un certain seuil. Une protection supplementaire teleporte le joueur vers le Y de spawn si sa position passe sous Y=0 :</p>
+
+      <div class="code-block"><span class="cm">// Verification sur PlayerTickEvent (cote serveur)</span>
+<span class="ty">EriEvents</span>.<span class="fn">on</span>(<span class="ty">TickEvent</span>.<span class="ty">PlayerTickEvent</span>.<span class="kw">class</span>)
+    .<span class="fn">filter</span>(e <span class="op">-></span> e.<span class="fn">phase</span> == <span class="ty">TickEvent</span>.<span class="ty">Phase</span>.<span class="ty">END</span>)
+    .<span class="fn">filter</span>(e <span class="op">-></span> <span class="fn">isInMiningDim</span>(e.<span class="fn">player</span>))
+    .<span class="fn">filter</span>(e <span class="op">-></span> e.<span class="fn">player</span>.<span class="fn">posY</span> <span class="op">&lt;</span> <span class="nu">-5.0</span>)
+    .<span class="fn">handle</span>(e <span class="op">-></span> {
+        <span class="cm">// Teleporter au centre (spawn de la structure)</span>
+        e.<span class="fn">player</span>.<span class="fn">setPositionAndUpdate</span>(<span class="nu">0.5</span>, <span class="ty">MiningWorldManager</span>.<span class="ty">SPAWN_Y</span>, <span class="nu">0.5</span>);
+    });</div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Faim desactivee ?</strong> — Bien que les degats de faim soient bloques, la barre de faim continue de diminuer. Le joueur ne peut pas mourir de faim mais peut se retrouver avec une barre vide (qui empeche le sprint en vanilla). Il est recommande d'ajouter un <code>FoodStatsSetFoodLevelEvent</code> ou de maintenir la nourriture a 20/20 via un tick periodique si ce comportement est juge genant.</div>
+      </div>
+
+      <h3>Comportement des mobs hostiles</h3>
+      <p>Les mobs hostiles peuvent toujours spawner dans le Monde Minage (la nuit, dans les caves sombres), mais ne peuvent pas blesser les joueurs. Ils peuvent etre tues normalement pour l'XP et le loot. Ce comportement est intentionnel : les mobs apportent de la dynamique sans danger.</p>
+    </div>
+
+    <!-- ═══ S5 — RESTRICTIONS TERRITORIALES ═══ -->
+    <div class="section-card" id="s5">
+      <h2><span class="s-num">05</span> Restrictions Territoriales</h2>
+
+      <h3 class="first">Interdiction de claims</h3>
+      <p>Les factions ne peuvent pas revendiquer de territoire dans le Monde Minage. Cette restriction est appliquee au niveau du handler de protection faction, avant toute logique de claim.</p>
+
+      <div class="code-block"><span class="cm">// Dans FactionProtectionHandler ou CommandFactionClaim</span>
+<span class="cm">// Verifier la dimension avant tout traitement</span>
+<span class="kw">if</span> (player.<span class="fn">world</span>.<span class="fn">provider</span>.<span class="fn">getDimension</span>() == <span class="ty">MiningWorldManager</span>.<span class="ty">MINING_DIM_ID</span>) {
+    <span class="ty">EriChat</span>.<span class="fn">create</span>()
+        .<span class="fn">text</span>(<span class="st">"[Monde Minage] "</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.<span class="ty">GOLD</span>)
+        .<span class="fn">text</span>(<span class="st">"Les claims sont interdits dans cette dimension."</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.<span class="ty">RED</span>)
+        .<span class="fn">to</span>(player);
+    <span class="kw">return</span>;
+}</div>
+
+      <h3>Fonctionnalites faction desactivees</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fonctionnalite</th>
+              <th>Etat dans Monde Minage</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Claims de chunks</td>
+              <td><span class="tag-no">INTERDIT</span></td>
+              <td>Message d'erreur envoye au joueur</td>
+            </tr>
+            <tr>
+              <td>Overclaim (vol de claim)</td>
+              <td><span class="tag-no">INTERDIT</span></td>
+              <td>Pas de claims, donc pas d'overclaim</td>
+            </tr>
+            <tr>
+              <td>Protection de territoire</td>
+              <td><span class="tag-no">N/A</span></td>
+              <td>Aucun chunk n'est protege</td>
+            </tr>
+            <tr>
+              <td>Chat faction /f</td>
+              <td><span class="tag-yes">AUTORISE</span></td>
+              <td>Communication normale</td>
+            </tr>
+            <tr>
+              <td>PvP faction</td>
+              <td><span class="tag-no">INTERDIT</span></td>
+              <td>Invincibilite couvre le PvP</td>
+            </tr>
+            <tr>
+              <td>Teleportation faction</td>
+              <td><span class="tag-yes">AUTORISE</span></td>
+              <td>/f home fonctionne (teleporte dans l'Overworld)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Philosophie "zone neutre"</strong> — Le Monde Minage est une zone neutre par design. Aucune faction ne peut y etablir de domination. Tous les joueurs, quelle que soit leur faction ou leur absence de faction, ont un acces egal aux ressources. C'est le seul endroit du jeu ou les ennemis travaillent cote a cote sans se battre.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S6 — COMMANDE /minage ═══ -->
+    <div class="section-card" id="s6">
+      <h2><span class="s-num cyan-num">06</span> Commande /minage</h2>
+
+      <h3 class="first">Description generale</h3>
+      <p>La commande <code>/minage</code> teleporte le joueur vers le Monde Minage (ou retour dans l'Overworld si deja dans le Monde Minage). Elle est la seule methode d'acces et de sortie de la dimension.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Parametre</th>
+              <th>Valeur</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Nom de la commande</td>
+              <td>/minage</td>
+            </tr>
+            <tr>
+              <td>Arguments</td>
+              <td>Aucun</td>
+            </tr>
+            <tr>
+              <td>Permission requise</td>
+              <td>Aucune (tous les joueurs)</td>
+            </tr>
+            <tr>
+              <td>Permission admin</td>
+              <td>minage.admin (bypass cooldown)</td>
+            </tr>
+            <tr>
+              <td>Cooldown</td>
+              <td>30 secondes (configurable)</td>
+            </tr>
+            <tr>
+              <td>Utilisable en combat</td>
+              <td>Oui (pas de detection de combat)</td>
+            </tr>
+            <tr>
+              <td>Package</td>
+              <td>fr.eriniumgroup.eriniumfaction.mining.command</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Logique de teleportation</h3>
+      <div class="ascii-diagram"><span class="ay">Joueur execute /minage</span>
+          |
+          v
+<span class="ac">Est dans Monde Minage ?</span>
+    |              |
+   OUI            NON
+    |              |
+    v              v
+<span class="ag">Teleporter vers    </span>   <span class="av">Cooldown actif ?</span>
+<span class="ag">Overworld          </span>       |        |
+<span class="ag">(position sauvee   </span>      OUI      NON
+<span class="ag"> ou spawn)         </span>       |        |
+                          v        v
+                    <span class="ar">Message   </span>   <span class="ac">Monde Minage</span>
+                    <span class="ar">cooldown  </span>   <span class="ac">desactive ?</span>
+                                       |        |
+                                      OUI      NON
+                                       |        |
+                                       v        v
+                                 <span class="ar">Message    </span>  <span class="ag">Teleporter</span>
+                                 <span class="ar">desactive  </span>  <span class="ag">au spawn</span>
+                                              <span class="ag">de la dim</span></div>
+
+      <h3>Sauvegarde de position</h3>
+      <p>Quand un joueur entre dans le Monde Minage, sa position dans l'Overworld est sauvegardee. A son retour, il est teleporte a cette position. Si aucune position n'est sauvegardee (premiere visite), il est envoye au spawn de l'Overworld.</p>
+
+      <div class="code-block"><span class="cm">// Donnees sauvegardees via EriCap ou @EriData</span>
+<span class="an">@EriData</span>(modId = <span class="st">"eriniumfaction"</span>, scope = <span class="ty">DataScope</span>.<span class="ty">PLAYER</span>)
+<span class="kw">public class</span> <span class="cl">MiningPlayerData</span> {
+    <span class="cm">// Position de retour dans l'Overworld</span>
+    <span class="kw">public double</span> returnX = <span class="ty">Double</span>.<span class="ty">NaN</span>;
+    <span class="kw">public double</span> returnY = <span class="ty">Double</span>.<span class="ty">NaN</span>;
+    <span class="kw">public double</span> returnZ = <span class="ty">Double</span>.<span class="ty">NaN</span>;
+
+    <span class="cm">// Timestamp de derniere utilisation (pour cooldown)</span>
+    <span class="kw">public long</span> lastMinageUse = <span class="nu">0L</span>;
+}</div>
+
+      <h3>Messages affichés au joueur</h3>
+      <p>A l'arrivee dans le Monde Minage, plusieurs informations sont envoyees au joueur via EriChat :</p>
+
+      <div class="code-block"><span class="cm">// Message de bienvenue + info reset</span>
+<span class="ty">EriChat</span>.<span class="fn">create</span>()
+    .<span class="fn">text</span>(<span class="st">"&#9956; Monde Minage</span><span class="st"> — Bienvenue !</span><span class="st">"</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.<span class="ty">GOLD</span>).<span class="fn">bold</span>()
+    .<span class="fn">to</span>(player);
+
+<span class="kw">long</span> timeLeft = <span class="ty">MiningWorldResetManager</span>.<span class="fn">getInstance</span>().<span class="fn">getTimeUntilReset</span>();
+<span class="kw">String</span> timeStr = <span class="fn">formatDuration</span>(timeLeft);
+
+<span class="ty">EriChat</span>.<span class="fn">create</span>()
+    .<span class="fn">text</span>(<span class="st">"Prochain reset : "</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.<span class="ty">GRAY</span>)
+    .<span class="fn">text</span>(timeStr).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.<span class="ty">YELLOW</span>)
+    .<span class="fn">to</span>(player);
+
+<span class="ty">EriChat</span>.<span class="fn">create</span>()
+    .<span class="fn">text</span>(<span class="st">"Invincible dans cette dimension. Les claims sont interdits."</span>)
+    .<span class="fn">color</span>(<span class="ty">TextFormatting</span>.<span class="ty">GREEN</span>)
+    .<span class="fn">to</span>(player);</div>
+
+      <h3>Gestion du cooldown</h3>
+      <p>Le cooldown est verifie cote serveur via le timestamp de derniere utilisation. Les joueurs avec la permission <code>minage.admin</code> (administrateurs) contournent le cooldown.</p>
+
+      <div class="code-block"><span class="kw">long</span> now = <span class="ty">System</span>.<span class="fn">currentTimeMillis</span>();
+<span class="kw">long</span> cooldownMs = <span class="ty">MiningConfig</span>.<span class="fn">miningWorldCooldown</span> * <span class="nu">1000L</span>;
+<span class="kw">long</span> elapsed = now - data.<span class="fn">lastMinageUse</span>;
+
+<span class="kw">if</span> (elapsed <span class="op">&lt;</span> cooldownMs &amp;&amp; !<span class="ty">RankManager</span>.<span class="fn">hasPermission</span>(player, <span class="st">"minage.admin"</span>)) {
+    <span class="kw">long</span> remaining = (cooldownMs - elapsed) / <span class="nu">1000L</span>;
+    <span class="ty">EriChat</span>.<span class="fn">create</span>()
+        .<span class="fn">text</span>(<span class="st">"Cooldown : encore "</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.<span class="ty">RED</span>)
+        .<span class="fn">text</span>(remaining + <span class="st">"s"</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.<span class="ty">YELLOW</span>)
+        .<span class="fn">to</span>(player);
+    <span class="kw">return</span>;
+}</div>
+    </div>
+
+    <!-- ═══ S7 — STRUCTURE DE SPAWN ═══ -->
+    <div class="section-card" id="s7">
+      <h2><span class="s-num">07</span> Structure de Spawn</h2>
+
+      <h3 class="first">Concept</h3>
+      <p>Le point de spawn du Monde Minage est une ile flottante positionnee au centre de la dimension (X=0, Z=0) a une hauteur elevee (Y=80 environ). Cette structure est un fichier <code>.nbt</code> place par le jeu a chaque reset de la dimension.</p>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Fichier de structure</strong> — Le fichier NBT est stocke a <code>assets/eriniumfaction/structures/mining_spawn.nbt</code>. Ce fichier est cree une fois avec l'outil Structure Block de Minecraft en mode SAVE. La structure doit etre simple, robuste et facilement lisible par le TemplateManager de Forge.</div>
+      </div>
+
+      <h3>Specification de la structure</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Caracteristique</th>
+              <th>Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Nom du fichier</td>
+              <td>mining_spawn.nbt</td>
+            </tr>
+            <tr>
+              <td>Emplacement</td>
+              <td>assets/eriniumfaction/structures/</td>
+            </tr>
+            <tr>
+              <td>Position dans le monde</td>
+              <td>X=0, Y=80, Z=0 (coin NW de la structure)</td>
+            </tr>
+            <tr>
+              <td>Forme</td>
+              <td>Ile flottante circulaire</td>
+            </tr>
+            <tr>
+              <td>Blocs recommandes</td>
+              <td>Stone, Grass, Dirt, Cobblestone, Mossy Cobblestone</td>
+            </tr>
+            <tr>
+              <td>Taille approximative</td>
+              <td>15x6x15 (LxHxP)</td>
+            </tr>
+            <tr>
+              <td>Point de spawn joueur</td>
+              <td>Centre de la structure, bloc superieur (Y=86 env.)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Placement via TemplateManager</h3>
+      <p>La structure est placee via l'API <code>TemplateManager</code> de Minecraft apres la generation du premier chunk au centre. Ce processus est declenche lors de chaque reset du monde.</p>
+
+      <div class="code-block"><span class="kw">public static void</span> <span class="fn">placeSpawnStructure</span>(<span class="ty">WorldServer</span> miningWorld) {
+    <span class="ty">TemplateManager</span> templateManager = miningWorld.<span class="fn">getStructureTemplateManager</span>();
+    <span class="ty">ResourceLocation</span> structureLoc = <span class="kw">new</span> <span class="ty">ResourceLocation</span>(
+        <span class="ty">EriniumFaction</span>.<span class="ty">MODID</span>, <span class="st">"mining_spawn"</span>
+    );
+
+    <span class="ty">Template</span> template = templateManager.<span class="fn">get</span>(miningWorld.<span class="fn">getMinecraftServer</span>(), structureLoc);
+    <span class="kw">if</span> (template == <span class="kw">null</span>) {
+        <span class="ty">EriniumFaction</span>.<span class="ty">LOGGER</span>.<span class="fn">error</span>(<span class="st">"Structure mining_spawn.nbt introuvable !"</span>);
+        <span class="kw">return</span>;
+    }
+
+    <span class="ty">BlockPos</span> origin = <span class="kw">new</span> <span class="ty">BlockPos</span>(<span class="nu">0</span>, <span class="ty">SPAWN_Y</span>, <span class="nu">0</span>);
+    <span class="ty">PlacementSettings</span> settings = <span class="kw">new</span> <span class="ty">PlacementSettings</span>()
+        .<span class="fn">setRotation</span>(<span class="ty">Rotation</span>.<span class="ty">NONE</span>)
+        .<span class="fn">setMirror</span>(<span class="ty">Mirror</span>.<span class="ty">NONE</span>)
+        .<span class="fn">setIgnoreEntities</span>(<span class="kw">false</span>);
+
+    template.<span class="fn">addBlocksToWorld</span>(miningWorld, origin, settings);
+    <span class="ty">SPAWN_Y_SURFACE</span> = <span class="ty">SPAWN_Y</span> + template.<span class="fn">getSize</span>().<span class="fn">getY</span>() - <span class="nu">1</span>;
+    <span class="ty">EriniumFaction</span>.<span class="ty">LOGGER</span>.<span class="fn">info</span>(<span class="st">"Structure de spawn placee a Y={}"</span>, <span class="ty">SPAWN_Y_SURFACE</span>);
+}</div>
+
+      <h3>Chargement des chunks de spawn</h3>
+      <p>Avant de placer la structure, les chunks au centre doivent etre charges. Ceci est fait en forcant le chargement des chunks adjacents (0,0) via <code>world.getChunk()</code> avant l'appel a <code>placeSpawnStructure()</code>.</p>
+
+      <div class="code-block"><span class="cm">// Forcer le chargement des chunks autour du spawn</span>
+<span class="kw">for</span> (<span class="kw">int</span> cx = -<span class="nu">2</span>; cx &lt;= <span class="nu">2</span>; cx++) {
+    <span class="kw">for</span> (<span class="kw">int</span> cz = -<span class="nu">2</span>; cz &lt;= <span class="nu">2</span>; cz++) {
+        miningWorld.<span class="fn">getChunk</span>(cx, cz); <span class="cm">// Charge si pas deja en memoire</span>
+    }
+}
+<span class="fn">placeSpawnStructure</span>(miningWorld);</div>
+    </div>
+
+    <!-- ═══ S8 — SYSTEME DE RESET ═══ -->
+    <div class="section-card" id="s8">
+      <h2><span class="s-num gold-num">08</span> Systeme de Reset</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <p>Le reset automatique efface et regenere le Monde Minage toutes les 7 jours (configurable). Ce systeme garantit que les ressources sont perpetuellement renouvelees et qu'aucune faction ne peut monopoliser durablement les zones riches.</p>
+
+      <h3>Persistance du timer</h3>
+      <p><code>MiningWorldResetData</code> etend <code>WorldSavedData</code> et est attache a l'Overworld (dimension 0). Il survive aux redemarrages du serveur car il est sauvegarde dans les donnees du monde principal.</p>
+
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">MiningWorldResetData</span> <span class="kw">extends</span> <span class="ty">WorldSavedData</span> {
+    <span class="kw">public static final</span> <span class="ty">String</span> <span class="ty">KEY</span> = <span class="st">"MiningWorldResetData"</span>;
+
+    <span class="kw">public long</span> nextResetTimestamp = <span class="nu">0L</span>;    <span class="cm">// Unix millis</span>
+    <span class="kw">public boolean</span> structurePlaced = <span class="kw">false</span>; <span class="cm">// Structure deja posee ?</span>
+
+    <span class="kw">public static</span> <span class="ty">MiningWorldResetData</span> <span class="fn">get</span>(<span class="ty">WorldServer</span> overworld) {
+        <span class="ty">MapStorage</span> storage = overworld.<span class="fn">getMapStorage</span>();
+        <span class="ty">MiningWorldResetData</span> data =
+            (<span class="ty">MiningWorldResetData</span>) storage.<span class="fn">getOrLoadData</span>(<span class="ty">MiningWorldResetData</span>.<span class="kw">class</span>, <span class="ty">KEY</span>);
+        <span class="kw">if</span> (data == <span class="kw">null</span>) {
+            data = <span class="kw">new</span> <span class="ty">MiningWorldResetData</span>();
+            data.<span class="fn">nextResetTimestamp</span> = <span class="ty">System</span>.<span class="fn">currentTimeMillis</span>()
+                + <span class="ty">MiningConfig</span>.<span class="fn">miningWorldResetDays</span> * <span class="nu">86_400_000L</span>;
+            storage.<span class="fn">setData</span>(<span class="ty">KEY</span>, data);
+        }
+        <span class="kw">return</span> data;
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">readFromNBT</span>(<span class="ty">NBTTagCompound</span> nbt) {
+        <span class="fn">nextResetTimestamp</span> = nbt.<span class="fn">getLong</span>(<span class="st">"nextResetTimestamp"</span>);
+        <span class="fn">structurePlaced</span> = nbt.<span class="fn">getBoolean</span>(<span class="st">"structurePlaced"</span>);
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="ty">NBTTagCompound</span> <span class="fn">writeToNBT</span>(<span class="ty">NBTTagCompound</span> nbt) {
+        nbt.<span class="fn">setLong</span>(<span class="st">"nextResetTimestamp"</span>, <span class="fn">nextResetTimestamp</span>);
+        nbt.<span class="fn">setBoolean</span>(<span class="st">"structurePlaced"</span>, <span class="fn">structurePlaced</span>);
+        <span class="kw">return</span> nbt;
+    }
+}</div>
+
+      <h3>Procedure de reset</h3>
+      <p>Quand le timestamp de reset est atteint, la procedure suivante est executee de maniere sequentielle :</p>
+
+      <div class="ascii-diagram"><span class="ay">PROCEDURE DE RESET</span>
+  │
+  ├─ 1. <span class="ag">Broadcast final</span> (message a tous les joueurs en ligne)
+  │
+  ├─ 2. <span class="ag">Teleporter les joueurs</span> presents dans la dim minage
+  │       → Vers leur position sauvegardee dans l'Overworld
+  │       → Ou vers le spawn de l'Overworld si pas de position
+  │
+  ├─ 3. <span class="ac">Decharger la dimension</span>
+  │       → DimensionManager.unloadWorld(miningWorld)
+  │       → Attendre que tous les chunks soient sauvegardes
+  │
+  ├─ 4. <span class="ar">Supprimer le dossier de dimension</span>
+  │       → Suppression recursive du dossier
+  │       → world_name/DIM{id}/ (ex: world/DIM2/)
+  │
+  ├─ 5. <span class="av">Mettre a jour le timer</span>
+  │       → nextResetTimestamp = now + resetDays * 86400000
+  │       → structurePlaced = false
+  │       → Sauvegarder MiningWorldResetData
+  │
+  └─ 6. <span class="ag">La dimension regenere naturellement</span>
+         → Au prochain /minage, la dim est recree par Forge
+         → placeSpawnStructure() est appele au premier acces</div>
+
+      <h3>Implementation du reset</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">MiningWorldResetManager</span> {
+    <span class="kw">private static</span> <span class="ty">MiningWorldResetManager</span> <span class="ty">INSTANCE</span>;
+    <span class="kw">private</span> <span class="ty">MiningWorldResetData</span> data;
+
+    <span class="cm">// Appele sur ServerTickEvent (toutes les 20 ticks = 1 sec)</span>
+    <span class="kw">public void</span> <span class="fn">tick</span>(<span class="ty">WorldServer</span> overworld) {
+        <span class="kw">if</span> (data == <span class="kw">null</span>) data = <span class="ty">MiningWorldResetData</span>.<span class="fn">get</span>(overworld);
+
+        <span class="kw">long</span> now = <span class="ty">System</span>.<span class="fn">currentTimeMillis</span>();
+
+        <span class="cm">// Verifier si la structure doit etre placee (apres un reset)</span>
+        <span class="kw">if</span> (!data.<span class="fn">structurePlaced</span>) {
+            <span class="ty">WorldServer</span> miningWorld = <span class="fn">getMiningWorld</span>(overworld);
+            <span class="kw">if</span> (miningWorld != <span class="kw">null</span>) {
+                <span class="fn">placeSpawnStructure</span>(miningWorld);
+                data.<span class="fn">structurePlaced</span> = <span class="kw">true</span>;
+                data.<span class="fn">markDirty</span>();
+            }
+        }
+
+        <span class="cm">// Verifier si le reset est du</span>
+        <span class="kw">if</span> (now >= data.<span class="fn">nextResetTimestamp</span>) {
+            <span class="fn">executeReset</span>(overworld);
+        }
+
+        <span class="cm">// Verifier les seuils d'avertissement</span>
+        <span class="fn">checkWarnings</span>(now);
+    }
+
+    <span class="kw">private void</span> <span class="fn">executeReset</span>(<span class="ty">WorldServer</span> overworld) {
+        <span class="ty">WorldServer</span> miningWorld = <span class="fn">getMiningWorld</span>(overworld);
+
+        <span class="cm">// 1. Broadcast</span>
+        <span class="ty">EriChat</span>.<span class="fn">create</span>()
+            .<span class="fn">text</span>(<span class="st">"[Monde Minage] "</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.<span class="ty">GOLD</span>).<span class="fn">bold</span>()
+            .<span class="fn">text</span>(<span class="st">"Reset en cours ! Tous les joueurs sont teleportes."</span>).<span class="fn">color</span>(<span class="ty">TextFormatting</span>.<span class="ty">RED</span>)
+            .<span class="fn">broadcast</span>();
+
+        <span class="cm">// 2. Teleporter joueurs</span>
+        <span class="kw">if</span> (miningWorld != <span class="kw">null</span>) {
+            <span class="kw">for</span> (<span class="ty">EntityPlayerMP</span> player : <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;(miningWorld.<span class="fn">playerEntities</span>)) {
+                <span class="fn">teleportToOverworld</span>(player, overworld);
+            }
+
+            <span class="cm">// 3. Decharger</span>
+            <span class="ty">DimensionManager</span>.<span class="fn">unloadWorld</span>(<span class="ty">MiningWorldManager</span>.<span class="ty">MINING_DIM_ID</span>);
+        }
+
+        <span class="cm">// 4. Supprimer le dossier</span>
+        <span class="fn">deleteDimensionFolder</span>(overworld);
+
+        <span class="cm">// 5. Mettre a jour le timer</span>
+        data.<span class="fn">nextResetTimestamp</span> = <span class="ty">System</span>.<span class="fn">currentTimeMillis</span>()
+            + <span class="ty">MiningConfig</span>.<span class="fn">miningWorldResetDays</span> * <span class="nu">86_400_000L</span>;
+        data.<span class="fn">structurePlaced</span> = <span class="kw">false</span>;
+        data.<span class="fn">markDirty</span>();
+    }
+}</div>
+
+      <h3>Systeme d'avertissements pre-reset</h3>
+      <p>Des avertissements sont envoyes a tous les joueurs connectes avant le reset. Un <code>EriScheduler</code> verifie periodiquement les seuils.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Temps avant reset</th>
+              <th>Message</th>
+              <th>Couleur</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>30 minutes</td>
+              <td>"Reset du Monde Minage dans 30 minutes !"</td>
+              <td>GOLD</td>
+            </tr>
+            <tr>
+              <td>10 minutes</td>
+              <td>"Reset du Monde Minage dans 10 minutes !"</td>
+              <td>YELLOW</td>
+            </tr>
+            <tr>
+              <td>5 minutes</td>
+              <td>"Reset du Monde Minage dans 5 minutes ! Finissez votre minage."</td>
+              <td>GOLD + BOLD</td>
+            </tr>
+            <tr>
+              <td>1 minute</td>
+              <td>"[URGENT] Reset du Monde Minage dans 1 minute !"</td>
+              <td>RED + BOLD</td>
+            </tr>
+            <tr>
+              <td>0 (execution)</td>
+              <td>"Reset en cours ! Tous les joueurs sont teleportes."</td>
+              <td>RED + BOLD</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-block"><span class="cm">// Verification des seuils (appele chaque tick serveur)</span>
+<span class="kw">private static final long</span>[] <span class="ty">WARNING_THRESHOLDS</span> = {
+    <span class="nu">30L</span> * <span class="nu">60</span> * <span class="nu">1000</span>, <span class="cm">// 30 min</span>
+    <span class="nu">10L</span> * <span class="nu">60</span> * <span class="nu">1000</span>, <span class="cm">// 10 min</span>
+    <span class="nu">5L</span>  * <span class="nu">60</span> * <span class="nu">1000</span>, <span class="cm">// 5 min</span>
+    <span class="nu">1L</span>  * <span class="nu">60</span> * <span class="nu">1000</span>  <span class="cm">// 1 min</span>
+};
+
+<span class="kw">private void</span> <span class="fn">checkWarnings</span>(<span class="kw">long</span> now) {
+    <span class="kw">long</span> remaining = data.<span class="fn">nextResetTimestamp</span> - now;
+    <span class="kw">for</span> (<span class="kw">long</span> threshold : <span class="ty">WARNING_THRESHOLDS</span>) {
+        <span class="cm">// Envoyer le message si on vient juste de passer le seuil</span>
+        <span class="cm">// (dans une fenetre de 20 ticks = 1 seconde pour eviter les doublons)</span>
+        <span class="kw">if</span> (remaining &gt; threshold &amp;&amp; remaining &lt;= threshold + <span class="nu">1000</span>) {
+            <span class="fn">broadcastWarning</span>(threshold);
+        }
+    }
+}</div>
+
+      <h3>Suppression du dossier de dimension</h3>
+      <div class="code-block"><span class="kw">private void</span> <span class="fn">deleteDimensionFolder</span>(<span class="ty">WorldServer</span> overworld) {
+    <span class="ty">File</span> worldDir = overworld.<span class="fn">getSaveHandler</span>().<span class="fn">getWorldDirectory</span>();
+    <span class="ty">File</span> dimDir = <span class="kw">new</span> <span class="ty">File</span>(worldDir, <span class="st">"DIM"</span> + <span class="ty">MiningWorldManager</span>.<span class="ty">MINING_DIM_ID</span>);
+
+    <span class="kw">if</span> (dimDir.<span class="fn">exists</span>()) {
+        <span class="kw">try</span> {
+            <span class="ty">FileUtils</span>.<span class="fn">deleteDirectory</span>(dimDir); <span class="cm">// Apache Commons IO</span>
+            <span class="ty">EriniumFaction</span>.<span class="ty">LOGGER</span>.<span class="fn">info</span>(<span class="st">"Dossier DIM{} supprime avec succes"</span>,
+                <span class="ty">MiningWorldManager</span>.<span class="ty">MINING_DIM_ID</span>);
+        } <span class="kw">catch</span> (<span class="ty">IOException</span> e) {
+            <span class="ty">EriniumFaction</span>.<span class="ty">LOGGER</span>.<span class="fn">error</span>(<span class="st">"Echec suppression DIM{}"</span>,
+                <span class="ty">MiningWorldManager</span>.<span class="ty">MINING_DIM_ID</span>, e);
+        }
+    }
+}</div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Apache Commons IO</strong> — Pour la suppression recursive de dossier, utiliser <code>FileUtils.deleteDirectory()</code> d'Apache Commons IO qui est deja presente dans le classpath de Minecraft/Forge. Eviter d'implementer sa propre recursion de suppression de fichiers.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S9 — CONFIGURATION ═══ -->
+    <div class="section-card" id="s9">
+      <h2><span class="s-num">09</span> Configuration</h2>
+
+      <h3 class="first">Fichier de configuration</h3>
+      <p><code>MiningConfig.java</code> utilise le systeme de configuration Forge (<code>@Config</code>) pour exposer toutes les options du Monde Minage a l'administrateur serveur.</p>
+
+      <div class="code-block"><span class="kw">package</span> fr.eriniumgroup.eriniumfaction.mining.config;
+
+<span class="kw">import</span> net.minecraftforge.common.config.<span class="ty">Config</span>;
+
+<span class="an">@Config</span>(modid = <span class="st">"eriniumfaction"</span>, name = <span class="st">"mining_world"</span>, category = <span class="st">"mining"</span>)
+<span class="kw">public class</span> <span class="cl">MiningConfig</span> {
+
+    <span class="an">@Config.Comment</span>(<span class="st">"Activer le Monde Minage. Si false, la commande /minage est desactivee."</span>)
+    <span class="an">@Config.Name</span>(<span class="st">"Enable Mining World"</span>)
+    <span class="kw">public static boolean</span> miningWorldEnabled = <span class="kw">true</span>;
+
+    <span class="an">@Config.Comment</span>(<span class="st">"ID de la dimension du Monde Minage. Eviter les conflits avec d'autres mods."</span>)
+    <span class="an">@Config.Name</span>(<span class="st">"Dimension ID"</span>)
+    <span class="an">@Config.RangeInt</span>(min = <span class="nu">2</span>, max = <span class="nu">999</span>)
+    <span class="kw">public static int</span> miningWorldDimId = <span class="nu">2</span>;
+
+    <span class="an">@Config.Comment</span>(<span class="st">"Nombre de jours entre chaque reset du Monde Minage."</span>)
+    <span class="an">@Config.Name</span>(<span class="st">"Reset Interval (days)"</span>)
+    <span class="an">@Config.RangeInt</span>(min = <span class="nu">1</span>, max = <span class="nu">30</span>)
+    <span class="kw">public static int</span> miningWorldResetDays = <span class="nu">7</span>;
+
+    <span class="an">@Config.Comment</span>(<span class="st">"Cooldown de la commande /minage en secondes."</span>)
+    <span class="an">@Config.Name</span>(<span class="st">"Command Cooldown (seconds)"</span>)
+    <span class="an">@Config.RangeInt</span>(min = <span class="nu">0</span>, max = <span class="nu">600</span>)
+    <span class="kw">public static int</span> miningWorldCooldown = <span class="nu">30</span>;
+
+    <span class="an">@Config.Comment</span>(<span class="st">"Multiplicateur de densite des minerais moddes dans le Monde Minage."</span>
+                  + <span class="st">" 1.0 = same, 1.5 = 50% de plus, 2.0 = double."</span>)
+    <span class="an">@Config.Name</span>(<span class="st">"Ore Density Multiplier"</span>)
+    <span class="an">@Config.RangeDouble</span>(min = <span class="nu">0.5</span>, max = <span class="nu">5.0</span>)
+    <span class="kw">public static double</span> miningWorldOreMultiplier = <span class="nu">1.5</span>;
+}</div>
+
+      <h3>Tableau recapitulatif des options</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cle de config</th>
+              <th>Defaut</th>
+              <th>Plage valide</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>miningWorldEnabled</td>
+              <td>true</td>
+              <td>true / false</td>
+              <td>Active/desactive toute la feature</td>
+            </tr>
+            <tr>
+              <td>miningWorldDimId</td>
+              <td>2</td>
+              <td>2 – 999</td>
+              <td>ID de la dimension custom</td>
+            </tr>
+            <tr>
+              <td>miningWorldResetDays</td>
+              <td>7</td>
+              <td>1 – 30</td>
+              <td>Intervalle entre les resets en jours</td>
+            </tr>
+            <tr>
+              <td>miningWorldCooldown</td>
+              <td>30</td>
+              <td>0 – 600</td>
+              <td>Cooldown de /minage en secondes</td>
+            </tr>
+            <tr>
+              <td>miningWorldOreMultiplier</td>
+              <td>1.5</td>
+              <td>0.5 – 5.0</td>
+              <td>Multiplicateur de veines par chunk</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Fichier genere</strong> — Le fichier de configuration est genere automatiquement dans <code>config/eriniumfaction/mining_world.cfg</code> au premier lancement du serveur. Les administrateurs peuvent l'editer directement ou via un GUI de configuration Forge si disponible.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S10 — ARCHITECTURE TECHNIQUE ═══ -->
+    <div class="section-card" id="s10">
+      <h2><span class="s-num cyan-num">10</span> Architecture Technique</h2>
+
+      <h3 class="first">Structure de packages</h3>
+      <div class="ascii-diagram"><span class="ay">fr.eriniumgroup.eriniumfaction.mining/</span>
+├── <span class="ac">MiningWorldManager.java</span>
+│     Singleton principal — init, enregistrement de dimension,
+│     acces a la WorldServer de la dimension, SPAWN_Y, MINING_DIM_ID
+│
+├── <span class="ac">MiningWorldProvider.java</span>
+│     extends WorldProvider — configuration de la dimension :
+│     nom, generateur de terrain, options de ciel et meteo
+│
+├── <span class="ac">MiningChunkGenerator.java</span>
+│     Generateur de terrain custom — suppression lacs de lave
+│     (via PopulateChunkEvent ou delegation a ChunkGeneratorOverworld)
+│
+├── <span class="av">MiningWorldResetManager.java</span>
+│     Singleton — timer de reset, procedure de reset,
+│     placement de structure, warnings pre-reset
+│
+├── <span class="av">MiningWorldResetData.java</span>
+│     extends WorldSavedData — persistance du timer de reset
+│     Stocke : nextResetTimestamp, structurePlaced
+│
+├── <span class="ag">MiningWorldProtection.java</span>
+│     Event listeners — invincibilite joueur,
+│     protection void, interdiction claims
+│
+├── <span class="ag">MiningOreGenerator.java</span>
+│     implements IWorldGenerator — generation des minerais moddes
+│     UNIQUEMENT dans la dimension minage avec multiplicateur
+│
+├── <span class="ay">command/</span>
+│   └── <span class="ay">CommandMinage.java</span>
+│         Command Forge standard — teleportation, cooldown,
+│         sauvegarde de position, messages d'info
+│
+└── <span class="ay">config/</span>
+    └── <span class="ay">MiningConfig.java</span>
+          @Config Forge — toutes les options configurables</div>
+
+      <h3>Diagramme de dependances</h3>
+      <div class="ascii-diagram">                     <span class="ac">MiningWorldManager</span>
+                           ↑           ↑
+              ┌────────────┘           └──────────────┐
+              │                                        │
+    <span class="av">MiningWorldResetManager</span>                 <span class="ag">MiningWorldProtection</span>
+              ↑                                        ↑
+    <span class="av">MiningWorldResetData</span>                    <span class="ag">CommandMinage</span>
+         (WorldSavedData)                         ↑
+                                            <span class="ay">MiningConfig</span>
+                                                 ↑
+                                    <span class="ac">MiningWorldProvider</span>
+                                                 ↑
+                                    <span class="ac">MiningChunkGenerator</span>
+                                         ↑
+                                 <span class="ag">MiningOreGenerator</span></div>
+
+      <h3>Cycle de vie au demarrage serveur</h3>
+      <div class="ascii-diagram"><span class="ag">1. FMLPreInitializationEvent</span>
+   └→ MiningConfig enregistre (Forge @Config)
+   └→ MiningOreGenerator enregistre (GameRegistry)
+   └→ Dimension enregistree (DimensionManager)
+
+<span class="ag">2. FMLInitializationEvent</span>
+   └→ CommandMinage enregistree (FMLServerStartingEvent)
+   └→ MiningWorldProtection.registerEvents()
+
+<span class="ac">3. FMLServerStartedEvent</span>
+   └→ MiningWorldResetManager.init(overworld)
+       └→ MiningWorldResetData.get(overworld) — charge depuis NBT
+       └→ Verification reset manque (si serveur etait eteint pendant reset)
+       └→ EriScheduler.repeat(20, ...) — tick toutes les secondes
+
+<span class="av">4. ServerTickEvent (toutes les secondes)</span>
+   └→ MiningWorldResetManager.tick()
+       └→ checkWarnings()
+       └→ checkReset()
+       └→ checkStructurePlacement()</div>
+
+      <h3>Teleportation inter-dimensions</h3>
+      <p>La teleportation entre dimensions utilise l'API Forge <code>ForgeHooks.onTravelToDimension()</code> suivi de <code>EntityPlayerMP.travelToDimension()</code>. La position de destination est passee via les attributs du joueur avant le voyage.</p>
+
+      <div class="code-block"><span class="kw">public static void</span> <span class="fn">teleportToMiningWorld</span>(<span class="ty">EntityPlayerMP</span> player) {
+    <span class="cm">// Sauvegarder position Overworld</span>
+    <span class="ty">MiningPlayerData</span> data = <span class="ty">DataManager</span>.<span class="fn">get</span>(player, <span class="ty">MiningPlayerData</span>.<span class="kw">class</span>);
+    data.<span class="fn">returnX</span> = player.<span class="fn">posX</span>;
+    data.<span class="fn">returnY</span> = player.<span class="fn">posY</span>;
+    data.<span class="fn">returnZ</span> = player.<span class="fn">posZ</span>;
+    data.<span class="fn">lastMinageUse</span> = <span class="ty">System</span>.<span class="fn">currentTimeMillis</span>();
+    <span class="ty">DataManager</span>.<span class="fn">save</span>(player, <span class="ty">MiningPlayerData</span>.<span class="kw">class</span>);
+
+    <span class="cm">// Teleporter vers le spawn de la dimension</span>
+    player.<span class="fn">travelToDimension</span>(<span class="ty">MiningWorldManager</span>.<span class="ty">MINING_DIM_ID</span>);
+    player.<span class="fn">setPositionAndUpdate</span>(
+        <span class="nu">0.5</span>,
+        <span class="ty">MiningWorldManager</span>.<span class="ty">SPAWN_Y_SURFACE</span>,
+        <span class="nu">0.5</span>
+    );
+}
+
+<span class="kw">public static void</span> <span class="fn">teleportToOverworld</span>(<span class="ty">EntityPlayerMP</span> player, <span class="ty">WorldServer</span> overworld) {
+    <span class="ty">MiningPlayerData</span> data = <span class="ty">DataManager</span>.<span class="fn">get</span>(player, <span class="ty">MiningPlayerData</span>.<span class="kw">class</span>);
+
+    player.<span class="fn">travelToDimension</span>(<span class="nu">0</span>); <span class="cm">// Overworld</span>
+
+    <span class="kw">if</span> (!<span class="ty">Double</span>.<span class="fn">isNaN</span>(data.<span class="fn">returnX</span>)) {
+        player.<span class="fn">setPositionAndUpdate</span>(data.<span class="fn">returnX</span>, data.<span class="fn">returnY</span>, data.<span class="fn">returnZ</span>);
+    } <span class="kw">else</span> {
+        <span class="cm">// Pas de position sauvegardee : spawn Overworld</span>
+        <span class="ty">BlockPos</span> spawn = overworld.<span class="fn">getSpawnPoint</span>();
+        player.<span class="fn">setPositionAndUpdate</span>(spawn.<span class="fn">getX</span>() + <span class="nu">0.5</span>, spawn.<span class="fn">getY</span>(), spawn.<span class="fn">getZ</span>() + <span class="nu">0.5</span>);
+    }
+}</div>
+    </div>
+
+    <!-- ═══ S11 — INTEGRATION EXISTANTE ═══ -->
+    <div class="section-card" id="s11">
+      <h2><span class="s-num">11</span> Integration Existante</h2>
+
+      <h3 class="first">EriniumWorldGenerator — Modification requise</h3>
+      <p>Le generateur de monde existant doit etre modifie pour ne plus generer les minerais moddes dans l'Overworld (dimension 0). Seul le check de dimension change — toute la logique de generation reste identique.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Methode concernee</th>
+              <th>Modification</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>generate()</td>
+              <td>Ajouter check <code>dimId == MINING_DIM_ID</code> avant generation des ores moddes</td>
+            </tr>
+            <tr>
+              <td>generateValteriteOre()</td>
+              <td>Aucune modification — appelee conditionnellement</td>
+            </tr>
+            <tr>
+              <td>generateAetheriteOre()</td>
+              <td>Aucune modification — appelee conditionnellement</td>
+            </tr>
+            <tr>
+              <td>generateEriniumOre()</td>
+              <td>Aucune modification — appelee conditionnellement</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>FactionProtectionHandler — Modification requise</h3>
+      <p>Le handler de protection faction doit ignorer (ou refuser) les tentatives de claim dans le Monde Minage. La modification est minimale : ajouter un check de dimension en entree de la fonction de claim.</p>
+
+      <div class="code-block"><span class="cm">// Dans la commande /f claim ou FactionProtectionHandler.handleClaim()</span>
+<span class="cm">// AJOUTER au debut du traitement :</span>
+<span class="kw">if</span> (world.<span class="fn">provider</span>.<span class="fn">getDimension</span>() == <span class="ty">MiningWorldManager</span>.<span class="ty">MINING_DIM_ID</span>) {
+    <span class="ty">EriChat</span>.<span class="fn">create</span>()
+        .<span class="fn">text</span>(<span class="st">"Les claims sont interdits dans le Monde Minage."</span>)
+        .<span class="fn">color</span>(<span class="ty">TextFormatting</span>.<span class="ty">RED</span>)
+        .<span class="fn">to</span>(player);
+    <span class="kw">return</span>;
+}</div>
+
+      <h3>CommonProxy — Modifications requises</h3>
+      <div class="code-block"><span class="cm">// Dans preInit() :</span>
+<span class="ty">DataManager</span>.<span class="fn">register</span>(<span class="ty">MiningPlayerData</span>.<span class="kw">class</span>);
+<span class="ty">MiningWorldManager</span>.<span class="fn">init</span>(); <span class="cm">// Enregistre la dimension</span>
+
+<span class="cm">// Dans serverStarted() :</span>
+<span class="ty">MiningWorldResetManager</span>.<span class="fn">getInstance</span>().<span class="fn">init</span>(server.<span class="fn">getWorld</span>(<span class="nu">0</span>));</div>
+
+      <h3>Fichiers a creer ou modifier</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fichier</th>
+              <th>Action</th>
+              <th>Modification</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>EriniumWorldGenerator.java</td>
+              <td>Modifier</td>
+              <td>Check dimension avant generation ores moddes</td>
+            </tr>
+            <tr>
+              <td>FactionProtectionHandler.java</td>
+              <td>Modifier</td>
+              <td>Refus de claim dans dim minage</td>
+            </tr>
+            <tr>
+              <td>CommandFactionClaim.java</td>
+              <td>Modifier</td>
+              <td>Backup : check dimension dans la commande aussi</td>
+            </tr>
+            <tr>
+              <td>CommonProxy.java</td>
+              <td>Modifier</td>
+              <td>Appels init MiningWorldManager et DataManager</td>
+            </tr>
+            <tr>
+              <td>ClientProxy.java</td>
+              <td>Peut-etre</td>
+              <td>Enregistrement keys si raccourci clavier souhaite</td>
+            </tr>
+            <tr>
+              <td>docs/permissions.md</td>
+              <td>Modifier</td>
+              <td>Ajouter permission minage.admin</td>
+            </tr>
+            <tr>
+              <td>mining_spawn.nbt</td>
+              <td>Creer</td>
+              <td>Structure de spawn (ile flottante)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Ordre d'initialisation</strong> — <code>MiningWorldManager.init()</code> DOIT etre appele dans <code>preInit()</code> avant que les evenements de chargement de monde ne soient fires. Si la dimension n'est pas enregistree avant le chargement du monde, Forge peut lever une exception ou ignorer la dimension.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S12 — PLAN DE TESTS ═══ -->
+    <div class="section-card" id="s12">
+      <h2><span class="s-num orange-num">12</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests de la dimension</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Test</th>
+              <th>Action</th>
+              <th>Resultat attendu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>D1</td>
+              <td>Creation de dimension</td>
+              <td>Lancer le serveur avec la feature activee</td>
+              <td>Log INFO "Dimension mining_world enregistree (ID=2)"</td>
+            </tr>
+            <tr>
+              <td>D2</td>
+              <td>Teleportation initiale</td>
+              <td>Executer /minage depuis l'Overworld</td>
+              <td>Joueur apparait sur l'ile flottante en Y=86 (env.)</td>
+            </tr>
+            <tr>
+              <td>D3</td>
+              <td>Generation de terrain</td>
+              <td>Explorer la dimension en mode spectateur</td>
+              <td>Terrain Overworld-like, pas de lacs de lave visibles</td>
+            </tr>
+            <tr>
+              <td>D4</td>
+              <td>Structure de spawn</td>
+              <td>Observer le centre (0,0) a l'arrivee</td>
+              <td>Ile flottante presente aux coordonnees attendues</td>
+            </tr>
+            <tr>
+              <td>D5</td>
+              <td>Pas de lacs de lave</td>
+              <td>Scanner Y=0 a Y=60 avec fill ou spectateur</td>
+              <td>Aucun lac de lave souterrain trouve</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tests de la generation de minerais</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Test</th>
+              <th>Action</th>
+              <th>Resultat attendu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>M1</td>
+              <td>Ores moddes dans dim minage</td>
+              <td>Chercher Valterite/Aetherite/Erinium en Y=5-40</td>
+              <td>Minerais trouves dans les plages definies</td>
+            </tr>
+            <tr>
+              <td>M2</td>
+              <td>Ores moddes absents Overworld</td>
+              <td>Chercher les memes ores dans l'Overworld</td>
+              <td>Aucun minerai modde dans l'Overworld</td>
+            </tr>
+            <tr>
+              <td>M3</td>
+              <td>Ores vanilla normaux</td>
+              <td>Verifier fer, diamant, charbon dans les deux dims</td>
+              <td>Generation vanilla normale dans les deux mondes</td>
+            </tr>
+            <tr>
+              <td>M4</td>
+              <td>Multiplicateur de densite</td>
+              <td>Scanner 100 chunks, compter les veines</td>
+              <td>Densite ~ 1.5x les valeurs de base</td>
+            </tr>
+            <tr>
+              <td>M5</td>
+              <td>Distribution Y des ores</td>
+              <td>Scanner colonne complete, noter Y des ores</td>
+              <td>Ores dans les plages Y documentees (tableau S3)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tests de la protection joueur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Test</th>
+              <th>Action</th>
+              <th>Resultat attendu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>P1</td>
+              <td>Invincibilite chute</td>
+              <td>Sauter d'une grande hauteur dans la dim</td>
+              <td>Aucun degat recu, barre de vie intacte</td>
+            </tr>
+            <tr>
+              <td>P2</td>
+              <td>Invincibilite lave</td>
+              <td>Se baigner dans de la lave (surface)</td>
+              <td>Aucun degat recu</td>
+            </tr>
+            <tr>
+              <td>P3</td>
+              <td>Invincibilite PvP</td>
+              <td>Attaquer un autre joueur avec une epee</td>
+              <td>Aucun degat inflige, animation annulee</td>
+            </tr>
+            <tr>
+              <td>P4</td>
+              <td>Invincibilite mobs</td>
+              <td>Se laisser attaquer par un zombie</td>
+              <td>Aucun degat recu</td>
+            </tr>
+            <tr>
+              <td>P5</td>
+              <td>Protection void</td>
+              <td>Se teleporter a Y=-10 avec /tp</td>
+              <td>Teleportation automatique vers Y spawn</td>
+            </tr>
+            <tr>
+              <td>P6</td>
+              <td>Invincibilite explosions</td>
+              <td>Faire exploser un TNT pres du joueur</td>
+              <td>Aucun degat recu (mais bloc explose normalement)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tests des restrictions territoriales</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Test</th>
+              <th>Action</th>
+              <th>Resultat attendu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T1</td>
+              <td>Interdiction de claim</td>
+              <td>Executer /f claim dans la dim minage</td>
+              <td>Message d'erreur, pas de claim cree</td>
+            </tr>
+            <tr>
+              <td>T2</td>
+              <td>Chat faction fonctionne</td>
+              <td>Envoyer message /f chat depuis dim minage</td>
+              <td>Message recu par les membres de la faction</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tests de la commande /minage</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Test</th>
+              <th>Action</th>
+              <th>Resultat attendu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>C1</td>
+              <td>Teleportation aller</td>
+              <td>/minage depuis Overworld</td>
+              <td>Arrive dans dim minage, message de bienvenue</td>
+            </tr>
+            <tr>
+              <td>C2</td>
+              <td>Teleportation retour</td>
+              <td>/minage depuis dim minage</td>
+              <td>Retour a la position sauvegardee dans l'Overworld</td>
+            </tr>
+            <tr>
+              <td>C3</td>
+              <td>Cooldown actif</td>
+              <td>/minage 2 fois en moins de 30 secondes</td>
+              <td>Deuxieme commande bloquee avec message cooldown</td>
+            </tr>
+            <tr>
+              <td>C4</td>
+              <td>Bypass cooldown admin</td>
+              <td>/minage par joueur avec permission minage.admin</td>
+              <td>Teleportation immediate sans cooldown</td>
+            </tr>
+            <tr>
+              <td>C5</td>
+              <td>Info reset affichee</td>
+              <td>/minage vers dim minage</td>
+              <td>Temps avant prochain reset affiche dans le chat</td>
+            </tr>
+            <tr>
+              <td>C6</td>
+              <td>Feature desactivee</td>
+              <td>/minage quand miningWorldEnabled=false</td>
+              <td>Message "Le Monde Minage est desactive"</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tests du systeme de reset</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Test</th>
+              <th>Action</th>
+              <th>Resultat attendu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>R1</td>
+              <td>Avertissement 30min</td>
+              <td>Simuler timer a T-30min</td>
+              <td>Broadcast gold envoye a tous les joueurs</td>
+            </tr>
+            <tr>
+              <td>R2</td>
+              <td>Avertissement 1min</td>
+              <td>Simuler timer a T-1min</td>
+              <td>Broadcast rouge urgent envoye a tous</td>
+            </tr>
+            <tr>
+              <td>R3</td>
+              <td>Teleportation pre-reset</td>
+              <td>Etre dans dim minage quand reset se produit</td>
+              <td>Teleporte automatiquement dans l'Overworld</td>
+            </tr>
+            <tr>
+              <td>R4</td>
+              <td>Suppression dossier</td>
+              <td>Verifier apres reset le dossier DIM2/</td>
+              <td>Dossier supprime (plus aucun fichier region)</td>
+            </tr>
+            <tr>
+              <td>R5</td>
+              <td>Regeneration dimension</td>
+              <td>/minage apres un reset complet</td>
+              <td>Nouveau monde genere, structure de spawn presente</td>
+            </tr>
+            <tr>
+              <td>R6</td>
+              <td>Persistance timer</td>
+              <td>Redemarrer serveur, verifier timer restant</td>
+              <td>Timer correctement recharge depuis WorldSavedData</td>
+            </tr>
+            <tr>
+              <td>R7</td>
+              <td>Reset manque</td>
+              <td>Eteindre serveur pendant le reset, relancer</td>
+              <td>Reset execute immediatement au redemarrage</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Commande de debug admin</strong> — Pour faciliter les tests, implementer <code>/minage reset</code> (permission : <code>minage.admin</code>) qui force un reset immediat sans attendre le timer. Cela permet de tester le systeme complet en quelques secondes sans manipuler directement le timer dans les donnees sauvegardees.</div>
+      </div>
+
+      <h3>Cas limites importants</h3>
+      <ul>
+        <li><strong>Serveur redemarre pendant un reset en cours</strong> — La procedure de reset est atomique : si interrompue, le timer est mis a jour en dernier (etape 5). Au redemarrage, si le dossier de dimension existe encore mais le timer est depasse, un nouveau reset doit etre declenche.</li>
+        <li><strong>Joueur deconnecte dans la dim minage pendant un reset</strong> — Le joueur doit reapparaitre dans l'Overworld a sa reconnexion. Verifier la dimension du joueur dans <code>PlayerLoggedInEvent</code> et teleporter si necessaire.</li>
+        <li><strong>Multiplicateur fractionnaire</strong> — Avec 1.5x pour 4 veines/chunk, on doit generer 6 veines. Utiliser une variable accumulatrice pour les fractions : <code>accumulated += multiplier; while(accumulated >= 1.0) { generateVein(); accumulated -= 1.0; }</code></li>
+        <li><strong>ID de dimension conflictuel</strong> — Logger un WARNING au demarrage si l'ID configuré est deja utilise par une autre dimension.</li>
+        <li><strong>Structure NBT corrompue ou absente</strong> — Logger ERROR et teleporter le joueur au bloc le plus haut au centre (0, 0) comme fallback.</li>
+        <li><strong>Overworld inaccessible pendant teleportation retour</strong> — Cas impossible en pratique, mais gerer l'exception potentielle de travelToDimension().</li>
+      </ul>
+    </div>
+
+  </main>
+</div>
+
+<!-- Bouton mobile -->
+<button class="mobile-nav-toggle" id="mobileToggle" aria-label="Menu">&#9776;</button>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('mobileToggle');
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+  }
+
+  // Active nav link on scroll
+  const sections = document.querySelectorAll('.section-card[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id);
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

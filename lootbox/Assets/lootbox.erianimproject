@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "modelPath": "C:\\Users\\killi\\Pictures\\Mcreator-Resources\\3d models\\lootbox\\lootbox.json",
+  "modelId": "lootbox",
+  "animation": {
+    "format_version": 1,
+    "model": "lootbox",
+    "animations": {
+      "Open": {
+        "duration": 100,
+        "endBehavior": "wait_server",
+        "tracks": {
+          "topplate": {
+            "rotate": [
+              {
+                "tick": 40,
+                "value": [
+                  0,
+                  360,
+                  0
+                ]
+              }
+            ],
+            "translation": [
+              {
+                "tick": 40,
+                "value": [
+                  0,
+                  -10.426,
+                  0
+                ]
+              }
+            ]
+          },
+          "rocks": {
+            "translation": [
+              {
+                "tick": 63,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              {
+                "tick": 67,
+                "value": [
+                  0,
+                  -7.452,
+                  0
+                ],
+                "easing": "ease_in_back"
+              }
+            ],
+            "spin": [
+              {
+                "tick": 0,
+                "axis": "y",
+                "speed": 1200
+              },
+              {
+                "tick": 70,
+                "axis": "y",
+                "speed": 360
+              }
+            ]
+          },
+          "raritybeam": {
+            "translation": [
+              {
+                "tick": 73,
+                "value": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              {
+                "tick": 84,
+                "value": [
+                  0,
+                  6.774,
+                  0
+                ],
+                "easing": "elastic"
+              }
+            ]
+          }
+        },
+        "events": [
+          {
+            "tick": 0,
+            "type": "callback",
+            "value": "calculrarity"
+          },
+          {
+            "tick": 90,
+            "type": "callback",
+            "value": "dropitems"
+          }
+        ]
+      }
+    }
+  }
+}

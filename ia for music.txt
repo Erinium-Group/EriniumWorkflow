@@ -1,0 +1,100 @@
+IA pour Musique & Effets Sonores — Mise a jour Mars 2026
+=========================================================
+
+OBJECTIF : Generer musique instrumentale ambient (2-5 min) + effets sonores courts (0.3-3s)
+
+
+=== OPEN SOURCE LOCAL (ILLIMITE, TU PAIES EN GPU) ===
+
+1. AudioCraft — MusicGen (Meta)
+   GitHub : github.com/facebookresearch/audiocraft (~20k+ stars, maintenu)
+   Usage : Musique instrumentale depuis un prompt texte
+   Modeles : small (8GB VRAM), medium, large (16GB+), melody
+   Duree : 30s par generation, concatener+crossfade pour 2-5 min
+   Licence : MIT (code), CC-BY-NC (certains poids modele)
+   Qualite : Le meilleur open source pour la musique instrumentale
+   Install : pip install audiocraft
+   RECOMMANDE POUR : tracks ambient Erina
+
+2. AudioCraft — AudioGen (Meta)
+   Meme repo que MusicGen (github.com/facebookresearch/audiocraft)
+   Usage : Effets sonores / sons environnementaux depuis un prompt texte
+   Duree : 0.5-10s
+   Qualite : Bon pour SFX environnementaux (vent, splash, mecaniques)
+   RECOMMANDE POUR : ambient.erina.wind, block.plasma.splash, etc.
+
+3. Stable Audio Open (Stability AI)
+   GitHub : github.com/Stability-AI/stable-audio-tools (~4k stars)
+   Modele : stabilityai/stable-audio-open-1.0 sur HuggingFace
+   Usage : Musique courte + effets sonores (jusqu'a 47 secondes)
+   VRAM : ~10GB
+   Licence : permissive communautaire
+   Qualite : Bon pour SFX et stings musicaux courts
+   Note : Stability AI a eu des soucis financiers mais le modele open reste dispo
+
+4. AudioLDM 2
+   GitHub : github.com/haoheliu/AudioLDM2 (~3k stars)
+   Usage : Text-to-audio (SFX, sons environnementaux, un peu de musique)
+   Approche : Diffusion latente
+   VRAM : 8-16GB
+   Licence : recherche/academique
+   Qualite : Solide pour SFX environnementaux, moins bon pour musique structuree
+
+5. Riffusion
+   GitHub : github.com/riffusion/riffusion (~3k stars)
+   Usage : Genere des spectrogrammes via Stable Diffusion → convertit en audio
+   VRAM : ~8GB (meme que SD)
+   Licence : MIT
+   Qualite : Creatif pour boucles courtes et textures ambient, limite en coherence longue
+
+
+=== EN LIGNE GRATUIT (LIMITE MAIS HAUTE QUALITE) ===
+
+1. Suno AI — suno.com
+   Gratuit : ~5-10 generations/jour (limite, pas illimite)
+   Usage : Musique complete (instrumentale ou avec voix), 2-4 min
+   Qualite : Tres haute, le meilleur en ligne pour la musique
+   Pas open source, pas local
+   CONSEIL : Prompt pour Erina → "ambient alien planet soundtrack, crystalline
+   echoes, ethereal, mysterious, low gravity, bioluminescent, no vocals, game OST"
+
+2. Udio — udio.com
+   Gratuit : Similaire a Suno, quelques generations/jour
+   Usage : Musique complete, bon controle de genre
+   Qualite : Tres haute, comparable a Suno
+
+3. ElevenLabs Sound Effects — elevenlabs.io/sound-effects
+   Gratuit : Quelques generations/mois (lie au compte free)
+   Usage : SFX courts depuis prompt texte
+   Qualite : Haute, un des meilleurs text-to-SFX en ligne
+   RECOMMANDE POUR : sons precis (grapple latch, rocket launch)
+
+4. Stable Audio — stableaudio.com
+   Gratuit : ~20 tracks/mois, jusqu'a 3 min
+   Usage : Musique instrumentale + SFX
+   Qualite : Bonne, en dessous de Suno pour la musique mais mieux pour SFX
+
+
+=== BANQUES DE SONS GRATUITES (PAS IA) ===
+
+- Freesound.org — communautaire, sons libres CC, enorme catalogue
+- Pixabay Audio — libre de droit, pas d'attribution
+- Zapsplat.com — gratuit avec compte, attribution requise
+
+
+=== RECOMMANDATION WORKFLOW ERINA ===
+
+Musique ambient (music.erina, 2-5 min) :
+  → Suno/Udio free tier pour le resultat final haute qualite
+  → OU MusicGen large en local (30s x concatenation) si tu veux illimite
+
+Effets sonores courts (12 SFX de 0.3-3s) :
+  → AudioGen (local, illimite, prompt texte)
+  → OU ElevenLabs SFX (en ligne, meilleure qualite mais limite)
+  → Fallback : Freesound.org pour les sons generiques (splash, vent)
+
+Pipeline :
+  1. Generer en WAV/MP3 via l'outil choisi
+  2. Trim/normaliser dans Audacity
+  3. Exporter en .ogg mono 44.1kHz
+  4. Placer dans src/main/resources/assets/eriniumfaction/sounds/

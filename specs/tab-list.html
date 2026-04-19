@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Refonte Tab List | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 50% 90%, rgba(46,204,113,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 12px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+
+  /* =========================================================
+     SECTION CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr { background: rgba(107,47,160,0.18); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .tag-opt { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(241,196,15,0.10); color: var(--gold); border: 1px solid rgba(241,196,15,0.25); letter-spacing: 0.05em; }
+
+  /* Ping level colors */
+  .ping-5 { color: #2ECC71; font-weight: 600; }
+  .ping-4 { color: #A8D850; font-weight: 600; }
+  .ping-3 { color: #F1C40F; font-weight: 600; }
+  .ping-2 { color: #E67E22; font-weight: 600; }
+  .ping-1 { color: #E74C3C; font-weight: 600; }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .cl  { color: #FFCB6B; }
+
+  /* =========================================================
+     ASCII DIAGRAMS
+  ========================================================= */
+  .ascii-diagram {
+    background: rgba(5,5,10,0.75);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 11.5px;
+    line-height: 1.65;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+  }
+
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+
+  /* =========================================================
+     INFO BOXES
+  ========================================================= */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2);   }
+
+  /* =========================================================
+     PING BAR VISUAL
+  ========================================================= */
+  .ping-demo {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+
+  .ping-sample {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    min-width: 160px;
+  }
+
+  .ping-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 12px;
+  }
+
+  .ping-bars .bar {
+    width: 3px;
+    border-radius: 1px;
+    background: rgba(255,255,255,0.12);
+  }
+
+  .ping-bars .bar.lit-g { background: #2ECC71; }
+  .ping-bars .bar.lit-y { background: #F1C40F; }
+  .ping-bars .bar.lit-o { background: #E67E22; }
+  .ping-bars .bar.lit-r { background: #E74C3C; }
+
+  .ping-bars .bar:nth-child(1) { height: 3px; }
+  .ping-bars .bar:nth-child(2) { height: 5px; }
+  .ping-bars .bar:nth-child(3) { height: 7px; }
+  .ping-bars .bar:nth-child(4) { height: 9px; }
+  .ping-bars .bar:nth-child(5) { height: 12px; }
+
+  /* =========================================================
+     ANIMATIONS + DIVIDER
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-bdr), transparent);
+    margin: 24px 0;
+  }
+
+  /* =========================================================
+     MOBILE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,47,160,0.4);
+    transition: transform .2s;
+  }
+
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 50;
+      width: 260px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+  }
+
+  @media (max-width: 600px) {
+    .section-card { padding: 24px 18px; }
+    .page-header h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+
+    <span class="sidebar-title">Sommaire</span>
+
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Architecture Technique</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Structure Visuelle</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Donnees Affichees</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Systeme de Ping</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Tri des Joueurs</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Rendu EriAPI</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Animations</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Performance &amp; Cache</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Integrations</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Cas Limites</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Refonte Tab List — Liste des Joueurs</h1>
+      <p>Remplacement complet de la liste de joueurs vanilla (TAB) par un panneau glass morphism personnalise : 3 colonnes de 15 joueurs, tetes de skin, grades colores et indicateur de ping vanilla.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-cyan">Mixin GuiPlayerTabOverlay</span>
+        <span class="badge badge-violet">Client-Side Only</span>
+        <span class="badge badge-green">3 Colonnes x 15</span>
+        <span class="badge badge-gold">45 Joueurs Max</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — CONTEXTE & OBJECTIFS ═══ -->
+    <div class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <p>La liste de joueurs vanilla de Minecraft 1.12.2 (affichee en maintenant TAB) est fonctionnelle mais visuellement generique et totalement deconnectee de l'identite visuelle d'EriniumFaction. Elle affiche les pseudos en texte blanc sur fond gris, sans notion de grade, sans couleur de faction, et avec un indicateur de ping minimaliste.</p>
+
+      <p>Sur un serveur faction/PvP actif, la tab list est un element d'interface consulte en permanence — pendant les combats pour evaluer les ennemis presents, pendant la gestion de faction pour verifier les membres en ligne. Elle doit refleter l'univers du mod.</p>
+
+      <h3>Problemes du rendu vanilla</h3>
+      <ul>
+        <li><strong>Aucun grade visible</strong> — Les prefixes de grade ne sont pas affichables sans modifier le packet S38PacketPlayerListItem, ce qui implique des complications serveur</li>
+        <li><strong>Pas de tete de joueur</strong> — Le vanilla affiche juste le pseudo en texte</li>
+        <li><strong>Fond gris generique</strong> — Aucune coherence avec le style Liquid Glass du mod</li>
+        <li><strong>Couleurs de rang absentes</strong> — Tous les joueurs ont le meme style visuel</li>
+        <li><strong>Ping basique</strong> — Les barres vanilla sont petites et non colorisees selon le seuil</li>
+        <li><strong>Pas de mise en page adaptee</strong> — Le vanilla empile les joueurs en une ou deux colonnes sans controle de la presentation</li>
+      </ul>
+
+      <h3>Objectifs de la refonte</h3>
+      <ul>
+        <li><strong>Immersion visuelle</strong> — Panneau Liquid Glass coherent avec les autres GUI du mod (violet/cyan, translucide, coins arrondis)</li>
+        <li><strong>Information riche</strong> — Tete de skin, grade colore, ping colore par niveau</li>
+        <li><strong>Lisibilite optimale</strong> — Layout 3 colonnes, lignes alternees, texte anti-aliase</li>
+        <li><strong>Tri hierarchique</strong> — Grades les plus hauts en premier, puis ordre alphabetique</li>
+        <li><strong>Performance</strong> — Rendu conditionnel (seulement si TAB enfonce), cache joueurs, pas de recalcul inutile</li>
+        <li><strong>Client-side uniquement</strong> — Zero modification serveur, zero packet custom, toutes les donnees sont deja disponibles</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Approche non destructive</strong> — Le Mixin annule uniquement le rendu vanilla, sans toucher a la logique de gestion des joueurs de Minecraft. Toutes les donnees (profils, ping, skins) continuent d'etre gerees normalement par le client vanilla.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S2 — ARCHITECTURE TECHNIQUE ═══ -->
+    <div class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Architecture Technique</h2>
+
+      <p>L'implementation est purement client-side. Le rendu vanilla est annule via un Mixin, et remplace par un arbre de composants EriAPI rendus dans le contexte overlay. Aucun packet, aucune donnee serveur supplementaire n'est necessaire.</p>
+
+      <h3 class="first">Classe cible du Mixin</h3>
+      <ul>
+        <li><strong>Classe</strong> : <code>net.minecraft.client.gui.GuiPlayerTabOverlay</code></li>
+        <li><strong>Methode</strong> : <code>renderPlayerlist(int width, ScoreObjective objective, float partialTicks)</code></li>
+        <li><strong>Injection</strong> : <code>@Inject</code> at <code>HEAD</code>, <code>cancellable = true</code></li>
+        <li><strong>Action</strong> : Appel de <code>ci.cancel()</code> apres le rendu custom pour empecher le rendu vanilla</li>
+      </ul>
+
+      <div class="code-block"><span class="an">@Mixin</span>(<span class="ty">GuiPlayerTabOverlay</span>.<span class="kw">class</span>)
+<span class="kw">public class</span> <span class="cl">MixinGuiPlayerTabOverlay</span> {
+
+    <span class="an">@Inject</span>(method = <span class="st">"renderPlayerlist"</span>,
+            at = <span class="an">@At</span>(<span class="st">"HEAD"</span>),
+            cancellable = <span class="kw">true</span>)
+    <span class="kw">private void</span> <span class="fn">onRenderPlayerlist</span>(<span class="ty">int</span> width, <span class="ty">ScoreObjective</span> objective,
+                                      <span class="ty">float</span> partialTicks, <span class="ty">CallbackInfo</span> ci) {
+        <span class="cm">// Recuperer l'etat du bouton TAB</span>
+        <span class="kw">if</span> (!<span class="cl">Minecraft</span>.<span class="fn">getMinecraft</span>().<span class="fn">gameSettings</span>.keyBindPlayerList.<span class="fn">isKeyDown</span>()) {
+            <span class="kw">return</span>; <span class="cm">// Tab non enfonce : ne rien faire (vanilla s'en charge aussi)</span>
+        }
+        <span class="cm">// Deleguer au renderer custom</span>
+        <span class="cl">TabListRenderer</span>.<span class="fn">INSTANCE</span>.<span class="fn">render</span>(width, partialTicks);
+        ci.<span class="fn">cancel</span>(); <span class="cm">// Annuler le rendu vanilla</span>
+    }
+}</div>
+
+      <h3>Classe de rendu principale</h3>
+      <p>Toute la logique de rendu est encapsulee dans un singleton <code>TabListRenderer</code> (<code>@SideOnly(Side.CLIENT)</code>) dans le package <code>fr.eriniumgroup.eriniumfaction.tablist</code>. Ce singleton construit et maintient un arbre de composants EriAPI en memoire (un <code>ContainerComponent</code> racine), le reconstruit quand la liste de joueurs change, puis le dessine a chaque frame via <code>ScaleManager</code>.</p>
+
+      <div class="ascii-diagram"><span class="av">fr.eriniumgroup.eriniumfaction.tablist/</span>
+<span class="as">├──</span> <span class="ac">TabListRenderer.java</span>       <span class="as">Singleton — construit l'arbre EriAPI et gere le rendu</span>
+<span class="as">├──</span> <span class="ac">TabListCache.java</span>          <span class="as">Cache des joueurs tries (MAJ toutes les 20 ticks)</span>
+<span class="as">└──</span> <span class="av">mixin/</span>
+<span class="as">    └──</span> <span class="ac">MixinGuiPlayerTabOverlay.java</span>  <span class="as">Mixin — annule le rendu vanilla</span>
+
+<span class="as">Enregistrement dans mixins.eriniumfaction.json :</span>
+<span class="as">"client": ["MixinGuiPlayerTabOverlay"]</span>
+
+<span class="as">Arbre de composants (reconstruit a chaque invalidation du cache) :</span>
+<span class="as">ContainerComponent root (0, 0, 1920, 1080)</span>
+<span class="as">  ├── Rectangle  bg panel       (panelX, 20, 700, panelH)   — fond glass</span>
+<span class="as">  ├── Rectangle  header bg      (panelX, 20, 700, 36)        — fond header violet</span>
+<span class="as">  ├── Label      header title   (panelX, 28, 350, 20)        — "ERINIUM FACTION"</span>
+<span class="as">  ├── Label      player count   (panelX+350, 28, 350, 20)    — "32 / 45 joueurs"</span>
+<span class="as">  └── per-player (x15 x3 cols)</span>
+<span class="as">       ├── Rectangle  row bg   (colX, rowY, colW, 22)        — alternance subtile</span>
+<span class="as">       ├── TexturedRect head   (colX+4, rowY+3, 16, 16)       — face skin</span>
+<span class="as">       └── Label      name     (colX+24, rowY+5, nameW, 14)  — prefixe + pseudo</span>
+<span class="as">       (ping : rendu OpenGL helper isole — voir section 07)</span></div>
+
+      <h3>Sources de donnees disponibles</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Donnee</th>
+              <th>API Minecraft</th>
+              <th>Type retourne</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Liste des joueurs</td>
+              <td><code>Minecraft.getMinecraft().getConnection().getPlayerInfoMap()</code></td>
+              <td><code>Collection&lt;NetworkPlayerInfo&gt;</code></td>
+            </tr>
+            <tr>
+              <td>Nom du joueur</td>
+              <td><code>info.getGameProfile().getName()</code></td>
+              <td><code>String</code></td>
+            </tr>
+            <tr>
+              <td>Nom formate (avec grade)</td>
+              <td><code>info.getDisplayName()</code></td>
+              <td><code>ITextComponent</code> (peut etre null)</td>
+            </tr>
+            <tr>
+              <td>Ping en ms</td>
+              <td><code>info.getResponseTime()</code></td>
+              <td><code>int</code></td>
+            </tr>
+            <tr>
+              <td>Texture du skin</td>
+              <td><code>info.getLocationSkin()</code></td>
+              <td><code>ResourceLocation</code></td>
+            </tr>
+            <tr>
+              <td>UUID</td>
+              <td><code>info.getGameProfile().getId()</code></td>
+              <td><code>UUID</code></td>
+            </tr>
+            <tr>
+              <td>Prefixe de grade (priorite)</td>
+              <td><code>FactionPlayerData.rankPrefix</code> via DataManager</td>
+              <td><code>String</code> (@Sync, disponible client)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>getDisplayName()</strong> — Cette methode retourne l'<code>ITextComponent</code> personalise envoye par le serveur dans le packet <code>S38PacketPlayerListItem</code>. Si le serveur (via <code>RankChatHandler</code>) injecte le prefixe de grade dans ce composant, il sera disponible ici directement. Sinon, on construit le nom a partir de <code>FactionPlayerData.rankPrefix</code> + <code>getGameProfile().getName()</code>.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S3 — STRUCTURE VISUELLE ═══ -->
+    <div class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Structure Visuelle</h2>
+
+      <p>Le panneau est un bloc Liquid Glass centre horizontalement en haut de l'ecran, affichant jusqu'a 45 joueurs en 3 colonnes de 15 entrees.</p>
+
+      <h3 class="first">Maquette ASCII — Vue globale</h3>
+      <div class="ascii-diagram"><span class="as">╔══════════════════════════════════════════════════════════════════════════╗</span>
+<span class="as">║</span>                <span class="ac">◈  ERINIUM FACTION   ·   32 / 45 joueurs  ◈</span>                <span class="as">║</span>  <span class="as">← Header</span>
+<span class="as">╠══════════════════════════════════════════════════════════════════════════╣</span>
+<span class="as">║</span>                                                                          <span class="as">║</span>
+<span class="as">║</span>  <span class="ac">┌──────────────────────┐</span> <span class="ac">│</span> <span class="av">┌──────────────────────┐</span> <span class="av">│</span> <span class="ag">┌──────────────────────┐</span>  <span class="as">║</span>
+<span class="as">║</span>  <span class="ac">│</span><span class="ay">██</span> <span class="ac">[Admin]</span> <span class="ac">EriniumX</span>   <span class="ac">▌▌▌▌▌│</span> <span class="av">│</span><span class="ay">██</span> <span class="ag">[Modo]</span>  <span class="ag">Killiann</span>  <span class="av">▌▌▌▌░│</span> <span class="ag">│</span><span class="ay">██</span> <span class="ag">[VIP]</span>   <span class="ag">Steve</span>     <span class="ag">▌▌▌░░</span>  <span class="as">║</span>
+<span class="as">║</span>  <span class="ac">│</span><span class="ay">██</span> <span class="ac">[Admin]</span> <span class="ac">Notch</span>      <span class="ac">▌▌▌▌▌│</span> <span class="av">│</span><span class="ay">██</span> <span class="ag">[Modo]</span>  <span class="ag">Alex</span>      <span class="av">▌▌▌░░│</span> <span class="ag">│</span><span class="ay">██</span> <span class="as">[Joueur] Herobrine</span>  <span class="ag">▌▌░░░</span>  <span class="as">║</span>
+<span class="as">║</span>  <span class="ac">│</span><span class="ay">██</span> <span class="ac">[Modo]</span>  <span class="ac">Dinnerbone</span> <span class="ac">▌▌▌▌░│</span> <span class="av">│</span><span class="ay">██</span> <span class="as">[Joueur] Creeper</span>   <span class="av">▌░░░░│</span> <span class="ag">│</span><span class="ay">██</span> <span class="as">[Joueur] Enderman</span>  <span class="ar">▌░░░░</span>  <span class="as">║</span>
+<span class="as">║</span>  <span class="ac">│  ...</span>                <span class="ac">     │</span> <span class="av">│  ...</span>                <span class="av">     │</span> <span class="ag">│  ...</span>               <span class="ag">     </span>  <span class="as">║</span>
+<span class="as">║</span>  <span class="ac">└──────────────────────┘</span> <span class="ac">│</span> <span class="av">└──────────────────────┘</span> <span class="av">│</span> <span class="ag">└──────────────────────┘</span>  <span class="as">║</span>
+<span class="as">║</span>                                                                          <span class="as">║</span>
+<span class="as">╚══════════════════════════════════════════════════════════════════════════╝</span>
+                       <span class="as">← fond glass morphism translucide →</span></div>
+
+      <h3>Maquette ASCII — Detail d'une ligne joueur (zoom)</h3>
+      <div class="ascii-diagram"><span class="as">┌───────────────────────────────────────────────────────────┐</span>
+<span class="as">│</span>  <span class="ay">+------+</span>  <span class="av">[Admin]</span> <span class="ac">EriniumX</span>                    <span class="ag">▌▌▌▌▌</span>  <span class="as">│</span>
+<span class="as">│</span>  <span class="ay">│ skin │</span>                                                <span class="as">│</span>
+<span class="as">│</span>  <span class="ay">+------+</span>                                                <span class="as">│</span>
+<span class="as">└───────────────────────────────────────────────────────────┘</span>
+   <span class="as">└─8px──┘ └─4px─┘ └──────prefixe grade────────┘ └─ping──┘</span>
+   <span class="as">   skin    gap    prefixe colore + pseudo       5 barres</span></div>
+
+      <h3>Dimensions du panneau</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Element</th>
+              <th>Dimensions (design 1920x1080)</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Panneau global</td>
+              <td>700px large, hauteur auto</td>
+              <td>Centere horizontalement, 20px du haut</td>
+            </tr>
+            <tr>
+              <td>Header</td>
+              <td>100% large, 36px haut</td>
+              <td>Fond legerement plus opaque, texte centre</td>
+            </tr>
+            <tr>
+              <td>Zone colonnes</td>
+              <td>700px large, 8px padding lateral</td>
+              <td>3 colonnes egales avec separateurs</td>
+            </tr>
+            <tr>
+              <td>Largeur colonne</td>
+              <td>~222px</td>
+              <td>(700 - 16px padding - 2px separateurs) / 3</td>
+            </tr>
+            <tr>
+              <td>Hauteur d'une ligne</td>
+              <td>22px design</td>
+              <td>2px margin entre lignes — ScaleManager convertit vers l'ecran reel</td>
+            </tr>
+            <tr>
+              <td>Tete de joueur</td>
+              <td>16x16px design</td>
+              <td>Face skin via TexturedRect (UV 8,8→16,16 sur texture 64x64) — scalee automatiquement</td>
+            </tr>
+            <tr>
+              <td>Zone texte</td>
+              <td>Colonne - 20px (tete+gap) - 28px (ping+margin) = ~174px design</td>
+              <td>16px tete + 4px gap + 24px ping + 4px margin droite</td>
+            </tr>
+            <tr>
+              <td>Zone ping</td>
+              <td>20px large, 10px haut design</td>
+              <td>Rendu via helper OpenGL isole (voir section 07), aligne a droite</td>
+            </tr>
+            <tr>
+              <td>Separateur colonne</td>
+              <td>1px large, hauteur totale colonnes</td>
+              <td>Couleur : rgba(255,255,255,0.06)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Palette de couleurs</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Element</th>
+              <th>Couleur</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Fond du panneau</td>
+              <td><code>rgba(10, 10, 18, 0.85)</code></td>
+              <td>Opacite forte pour lisibilite en jeu</td>
+            </tr>
+            <tr>
+              <td>Bordure panneau</td>
+              <td><code>rgba(255, 255, 255, 0.06)</code></td>
+              <td>Subtile</td>
+            </tr>
+            <tr>
+              <td>Header fond</td>
+              <td><code>rgba(107, 47, 160, 0.20)</code></td>
+              <td>Teinte violette</td>
+            </tr>
+            <tr>
+              <td>Texte header</td>
+              <td>Gradient violet (#9B4FCF) → cyan (#00E5FF)</td>
+              <td>Rendu lettre par lettre ou texture</td>
+            </tr>
+            <tr>
+              <td>Ligne paire</td>
+              <td><code>rgba(255,255,255,0.00)</code></td>
+              <td>Transparente</td>
+            </tr>
+            <tr>
+              <td>Ligne impaire</td>
+              <td><code>rgba(255,255,255,0.025)</code></td>
+              <td>Subtile alternance</td>
+            </tr>
+            <tr>
+              <td>Nom joueur</td>
+              <td>Couleur du grade (desde rankPrefix)</td>
+              <td>Code §x vanilla → couleur OpenGL</td>
+            </tr>
+            <tr>
+              <td>Separateur colonne</td>
+              <td><code>rgba(255, 255, 255, 0.06)</code></td>
+              <td>1px vertical</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S4 — DONNEES AFFICHEES ═══ -->
+    <div class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Donnees Affichees par Entree</h2>
+
+      <p>Chaque ligne joueur affiche quatre elements dans l'ordre gauche → droite :</p>
+
+      <h3 class="first">1. Tete de joueur (skin face)</h3>
+      <ul>
+        <li>Texture : <code>info.getLocationSkin()</code> — ResourceLocation du skin charge par Minecraft</li>
+        <li>Rendu : region (8, 8, 8, 8) de la texture skin (couche de base du visage)</li>
+        <li>Superposition : region (40, 8, 8, 8) pour la couche chapeau/hat (avec <code>GL11.glEnable(GL11.GL_BLEND)</code>)</li>
+        <li>Taille rendue : 8x8 pixels design (scalee automatiquement)</li>
+        <li>Si le skin n'est pas encore charge (premiers ticks apres connexion) : afficher le skin Steve par defaut (<code>new ResourceLocation("textures/entity/steve.png")</code>)</li>
+      </ul>
+
+      <h3>2. Prefixe de grade + pseudo</h3>
+      <ul>
+        <li>Source : <code>info.getDisplayName()</code> si non null et non vide — contient le prefixe grade formate par le serveur</li>
+        <li>Fallback : construire manuellement avec <code>FactionPlayerData.rankPrefix</code> + espace + <code>info.getGameProfile().getName()</code></li>
+        <li>Rendu : composant <code>Label</code> EriAPI avec la chaine formatee — les codes §x du prefixe sont interprete par le fontRenderer sous-jacent. Le <code>Label</code> gere automatiquement la troncature avec "..." si le texte depasse sa largeur design.</li>
+        <li>Troncature : configurer le <code>Label</code> avec la largeur exacte de la zone texte — EriAPI applique <code>clipToWidth</code> automatiquement lors du rendu</li>
+      </ul>
+
+      <h3>3. Indicateur de ping</h3>
+      <ul>
+        <li>Source : <code>info.getResponseTime()</code> en millisecondes</li>
+        <li>Rendu : icone barres signal vanilla (texture <code>Gui.ICONS</code>, region variable selon le niveau)</li>
+        <li>Position : aligne a droite de la colonne, centre vertical sur la ligne</li>
+        <li>Details dans la section 05</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>getDisplayName() null</strong> — Le serveur n'envoie pas toujours un displayName. Toujours verifier <code>info.getDisplayName() != null</code> avant de l'utiliser. En cas de null, utiliser le nom brut du profil et construire le prefixe depuis <code>FactionPlayerData</code>.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S5 — SYSTEME DE PING ═══ -->
+    <div class="section-card" id="s5">
+      <h2><span class="s-num">05</span> Systeme de Ping — Barres Signal</h2>
+
+      <p>L'indicateur de ping utilise les memes icones de barres signal que le vanilla Minecraft (texture <code>Gui.ICONS</code>), mais colories en fonction du niveau de ping pour une meilleure lisibilite.</p>
+
+      <h3 class="first">Niveaux de ping</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Niveau</th>
+              <th>Seuil (ms)</th>
+              <th>Barres pleines</th>
+              <th>Region texture U,V</th>
+              <th>Couleur de teinte</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="ping-5">5 barres</td>
+              <td>&lt; 150 ms</td>
+              <td>5 / 5</td>
+              <td>0, 176 → 10, 8</td>
+              <td class="ping-5">#2ECC71 (vert)</td>
+            </tr>
+            <tr>
+              <td class="ping-4">4 barres</td>
+              <td>150 – 299 ms</td>
+              <td>4 / 5</td>
+              <td>0, 184 → 10, 8</td>
+              <td class="ping-4">#A8D850 (vert clair)</td>
+            </tr>
+            <tr>
+              <td class="ping-3">3 barres</td>
+              <td>300 – 599 ms</td>
+              <td>3 / 5</td>
+              <td>0, 192 → 10, 8</td>
+              <td class="ping-3">#F1C40F (jaune)</td>
+            </tr>
+            <tr>
+              <td class="ping-2">2 barres</td>
+              <td>600 – 999 ms</td>
+              <td>2 / 5</td>
+              <td>0, 200 → 10, 8</td>
+              <td class="ping-2">#E67E22 (orange)</td>
+            </tr>
+            <tr>
+              <td class="ping-1">1 barre</td>
+              <td>&gt;= 1000 ms</td>
+              <td>1 / 5</td>
+              <td>0, 208 → 10, 8</td>
+              <td class="ping-1">#E74C3C (rouge)</td>
+            </tr>
+            <tr>
+              <td class="ping-1">Aucune (en attente)</td>
+              <td>-1 (pas encore recu)</td>
+              <td>0 / 5</td>
+              <td>0, 216 → 10, 8</td>
+              <td style="color: var(--slate);">#8892A4 (gris)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Apercu visuel des niveaux</h3>
+      <div class="ping-demo">
+        <div class="ping-sample">
+          <div class="ping-bars">
+            <div class="bar lit-g"></div>
+            <div class="bar lit-g"></div>
+            <div class="bar lit-g"></div>
+            <div class="bar lit-g"></div>
+            <div class="bar lit-g"></div>
+          </div>
+          <span class="ping-5">&lt; 150ms</span>
+        </div>
+        <div class="ping-sample">
+          <div class="ping-bars">
+            <div class="bar lit-g"></div>
+            <div class="bar lit-g"></div>
+            <div class="bar lit-g"></div>
+            <div class="bar lit-g"></div>
+            <div class="bar"></div>
+          </div>
+          <span class="ping-4">150-299ms</span>
+        </div>
+        <div class="ping-sample">
+          <div class="ping-bars">
+            <div class="bar lit-y"></div>
+            <div class="bar lit-y"></div>
+            <div class="bar lit-y"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+          </div>
+          <span class="ping-3">300-599ms</span>
+        </div>
+        <div class="ping-sample">
+          <div class="ping-bars">
+            <div class="bar lit-o"></div>
+            <div class="bar lit-o"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+          </div>
+          <span class="ping-2">600-999ms</span>
+        </div>
+        <div class="ping-sample">
+          <div class="ping-bars">
+            <div class="bar lit-r"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+          </div>
+          <span class="ping-1">&gt;= 1000ms</span>
+        </div>
+      </div>
+
+      <h3>Implementation du rendu ping</h3>
+      <div class="code-block"><span class="kw">private void</span> <span class="fn">renderPingIcon</span>(<span class="ty">int</span> ping, <span class="ty">int</span> x, <span class="ty">int</span> y) {
+    <span class="cm">// Selectionner la region selon le ping</span>
+    <span class="ty">int</span> iconV;
+    <span class="ty">int</span> color;
+    <span class="kw">if</span> (ping &lt; <span class="nu">0</span>) {
+        iconV = <span class="nu">216</span>; color = <span class="nu">0xFF8892A4</span>; <span class="cm">// gris (pas encore mesure)</span>
+    } <span class="kw">else if</span> (ping &lt; <span class="nu">150</span>) {
+        iconV = <span class="nu">176</span>; color = <span class="nu">0xFF2ECC71</span>; <span class="cm">// vert   — 5 barres</span>
+    } <span class="kw">else if</span> (ping &lt; <span class="nu">300</span>) {
+        iconV = <span class="nu">184</span>; color = <span class="nu">0xFFA8D850</span>; <span class="cm">// vert clair — 4 barres</span>
+    } <span class="kw">else if</span> (ping &lt; <span class="nu">600</span>) {
+        iconV = <span class="nu">192</span>; color = <span class="nu">0xFFF1C40F</span>; <span class="cm">// jaune  — 3 barres</span>
+    } <span class="kw">else if</span> (ping &lt; <span class="nu">1000</span>) {
+        iconV = <span class="nu">200</span>; color = <span class="nu">0xFFE67E22</span>; <span class="cm">// orange — 2 barres</span>
+    } <span class="kw">else</span> {
+        iconV = <span class="nu">208</span>; color = <span class="nu">0xFFE74C3C</span>; <span class="cm">// rouge  — 1 barre</span>
+    }
+
+    <span class="cm">// Appliquer la teinte coloree</span>
+    <span class="ty">int</span> r = (color &gt;&gt; <span class="nu">16</span>) &amp; <span class="nu">0xFF</span>;
+    <span class="ty">int</span> g = (color &gt;&gt; <span class="nu">8</span>)  &amp; <span class="nu">0xFF</span>;
+    <span class="ty">int</span> b = color &amp; <span class="nu">0xFF</span>;
+    <span class="cl">GlStateManager</span>.<span class="fn">color</span>(r / <span class="nu">255f</span>, g / <span class="nu">255f</span>, b / <span class="nu">255f</span>, <span class="nu">1.0f</span>);
+
+    <span class="cm">// Binder la texture des icones vanilla</span>
+    <span class="cl">Minecraft</span>.<span class="fn">getMinecraft</span>().<span class="fn">getTextureManager</span>().<span class="fn">bindTexture</span>(<span class="cl">Gui</span>.ICONS);
+    <span class="cm">// Fond gris (barres vides)</span>
+    <span class="fn">drawTexturedModalRect</span>(x, y, <span class="nu">0</span>, <span class="nu">176</span> + <span class="nu">5</span> * <span class="nu">8</span>, <span class="nu">10</span>, <span class="nu">8</span>);
+    <span class="cm">// Barres colorees par-dessus</span>
+    <span class="fn">drawTexturedModalRect</span>(x, y, <span class="nu">0</span>, iconV, <span class="nu">10</span>, <span class="nu">8</span>);
+
+    <span class="cl">GlStateManager</span>.<span class="fn">color</span>(<span class="nu">1f</span>, <span class="nu">1f</span>, <span class="nu">1f</span>, <span class="nu">1f</span>); <span class="cm">// Reset couleur</span>
+}</div>
+    </div>
+
+    <!-- ═══ S6 — TRI DES JOUEURS ═══ -->
+    <div class="section-card" id="s6">
+      <h2><span class="s-num cyan-num">06</span> Tri des Joueurs</h2>
+
+      <p>La liste des joueurs est triee selon deux criteres successifs : d'abord par priorite de grade (descendant — grade le plus haut en premier), puis par ordre alphabetique du pseudo en cas d'egalite.</p>
+
+      <h3 class="first">Algorithme de tri</h3>
+      <div class="code-block"><span class="cm">// Dans TabListCache.java</span>
+<span class="kw">private</span> <span class="ty">List</span>&lt;<span class="ty">NetworkPlayerInfo</span>&gt; <span class="fn">buildSortedList</span>() {
+    <span class="ty">Collection</span>&lt;<span class="ty">NetworkPlayerInfo</span>&gt; raw =
+        <span class="cl">Minecraft</span>.<span class="fn">getMinecraft</span>().<span class="fn">getConnection</span>().<span class="fn">getPlayerInfoMap</span>();
+
+    <span class="kw">return</span> raw.<span class="fn">stream</span>()
+        .<span class="fn">sorted</span>(<span class="cl">Comparator</span>
+            <span class="cm">// 1. Par priorite de grade (decroissant)</span>
+            .<span class="fn">comparingInt</span>((<span class="ty">NetworkPlayerInfo</span> info) -&gt; <span class="fn">getRankPriority</span>(info))
+            .<span class="fn">reversed</span>()
+            <span class="cm">// 2. Par nom alphabetique (croissant)</span>
+            .<span class="fn">thenComparing</span>(info -&gt; info.<span class="fn">getGameProfile</span>().<span class="fn">getName</span>().<span class="fn">toLowerCase</span>()))
+        .<span class="fn">limit</span>(<span class="nu">45</span>) <span class="cm">// Maximum 45 joueurs affiches</span>
+        .<span class="fn">collect</span>(<span class="cl">Collectors</span>.<span class="fn">toList</span>());
+}
+
+<span class="cm">// Obtenir la priorite de grade depuis FactionPlayerData</span>
+<span class="kw">private int</span> <span class="fn">getRankPriority</span>(<span class="ty">NetworkPlayerInfo</span> info) {
+    <span class="ty">UUID</span> uuid = info.<span class="fn">getGameProfile</span>().<span class="fn">getId</span>();
+    <span class="ty">EntityPlayer</span> player = <span class="cl">Minecraft</span>.<span class="fn">getMinecraft</span>().<span class="fn">world</span>
+        .<span class="fn">getPlayerEntityByUUID</span>(uuid);
+    <span class="kw">if</span> (player == <span class="kw">null</span>) <span class="kw">return</span> <span class="nu">0</span>; <span class="cm">// Grade inconnu : priorite minimale</span>
+
+    <span class="ty">FactionPlayerData</span> data = <span class="cl">DataManager</span>.<span class="fn">get</span>(player, <span class="ty">FactionPlayerData</span>.<span class="kw">class</span>);
+    <span class="kw">if</span> (data == <span class="kw">null</span>) <span class="kw">return</span> <span class="nu">0</span>;
+
+    <span class="cm">// rankPriority est un champ @Sync int dans FactionPlayerData</span>
+    <span class="kw">return</span> data.rankPriority;
+}</div>
+
+      <h3>Prerequis — champ rankPriority</h3>
+      <p>Pour que le tri fonctionne, <code>FactionPlayerData</code> doit exposer un champ <code>@Sync int rankPriority</code> correspondant a la priorite du grade du joueur (valeur numerique stockee dans le <code>RankInfo</code>, plus haute = grade superieur). Ce champ doit etre mis a jour par le serveur lors d'un changement de grade et synchronise au client via le mecanisme <code>@Sync</code> du DataManager EriAPI.</p>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Joueurs non charges</strong> — Si un <code>EntityPlayer</code> n'est pas present dans <code>world.getPlayerEntityByUUID()</code> (joueur distant dont l'entite n'est pas chargee), la priorite retourne 0 (grade par defaut). Le tri reste correct, ces joueurs apparaissent en fin de liste.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S7 — RENDU ERIAPI ═══ -->
+    <div class="section-card" id="s7">
+      <h2><span class="s-num">07</span> Rendu via Composants EriAPI</h2>
+
+      <p>Le rendu repose entierement sur l'arbre de composants EriAPI. Toutes les coordonnees sont en espace design 1920x1080 — chaque composant appelle <code>ScaleManager.scaleX/Y()</code> en interne pour convertir vers les pixels ecran reels. EriAPI gere son propre etat OpenGL (blend, couleurs, matrices de texte) par composant : il n'est pas necessaire de pousser/popper un etat GL global autour de l'appel a <code>root.render()</code>, sauf un <code>GL11.glPushMatrix()</code> / <code>glPopMatrix()</code> de securite autour de l'ensemble du rendu dans le Mixin.</p>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>EriAPI pour les overlays</strong> — Les composants EriAPI (ContainerComponent, Rectangle, Label, TexturedRect) fonctionnent en dehors d'un EriGuiScreen. Chaque composant convertit ses coordonnees design en coordonnees ecran via <code>ScaleManager.scaleX/Y()</code> lors du rendu — aucune projection manuelle n'est necessaire. Il suffit d'appeler <code>root.render(mouseX, mouseY, partialTicks)</code> depuis le Mixin, encadre d'un simple <code>GL11.glPushMatrix()</code> / <code>glPopMatrix()</code>. Seul le rendu ping (barres signal vanilla) reste un helper OpenGL minimal isole.</div>
+      </div>
+
+      <h3>Construction de l'arbre de composants</h3>
+      <div class="code-block"><span class="cm">// Dans TabListRenderer.buildComponentTree(List players)</span>
+<span class="cm">// Appele depuis rebuildCache() quand la liste de joueurs change</span>
+
+<span class="kw">private static final int</span> PANEL_W  = <span class="nu">700</span>;   <span class="cm">// design px</span>
+<span class="kw">private static final int</span> PANEL_X  = (<span class="nu">1920</span> - PANEL_W) / <span class="nu">2</span>;  <span class="cm">// = 610</span>
+<span class="kw">private static final int</span> PANEL_Y  = <span class="nu">20</span>;
+<span class="kw">private static final int</span> HEADER_H = <span class="nu">36</span>;
+<span class="kw">private static final int</span> ROW_H    = <span class="nu">22</span>;
+<span class="kw">private static final int</span> COL_W    = (<span class="nu">700</span> - <span class="nu">16</span>) / <span class="nu">3</span>;  <span class="cm">// ~228px</span>
+
+<span class="ty">ContainerComponent</span> root = <span class="kw">new</span> <span class="ty">ContainerComponent</span>();
+root.<span class="fn">originalPos</span>(<span class="nu">0</span>, <span class="nu">0</span>).<span class="fn">originalSize</span>(<span class="nu">1920</span>, <span class="nu">1080</span>);
+
+<span class="ty">int</span> panelH = HEADER_H + <span class="nu">8</span> + <span class="cl">Math</span>.<span class="fn">min</span>(<span class="nu">15</span>, players.<span class="fn">size</span>()) * ROW_H + <span class="nu">8</span>;
+<span class="kw">if</span> (panelH &lt; HEADER_H + <span class="nu">30</span>) panelH = HEADER_H + <span class="nu">30</span>; <span class="cm">// hauteur minimale</span>
+
+<span class="cm">// Fond du panneau — glass morphism</span>
+root.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">Rectangle</span>()
+    .<span class="fn">originalPos</span>(PANEL_X, PANEL_Y).<span class="fn">originalSize</span>(PANEL_W, panelH)
+    .<span class="fn">fillColor</span>(<span class="nu">0xD90A0A12</span>)
+    .<span class="fn">cornerRadius</span>(<span class="nu">10</span>)
+    .<span class="fn">borderColor</span>(<span class="nu">0x10FFFFFF</span>));
+
+<span class="cm">// Header — fond violet translucide</span>
+root.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">Rectangle</span>()
+    .<span class="fn">originalPos</span>(PANEL_X, PANEL_Y).<span class="fn">originalSize</span>(PANEL_W, HEADER_H)
+    .<span class="fn">fillColor</span>(<span class="nu">0x336B2FA0</span>)
+    .<span class="fn">cornerRadius</span>(<span class="nu">10</span>));
+
+<span class="cm">// Header — titre</span>
+root.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">Label</span>(<span class="st">"ERINIUM FACTION"</span>)
+    .<span class="fn">originalPos</span>(PANEL_X, PANEL_Y + <span class="nu">10</span>).<span class="fn">originalSize</span>(<span class="nu">350</span>, <span class="nu">18</span>)
+    .<span class="fn">scale</span>(<span class="nu">1.1f</span>)
+    .<span class="fn">color</span>(<span class="nu">0xFF9B4FCF</span>)
+    .<span class="fn">align</span>(<span class="ty">Label</span>.<span class="ty">Align</span>.CENTER)
+    .<span class="fn">scrollable</span>(<span class="kw">false</span>));
+
+<span class="cm">// Header — compteur joueurs</span>
+root.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">Label</span>(players.<span class="fn">size</span>() + <span class="st">" / 45 joueurs"</span>)
+    .<span class="fn">originalPos</span>(PANEL_X + <span class="nu">350</span>, PANEL_Y + <span class="nu">10</span>).<span class="fn">originalSize</span>(<span class="nu">350</span>, <span class="nu">18</span>)
+    .<span class="fn">scale</span>(<span class="nu">0.9f</span>)
+    .<span class="fn">color</span>(<span class="nu">0xFF00E5FF</span>)
+    .<span class="fn">align</span>(<span class="ty">Label</span>.<span class="ty">Align</span>.CENTER)
+    .<span class="fn">scrollable</span>(<span class="kw">false</span>));
+
+<span class="cm">// Separateurs verticaux entre colonnes</span>
+<span class="kw">for</span> (<span class="ty">int</span> c = <span class="nu">1</span>; c &lt; <span class="nu">3</span>; c++) {
+    <span class="ty">int</span> sepX = PANEL_X + <span class="nu">8</span> + c * COL_W;
+    root.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">Rectangle</span>()
+        .<span class="fn">originalPos</span>(sepX, PANEL_Y + HEADER_H)
+        .<span class="fn">originalSize</span>(<span class="nu">1</span>, panelH - HEADER_H)
+        .<span class="fn">fillColor</span>(<span class="nu">0x10FFFFFF</span>));
+}
+
+<span class="cm">// Lignes joueurs</span>
+<span class="kw">for</span> (<span class="ty">int</span> i = <span class="nu">0</span>; i &lt; players.<span class="fn">size</span>(); i++) {
+    <span class="ty">int</span> col    = i / <span class="nu">15</span>;
+    <span class="ty">int</span> row    = i % <span class="nu">15</span>;
+    <span class="ty">int</span> colX   = PANEL_X + <span class="nu">8</span> + col * COL_W;
+    <span class="ty">int</span> rowY   = PANEL_Y + HEADER_H + <span class="nu">4</span> + row * ROW_H;
+    <span class="ty">int</span> nameW  = COL_W - <span class="nu">24</span> - <span class="nu">28</span>; <span class="cm">// 16px tete + 8px gaps + 24px ping zone</span>
+
+    <span class="ty">NetworkPlayerInfo</span> info = players.<span class="fn">get</span>(i);
+
+    <span class="cm">// Fond de ligne alternee</span>
+    <span class="kw">if</span> (row % <span class="nu">2</span> != <span class="nu">0</span>) {
+        root.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">Rectangle</span>()
+            .<span class="fn">originalPos</span>(colX, rowY).<span class="fn">originalSize</span>(COL_W, ROW_H)
+            .<span class="fn">fillColor</span>(<span class="nu">0x07FFFFFF</span>));
+    }
+
+    <span class="cm">// Tete de joueur — couche de base du visage (UV 8,8 sur texture 64x64)</span>
+    <span class="ty">ResourceLocation</span> skin = info.<span class="fn">getLocationSkin</span>();
+    <span class="kw">if</span> (skin == <span class="kw">null</span>) skin = <span class="kw">new</span> <span class="ty">ResourceLocation</span>(<span class="st">"textures/entity/steve.png"</span>);
+    root.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">TexturedRect</span>(skin)
+        .<span class="fn">originalPos</span>(colX + <span class="nu">4</span>, rowY + <span class="nu">3</span>).<span class="fn">originalSize</span>(<span class="nu">16</span>, <span class="nu">16</span>)
+        .<span class="fn">tint</span>(<span class="nu">0xFFFFFFFF</span>));
+    <span class="cm">// Note : TexturedRect rend la texture entiere 64x64. Pour n'afficher que la</span>
+    <span class="cm">// region visage (8,8→16,16), utiliser imageUV() sur Component.backgroundImage</span>
+    <span class="cm">// ou un sous-composant custom qui appelle Gui.drawScaledCustomSizeModalRect</span>
+    <span class="cm">// avec les UV normalises (/64f). Voir note ci-dessous.</span>
+
+    <span class="cm">// Nom du joueur (prefixe grade + pseudo)</span>
+    <span class="ty">String</span> displayName = <span class="fn">resolveDisplayName</span>(info); <span class="cm">// prefixe + pseudo formate</span>
+    root.<span class="fn">add</span>(<span class="kw">new</span> <span class="ty">Label</span>(displayName)
+        .<span class="fn">originalPos</span>(colX + <span class="nu">24</span>, rowY + <span class="nu">5</span>).<span class="fn">originalSize</span>(nameW, <span class="nu">14</span>)
+        .<span class="fn">scale</span>(<span class="nu">0.85f</span>)
+        .<span class="fn">color</span>(<span class="nu">0xFFFFFFFF</span>) <span class="cm">// les codes §x du prefixe ecrasent cette couleur</span>
+        .<span class="fn">scrollable</span>(<span class="kw">false</span>)); <span class="cm">// troncature "..." automatique par Label</span>
+}
+
+<span class="kw">this</span>.root = root;</div>
+
+      <h3>Rendu dans le Mixin</h3>
+      <div class="code-block"><span class="cm">// Dans MixinGuiPlayerTabOverlay.onRenderPlayerlist()</span>
+
+<span class="ty">TabListRenderer</span> renderer = <span class="ty">TabListRenderer</span>.INSTANCE;
+<span class="ty">int</span> mouseX = <span class="nu">0</span>, mouseY = <span class="nu">0</span>; <span class="cm">// pas d'interaction souris sur la tablist</span>
+
+<span class="cm">// Les composants EriAPI appellent ScaleManager.scaleX/Y() en interne.</span>
+<span class="cm">// Il suffit d'appeler render() directement — aucune projection manuelle.</span>
+<span class="cl">GL11</span>.<span class="fn">glPushMatrix</span>();
+renderer.<span class="fn">getRoot</span>().<span class="fn">render</span>(mouseX, mouseY, partialTicks);
+<span class="cm">// Ping bars — seul element rendu en OpenGL direct (aucun composant EriAPI pour les barres signal)</span>
+renderer.<span class="fn">renderPingBars</span>(partialTicks);
+<span class="cl">GL11</span>.<span class="fn">glPopMatrix</span>();
+
+ci.<span class="fn">cancel</span>();</div>
+
+      <h3>Note : rendu UV de la tete de joueur</h3>
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Sous-region UV du skin</strong> — <code>TexturedRect</code> rend la texture dans son integralite. Pour afficher uniquement la region visage (u=8, v=8, taille 8x8 sur une texture 64x64), deux options : (1) utiliser <code>Component.imageUV(8, 8, 8, 8, 64, 64)</code> si le composant sous-jacent supporte cette API (verifie dans <code>Component.renderBackgroundImage</code> — appelle <code>TextureRenderer.drawUV</code> avec les UV specifies) ; (2) creer un composant <code>SkinFaceComponent</code> minimal qui appelle <code>Gui.drawScaledCustomSizeModalRect(x, y, u, v, uvW, uvH, w, h, texW, texH)</code> avec les UV normalises. La couche chapeau (u=40, v=8) est dessinee par-dessus avec blend actif.</div>
+      </div>
+
+      <h3>Rendu des barres de ping (helper OpenGL isole)</h3>
+      <p>EriAPI ne possede pas de composant "barres signal". Ce rendu est la seule exception au principe composant-first — il est isole dans une methode <code>renderPingBars()</code> privee de <code>TabListRenderer</code>, appelee apres le rendu de l'arbre EriAPI, toujours dans le cadre ScaleManager.</p>
+      <div class="code-block"><span class="kw">private void</span> <span class="fn">renderPingBars</span>(<span class="ty">float</span> partialTicks) {
+    <span class="ty">List</span>&lt;<span class="ty">NetworkPlayerInfo</span>&gt; players = cache.<span class="fn">getSortedPlayers</span>();
+    <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nu">0</span>; i &lt; players.<span class="fn">size</span>(); i++) {
+        <span class="ty">int</span> col   = i / <span class="nu">15</span>;
+        <span class="ty">int</span> row   = i % <span class="nu">15</span>;
+        <span class="cm">// Coordonnees en design space — ScaleManager.scaleX/Y convertit</span>
+        <span class="ty">int</span> pingX = <span class="cl">ScaleManager</span>.<span class="fn">scaleX</span>(PANEL_X + <span class="nu">8</span> + (col + <span class="nu">1</span>) * COL_W - <span class="nu">24</span>);
+        <span class="ty">int</span> pingY = <span class="cl">ScaleManager</span>.<span class="fn">scaleY</span>(PANEL_Y + HEADER_H + <span class="nu">4</span> + row * ROW_H + <span class="nu">6</span>);
+        <span class="fn">renderPingIcon</span>(players.<span class="fn">get</span>(i).<span class="fn">getResponseTime</span>(), pingX, pingY);
+    }
+}</div>
+      <p>Le code de <code>renderPingIcon</code> (selection de l'icone vanilla et teinte coloree selon le niveau) est documente en detail dans la section 05.</p>
+    </div>
+
+    <!-- ═══ S8 — ANIMATIONS ═══ -->
+    <div class="section-card" id="s8">
+      <h2><span class="s-num green-num">08</span> Animations</h2>
+
+      <p>Les animations sont minimales et pertinentes — elles ne doivent pas distraire pendant un combat. L'accent est mis sur une ouverture/fermeture fluide et un retour visuel discret.</p>
+
+      <h3 class="first">Fade d'ouverture/fermeture</h3>
+      <ul>
+        <li>Quand TAB est enfonce, le panneau apparait avec un <strong>fade-in</strong> de l'opacite : 0.0 → 1.0 en <strong>6 ticks</strong> (0.3s)</li>
+        <li>Quand TAB est relache, le panneau disparait avec un <strong>fade-out</strong> : 1.0 → 0.0 en <strong>4 ticks</strong> (0.2s)</li>
+        <li>Implemente via un float <code>tabAlpha</code> interpolee dans <code>TabListRenderer.tick()</code> (appele depuis <code>ClientTickEvent</code>)</li>
+        <li>L'alpha est applique sur le <code>ContainerComponent</code> racine via <code>root.setOpacity(tabAlpha)</code> — EriAPI propage automatiquement l'opacite effective a tous les composants enfants via <code>getEffectiveOpacity()</code></li>
+      </ul>
+
+      <div class="code-block"><span class="kw">private float</span> tabAlpha = <span class="nu">0f</span>;
+<span class="kw">private static final float</span> FADE_IN_SPEED  = <span class="nu">1f</span> / <span class="nu">6f</span>;  <span class="cm">// 6 ticks</span>
+<span class="kw">private static final float</span> FADE_OUT_SPEED = <span class="nu">1f</span> / <span class="nu">4f</span>;  <span class="cm">// 4 ticks</span>
+
+<span class="kw">public void</span> <span class="fn">tick</span>() {
+    <span class="ty">boolean</span> tabDown = <span class="cl">Minecraft</span>.<span class="fn">getMinecraft</span>().<span class="fn">gameSettings</span>
+        .keyBindPlayerList.<span class="fn">isKeyDown</span>();
+    <span class="kw">if</span> (tabDown) {
+        tabAlpha = <span class="cl">Math</span>.<span class="fn">min</span>(<span class="nu">1f</span>, tabAlpha + FADE_IN_SPEED);
+    } <span class="kw">else</span> {
+        tabAlpha = <span class="cl">Math</span>.<span class="fn">max</span>(<span class="nu">0f</span>, tabAlpha - FADE_OUT_SPEED);
+    }
+    <span class="kw">if</span> (root != <span class="kw">null</span>) root.<span class="fn">setOpacity</span>(tabAlpha); <span class="cm">// propague a tous les enfants</span>
+}</div>
+
+      <h3>Lignes alternees</h3>
+      <ul>
+        <li>Les lignes d'index impair (0-based) ont un fond <code>rgba(255,255,255,0.025)</code>, les lignes paires sont transparentes</li>
+        <li>Pas d'animation sur les lignes — effet purement statique pour la lisibilite</li>
+      </ul>
+
+      <h3>Absence de scroll</h3>
+      <ul>
+        <li>Si plus de 45 joueurs sont connectes, seuls les 45 premiers selon le tri sont affiches</li>
+        <li>Pas de scroll animate — la tab list est un affichage rapide, pas un menu</li>
+        <li>Un message discret dans le footer indique le nombre total si &gt; 45 (voir section 11)</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S9 — PERFORMANCE & CACHE ═══ -->
+    <div class="section-card" id="s9">
+      <h2><span class="s-num gold-num">09</span> Performance &amp; Strategie de Cache</h2>
+
+      <p>La tab list est rendue a chaque frame tant que TAB est enfonce. Sans cache, le tri et la resolution des donnees joueur seraient effectues 60+ fois par seconde. Un cache avec invalidation periodique est indispensable.</p>
+
+      <h3 class="first">TabListCache</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Element</th>
+              <th>Strategie</th>
+              <th>Frequence de mise a jour</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Liste triee des joueurs</td>
+              <td>Reconstruite apres chaque tri, stockee dans une List</td>
+              <td>Toutes les 20 ticks (1 seconde)</td>
+            </tr>
+            <tr>
+              <td>Noms formates (displayName)</td>
+              <td>Stockes dans une Map&lt;UUID, String&gt;</td>
+              <td>Mis a jour uniquement si la liste change</td>
+            </tr>
+            <tr>
+              <td>Skins (ResourceLocation)</td>
+              <td>Pas de cache necessaire — Minecraft gere le sien</td>
+              <td>Appel direct a info.getLocationSkin()</td>
+            </tr>
+            <tr>
+              <td>Priorites de grade</td>
+              <td>Lues depuis FactionPlayerData (@Sync, deja en memoire)</td>
+              <td>Pas de cache supplementaire</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-block"><span class="cm">// TabListCache — actualisation periodique</span>
+<span class="kw">private int</span> ticksSinceLastUpdate = <span class="nu">0</span>;
+<span class="kw">private static final int</span> UPDATE_INTERVAL = <span class="nu">20</span>; <span class="cm">// ticks</span>
+
+<span class="kw">public void</span> <span class="fn">onClientTick</span>() {
+    ticksSinceLastUpdate++;
+    <span class="kw">if</span> (ticksSinceLastUpdate >= UPDATE_INTERVAL) {
+        ticksSinceLastUpdate = <span class="nu">0</span>;
+        <span class="fn">rebuildCache</span>(); <span class="cm">// Retri + reconstruction des noms</span>
+    }
+}
+
+<span class="cm">// Forcer la mise a jour immediate (appele a la connexion/deconnexion d'un joueur)</span>
+<span class="kw">public void</span> <span class="fn">invalidate</span>() { ticksSinceLastUpdate = UPDATE_INTERVAL; }</code></div>
+
+      <h3>Ecouter les evenements de connexion</h3>
+      <p>Pour invalider le cache immediatement quand un joueur rejoint ou quitte le serveur, ecouter :</p>
+      <ul>
+        <li><strong>Connexion</strong> : <code>ClientConnectedToServerEvent</code> ou <code>FMLNetworkEvent.ClientConnectedToServerEvent</code></li>
+        <li><strong>Deconnexion joueur</strong> : surveiller la taille de <code>getPlayerInfoMap()</code> — si elle change entre deux ticks, invalider</li>
+      </ul>
+
+      <h3>Cache de l'arbre de composants</h3>
+      <ul>
+        <li>L'arbre de composants (<code>ContainerComponent root</code>) est le cache de rendu : il est reconstruit une fois par <code>rebuildCache()</code>, puis reutilise tel quel a chaque frame</li>
+        <li>Seul <code>root.setOpacity(tabAlpha)</code> est appele a chaque tick pour le fade — aucune autre modification de l'arbre n'est faite par frame</li>
+        <li>Les textures skin sont gerees par Minecraft (pas de cache additionnel) ; <code>TexturedRect</code> appelle <code>bindTexture</code> une fois par composant par frame — c'est incontournable pour les skins distincts</li>
+        <li>EriAPI gere lui-meme l'etat OpenGL (blend, matrice, couleurs) — ne pas dupliquer ces appels autour de <code>root.render()</code></li>
+      </ul>
+    </div>
+
+    <!-- ═══ S10 — INTEGRATIONS ═══ -->
+    <div class="section-card" id="s10">
+      <h2><span class="s-num">10</span> Integrations</h2>
+
+      <p>La tab list s'appuie sur trois systemes existants du projet sans les modifier.</p>
+
+      <h3 class="first">RankManager</h3>
+      <ul>
+        <li>Utilise <strong>indirectement</strong> via <code>FactionPlayerData.rankPrefix</code> (champ @Sync) et <code>FactionPlayerData.rankPriority</code> (champ @Sync a ajouter)</li>
+        <li>Ne jamais appeler <code>RankManager</code> directement depuis le rendu client — il peut etre absent ou inaccessible selon le contexte</li>
+        <li>Le prefixe colore est disponible soit dans <code>info.getDisplayName()</code> (si le serveur le pousse), soit construit depuis <code>FactionPlayerData.rankPrefix</code></li>
+      </ul>
+
+      <h3>FactionPlayerData</h3>
+      <p>Deux champs doivent etre presents et synchronises (<code>@Sync</code>) :</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Champ</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Etat</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>rankPrefix</code></td>
+              <td><code>String</code></td>
+              <td>Prefixe colore du grade (ex: <code>§6[Admin]§r</code>)</td>
+              <td><span class="tag-yes">Existant</span></td>
+            </tr>
+            <tr>
+              <td><code>rankPriority</code></td>
+              <td><code>int</code></td>
+              <td>Priorite numerique du grade pour le tri</td>
+              <td><span class="tag-opt">A ajouter</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>NetworkPlayerInfo</h3>
+      <ul>
+        <li>Fourni par <code>NetHandlerPlayClient.getPlayerInfoMap()</code> — aucune modification necessaire</li>
+        <li>Donne acces a <code>getGameProfile()</code>, <code>getResponseTime()</code>, <code>getLocationSkin()</code>, <code>getDisplayName()</code></li>
+        <li>Les skins sont charges de facon asynchrone par Minecraft — traiter le cas ou la texture n'est pas encore disponible (fallback Steve)</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Integration minimale</strong> — Le seul changement necessaire dans les systemes existants est l'ajout du champ <code>rankPriority</code> dans <code>FactionPlayerData</code> et sa mise a jour dans <code>RankManager</code> lors d'un changement de grade. Tout le reste repose sur des donnees deja disponibles.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S11 — CAS LIMITES ═══ -->
+    <div class="section-card" id="s11">
+      <h2><span class="s-num cyan-num">11</span> Cas Limites</h2>
+
+      <h3 class="first">0 joueurs connectes</h3>
+      <ul>
+        <li>Si <code>getPlayerInfoMap()</code> retourne une collection vide, afficher le panneau avec uniquement le header et un message centre : <code>§7Aucun joueur en ligne</code></li>
+        <li>La hauteur minimale du panneau est fixee a <code>HEADER_H + 30px</code> pour eviter un panneau de 1px</li>
+      </ul>
+
+      <h3>Plus de 45 joueurs (serveur > 45 slots)</h3>
+      <ul>
+        <li>Les 45 premiers selon le tri sont affiches</li>
+        <li>Un footer discret sous les colonnes indique : <code>§7+ N joueurs supplémentaires</code> (N = total - 45)</li>
+        <li>Aucune pagination — la tab list n'est pas un menu, elle doit etre consultable en un coup d'oeil</li>
+      </ul>
+
+      <h3>Pseudo tres long</h3>
+      <ul>
+        <li>Tronquer avec <code>fontRenderer.trimStringToWidth()</code> a la largeur disponible moins 3px, puis ajouter <code>§8...</code></li>
+        <li>La largeur disponible est : largeur colonne - 8px (skin) - 4px (gap) - 22px (ping) - 4px (margin droite)</li>
+      </ul>
+
+      <h3>Joueur sans grade (grade par defaut)</h3>
+      <ul>
+        <li>Si <code>rankPrefix</code> est vide ou null : ne pas afficher de prefixe, afficher uniquement le pseudo en blanc (<code>0xFFFFFFFF</code>)</li>
+        <li>La priorite de tri est 0 (valeur par defaut de <code>rankPriority</code>)</li>
+      </ul>
+
+      <h3>Skin non encore charge</h3>
+      <ul>
+        <li>Si <code>info.getLocationSkin()</code> retourne une ResourceLocation mais que la texture n'est pas encore chargee en GPU, Minecraft affichera automatiquement une texture blanche/rose</li>
+        <li>Utiliser <code>new ResourceLocation("textures/entity/steve.png")</code> comme fallback explicite quand <code>getLocationSkin()</code> retourne la texture par defaut</li>
+      </ul>
+
+      <h3>Joueur dans un autre monde (dimension)</h3>
+      <ul>
+        <li><code>getPlayerInfoMap()</code> liste tous les joueurs du serveur, pas seulement ceux de la dimension du joueur local</li>
+        <li>Pas de filtrage par dimension — afficher tous les joueurs connectes, quelle que soit leur dimension</li>
+      </ul>
+
+      <h3>TAB maintenu pendant l'ouverture d'un GUI</h3>
+      <ul>
+        <li>Le Mixin injecte dans <code>renderPlayerlist</code> qui n'est appele par vanilla que quand la condition TAB est vraie</li>
+        <li>Si un GUI EriAPI est ouvert par-dessus la tab list, le rendu de la tab list s'arrete naturellement (Minecraft n'appelle plus <code>renderPlayerlist</code>)</li>
+      </ul>
+
+      <h3>Connexion au serveur pendant l'affichage</h3>
+      <ul>
+        <li>Le <code>TabListCache</code> se met a jour toutes les 20 ticks, donc un nouveau joueur apparait dans la liste en moins d'une seconde</li>
+        <li>L'invalidation du cache est egalement declenchee par <code>FMLNetworkEvent</code> a la connexion d'un joueur</li>
+      </ul>
+    </div>
+
+    <!-- ═══ S12 — PLAN DE TESTS ═══ -->
+    <div class="section-card" id="s12">
+      <h2><span class="s-num green-num">12</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests fonctionnels</h3>
+      <ul>
+        <li>Appuyer sur TAB en jeu : le panneau custom s'affiche, le panneau vanilla n'apparait pas</li>
+        <li>Relacher TAB : le panneau disparait avec le fade-out</li>
+        <li>Verification que les skins sont correctement affiches pour des joueurs avec des skins differents</li>
+        <li>Verification que les prefixes de grade sont affiches avec les bonnes couleurs pour chaque grade existant</li>
+        <li>Verification que le tri place les Admins avant les Modos avant les VIP avant les joueurs</li>
+        <li>Verification de l'ordre alphabetique pour deux joueurs de meme grade</li>
+      </ul>
+
+      <h3>Tests de ping</h3>
+      <ul>
+        <li>Simuler un ping de 50ms → 5 barres vertes</li>
+        <li>Simuler un ping de 200ms → 4 barres vert clair</li>
+        <li>Simuler un ping de 450ms → 3 barres jaunes</li>
+        <li>Simuler un ping de 750ms → 2 barres orange</li>
+        <li>Simuler un ping de 1200ms → 1 barre rouge</li>
+        <li>Ping non encore mesure (-1) → icone grise</li>
+      </ul>
+
+      <h3>Tests de layout</h3>
+      <ul>
+        <li>1 joueur : colonne 1 seule entree, colonnes 2 et 3 vides</li>
+        <li>15 joueurs : colonne 1 pleine, colonnes 2 et 3 vides</li>
+        <li>16 joueurs : colonnes 1 et 2 partiellement remplies</li>
+        <li>45 joueurs : les 3 colonnes sont pleines</li>
+        <li>50 joueurs : 45 affiches + footer "5 joueurs supplementaires"</li>
+        <li>0 joueur : message "Aucun joueur en ligne"</li>
+        <li>Pseudo de 32 caracteres : troncature correcte avec "..."</li>
+      </ul>
+
+      <h3>Tests de performance</h3>
+      <ul>
+        <li>Maintenir TAB pendant 30 secondes avec 20 joueurs en ligne : pas de baisse de FPS notable (objectif : &lt; 2 FPS de difference)</li>
+        <li>Verifier avec un profiler que <code>buildSortedList()</code> n'est pas appele a chaque frame</li>
+        <li>Verifier que <code>GlStateManager.bindTexture</code> n'est pas appele plus d'une fois par joueur par frame pour les skins</li>
+      </ul>
+
+      <h3>Tests de compatibilite</h3>
+      <ul>
+        <li>Ouvrir le GUI Faction (F key) pendant que TAB est maintenu : la tab list disparait proprement</li>
+        <li>Changer de dimension pendant que TAB est maintenu : la liste se met a jour</li>
+        <li>Se connecter/deconnecter des joueurs pendant que la tab list est ouverte : le cache se rafraichit</li>
+        <li>Tester en solo (LAN) avec le propre joueur dans la liste</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Test multi-joueurs recommande</strong> — Lancer un serveur de developpement local et connecter 2 a 3 clients supplementaires (via instances Minecraft separees) pour valider le rendu des skins tiers, le tri multi-joueurs et la mise a jour du cache a la connexion/deconnexion.</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" id="navToggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<script>
+// Active nav link on scroll
+var sections = document.querySelectorAll('.section-card[id]');
+var navLinks = document.querySelectorAll('.nav-link');
+window.addEventListener('scroll', function() {
+  var scrollY = window.scrollY + 120;
+  sections.forEach(function(sec) {
+    if (sec.offsetTop <= scrollY && sec.offsetTop + sec.offsetHeight > scrollY) {
+      navLinks.forEach(function(l) { l.classList.remove('active'); });
+      var active = document.querySelector('.nav-link[href="#' + sec.id + '"]');
+      if (active) active.classList.add('active');
+    }
+  });
+});
+</script>
+
+</body>
+</html>

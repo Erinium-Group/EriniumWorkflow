@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Optimisation Performance Serveur | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --teal:      #1ABC9C;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(231,76,60,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(107,47,160,0.14) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 60% 10%, rgba(0,229,255,0.07) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--red) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--red); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--red); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 4px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--red);
+    background: rgba(231,76,60,0.14);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link .num.mod { color: var(--orange); background: rgba(230,126,34,0.14); }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(231,76,60,0.09);
+    border-color: rgba(231,76,60,0.22);
+  }
+
+  .nav-link.active {
+    color: var(--red);
+    background: rgba(231,76,60,0.08);
+    border-color: rgba(231,76,60,0.22);
+  }
+
+  .sidebar-sep { height: 1px; background: var(--card-bdr); margin: 10px 0 4px; }
+
+  /* MAIN */
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* PAGE HEADER */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--red) 55%, var(--orange) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 680px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet { color: var(--violet-l); border-color: rgba(107,47,160,0.4);  background: rgba(107,47,160,0.1); }
+  .badge-cyan   { color: var(--cyan);     border-color: rgba(0,229,255,0.3);    background: rgba(0,229,255,0.07); }
+  .badge-green  { color: var(--green);    border-color: rgba(46,204,113,0.3);   background: rgba(46,204,113,0.07); }
+  .badge-teal   { color: var(--teal);     border-color: rgba(26,188,156,0.35);  background: rgba(26,188,156,0.08); }
+  .badge-gold   { color: var(--gold);     border-color: rgba(241,196,15,0.3);   background: rgba(241,196,15,0.07); }
+  .badge-orange { color: var(--orange);   border-color: rgba(230,126,34,0.35);  background: rgba(230,126,34,0.08); }
+  .badge-red    { color: var(--red);      border-color: rgba(231,76,60,0.35);   background: rgba(231,76,60,0.08); }
+
+  /* SECTION CARDS */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #b02a1c 0%, var(--red) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.mod-num {
+    background: linear-gradient(135deg, #b05a10 0%, var(--orange) 100%);
+    color: #fff;
+  }
+
+  .section-card h2 .s-num.mem-num {
+    background: linear-gradient(135deg, #1a7a40 0%, var(--green) 100%);
+    color: #0A0A0F;
+  }
+
+  .section-card h2 .s-num.sum-num {
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    color: #fff;
+  }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--red);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* TABLES */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+  thead tr { background: rgba(231,76,60,0.10); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(231,76,60,0.22);
+  }
+
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(231,76,60,0.05); }
+
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-critique { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(231,76,60,0.12); color:var(--red); border:1px solid rgba(231,76,60,0.3); letter-spacing:.05em; }
+  .tag-modere   { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(230,126,34,0.12); color:var(--orange); border:1px solid rgba(230,126,34,0.3); letter-spacing:.05em; }
+  .tag-done     { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(46,204,113,0.12); color:var(--green); border:1px solid rgba(46,204,113,0.3); letter-spacing:.05em; }
+  .tag-teal     { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(26,188,156,0.12); color:var(--teal); border:1px solid rgba(26,188,156,0.3); letter-spacing:.05em; }
+  .tag-cyan     { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(0,229,255,0.10); color:var(--cyan); border:1px solid rgba(0,229,255,0.25); letter-spacing:.05em; }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(231,76,60,0.16);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(231,76,60,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(231,76,60,0.4); border-radius: 4px; }
+
+  .code-block .label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .code-block .label.before { color: var(--red); }
+  .code-block .label.after  { color: var(--green); }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .del { color: var(--red); background: rgba(231,76,60,0.08); }
+  .add { color: var(--green); background: rgba(46,204,113,0.08); }
+
+  /* INFO BOXES */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(26,188,156,0.06); border: 1px solid rgba(26,188,156,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.07);  border: 1px solid rgba(231,76,60,0.22);  }
+
+  /* METRIC CARDS */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+  }
+
+  .metric-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    text-align: center;
+  }
+
+  .metric-card.critique { border-top: 3px solid var(--red); }
+  .metric-card.modere   { border-top: 3px solid var(--orange); }
+  .metric-card.done     { border-top: 3px solid var(--green); }
+
+  .metric-val {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .metric-val.bad    { color: var(--red); }
+  .metric-val.good   { color: var(--green); }
+  .metric-val.target { color: var(--teal); }
+
+  .metric-label {
+    font-size: 12px;
+    color: var(--slate);
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .metric-arrow {
+    font-size: 20px;
+    color: var(--slate);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 8px;
+  }
+
+  /* DIFF GRID (avant/apres) */
+  .diff-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 14px 0;
+  }
+
+  @media (max-width: 700px) {
+    .diff-grid { grid-template-columns: 1fr; }
+  }
+
+  /* TARGET SUMMARY */
+  .target-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+  }
+
+  .target-card {
+    background: rgba(5,5,10,0.55);
+    border: 1px solid rgba(26,188,156,0.2);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+    text-align: center;
+  }
+
+  .target-val {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--teal);
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  .target-label {
+    font-size: 12px;
+    color: var(--slate);
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  /* CHECKLIST */
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 14px 0;
+  }
+
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  .checklist-item::before {
+    content: '□';
+    color: var(--red);
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .checklist-item strong { color: var(--text); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 32px 24px 60px; }
+    .metric-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a href="../roadmap.html" class="sidebar-back">&#8592; Roadmap</a>
+
+    <div class="sidebar-title">Priorite CRITIQUE</div>
+    <a href="#contexte"    class="nav-link"><span class="num">01</span>Contexte &amp; Audit</a>
+    <a href="#rpg-tick"    class="nav-link"><span class="num">02</span>RpgEventHandler</a>
+    <a href="#movement"    class="nav-link"><span class="num">03</span>CheckMovement</a>
+    <a href="#milestone"   class="nav-link"><span class="num">04</span>MilestoneTicker</a>
+    <a href="#network"     class="nav-link"><span class="num">05</span>TabList + Nameplate</a>
+
+    <div class="sidebar-title">Priorite MODEREE</div>
+    <a href="#setbonus"    class="nav-link"><span class="num mod">06</span>SetBonusHandler</a>
+    <a href="#culler"      class="nav-link"><span class="num mod">07</span>InactiveEntityCuller</a>
+    <a href="#territory"   class="nav-link"><span class="num mod">08</span>FactionTerritoryHandler</a>
+    <a href="#memory"      class="nav-link"><span class="num mod">09</span>Memory Leaks</a>
+
+    <div class="sidebar-title">Bilan</div>
+    <a href="#summary"     class="nav-link"><span class="num">10</span>Tableau recapitulatif</a>
+    <a href="#tests"       class="nav-link"><span class="num">11</span>Plan de tests</a>
+
+    <div class="sidebar-sep"></div>
+    <div class="sidebar-title">Autres specs</div>
+    <a href="server-performance.html" class="nav-link" style="font-size:12px;">Server Performance (general)</a>
+    <a href="anti-cheat.html"         class="nav-link" style="font-size:12px;">Anti Cheat</a>
+    <a href="faction-system.html"     class="nav-link" style="font-size:12px;">Faction System</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="eyebrow">Infrastructure — Audit TPS &amp; Correctifs</div>
+      <h1>Optimisation Performance Serveur</h1>
+      <p>Audit de scalabilite revele des bottlenecks critiques qui rameneraient le TPS a 8-10 a pleine capacite (1000 joueurs). Ce cahier documente chaque systeme defaillant, sa cause racine, et les correctifs precis a appliquer pour descendre de 14-20ms/tick a 3-4ms/tick.</p>
+      <div class="header-badges">
+        <span class="badge badge-red">CRITIQUE — 14-20ms/tick</span>
+        <span class="badge badge-teal">Cible — 3-4ms/tick</span>
+        <span class="badge badge-orange">500-1000 Joueurs</span>
+        <span class="badge badge-violet">Forge 1.12.2</span>
+        <span class="badge badge-cyan">Serveur Unique</span>
+        <span class="badge badge-gold">8 Systemes</span>
+      </div>
+    </div>
+
+    <!-- ═══ 01. CONTEXTE ═══ -->
+    <section class="section-card" id="contexte">
+      <h2><span class="s-num">01</span>Contexte &amp; Resultats de l'Audit</h2>
+
+      <h3 class="first">Infrastructure concernee</h3>
+      <ul>
+        <li><strong>Serveur unique</strong> — Pas de BungeeCord, pas de split horizontal. Tout le monde dans la meme JVM.</li>
+        <li><strong>500 a 1000 joueurs simultanees</strong> — Heure de pointe en semaine/weekend. C'est la charge de reference pour toutes les estimations de cette spec.</li>
+        <li><strong>~20 mods actifs</strong> — Dont Dimensional Threading pour le multithreading des dimensions.</li>
+        <li><strong>PvP 1.8</strong> — Pas de cooldown d'attaque, combats frequents, beaucoup d'effets de potion actifs en permanence.</li>
+        <li><strong>Monde unique</strong> — Tous les joueurs coexistent dans le meme overworld avec des biomes custom, des claims de faction, des territoires.</li>
+      </ul>
+
+      <h3>Constat de l'audit</h3>
+      <div class="info-box danger">
+        <span class="icon">!</span>
+        <div class="content">
+          <strong>TPS projete a 1000 joueurs : 8-10 TPS</strong> — sans correctifs, le serveur sera injouable a pleine capacite. Les systemes identifies ci-dessous ajoutent collectivement 14 a 20ms par tick, alors que le budget total d'un tick a 20 TPS est de 50ms.
+        </div>
+      </div>
+
+      <h3>Budget tick disponible</h3>
+      <div class="metric-grid">
+        <div class="metric-card done">
+          <div class="metric-val good">50ms</div>
+          <div class="metric-label">Budget total par tick (20 TPS)</div>
+        </div>
+        <div class="metric-card critique">
+          <div class="metric-val bad">14-20ms</div>
+          <div class="metric-label">Cout actuel (systemes audites)</div>
+        </div>
+        <div class="metric-card done">
+          <div class="metric-val target">3-4ms</div>
+          <div class="metric-label">Cible apres optimisations</div>
+        </div>
+        <div class="metric-card done">
+          <div class="metric-val target">+10ms</div>
+          <div class="metric-label">Marge recuperee pour Forge/Mods tiers</div>
+        </div>
+      </div>
+
+      <h3>Repartition des systemes a corriger</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Systeme</th>
+              <th>Fichier</th>
+              <th>Cout actuel (1000p)</th>
+              <th>Cible</th>
+              <th>Priorite</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>RpgEventHandler — Perks tick</td>
+              <td><code>RpgEventHandler.java</code></td>
+              <td>2-3ms/tick</td>
+              <td>&lt;0.2ms/tick</td>
+              <td><span class="tag-critique">CRITIQUE</span></td>
+            </tr>
+            <tr>
+              <td>CheckMovement — Anti-cheat</td>
+              <td><code>CheckMovement.java</code></td>
+              <td>3-5ms/tick</td>
+              <td>&lt;1-2ms/tick</td>
+              <td><span class="tag-critique">CRITIQUE</span></td>
+            </tr>
+            <tr>
+              <td>FactionMilestoneTicker — Perks territoires</td>
+              <td><code>FactionMilestoneTicker.java</code></td>
+              <td>5-10ms/20 ticks</td>
+              <td>&lt;1-2ms/20 ticks</td>
+              <td><span class="tag-critique">CRITIQUE</span></td>
+            </tr>
+            <tr>
+              <td>TabListNameHandler + NameplateSyncHandler</td>
+              <td>Deux fichiers</td>
+              <td>3-5ms/40 ticks</td>
+              <td>&lt;0.3ms/40 ticks</td>
+              <td><span class="tag-critique">CRITIQUE</span></td>
+            </tr>
+            <tr>
+              <td>SetBonusHandler — Bonus d'armure</td>
+              <td><code>SetBonusHandler.java</code></td>
+              <td>0.6ms/20 ticks</td>
+              <td>&lt;0.1ms/20 ticks</td>
+              <td><span class="tag-modere">MODERE</span></td>
+            </tr>
+            <tr>
+              <td>InactiveEntityCuller — Entites inactives</td>
+              <td><code>InactiveEntityCuller.java</code></td>
+              <td>2-3ms/80 ticks</td>
+              <td>&lt;0.5ms/80 ticks</td>
+              <td><span class="tag-modere">MODERE</span></td>
+            </tr>
+            <tr>
+              <td>FactionTerritoryHandler — Cle de chunk</td>
+              <td><code>FactionTerritoryHandler.java</code></td>
+              <td>1-2ms/tick</td>
+              <td>&lt;0.3ms/tick</td>
+              <td><span class="tag-modere">MODERE</span></td>
+            </tr>
+            <tr>
+              <td>Memory Leaks — HashMaps non nettoyees</td>
+              <td>RpgEventHandler + SetBonusHandler</td>
+              <td>Croissance indefinie</td>
+              <td>Nettoye a la deconnexion</td>
+              <td><span class="tag-modere">MODERE</span></td>
+            </tr>
+            <tr style="background: rgba(231,76,60,0.06); font-weight:600;">
+              <td>TOTAL</td>
+              <td>—</td>
+              <td><strong style="color:var(--red);">14-20ms/tick</strong></td>
+              <td><strong style="color:var(--green);">3-4ms/tick</strong></td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content">
+          <strong>BlockHealthManager deja optimise</strong> — Ce systeme a ete refactorise en amont et n'est pas liste ci-dessus. Il utilise deja des cles <code>long</code> packes et des lookups O(1). Servir de reference pour les autres systemes.
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 02. RPGEVENTHANDLER ═══ -->
+    <section class="section-card" id="rpg-tick">
+      <h2><span class="s-num">02</span>RpgEventHandler — Optimisation des Perks Tick</h2>
+
+      <div class="info-box danger">
+        <span class="icon">!</span>
+        <div class="content"><strong>Cout actuel : 2-3ms/tick a 1000 joueurs.</strong> Fichier : <code>RpgEventHandler.java</code>.</div>
+      </div>
+
+      <h3 class="first">Probleme 1 — Iteration globale des joueurs</h3>
+      <p>Les perks Bastion, Frappe et Forme Cristalline sont geres dans un <code>ServerTickEvent</code> (ou equivalent) qui appelle <code>server.getPlayerList().getPlayers()</code> et itere la liste entiere a chaque tick. A 1000 joueurs, c'est 1000 iterations de logique perk chaque 50ms, meme si aucun joueur n'a le perk actif.</p>
+
+      <div class="code-block"><span class="label before">AVANT — iteration globale (a eviter)</span><span class="cm">// Dans un @SubscribeEvent(ServerTickEvent) ou similaire :</span>
+<span class="kw">for</span> (<span class="ty">EntityPlayerMP</span> player : server.<span class="fn">getPlayerList</span>().<span class="fn">getPlayers</span>()) {
+    <span class="cm">// Execute pour CHAQUE joueur, CHAQUE tick, meme sans perk actif</span>
+    <span class="ty">RpgPlayerData</span> data = <span class="ty">DataManager</span>.<span class="fn">get</span>(player, <span class="ty">RpgPlayerData</span>.<span class="kw">class</span>);
+    <span class="kw">if</span> (data.<span class="fn">hasPerk</span>(<span class="st">"BASTION"</span>)) { ... }
+    <span class="kw">if</span> (data.<span class="fn">hasPerk</span>(<span class="st">"FRAPPE"</span>)) { ... }
+    <span class="kw">if</span> (data.<span class="fn">hasPerk</span>(<span class="st">"FORME_CRISTALLINE"</span>)) { ... }
+}</span></div>
+
+      <div class="code-block"><span class="label after">APRES — PlayerTickEvent (Forge batch)</span><span class="cm">// Forge declenche PlayerTickEvent.Type.END pour chaque joueur, en batch.</span>
+<span class="cm">// Pas d'iteration manuelle : Forge gere la distribution.</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onPlayerTick</span>(<span class="ty">TickEvent.PlayerTickEvent</span> e) {
+    <span class="kw">if</span> (e.phase != <span class="ty">TickEvent.Phase</span>.END || !(e.player <span class="kw">instanceof</span> <span class="ty">EntityPlayerMP</span>)) <span class="kw">return</span>;
+    <span class="ty">EntityPlayerMP</span> player = (<span class="ty">EntityPlayerMP</span>) e.player;
+    <span class="ty">RpgPlayerData</span> data = <span class="ty">DataManager</span>.<span class="fn">get</span>(player, <span class="ty">RpgPlayerData</span>.<span class="kw">class</span>);
+    <span class="kw">if</span> (data == <span class="kw">null</span>) <span class="kw">return</span>;
+
+    <span class="cm">// Sortir immediatement si aucun perk tick-base n'est actif</span>
+    <span class="kw">if</span> (!data.bastionActive &amp;&amp; !data.frappeActive &amp;&amp; !data.formeCristallineActive) <span class="kw">return</span>;
+
+    <span class="kw">if</span> (data.bastionActive)          <span class="fn">tickBastion</span>(player, data);
+    <span class="kw">if</span> (data.frappeActive)           <span class="fn">tickFrappe</span>(player, data);
+    <span class="kw">if</span> (data.formeCristallineActive) <span class="fn">tickFormeCristalline</span>(player, data);
+}</span></div>
+
+      <h3>Probleme 2 — 7 HashMaps UUID non nettoyees</h3>
+      <p>Le handler maintient 7 <code>HashMap&lt;UUID, *&gt;</code> pour tracker des etats de perk par joueur (cooldowns, compteurs, flags). Ces maps ne sont <strong>jamais nettoyees a la deconnexion</strong>. Avec 1000 joueurs uniques par jour, la memoire utilisee par ces maps croit indefiniment jusqu'au redemarrage.</p>
+
+      <div class="code-block"><span class="cm">// Exemple de maps typiquement presentes :</span>
+<span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">UUID</span>, <span class="ty">Integer</span>&gt; bastionCooldown = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+<span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">UUID</span>, <span class="ty">Long</span>&gt;    frappeLastHit   = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+<span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">UUID</span>, <span class="ty">Boolean</span>&gt; cristallineOn   = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+<span class="cm">// ... 4 autres maps similaires</span>
+
+<span class="cm">// ===================================================</span>
+<span class="cm">// SOLUTION : deplacer ces champs dans RpgPlayerData</span>
+<span class="cm">// et ajouter un cleanup PlayerLoggedOutEvent</span>
+<span class="cm">// ===================================================</span>
+
+<span class="cm">// Dans RpgPlayerData (annote @EriData ou champ directement) :</span>
+<span class="kw">public int</span>     bastionCooldown     = <span class="nu">0</span>;
+<span class="kw">public long</span>    frappeLastHitTime   = <span class="nu">0L</span>;
+<span class="kw">public boolean</span> formeCristallineOn = <span class="kw">false</span>;
+<span class="cm">// ... etc.</span>
+
+<span class="cm">// Dans RpgEventHandler — cleanup obligatoire :</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onPlayerLogout</span>(<span class="ty">PlayerEvent.PlayerLoggedOutEvent</span> e) {
+    <span class="cm">// Si des maps residuelles subsistent, les vider ici</span>
+    <span class="ty">UUID</span> id = e.player.<span class="fn">getUniqueID</span>();
+    bastionCooldown.<span class="fn">remove</span>(id);
+    frappeLastHit.<span class="fn">remove</span>(id);
+    cristallineOn.<span class="fn">remove</span>(id);
+    <span class="cm">// ... toutes les autres maps</span>
+}</span></div>
+
+      <h3>Solution complete</h3>
+      <ul>
+        <li><strong>Migrer vers PlayerTickEvent</strong> — remplacer le ServerTickEvent global par des handlers individuels. Forge dispatche ces events player-par-player, ce qui evite l'iteration manuelle.</li>
+        <li><strong>Early return</strong> — si aucun perk tick-base n'est actif pour ce joueur, retourner immediatement. Cout marginal pour 95% des joueurs sans perk actif.</li>
+        <li><strong>Champs dans RpgPlayerData</strong> — migrer les 7 HashMaps vers des champs primitifs directement dans la classe data. Acces O(1) sans hashage de UUID, et persistence automatique via EriAPI.</li>
+        <li><strong>PlayerLoggedOutEvent</strong> — ajouter un handler de cleanup pour toute map residuelle.</li>
+      </ul>
+
+      <div class="target-grid">
+        <div class="target-card">
+          <div class="target-val" style="color:var(--red);">2-3ms</div>
+          <div class="target-label">Cout actuel / tick</div>
+        </div>
+        <div class="target-card">
+          <div class="target-val">&lt;0.2ms</div>
+          <div class="target-label">Cible apres refacto</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 03. CHECKMOVEMENT ═══ -->
+    <section class="section-card" id="movement">
+      <h2><span class="s-num">03</span>CheckMovement — Anti-cheat Mouvement</h2>
+
+      <div class="info-box danger">
+        <span class="icon">!</span>
+        <div class="content"><strong>Cout actuel : 3-5ms/tick a 1000 joueurs.</strong> Fichier : <code>CheckMovement.java</code>.</div>
+      </div>
+
+      <h3 class="first">Probleme — Calculs couteux a chaque tick</h3>
+      <p>Le systeme anti-cheat applique plusieurs verifications de mouvement (speed, fly, nofall, phase, step, blink) pour chaque joueur a chaque tick. Les operations les plus couteuses sont :</p>
+      <ul>
+        <li><strong><code>Math.sqrt()</code></strong> — utilise pour calculer la distance parcourue. Operation en virgule flottante couteuse, invoquee 1000 fois/tick a 1000 joueurs.</li>
+        <li><strong>2-3 appels <code>world.getBlockState()</code></strong> — pour les verifications fly/nofall/phase. Chaque appel peut impliquer un lookup de chunk et de section. Multiplicatif a 1000 joueurs.</li>
+        <li><strong>Frequence : chaque tick</strong> — aucune reduction de frequence meme quand un joueur est immobile.</li>
+      </ul>
+
+      <div class="code-block"><span class="label before">AVANT — sqrt + getBlockState chaque tick</span><span class="cm">// Exemple typique dans CheckMovement :</span>
+<span class="kw">double</span> dx = player.posX - player.prevPosX;
+<span class="kw">double</span> dz = player.posZ - player.prevPosZ;
+<span class="kw">double</span> dist = <span class="ty">Math</span>.<span class="fn">sqrt</span>(dx*dx + dz*dz);  <span class="del">// COUTEUX — sqrt inutile</span>
+
+<span class="kw">if</span> (dist > MAX_SPEED) flag(player, <span class="st">"speed"</span>);
+
+<span class="cm">// Puis verifications blocs :</span>
+<span class="ty">IBlockState</span> below  = world.<span class="fn">getBlockState</span>(pos.down());     <span class="del">// appel 1</span>
+<span class="ty">IBlockState</span> feet   = world.<span class="fn">getBlockState</span>(pos);             <span class="del">// appel 2</span>
+<span class="ty">IBlockState</span> head   = world.<span class="fn">getBlockState</span>(pos.up());        <span class="del">// appel 3</span></span></div>
+
+      <div class="code-block"><span class="label after">APRES — distanceSq + cache + every 2 ticks</span><span class="cm">// Comparaison en distance au carre — pas besoin de sqrt :</span>
+<span class="kw">double</span> dx = player.posX - player.prevPosX;
+<span class="kw">double</span> dz = player.posZ - player.prevPosZ;
+<span class="kw">double</span> distSq = dx*dx + dz*dz;           <span class="add">// Pas de sqrt !</span>
+<span class="kw">double</span> maxSpeedSq = MAX_SPEED * MAX_SPEED; <span class="add">// Constante pre-calculee</span>
+
+<span class="kw">if</span> (distSq > maxSpeedSq) <span class="fn">flag</span>(player, <span class="st">"speed"</span>);
+
+<span class="cm">// Reduire la frequence des verifications bloc :</span>
+<span class="kw">if</span> (player.<span class="fn">ticksExisted</span>() % <span class="nu">2</span> != <span class="nu">0</span>) <span class="kw">return</span>; <span class="add">// Verif tous les 2 ticks</span>
+
+<span class="cm">// Mettre en cache BlockPos pour eviter les allocations :</span>
+<span class="ty">BlockPos</span> feetPos = player.<span class="fn">getPosition</span>();
+<span class="ty">IBlockState</span> below = world.<span class="fn">getBlockState</span>(feetPos.down());
+<span class="cm">// Reutiliser below pour nofall ET phase — un seul getBlockState</span>
+<span class="kw">boolean</span> onGround = below.<span class="fn">getMaterial</span>().<span class="fn">isSolid</span>();
+<span class="kw">if</span> (!onGround &amp;&amp; player.onGround) <span class="fn">checkNoFall</span>(player); <span class="cm">// Reutilise onGround</span></span></div>
+
+      <h3>Solution complete</h3>
+      <ul>
+        <li><strong>Remplacer <code>Math.sqrt()</code> par distanceSq</strong> — comparer des distances au carre. MAX_SPEED devient MAX_SPEED_SQ, pre-calcule une fois comme constante statique. Fonctionnellement identique, 0 appel sqrt.</li>
+        <li><strong>Cache et reutilisation de BlockPos</strong> — calculer <code>getPosition()</code> une seule fois par check, stocker le resultat. Reutiliser un <code>IBlockState</code> deja recupere pour plusieurs verifications (ex: le bloc du sol sert a la fois pour fly et nofall).</li>
+        <li><strong>Frequence : tous les 2 ticks</strong> — les verifications de mouvement tolerent un delai de 100ms sans impact sur la detection. Divise le cout total par 2. Utiliser <code>player.ticksExisted % 2 == 0</code> comme garde.</li>
+        <li><strong>Combiner les verifications par type de bloc</strong> — grouper les appels <code>getBlockState</code> de facon a ne lire chaque position qu'une seule fois (below, feet, head) et brancher toutes les verifications depuis ces 3 resultats.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">!</span>
+        <div class="content">
+          <strong>Ne pas desactiver le check speed/fly</strong> — reduire la frequence a 2 ticks est suffisant. Ne pas monter au-dela de 3-4 ticks pour rester efficace contre le speed hack.
+        </div>
+      </div>
+
+      <div class="target-grid">
+        <div class="target-card">
+          <div class="target-val" style="color:var(--red);">3-5ms</div>
+          <div class="target-label">Cout actuel / tick</div>
+        </div>
+        <div class="target-card">
+          <div class="target-val">&lt;1-2ms</div>
+          <div class="target-label">Cible apres refacto</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 04. FACTIONMILESTONETICKER ═══ -->
+    <section class="section-card" id="milestone">
+      <h2><span class="s-num">04</span>FactionMilestoneTicker — Perks de Territoire</h2>
+
+      <div class="info-box danger">
+        <span class="icon">!</span>
+        <div class="content"><strong>Cout actuel : 5-10ms de spike toutes les 20 ticks (1 seconde).</strong> Fichier : <code>FactionMilestoneTicker.java</code>.</div>
+      </div>
+
+      <h3 class="first">Probleme — getFactionAt() + addPotionEffect() sur tous les joueurs</h3>
+      <p>Toutes les 20 ticks, le ticker itere <strong>tous les joueurs en ligne</strong> et, pour chaque joueur :</p>
+      <ul>
+        <li>Appelle <code>getFactionAt()</code> (lookup de chunk + recherche de faction proprietaire).</li>
+        <li>Si en territoire de faction, applique jusqu'a 3 <code>addPotionEffect()</code> consecutifs.</li>
+        <li>N'a aucune logique de cache — <code>addPotionEffect()</code> est appele meme si l'effet est deja actif avec une duree suffisante.</li>
+      </ul>
+      <p>A 1000 joueurs, cela represente jusqu'a 3000 appels <code>addPotionEffect()</code> et 1000 appels <code>getFactionAt()</code> en un seul tick. Les effets de potion Forge declenchent des events supplementaires et des recalculs d'attributs a chaque application.</p>
+
+      <div class="code-block"><span class="label before">AVANT — re-application systematique toutes les 20 ticks</span><span class="cm">// Toutes les 20 ticks, pour chaque joueur :</span>
+<span class="ty">String</span> factionAt = <span class="fn">getFactionAt</span>(player); <span class="del">// Lookup chunk a chaque fois</span>
+<span class="kw">if</span> (factionAt != <span class="kw">null</span>) {
+    <span class="ty">FactionInfo</span> faction = <span class="fn">getFactionInfo</span>(factionAt);
+    <span class="kw">if</span> (faction.<span class="fn">hasMilestone</span>(<span class="st">"FORTERESSE"</span>)) {
+        player.<span class="fn">addPotionEffect</span>(<span class="kw">new</span> <span class="ty">PotionEffect</span>(<span class="ty">MobEffects</span>.RESISTANCE, <span class="nu">40</span>, <span class="nu">0</span>)); <span class="del">// Meme si deja actif !</span>
+        player.<span class="fn">addPotionEffect</span>(<span class="kw">new</span> <span class="ty">PotionEffect</span>(<span class="ty">MobEffects</span>.STRENGTH, <span class="nu">40</span>, <span class="nu">0</span>));
+        player.<span class="fn">addPotionEffect</span>(<span class="kw">new</span> <span class="ty">PotionEffect</span>(<span class="ty">MobEffects</span>.SPEED, <span class="nu">40</span>, <span class="nu">0</span>));
+    }
+}</span></div>
+
+      <div class="code-block"><span class="label after">APRES — cache territoire + re-application seulement quand necessaire</span><span class="cm">// Dans RpgPlayerData ou FactionCapData — champs de cache :</span>
+<span class="kw">public</span> <span class="ty">String</span>  cachedTerritoryFaction = <span class="kw">null</span>; <span class="add">// Faction du territoire actuel</span>
+<span class="kw">public</span> <span class="kw">int</span>     territoryPerkRefreshTick = <span class="nu">0</span>; <span class="add">// Prochain tick de refresh</span>
+
+<span class="cm">// Dans FactionMilestoneTicker (toujours toutes les 20 ticks) :</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onPlayerTick</span>(<span class="ty">TickEvent.PlayerTickEvent</span> e) {
+    <span class="kw">if</span> (e.phase != <span class="ty">TickEvent.Phase</span>.END) <span class="kw">return</span>;
+    <span class="kw">if</span> (e.player.ticksExisted % <span class="nu">20</span> != <span class="nu">0</span>) <span class="kw">return</span>;
+    <span class="ty">EntityPlayerMP</span> player = (<span class="ty">EntityPlayerMP</span>) e.player;
+
+    <span class="cm">// Reutiliser le cache de territoire de FactionTerritoryHandler</span>
+    <span class="cm">// (evite de recalculer getFactionAt() ici)</span>
+    <span class="ty">FactionCapData</span> cap = <span class="ty">EriCap</span>.<span class="fn">get</span>(player, <span class="ty">FactionCapData</span>.<span class="kw">class</span>);
+    <span class="ty">String</span> territory = cap.cachedTerritoryFaction;
+
+    <span class="kw">if</span> (territory == <span class="kw">null</span>) <span class="kw">return</span>; <span class="add">// Pas en territoire de faction</span>
+
+    <span class="ty">FactionInfo</span> faction = <span class="fn">getFactionInfo</span>(territory);
+    <span class="kw">if</span> (faction == <span class="kw">null</span> || !faction.<span class="fn">hasMilestone</span>(<span class="st">"FORTERESSE"</span>)) <span class="kw">return</span>;
+
+    <span class="cm">// Re-appliquer seulement si l'effet expire bientot (&lt;40 ticks restants)</span>
+    <span class="ty">PotionEffect</span> resistance = player.<span class="fn">getActivePotionEffect</span>(<span class="ty">MobEffects</span>.RESISTANCE);
+    <span class="kw">if</span> (resistance == <span class="kw">null</span> || resistance.<span class="fn">getDuration</span>() &lt; <span class="nu">40</span>) {
+        player.<span class="fn">addPotionEffect</span>(<span class="kw">new</span> <span class="ty">PotionEffect</span>(<span class="ty">MobEffects</span>.RESISTANCE, <span class="nu">60</span>, <span class="nu">0</span>));
+    }
+    <span class="cm">// Idem pour STRENGTH et SPEED</span>
+}</span></div>
+
+      <h3>Solution complete</h3>
+      <ul>
+        <li><strong>Reutiliser le cache territoire de FactionTerritoryHandler</strong> — ce handler (voir section 08) maintiendra deja un champ <code>cachedTerritoryFaction</code> dans la capability joueur. MilestoneTicker le lit directement, eliminant son propre appel <code>getFactionAt()</code>.</li>
+        <li><strong>Conditionner <code>addPotionEffect()</code> a la duree restante</strong> — verifier <code>getActivePotionEffect(effet).getDuration() &lt; 40</code> avant d'appliquer. Si l'effet a encore plus de 2 secondes, ne rien faire. Eliminera ~80-90% des appels <code>addPotionEffect()</code>.</li>
+        <li><strong>Duree 60 ticks au lieu de 40</strong> — appliquer des effets de duree 60 ticks (3 secondes) avec un refresh a &lt;40 ticks laisse une marge confortable sans sur-application.</li>
+        <li><strong>PlayerTickEvent au lieu d'un timer global</strong> — evite l'iteration manuelle de la liste des joueurs.</li>
+      </ul>
+
+      <div class="target-grid">
+        <div class="target-card">
+          <div class="target-val" style="color:var(--red);">5-10ms</div>
+          <div class="target-label">Cout actuel / 20 ticks</div>
+        </div>
+        <div class="target-card">
+          <div class="target-val">&lt;1-2ms</div>
+          <div class="target-label">Cible / 20 ticks</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 05. TABLIST + NAMEPLATE ═══ -->
+    <section class="section-card" id="network">
+      <h2><span class="s-num">05</span>TabListNameHandler + NameplateSyncHandler — Reseau</h2>
+
+      <div class="info-box danger">
+        <span class="icon">!</span>
+        <div class="content"><strong>Cout actuel : 3-5ms + ~2.5MB/min de bande passante toutes les 40 ticks.</strong> Fichiers : <code>TabListNameHandler.java</code>, <code>NameplateSyncHandler.java</code>.</div>
+      </div>
+
+      <h3 class="first">Probleme — Sync complete toutes les 2 secondes</h3>
+      <p>Les deux handlers partagent le meme anti-pattern : toutes les 40 ticks, ils iterent <strong>tous les joueurs</strong> et envoient a <strong>tous les clients</strong> une mise a jour du nom — meme si rien n'a change depuis le dernier envoi. A 1000 joueurs :</p>
+      <ul>
+        <li><strong>TabList</strong> — 1000 * 1000 = 1 million de paires (emetteur, destinataire). Meme si factorise en broadcast, chaque packet TabList contient les 1000 entrees et alloue un <code>PacketBuffer</code> neuf a chaque cycle.</li>
+        <li><strong>Nameplate</strong> — Envoi d'un packet de nom par joueur visible. Si 50 joueurs sont dans le meme chunk, chacun recoit 49 packets de mise a jour toutes les 2 secondes.</li>
+        <li><strong>Bande passante totale</strong> — Estimee a ~2.5MB/min uniquement pour ces deux systemes.</li>
+      </ul>
+
+      <div class="code-block"><span class="label before">AVANT — sync complete a intervalle fixe</span><span class="cm">// TabListNameHandler — toutes les 40 ticks :</span>
+<span class="kw">if</span> (tickCount % <span class="nu">40</span> == <span class="nu">0</span>) {
+    <span class="kw">for</span> (<span class="ty">EntityPlayerMP</span> player : server.<span class="fn">getPlayerList</span>().<span class="fn">getPlayers</span>()) {
+        <span class="ty">String</span> tabName = <span class="fn">buildTabName</span>(player); <span class="del">// Construit a chaque fois</span>
+        <span class="fn">sendTabUpdate</span>(player, tabName);          <span class="del">// Envoye meme si inchange</span>
+    }
+}</span></div>
+
+      <div class="code-block"><span class="label after">APRES — delta updates + cache des noms formates</span><span class="cm">// Cache des noms formates par UUID :</span>
+<span class="kw">private static final</span> <span class="ty">Map</span>&lt;<span class="ty">UUID</span>, <span class="ty">String</span>&gt; cachedTabNames = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+
+<span class="cm">// Appele seulement lors d'evenements qui changent le nom :</span>
+<span class="cm">// - RankChangeEvent (montee de grade)</span>
+<span class="cm">// - FactionJoinEvent / FactionLeaveEvent</span>
+<span class="cm">// - PlayerLevelUpEvent (nouveau niveau RPG)</span>
+<span class="cm">// - PlayerLoggedInEvent (init initiale)</span>
+<span class="kw">public static void</span> <span class="fn">invalidateTabName</span>(<span class="ty">EntityPlayerMP</span> player) {
+    <span class="ty">String</span> newName = <span class="fn">buildTabName</span>(player);
+    <span class="ty">String</span> old = cachedTabNames.<span class="fn">put</span>(player.<span class="fn">getUniqueID</span>(), newName);
+    <span class="kw">if</span> (!newName.<span class="fn">equals</span>(old)) {
+        <span class="fn">sendTabUpdate</span>(player, newName); <span class="add">// Envoye seulement si change</span>
+    }
+}
+
+<span class="cm">// Cleanup a la deconnexion :</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onLogout</span>(<span class="ty">PlayerEvent.PlayerLoggedOutEvent</span> e) {
+    cachedTabNames.<span class="fn">remove</span>(e.player.<span class="fn">getUniqueID</span>());
+}</span></div>
+
+      <h3>Solution pour NameplateSyncHandler</h3>
+      <p>Meme logique de delta update : ne resyncer le nameplate d'un joueur que lorsque ses donnees affichees changent (grade, nom de faction, niveau). Ajouter un champ <code>lastSyncedNameplateHash</code> dans la capability joueur et comparer le hash avant envoi.</p>
+
+      <div class="code-block"><span class="cm">// Dans la capability joueur — hash du dernier nameplate envoye :</span>
+<span class="kw">public int</span> lastNameplateHash = <span class="nu">0</span>;
+
+<span class="cm">// Dans NameplateSyncHandler :</span>
+<span class="kw">public static void</span> <span class="fn">syncNameplateIfChanged</span>(<span class="ty">EntityPlayerMP</span> player) {
+    <span class="ty">String</span> nameplate = <span class="fn">buildNameplate</span>(player);
+    <span class="kw">int</span> hash = nameplate.<span class="fn">hashCode</span>();
+    <span class="ty">FactionCapData</span> cap = <span class="ty">EriCap</span>.<span class="fn">get</span>(player, <span class="ty">FactionCapData</span>.<span class="kw">class</span>);
+    <span class="kw">if</span> (cap.lastNameplateHash == hash) <span class="kw">return</span>; <span class="add">// Rien de change</span>
+    cap.lastNameplateHash = hash;
+    <span class="fn">broadcastNameplateUpdate</span>(player, nameplate);
+}</span></div>
+
+      <h3>Solution complete</h3>
+      <ul>
+        <li><strong>Supprimer les timers a intervalle fixe</strong> — aucun tick-based loop pour la TabList ou les nameplates.</li>
+        <li><strong>Invalidation evenementielle</strong> — appeler <code>invalidateTabName()</code> et <code>syncNameplateIfChanged()</code> uniquement dans les evenements qui modifient les donnees affichees : <code>RankChangeEvent</code>, <code>FactionJoinEvent</code>, <code>FactionLeaveEvent</code>, <code>PlayerLevelUpEvent</code>, <code>PlayerLoggedInEvent</code>.</li>
+        <li><strong>Cache des noms formates</strong> — eviter de reconstruire les strings de nom formatees a chaque tick. Les stocker dans une Map indexee par UUID.</li>
+        <li><strong>Cleanup PlayerLoggedOutEvent</strong> — retirer les entrees des maps de cache a la deconnexion.</li>
+      </ul>
+
+      <div class="target-grid">
+        <div class="target-card">
+          <div class="target-val" style="color:var(--red);">3-5ms</div>
+          <div class="target-label">Cout actuel / 40 ticks</div>
+        </div>
+        <div class="target-card">
+          <div class="target-val">&lt;0.3ms</div>
+          <div class="target-label">Cible / 40 ticks</div>
+        </div>
+        <div class="target-card">
+          <div class="target-val" style="color:var(--red);">2.5MB</div>
+          <div class="target-label">Bande passante /min (actuel)</div>
+        </div>
+        <div class="target-card">
+          <div class="target-val">&lt;0.1MB</div>
+          <div class="target-label">Cible bande passante /min</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 06. SETBONUSHANDLER ═══ -->
+    <section class="section-card" id="setbonus">
+      <h2><span class="s-num mod-num">06</span>SetBonusHandler — Detection de Set d'Armure</h2>
+
+      <div class="info-box warn">
+        <span class="icon">!</span>
+        <div class="content"><strong>Cout actuel : ~0.6ms / 20 ticks.</strong> Fichier : <code>SetBonusHandler.java</code>.</div>
+      </div>
+
+      <h3 class="first">Probleme 1 — Allocations String pour comparaison d'items</h3>
+      <p>Toutes les 20 ticks, pour chaque joueur, le handler verifie si les 4 pieces d'armure forment un set complet en appelant <code>getRegistryName().toString()</code> sur chaque piece. Cette operation alloue une nouvelle String a chaque verification, soit <strong>16 allocations de String par joueur par 20 ticks</strong> (4 pieces × 4 slots). A 1000 joueurs, c'est 16 000 Strings allouees toutes les secondes, pressurant le GC.</p>
+
+      <div class="code-block"><span class="label before">AVANT — comparaison par registry name (String)</span><span class="kw">for</span> (<span class="ty">ItemStack</span> stack : player.<span class="fn">getArmorInventoryList</span>()) {
+    <span class="ty">String</span> name = stack.<span class="fn">getItem</span>().<span class="fn">getRegistryName</span>().<span class="fn">toString</span>(); <span class="del">// Nouvelle String a chaque fois</span>
+    <span class="kw">if</span> (name.<span class="fn">equals</span>(<span class="st">"eriniumfaction:faction_chestplate"</span>)) { ... }
+}</span></div>
+
+      <div class="code-block"><span class="label after">APRES — comparaison par reference d'Item (zero allocation)</span><span class="cm">// Les instances d'Item sont des singletons enregistres dans le registre Forge.</span>
+<span class="cm">// Comparer la reference directe est O(1) et n'alloue rien.</span>
+<span class="kw">private static final</span> <span class="ty">Item</span> FACTION_HELMET     = <span class="ty">Item</span>.<span class="fn">getByNameOrId</span>(<span class="st">"eriniumfaction:faction_helmet"</span>);
+<span class="kw">private static final</span> <span class="ty">Item</span> FACTION_CHESTPLATE = <span class="ty">Item</span>.<span class="fn">getByNameOrId</span>(<span class="st">"eriniumfaction:faction_chestplate"</span>);
+<span class="cm">// ... etc. (initialises une seule fois au PostInit)</span>
+
+<span class="kw">for</span> (<span class="ty">ItemStack</span> stack : player.<span class="fn">getArmorInventoryList</span>()) {
+    <span class="ty">Item</span> item = stack.<span class="fn">getItem</span>(); <span class="add">// Pas de String, comparaison de reference</span>
+    <span class="kw">if</span> (item == FACTION_HELMET)     { ... }
+    <span class="kw">if</span> (item == FACTION_CHESTPLATE) { ... }
+}</span></div>
+
+      <h3>Probleme 2 — 3 HashMaps non nettoyees</h3>
+      <p>Le handler maintient 3 <code>HashMap&lt;UUID, *&gt;</code> pour tracker l'etat du bonus de set actif. Ces maps ne sont jamais nettoyees a la deconnexion du joueur.</p>
+
+      <div class="code-block"><span class="cm">// Ajouter un cleanup PlayerLoggedOutEvent dans SetBonusHandler :</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onPlayerLogout</span>(<span class="ty">PlayerEvent.PlayerLoggedOutEvent</span> e) {
+    <span class="ty">UUID</span> id = e.player.<span class="fn">getUniqueID</span>();
+    activeSetBonus.<span class="fn">remove</span>(id);
+    lastSetCheckTick.<span class="fn">remove</span>(id);
+    setEffectApplied.<span class="fn">remove</span>(id);
+}</span></div>
+
+      <div class="target-grid">
+        <div class="target-card">
+          <div class="target-val" style="color:var(--orange);">0.6ms</div>
+          <div class="target-label">Cout actuel / 20 ticks</div>
+        </div>
+        <div class="target-card">
+          <div class="target-val">&lt;0.1ms</div>
+          <div class="target-label">Cible / 20 ticks</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 07. INACTIVEENTITYCULLER ═══ -->
+    <section class="section-card" id="culler">
+      <h2><span class="s-num mod-num">07</span>InactiveEntityCuller — Copie de Liste d'Entites</h2>
+
+      <div class="info-box warn">
+        <span class="icon">!</span>
+        <div class="content"><strong>Cout actuel : 2-3ms de spike tous les 80 ticks.</strong> Fichier : <code>InactiveEntityCuller.java</code>.</div>
+      </div>
+
+      <h3 class="first">Probleme — Copie complete de loadedEntityList</h3>
+      <p>Toutes les 80 ticks, le culler execute <code>new ArrayList&lt;Entity&gt;(world.loadedEntityList)</code> pour creer une copie defensive de la liste des entites chargees avant d'iterer. A 20 000 entites chargees (estimation raisonnable pour un serveur PvP de 1000 joueurs), cette allocation copie 20 000 references Object et cree une ArrayList de grande taille, pressurant immediatement le GC.</p>
+
+      <div class="code-block"><span class="label before">AVANT — copie defensive de la liste entiere</span><span class="cm">// Toutes les 80 ticks :</span>
+<span class="ty">List</span>&lt;<span class="ty">Entity</span>&gt; entities = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;<span class="ty">Entity</span>&gt;(world.loadedEntityList); <span class="del">// Copie ~20k references</span>
+<span class="kw">for</span> (<span class="ty">Entity</span> e : entities) {
+    <span class="kw">if</span> (<span class="fn">shouldCull</span>(e)) world.<span class="fn">removeEntity</span>(e);
+}</span></div>
+
+      <div class="code-block"><span class="label after">APRES — iteration directe avec protection ConcurrentModification</span><span class="cm">// Option A — reutiliser une ArrayList statique (zero allocation) :</span>
+<span class="kw">private static final</span> <span class="ty">ArrayList</span>&lt;<span class="ty">Entity</span>&gt; toRemove = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+
+<span class="cm">// Toutes les 80 ticks :</span>
+toRemove.<span class="fn">clear</span>(); <span class="add">// Vider sans desallouer le tableau interne</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="nu">0</span>; i &lt; world.loadedEntityList.<span class="fn">size</span>(); i++) {
+    <span class="ty">Entity</span> e = world.loadedEntityList.<span class="fn">get</span>(i);
+    <span class="kw">if</span> (<span class="fn">shouldCull</span>(e)) toRemove.<span class="fn">add</span>(e);
+}
+<span class="kw">for</span> (<span class="ty">Entity</span> e : toRemove) world.<span class="fn">removeEntity</span>(e);
+<span class="cm">// Note : toRemove est un champ statique, pas d'allocation.</span>
+<span class="cm">// Ne pas utiliser dans un contexte multi-thread sans synchronisation.</span></span></div>
+
+      <h3>Solution complete</h3>
+      <ul>
+        <li><strong>Option A (recommandee)</strong> — utiliser une <code>ArrayList</code> statique comme buffer de collecte des entites a supprimer. Appeler <code>clear()</code> entre les cycles (ne desalloue pas le tableau interne, juste remet la taille a 0). Iteration directe sur <code>loadedEntityList</code> avec index pour eviter l'iterator.</li>
+        <li><strong>Option B</strong> — iterer <code>loadedEntityList</code> en arriere avec un index decroissant et appeler <code>remove(i)</code> directement. Plus simple mais fragile si d'autres threads modifient la liste (a verifier selon le contexte threading du serveur).</li>
+        <li><strong>Contrainte thread safety</strong> — <code>loadedEntityList</code> est modifiee sur le thread principal Minecraft. Tant que le culler s'execute dans un <code>ServerTickEvent</code> (thread principal), l'option A est sans risque.</li>
+      </ul>
+
+      <div class="target-grid">
+        <div class="target-card">
+          <div class="target-val" style="color:var(--orange);">2-3ms</div>
+          <div class="target-label">Cout actuel / 80 ticks</div>
+        </div>
+        <div class="target-card">
+          <div class="target-val">&lt;0.5ms</div>
+          <div class="target-label">Cible / 80 ticks</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 08. FACTIONTERRITORYHANDLER ═══ -->
+    <section class="section-card" id="territory">
+      <h2><span class="s-num mod-num">08</span>FactionTerritoryHandler — Cle de Chunk par String</h2>
+
+      <div class="info-box warn">
+        <span class="icon">!</span>
+        <div class="content"><strong>Cout actuel : 1-2ms/tick.</strong> Fichier : <code>FactionTerritoryHandler.java</code>.</div>
+      </div>
+
+      <h3 class="first">Probleme — Concatenation de String comme cle de chunk</h3>
+      <p>Pour tracker dans quel chunk chaque joueur se trouve, le handler construit une cle sous forme de String par concatenation : <code>chunkX + ":" + chunkZ + ":" + dim</code>. Cette operation :</p>
+      <ul>
+        <li>Alloue une nouvelle String a chaque evaluation (chaque tick, pour chaque joueur).</li>
+        <li>Implique le boxing de 3 entiers en String.</li>
+        <li>Genere une pression GC continue sur le thread principal.</li>
+      </ul>
+      <p>A 1000 joueurs par tick, cela represente 1000 allocations de String uniquement pour les cles de chunk du handler de territoire.</p>
+
+      <div class="code-block"><span class="label before">AVANT — cle String (1 allocation par joueur par tick)</span><span class="ty">String</span> key = chunkX + <span class="st">":"</span> + chunkZ + <span class="st">":"</span> + dim; <span class="del">// Nouvelle String a chaque appel</span>
+<span class="ty">String</span> faction = territoryMap.<span class="fn">get</span>(key);</span></div>
+
+      <div class="code-block"><span class="label after">APRES — cle long packee (zero allocation)</span><span class="cm">// Packer chunkX, chunkZ, dim en un seul long.</span>
+<span class="cm">// dim tient sur 8 bits (dimensions -128 a 127), chunkX et chunkZ sur 28 bits chacun.</span>
+<span class="kw">public static long</span> <span class="fn">chunkKey</span>(<span class="kw">int</span> chunkX, <span class="kw">int</span> chunkZ, <span class="kw">int</span> dim) {
+    <span class="kw">return</span> ((<span class="kw">long</span>)(dim &amp; <span class="nu">0xFF</span>) &lt;&lt; <span class="nu">56</span>)
+         | ((<span class="kw">long</span>)(chunkX &amp; <span class="nu">0x0FFFFFFF</span>) &lt;&lt; <span class="nu">28</span>)
+         | (<span class="kw">long</span>)(chunkZ &amp; <span class="nu">0x0FFFFFFF</span>);
+}
+
+<span class="cm">// Utilisation (zero allocation) :</span>
+<span class="kw">long</span> key = <span class="fn">chunkKey</span>(chunkX, chunkZ, dim);
+<span class="ty">String</span> faction = territoryMap.<span class="fn">get</span>(key); <span class="add">// Map&lt;Long, String&gt; au lieu de Map&lt;String, String&gt;</span>
+
+<span class="cm">// Optionnellement, utiliser Long2ObjectOpenHashMap de FastUtil pour eviter le boxing Long :</span>
+<span class="cm">// Long2ObjectOpenHashMap&lt;String&gt; territoryMap — entierement sans boxing</span></span></div>
+
+      <h3>Bonus — Cache du territoire courant par joueur</h3>
+      <p>En complement de la cle packee, stocker le resultat du lookup de territoire dans la capability du joueur (<code>cachedTerritoryFaction</code>). Ce champ sera lu par FactionMilestoneTicker (section 04) evitant un double lookup par tick.</p>
+
+      <div class="code-block"><span class="cm">// Dans FactionCapData (capability joueur) :</span>
+<span class="kw">public</span> <span class="ty">String</span> cachedTerritoryFaction = <span class="kw">null</span>; <span class="add">// Null = pas en territoire</span>
+<span class="kw">public long</span>   lastChunkKey = <span class="nu">0L</span>;            <span class="add">// Pour detecter le changement de chunk</span>
+
+<span class="cm">// Dans FactionTerritoryHandler.onPlayerTick :</span>
+<span class="kw">long</span> key = <span class="fn">chunkKey</span>(playerChunkX, playerChunkZ, dim);
+<span class="kw">if</span> (cap.lastChunkKey == key) <span class="kw">return</span>; <span class="add">// Pas change de chunk, pas de recalcul</span>
+cap.lastChunkKey = key;
+cap.cachedTerritoryFaction = territoryMap.<span class="fn">get</span>(key); <span class="add">// Update le cache</span></span></div>
+
+      <div class="target-grid">
+        <div class="target-card">
+          <div class="target-val" style="color:var(--orange);">1-2ms</div>
+          <div class="target-label">Cout actuel / tick</div>
+        </div>
+        <div class="target-card">
+          <div class="target-val">&lt;0.3ms</div>
+          <div class="target-label">Cible / tick</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 09. MEMORY LEAKS ═══ -->
+    <section class="section-card" id="memory">
+      <h2><span class="s-num mem-num">09</span>Memory Leaks — HashMaps non nettoyees</h2>
+
+      <div class="info-box warn">
+        <span class="icon">!</span>
+        <div class="content"><strong>Impact : croissance indefinie des HashMaps jusqu'au redemarrage du serveur.</strong> Concerne <code>RpgEventHandler.java</code> (7 maps) et <code>SetBonusHandler.java</code> (3 maps).</div>
+      </div>
+
+      <h3 class="first">Mecanisme du leak</h3>
+      <p>Les HashMaps indexees par <code>UUID</code> sont alimentees a la connexion d'un joueur (ou a la premiere action qui les touche) mais <strong>ne sont jamais videes quand le joueur se deconnecte</strong>. Chaque entree consume de la memoire heap (UUID 16 bytes + cle boxing + valeur). Avec 1000 joueurs uniques par jour de serveur en heure de pointe :</p>
+      <ul>
+        <li><strong>RpgEventHandler</strong> — 7 maps, chacune avec potentiellement 1000+ entrees = des dizaines de milliers d'objets UUID/valeur orphelins.</li>
+        <li><strong>SetBonusHandler</strong> — 3 maps, meme probleme.</li>
+        <li><strong>Apres une semaine de uptime</strong> — les maps peuvent contenir des milliers d'entrees invalides de joueurs desormais deconnectes, occupant inutilement de la RAM et ralentissant les lookups (plus le tableau de hachage est grand, plus la resolution de collision est lente).</li>
+      </ul>
+
+      <h3>Checklist de nettoyage</h3>
+      <div class="checklist">
+        <div class="checklist-item"><strong>RpgEventHandler</strong> — Ajouter un <code>@SubscribeEvent PlayerEvent.PlayerLoggedOutEvent</code> qui appelle <code>map.remove(player.getUniqueID())</code> pour les 7 maps.</div>
+        <div class="checklist-item"><strong>SetBonusHandler</strong> — Idem pour les 3 maps.</div>
+        <div class="checklist-item"><strong>Envisager la migration vers les champs EriData/EriCapability</strong> — les modules EriAPI gerent automatiquement le cycle de vie des donnees par joueur et les serialisent en NBT. Elimine completement le besoin de HashMaps separees.</div>
+        <div class="checklist-item"><strong>Audit complementaire</strong> — verifier les autres handlers du projet pour toute HashMap/Set indexe par UUID non nettoye. Grep : <code>HashMap&lt;UUID</code> dans tout le projet.</div>
+        <div class="checklist-item"><strong>Test de regression</strong> — apres le fix, verifier avec un profiler Java (VisualVM ou async-profiler) que les maps restent a taille stable apres 100 connexions/deconnexions en dev.</div>
+      </div>
+
+      <div class="code-block"><span class="cm">// Template de cleanup a ajouter dans chaque handler concerne :</span>
+<span class="an">@SubscribeEvent</span>
+<span class="kw">public void</span> <span class="fn">onPlayerLogout</span>(<span class="ty">PlayerEvent.PlayerLoggedOutEvent</span> e) {
+    <span class="ty">UUID</span> id = e.player.<span class="fn">getUniqueID</span>();
+    <span class="cm">// Lister ici toutes les maps UUID-keyees du handler :</span>
+    map1.<span class="fn">remove</span>(id);
+    map2.<span class="fn">remove</span>(id);
+    map3.<span class="fn">remove</span>(id);
+    <span class="cm">// etc.</span>
+}</span></div>
+    </section>
+
+    <!-- ═══ 10. TABLEAU RECAPITULATIF ═══ -->
+    <section class="section-card" id="summary">
+      <h2><span class="s-num sum-num">10</span>Tableau Recapitulatif &amp; Gain Projete</h2>
+
+      <h3 class="first">Avant / Apres par systeme</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Systeme</th>
+              <th>Avant (1000p)</th>
+              <th>Apres</th>
+              <th>Gain</th>
+              <th>Priorite</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>RpgEventHandler — Perks tick</td>
+              <td style="color:var(--red);">2-3ms/tick</td>
+              <td style="color:var(--green);">&lt;0.2ms/tick</td>
+              <td>~2.5ms</td>
+              <td><span class="tag-critique">CRITIQUE</span></td>
+            </tr>
+            <tr>
+              <td>CheckMovement — Anti-cheat</td>
+              <td style="color:var(--red);">3-5ms/tick</td>
+              <td style="color:var(--green);">&lt;1-2ms/tick</td>
+              <td>~2-3ms</td>
+              <td><span class="tag-critique">CRITIQUE</span></td>
+            </tr>
+            <tr>
+              <td>FactionMilestoneTicker</td>
+              <td style="color:var(--red);">5-10ms/20t</td>
+              <td style="color:var(--green);">&lt;1-2ms/20t</td>
+              <td>~5-8ms</td>
+              <td><span class="tag-critique">CRITIQUE</span></td>
+            </tr>
+            <tr>
+              <td>TabList + Nameplate</td>
+              <td style="color:var(--red);">3-5ms/40t</td>
+              <td style="color:var(--green);">&lt;0.3ms/40t</td>
+              <td>~3-4ms</td>
+              <td><span class="tag-critique">CRITIQUE</span></td>
+            </tr>
+            <tr>
+              <td>SetBonusHandler</td>
+              <td style="color:var(--orange);">0.6ms/20t</td>
+              <td style="color:var(--teal);">&lt;0.1ms/20t</td>
+              <td>~0.5ms</td>
+              <td><span class="tag-modere">MODERE</span></td>
+            </tr>
+            <tr>
+              <td>InactiveEntityCuller</td>
+              <td style="color:var(--orange);">2-3ms/80t</td>
+              <td style="color:var(--teal);">&lt;0.5ms/80t</td>
+              <td>~2ms</td>
+              <td><span class="tag-modere">MODERE</span></td>
+            </tr>
+            <tr>
+              <td>FactionTerritoryHandler</td>
+              <td style="color:var(--orange);">1-2ms/tick</td>
+              <td style="color:var(--teal);">&lt;0.3ms/tick</td>
+              <td>~1ms</td>
+              <td><span class="tag-modere">MODERE</span></td>
+            </tr>
+            <tr>
+              <td>Memory Leaks</td>
+              <td style="color:var(--orange);">Croissance infinie</td>
+              <td style="color:var(--green);">Stable (cleanup)</td>
+              <td>GC pressure</td>
+              <td><span class="tag-modere">MODERE</span></td>
+            </tr>
+            <tr style="background: rgba(46,204,113,0.04); font-weight:600;">
+              <td>TOTAL</td>
+              <td style="color:var(--red);"><strong>14-20ms/tick</strong></td>
+              <td style="color:var(--green);"><strong>3-4ms/tick</strong></td>
+              <td><strong>~10-16ms</strong></td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Impact TPS projete</h3>
+      <div class="metric-grid">
+        <div class="metric-card critique">
+          <div class="metric-val bad">8-10</div>
+          <div class="metric-label">TPS projete AVANT (1000 joueurs)</div>
+        </div>
+        <div class="metric-card done">
+          <div class="metric-val good">18-20</div>
+          <div class="metric-label">TPS cible APRES (1000 joueurs)</div>
+        </div>
+        <div class="metric-card done">
+          <div class="metric-val target">+10ms</div>
+          <div class="metric-label">Budget libere pour Forge / mods tiers</div>
+        </div>
+        <div class="metric-card done">
+          <div class="metric-val target">20</div>
+          <div class="metric-label">TPS cible a 500 joueurs</div>
+        </div>
+      </div>
+
+      <h3>Ordre d'implementation recommande</h3>
+      <ul>
+        <li><strong>Etape 1</strong> — FactionTerritoryHandler (cle long) : prerequis pour l'optimisation de MilestoneTicker. Isolee et sans risque de regression.</li>
+        <li><strong>Etape 2</strong> — FactionMilestoneTicker : depend du cache de territoire de l'etape 1. Gain TPS immediatement visible.</li>
+        <li><strong>Etape 3</strong> — RpgEventHandler : migration HashMap → RpgPlayerData + PlayerTickEvent. Tester perk par perk.</li>
+        <li><strong>Etape 4</strong> — CheckMovement : ajout guard <code>% 2</code> et remplacement sqrt. Verifier que la detection reste fonctionnelle sur le client de dev.</li>
+        <li><strong>Etape 5</strong> — TabList + Nameplate : supprimer les timers, brancher sur les evenements. Tester avec plusieurs joueurs en dev (login, changement de grade, changement de faction).</li>
+        <li><strong>Etape 6</strong> — InactiveEntityCuller : swap ArrayList. Rapide a implementer.</li>
+        <li><strong>Etape 7</strong> — SetBonusHandler : comparaison par reference + cleanup logout.</li>
+        <li><strong>Etape 8</strong> — Audit complet des memory leaks : grep <code>HashMap&lt;UUID</code>, ajouter les cleanups manquants.</li>
+      </ul>
+    </section>
+
+    <!-- ═══ 11. PLAN DE TESTS ═══ -->
+    <section class="section-card" id="tests">
+      <h2><span class="s-num sum-num">11</span>Plan de Tests</h2>
+
+      <h3 class="first">Tests fonctionnels par systeme</h3>
+      <div class="checklist">
+        <div class="checklist-item"><strong>RpgEventHandler</strong> — Verifier que les perks Bastion, Frappe et Forme Cristalline fonctionnent toujours apres migration vers PlayerTickEvent. Tester l'activation, la desactivation et le cooldown.</div>
+        <div class="checklist-item"><strong>CheckMovement</strong> — Verifier que speed hack et fly hack sont toujours detectes avec le check a 2 ticks. Tester avec un joueur en mouvement normal (aucun faux positif).</div>
+        <div class="checklist-item"><strong>FactionMilestoneTicker</strong> — Verifier que les effets de potion de territoire sont bien appliques en entrant dans un territoire de faction avec le milestone actif. Verifier qu'ils expirent en quittant le territoire.</div>
+        <div class="checklist-item"><strong>TabList + Nameplate</strong> — Se connecter avec 2 joueurs, verifier l'affichage initial. Changer de grade : verifier que la TabList se met a jour immediatement. Changer de faction : idem.</div>
+        <div class="checklist-item"><strong>SetBonusHandler</strong> — Equiper un set complet, verifier le bonus. Retirer une piece, verifier la suppression du bonus.</div>
+        <div class="checklist-item"><strong>InactiveEntityCuller</strong> — Spawner 100 mobs inactifs, attendre 80 ticks, verifier qu'ils sont bien supposes etre culls selon les criteres du handler.</div>
+        <div class="checklist-item"><strong>FactionTerritoryHandler</strong> — Verifier la detection du territoire (entree, sortie, changement de faction du territoire) avec la nouvelle cle long.</div>
+      </div>
+
+      <h3>Tests de performance</h3>
+      <div class="checklist">
+        <div class="checklist-item"><strong>Profiler avant/apres</strong> — Utiliser Spark (plugin/mod) ou async-profiler pour mesurer les ms/tick de chaque systeme avant et apres optimisation.</div>
+        <div class="checklist-item"><strong>Simulation de charge</strong> — Utiliser un bot de stress-test (ex: Minecraft bot framework) pour simuler 100-500 joueurs en dev et verifier que les gains de perf sont proportionnels.</div>
+        <div class="checklist-item"><strong>Memory leak test</strong> — Connecter/deconnecter 200 joueurs uniques en dev, verifier avec VisualVM que les HashMaps restent a taille stable (ne grossissent plus).</div>
+        <div class="checklist-item"><strong>GC pressure</strong> — Apres les optimisations String, verifier que la frequence des GC mineur diminue via les logs JVM (<code>-verbose:gc</code>).</div>
+        <div class="checklist-item"><strong>Validation TPS</strong> — Avec 500 bots en jeu apres toutes les optimisations, le TPS doit etre stable a 18-20. Mesurer via <code>/tps</code> ou Forge debug screen.</div>
+      </div>
+
+      <h3>Criteres de validation</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Critere</th><th>Valeur attendue</th><th>Methode de verification</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>TPS a 1000 joueurs</td><td>&ge; 18 TPS</td><td>Spark profiler + /tps</td></tr>
+            <tr><td>Cout RpgEventHandler</td><td>&lt; 0.2ms/tick</td><td>Spark flamegraph</td></tr>
+            <tr><td>Cout CheckMovement</td><td>&lt; 2ms/tick</td><td>Spark flamegraph</td></tr>
+            <tr><td>Cout MilestoneTicker</td><td>&lt; 2ms/20 ticks</td><td>Spark flamegraph</td></tr>
+            <tr><td>Cout TabList+Nameplate</td><td>&lt; 0.3ms/40 ticks</td><td>Spark flamegraph</td></tr>
+            <tr><td>Taille HashMaps apres logout</td><td>Entree supprimee</td><td>VisualVM heap dump</td></tr>
+            <tr><td>Aucun faux positif anti-cheat</td><td>0 flag en mouvement normal</td><td>Test manuel 10 min</td></tr>
+            <tr><td>Bande passante TabList</td><td>&lt; 0.1MB/min</td><td>Moniteur reseau serveur</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+</body>
+</html>

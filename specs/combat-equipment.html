@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Combat &amp; Equipement | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --orange:    #E67E22;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+    /* Tier colors */
+    --valterite: #5B9BD5;
+    --aetherite: #A855F7;
+    --erinium:   #F59E0B;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 50% 90%, rgba(245,158,11,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 12px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+
+  /* Tier badges */
+  .badge-valterite { color: var(--valterite); border-color: rgba(91,155,213,0.4); background: rgba(91,155,213,0.1); }
+  .badge-aetherite { color: var(--aetherite); border-color: rgba(168,85,247,0.4); background: rgba(168,85,247,0.1); }
+  .badge-erinium   { color: var(--erinium);   border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.1); }
+
+  /* =========================================================
+     SECTION CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr { background: rgba(107,47,160,0.18); }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+
+  .tier-valterite { color: var(--valterite); font-weight: 600; }
+  .tier-aetherite { color: var(--aetherite); font-weight: 600; }
+  .tier-erinium   { color: var(--erinium);   font-weight: 600; }
+  .tier-diamond   { color: #B9F2FF;          font-weight: 600; }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .cl  { color: #FFCB6B; }
+
+  /* =========================================================
+     ASCII DIAGRAMS (recettes)
+  ========================================================= */
+  .ascii-diagram {
+    background: rgba(5,5,10,0.75);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 11.5px;
+    line-height: 1.65;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+  }
+
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+
+  /* =========================================================
+     INFO BOXES
+  ========================================================= */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+
+  /* =========================================================
+     TIER CARDS (vue d'ensemble)
+  ========================================================= */
+  .tier-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .tier-card {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    text-align: center;
+  }
+
+  .tier-card.valterite { border-top: 3px solid var(--valterite); }
+  .tier-card.aetherite { border-top: 3px solid var(--aetherite); }
+  .tier-card.erinium   { border-top: 3px solid var(--erinium);   }
+
+  .tier-card-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .tier-card.valterite .tier-card-name { color: var(--valterite); }
+  .tier-card.aetherite .tier-card-name { color: var(--aetherite); }
+  .tier-card.erinium   .tier-card-name { color: var(--erinium);   }
+
+  .tier-card-tier {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin-bottom: 14px;
+  }
+
+  .tier-card-stat {
+    font-size: 12px;
+    color: var(--slate);
+    margin: 4px 0;
+  }
+
+  .tier-card-stat strong { color: var(--text); }
+
+  /* =========================================================
+     ANIMATIONS + DIVIDER
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-bdr), transparent);
+    margin: 24px 0;
+  }
+
+  /* =========================================================
+     MOBILE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,47,160,0.4);
+    transition: transform .2s;
+  }
+
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 50;
+      width: 260px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .tier-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    .section-card { padding: 24px 18px; }
+    .page-header h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+
+    <span class="sidebar-title">Sommaire</span>
+
+    <a class="nav-link" href="#s1"><span class="num">01</span> Vue d'ensemble</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Blocs de minerai</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Blocs de stockage</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Materiaux</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Outils</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Armures</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Recettes</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Generation du monde</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Configuration</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Textures et assets</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Fichiers</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Equilibre &amp; Design</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges · EriniumFaction</div>
+      <h1>Combat &amp; Equipement</h1>
+      <p>Trois minerais custom avec leurs materiaux, outils, armures, recettes et generation procedurale dans le monde.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">A faire</span>
+        <span class="badge badge-valterite">Valterite — Tier 2</span>
+        <span class="badge badge-aetherite">Aetherite — Tier 3</span>
+        <span class="badge badge-erinium">Erinium — Tier 4</span>
+      </div>
+    </div>
+
+    <!-- ═══ S1 — VUE D'ENSEMBLE ═══ -->
+    <div class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Vue d'ensemble</h2>
+
+      <p>EriniumFaction introduit trois minerais progressifs au-dessus du diamant, chacun avec sa propre couleur dominante, ses materiaux bruts et raffines, ses outils et armures complets. La progression naturelle du joueur va du Valterite (+0% vs diamant) a l'Aetherite (+15%) puis a l'Erinium (+35%).</p>
+
+      <div class="tier-grid">
+        <div class="tier-card valterite">
+          <div class="tier-card-name">Valterite</div>
+          <div class="tier-card-tier">Tier 2</div>
+          <div class="tier-card-stat"><strong>Couleur</strong> Bleu acier</div>
+          <div class="tier-card-stat"><strong>Reference</strong> = Diamant</div>
+          <div class="tier-card-stat"><strong>Durabilite</strong> 1 600</div>
+          <div class="tier-card-stat"><strong>Harvest Level</strong> 3</div>
+          <div class="tier-card-stat"><strong>Rarete</strong> UNCOMMON</div>
+        </div>
+        <div class="tier-card aetherite">
+          <div class="tier-card-name">Aetherite</div>
+          <div class="tier-card-tier">Tier 3</div>
+          <div class="tier-card-stat"><strong>Couleur</strong> Violet lumineux</div>
+          <div class="tier-card-stat"><strong>Reference</strong> Diamant +15%</div>
+          <div class="tier-card-stat"><strong>Durabilite</strong> 2 200</div>
+          <div class="tier-card-stat"><strong>Harvest Level</strong> 4</div>
+          <div class="tier-card-stat"><strong>Rarete</strong> RARE</div>
+        </div>
+        <div class="tier-card erinium">
+          <div class="tier-card-name">Erinium</div>
+          <div class="tier-card-tier">Tier 4</div>
+          <div class="tier-card-stat"><strong>Couleur</strong> Or ambré lumineux</div>
+          <div class="tier-card-stat"><strong>Reference</strong> Diamant +35%</div>
+          <div class="tier-card-stat"><strong>Durabilite</strong> 3 100</div>
+          <div class="tier-card-stat"><strong>Harvest Level</strong> 4</div>
+          <div class="tier-card-stat"><strong>Rarete</strong> EPIC + glow</div>
+        </div>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>EriAPI Content Builder</strong> — Tous les blocs et items sont enregistres via <code>EriBlock.create()</code> et <code>EriItem.create()</code>. Pas de boilerplate Forge brut. Le <code>ContentRegistry</code> gere les events d'enregistrement automatiquement.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S2 — BLOCS DE MINERAI ═══ -->
+    <div class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Blocs de minerai</h2>
+
+      <p>Trois blocs de minerai generables dans le monde, minable uniquement avec le bon niveau de pioche.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Propriete</th>
+              <th class="tier-valterite">valterite_ore</th>
+              <th class="tier-aetherite">aetherite_ore</th>
+              <th class="tier-erinium">erinium_ore</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Material</td>
+              <td>Material.ROCK</td>
+              <td>Material.ROCK</td>
+              <td>Material.ROCK</td>
+            </tr>
+            <tr>
+              <td>Hardness</td>
+              <td>3.0f</td>
+              <td>4.0f</td>
+              <td>5.0f</td>
+            </tr>
+            <tr>
+              <td>Resistance</td>
+              <td>5.0f</td>
+              <td>8.0f</td>
+              <td>12.0f</td>
+            </tr>
+            <tr>
+              <td>Harvest Tool</td>
+              <td>pickaxe</td>
+              <td>pickaxe</td>
+              <td>pickaxe</td>
+            </tr>
+            <tr>
+              <td>Harvest Level</td>
+              <td>2 (fer)</td>
+              <td>3 (diamant)</td>
+              <td>3 (diamant)</td>
+            </tr>
+            <tr>
+              <td>Drop</td>
+              <td>valterite_raw (1)</td>
+              <td>aetherite_raw (1)</td>
+              <td>erinium_raw (1-2)</td>
+            </tr>
+            <tr>
+              <td>XP drop</td>
+              <td>2-5</td>
+              <td>3-7</td>
+              <td>5-10</td>
+            </tr>
+            <tr>
+              <td>Silk Touch</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+            <tr>
+              <td>Light Level</td>
+              <td>0</td>
+              <td>2</td>
+              <td>4</td>
+            </tr>
+            <tr>
+              <td>Sound</td>
+              <td>SoundType.STONE</td>
+              <td>SoundType.STONE</td>
+              <td>SoundType.STONE</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Silk Touch</strong> — Quand le minerai est mine avec Silk Touch, il droppe le bloc lui-meme (comme le diamant vanilla). La logique de drop est geree via <code>EriBlock.create().dropSilkTouch(true)</code>.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S3 — BLOCS DE STOCKAGE ═══ -->
+    <div class="section-card" id="s3">
+      <h2><span class="s-num">03</span> Blocs de stockage</h2>
+
+      <p>Blocs compresses pour le stockage en masse. 9 materiaux raffines = 1 bloc. Reversible dans le crafting.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Bloc</th>
+              <th>Material</th>
+              <th>Hardness</th>
+              <th>Resistance</th>
+              <th>Harvest Level</th>
+              <th>Pack (9:1)</th>
+              <th>Unpack (1:9)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="tier-valterite">valterite_block</td>
+              <td>Material.IRON</td>
+              <td>5.0f</td>
+              <td>10.0f</td>
+              <td>3</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+            <tr>
+              <td class="tier-aetherite">aetherite_block</td>
+              <td>Material.IRON</td>
+              <td>6.0f</td>
+              <td>15.0f</td>
+              <td>3</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+            <tr>
+              <td class="tier-erinium">erinium_block</td>
+              <td>Material.IRON</td>
+              <td>8.0f</td>
+              <td>20.0f</td>
+              <td>4</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S4 — MATERIAUX ═══ -->
+    <div class="section-card" id="s4">
+      <h2><span class="s-num cyan-num">04</span> Materiaux bruts et raffines</h2>
+
+      <h3 class="first">Items bruts (drops de minerai)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Rarete</th>
+              <th>Glow</th>
+              <th>Stack</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="tier-valterite">valterite_raw</td>
+              <td>UNCOMMON</td>
+              <td><span class="tag-no">NON</span></td>
+              <td>64</td>
+              <td>valterite_ore</td>
+            </tr>
+            <tr>
+              <td class="tier-aetherite">aetherite_raw</td>
+              <td>RARE</td>
+              <td><span class="tag-no">NON</span></td>
+              <td>64</td>
+              <td>aetherite_ore</td>
+            </tr>
+            <tr>
+              <td class="tier-erinium">erinium_raw</td>
+              <td>EPIC</td>
+              <td><span class="tag-yes">OUI</span></td>
+              <td>64</td>
+              <td>erinium_ore (1-2)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Items raffines (via fournaise)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Input</th>
+              <th>XP smelt</th>
+              <th>Cook time</th>
+              <th>Rarete</th>
+              <th>Glow</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="tier-valterite">valterite_ingot</td>
+              <td>valterite_raw</td>
+              <td>1.0f</td>
+              <td>200 ticks</td>
+              <td>UNCOMMON</td>
+              <td><span class="tag-no">NON</span></td>
+            </tr>
+            <tr>
+              <td class="tier-aetherite">aetherite_crystal</td>
+              <td>aetherite_raw</td>
+              <td>1.5f</td>
+              <td>200 ticks</td>
+              <td>RARE</td>
+              <td><span class="tag-no">NON</span></td>
+            </tr>
+            <tr>
+              <td class="tier-erinium">erinium_fragment</td>
+              <td>erinium_raw</td>
+              <td>2.0f</td>
+              <td>300 ticks</td>
+              <td>EPIC</td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Nommage semantique</strong> — Valterite produit un lingot (metal), Aetherite un cristal (energie), Erinium un fragment (minerai rare). Les noms reflettent la nature de chaque materiau et sa lore.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S5 — OUTILS ═══ -->
+    <div class="section-card" id="s5">
+      <h2><span class="s-num green-num">05</span> Outils</h2>
+
+      <p>4 types d'outils x 3 tiers = 12 items. Chaque tier surpasse le diamant en stats selon sa progression.</p>
+
+      <h3 class="first">Stats comparatives vs Diamant</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Stat</th>
+              <th class="tier-diamond">Diamant</th>
+              <th class="tier-valterite">Valterite</th>
+              <th class="tier-aetherite">Aetherite</th>
+              <th class="tier-erinium">Erinium</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Durabilite (epee)</td>
+              <td>1561</td>
+              <td>1600</td>
+              <td>2200</td>
+              <td>3100</td>
+            </tr>
+            <tr>
+              <td>Enchantabilite</td>
+              <td>10</td>
+              <td>12</td>
+              <td>14</td>
+              <td>18</td>
+            </tr>
+            <tr>
+              <td>Harvest Level</td>
+              <td>3</td>
+              <td>3</td>
+              <td>4</td>
+              <td>4</td>
+            </tr>
+            <tr>
+              <td>Vitesse minage</td>
+              <td>8.0f</td>
+              <td>8.5f</td>
+              <td>10.0f</td>
+              <td>12.0f</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Epees</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Registry Name</th>
+              <th>Tier</th>
+              <th>Degats bonus</th>
+              <th>Vitesse attaque</th>
+              <th>Durabilite</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>valterite_sword</td>
+              <td class="tier-valterite">Valterite</td>
+              <td>3.0f</td>
+              <td>-2.4f</td>
+              <td>1600</td>
+            </tr>
+            <tr>
+              <td>aetherite_sword</td>
+              <td class="tier-aetherite">Aetherite</td>
+              <td>3.5f</td>
+              <td>-2.3f</td>
+              <td>2200</td>
+            </tr>
+            <tr>
+              <td>erinium_sword</td>
+              <td class="tier-erinium">Erinium</td>
+              <td>4.0f</td>
+              <td>-2.2f</td>
+              <td>3100</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Pioches</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Registry Name</th>
+              <th>Tier</th>
+              <th>Degats bonus</th>
+              <th>Vitesse attaque</th>
+              <th>Vitesse minage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>valterite_pickaxe</td>
+              <td class="tier-valterite">Valterite</td>
+              <td>1.0f</td>
+              <td>-2.8f</td>
+              <td>8.5f</td>
+            </tr>
+            <tr>
+              <td>aetherite_pickaxe</td>
+              <td class="tier-aetherite">Aetherite</td>
+              <td>1.0f</td>
+              <td>-2.8f</td>
+              <td>10.0f</td>
+            </tr>
+            <tr>
+              <td>erinium_pickaxe</td>
+              <td class="tier-erinium">Erinium</td>
+              <td>1.0f</td>
+              <td>-2.7f</td>
+              <td>12.0f</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Haches</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Registry Name</th>
+              <th>Tier</th>
+              <th>Degats bonus</th>
+              <th>Vitesse attaque</th>
+              <th>Vitesse minage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>valterite_axe</td>
+              <td class="tier-valterite">Valterite</td>
+              <td>5.0f</td>
+              <td>-3.0f</td>
+              <td>8.5f</td>
+            </tr>
+            <tr>
+              <td>aetherite_axe</td>
+              <td class="tier-aetherite">Aetherite</td>
+              <td>5.5f</td>
+              <td>-3.0f</td>
+              <td>10.0f</td>
+            </tr>
+            <tr>
+              <td>erinium_axe</td>
+              <td class="tier-erinium">Erinium</td>
+              <td>6.0f</td>
+              <td>-2.9f</td>
+              <td>12.0f</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Pelles</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Registry Name</th>
+              <th>Tier</th>
+              <th>Degats bonus</th>
+              <th>Vitesse attaque</th>
+              <th>Vitesse minage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>valterite_shovel</td>
+              <td class="tier-valterite">Valterite</td>
+              <td>1.5f</td>
+              <td>-3.0f</td>
+              <td>8.5f</td>
+            </tr>
+            <tr>
+              <td>aetherite_shovel</td>
+              <td class="tier-aetherite">Aetherite</td>
+              <td>1.5f</td>
+              <td>-3.0f</td>
+              <td>10.0f</td>
+            </tr>
+            <tr>
+              <td>erinium_shovel</td>
+              <td class="tier-erinium">Erinium</td>
+              <td>1.5f</td>
+              <td>-2.9f</td>
+              <td>12.0f</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S6 — ARMURES ═══ -->
+    <div class="section-card" id="s6">
+      <h2><span class="s-num">06</span> Armures</h2>
+
+      <p>4 pieces x 3 tiers = 12 items d'armure. Chaque tier depasse l'armure diamant en protection et solidite.</p>
+
+      <h3 class="first">Stats comparatives vs Diamant</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Stat</th>
+              <th class="tier-diamond">Diamant</th>
+              <th class="tier-valterite">Valterite</th>
+              <th class="tier-aetherite">Aetherite</th>
+              <th class="tier-erinium">Erinium</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Armure totale (set)</td>
+              <td>20</td>
+              <td>22</td>
+              <td>26</td>
+              <td>30</td>
+            </tr>
+            <tr>
+              <td>Toughness par piece</td>
+              <td>2.0f</td>
+              <td>2.0f</td>
+              <td>2.5f</td>
+              <td>3.0f</td>
+            </tr>
+            <tr>
+              <td>Enchantabilite</td>
+              <td>10</td>
+              <td>12</td>
+              <td>14</td>
+              <td>18</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Casques</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Registry Name</th>
+              <th>Tier</th>
+              <th>Protection</th>
+              <th>Toughness</th>
+              <th>Durabilite</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>valterite_helmet</td>
+              <td class="tier-valterite">Valterite</td>
+              <td>3</td>
+              <td>2.0f</td>
+              <td>528</td>
+            </tr>
+            <tr>
+              <td>aetherite_helmet</td>
+              <td class="tier-aetherite">Aetherite</td>
+              <td>4</td>
+              <td>2.5f</td>
+              <td>726</td>
+            </tr>
+            <tr>
+              <td>erinium_helmet</td>
+              <td class="tier-erinium">Erinium</td>
+              <td>5</td>
+              <td>3.0f</td>
+              <td>1023</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Plastrons</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Registry Name</th>
+              <th>Tier</th>
+              <th>Protection</th>
+              <th>Toughness</th>
+              <th>Durabilite</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>valterite_chestplate</td>
+              <td class="tier-valterite">Valterite</td>
+              <td>8</td>
+              <td>2.0f</td>
+              <td>768</td>
+            </tr>
+            <tr>
+              <td>aetherite_chestplate</td>
+              <td class="tier-aetherite">Aetherite</td>
+              <td>9</td>
+              <td>2.5f</td>
+              <td>1056</td>
+            </tr>
+            <tr>
+              <td>erinium_chestplate</td>
+              <td class="tier-erinium">Erinium</td>
+              <td>11</td>
+              <td>3.0f</td>
+              <td>1488</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Jambieres</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Registry Name</th>
+              <th>Tier</th>
+              <th>Protection</th>
+              <th>Toughness</th>
+              <th>Durabilite</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>valterite_leggings</td>
+              <td class="tier-valterite">Valterite</td>
+              <td>6</td>
+              <td>2.0f</td>
+              <td>720</td>
+            </tr>
+            <tr>
+              <td>aetherite_leggings</td>
+              <td class="tier-aetherite">Aetherite</td>
+              <td>7</td>
+              <td>2.5f</td>
+              <td>990</td>
+            </tr>
+            <tr>
+              <td>erinium_leggings</td>
+              <td class="tier-erinium">Erinium</td>
+              <td>9</td>
+              <td>3.0f</td>
+              <td>1395</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Bottes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Registry Name</th>
+              <th>Tier</th>
+              <th>Protection</th>
+              <th>Toughness</th>
+              <th>Durabilite</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>valterite_boots</td>
+              <td class="tier-valterite">Valterite</td>
+              <td>3</td>
+              <td>2.0f</td>
+              <td>624</td>
+            </tr>
+            <tr>
+              <td>aetherite_boots</td>
+              <td class="tier-aetherite">Aetherite</td>
+              <td>4</td>
+              <td>2.5f</td>
+              <td>858</td>
+            </tr>
+            <tr>
+              <td>erinium_boots</td>
+              <td class="tier-erinium">Erinium</td>
+              <td>5</td>
+              <td>3.0f</td>
+              <td>1209</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S7 — RECETTES ═══ -->
+    <div class="section-card" id="s7">
+      <h2><span class="s-num cyan-num">07</span> Recettes</h2>
+
+      <h3 class="first">Smelt (fournaise)</h3>
+      <div class="ascii-diagram"><span class="ac">valterite_raw</span>  →  [Fournaise]  →  <span class="av">valterite_ingot</span>    (XP: 1.0,  200 ticks)
+<span class="ac">aetherite_raw</span>  →  [Fournaise]  →  <span class="av">aetherite_crystal</span>  (XP: 1.5,  200 ticks)
+<span class="ac">erinium_raw</span>    →  [Fournaise]  →  <span class="av">erinium_fragment</span>   (XP: 2.0,  300 ticks)</div>
+
+      <h3>Blocs de stockage (pack)</h3>
+      <div class="ascii-diagram"><span class="as">┌───┬───┬───┐</span>
+<span class="as">│</span> <span class="av">M</span> <span class="as">│</span> <span class="av">M</span> <span class="as">│</span> <span class="av">M</span> <span class="as">│</span>   M = materiau raffine (valterite_ingot / aetherite_crystal / erinium_fragment)
+<span class="as">├───┼───┼───┤</span>
+<span class="as">│</span> <span class="av">M</span> <span class="as">│</span> <span class="av">M</span> <span class="as">│</span> <span class="av">M</span> <span class="as">│</span>   → 1x bloc de stockage correspondant
+<span class="as">├───┼───┼───┤</span>
+<span class="as">│</span> <span class="av">M</span> <span class="as">│</span> <span class="av">M</span> <span class="as">│</span> <span class="av">M</span> <span class="as">│</span>
+<span class="as">└───┴───┴───┘</span></div>
+
+      <h3>Epee (pattern standard)</h3>
+      <div class="ascii-diagram"><span class="as">┌───┬───┬───┐</span>
+<span class="as">│</span>   <span class="as">│</span> <span class="av">M</span> <span class="as">│</span>   <span class="as">│</span>   M = materiau raffine
+<span class="as">├───┼───┼───┤</span>
+<span class="as">│</span>   <span class="as">│</span> <span class="av">M</span> <span class="as">│</span>   <span class="as">│</span>   S = baton
+<span class="as">├───┼───┼───┤</span>
+<span class="as">│</span>   <span class="as">│</span> <span class="ac">S</span> <span class="as">│</span>   <span class="as">│</span>
+<span class="as">└───┴───┴───┘</span></div>
+
+      <h3>Pioche (pattern standard)</h3>
+      <div class="ascii-diagram"><span class="as">┌───┬───┬───┐</span>
+<span class="as">│</span> <span class="av">M</span> <span class="as">│</span> <span class="av">M</span> <span class="as">│</span> <span class="av">M</span> <span class="as">│</span>
+<span class="as">├───┼───┼───┤</span>
+<span class="as">│</span>   <span class="as">│</span> <span class="ac">S</span> <span class="as">│</span>   <span class="as">│</span>
+<span class="as">├───┼───┼───┤</span>
+<span class="as">│</span>   <span class="as">│</span> <span class="ac">S</span> <span class="as">│</span>   <span class="as">│</span>
+<span class="as">└───┴───┴───┘</span></div>
+
+      <h3>Hache (pattern standard)</h3>
+      <div class="ascii-diagram"><span class="as">┌───┬───┬───┐</span>
+<span class="as">│</span> <span class="av">M</span> <span class="as">│</span> <span class="av">M</span> <span class="as">│</span>   <span class="as">│</span>
+<span class="as">├───┼───┼───┤</span>
+<span class="as">│</span> <span class="av">M</span> <span class="as">│</span> <span class="ac">S</span> <span class="as">│</span>   <span class="as">│</span>
+<span class="as">├───┼───┼───┤</span>
+<span class="as">│</span>   <span class="as">│</span> <span class="ac">S</span> <span class="as">│</span>   <span class="as">│</span>
+<span class="as">└───┴───┴───┘</span></div>
+
+      <h3>Pelle (pattern standard)</h3>
+      <div class="ascii-diagram"><span class="as">┌───┬───┬───┐</span>
+<span class="as">│</span>   <span class="as">│</span> <span class="av">M</span> <span class="as">│</span>   <span class="as">│</span>
+<span class="as">├───┼───┼───┤</span>
+<span class="as">│</span>   <span class="as">│</span> <span class="ac">S</span> <span class="as">│</span>   <span class="as">│</span>
+<span class="as">├───┼───┼───┤</span>
+<span class="as">│</span>   <span class="as">│</span> <span class="ac">S</span> <span class="as">│</span>   <span class="as">│</span>
+<span class="as">└───┴───┴───┘</span></div>
+
+      <h3>Armures (patterns standard)</h3>
+      <div class="ascii-diagram"><span class="as">Casque        Plastron      Jambieres     Bottes</span>
+<span class="as">┌──┬──┬──┐</span>   <span class="as">┌──┬──┬──┐</span>   <span class="as">┌──┬──┬──┐</span>   <span class="as">┌──┬──┬──┐</span>
+<span class="as">│</span><span class="av">M</span><span class="as">│</span><span class="av">M</span><span class="as">│</span><span class="av">M</span><span class="as">│</span>   <span class="as">│</span><span class="av">M</span><span class="as">│  │</span><span class="av">M</span><span class="as">│</span>   <span class="as">│</span><span class="av">M</span><span class="as">│</span><span class="av">M</span><span class="as">│</span><span class="av">M</span><span class="as">│</span>   <span class="as">│  │  │  │</span>
+<span class="as">├──┼──┼──┤</span>   <span class="as">├──┼──┼──┤</span>   <span class="as">├──┼──┼──┤</span>   <span class="as">├──┼──┼──┤</span>
+<span class="as">│</span><span class="av">M</span><span class="as">│  │</span><span class="av">M</span><span class="as">│</span>   <span class="as">│</span><span class="av">M</span><span class="as">│</span><span class="av">M</span><span class="as">│</span><span class="av">M</span><span class="as">│</span>   <span class="as">│</span><span class="av">M</span><span class="as">│  │</span><span class="av">M</span><span class="as">│</span>   <span class="as">│</span><span class="av">M</span><span class="as">│  │</span><span class="av">M</span><span class="as">│</span>
+<span class="as">├──┼──┼──┤</span>   <span class="as">├──┼──┼──┤</span>   <span class="as">├──┼──┼──┤</span>   <span class="as">├──┼──┼──┤</span>
+<span class="as">│  │  │  │</span>   <span class="as">│</span><span class="av">M</span><span class="as">│  │</span><span class="av">M</span><span class="as">│</span>   <span class="as">│</span><span class="av">M</span><span class="as">│  │</span><span class="av">M</span><span class="as">│</span>   <span class="as">│</span><span class="av">M</span><span class="as">│  │</span><span class="av">M</span><span class="as">│</span>
+<span class="as">└──┴──┴──┘</span>   <span class="as">└──┴──┴──┘</span>   <span class="as">└──┴──┴──┘</span>   <span class="as">└──┴──┴──┘</span></div>
+    </div>
+
+    <!-- ═══ S8 — GÉNÉRATION DU MONDE ═══ -->
+    <div class="section-card" id="s8">
+      <h2><span class="s-num gold-num">08</span> Generation du monde</h2>
+
+      <p>Les trois minerais sont generes dans l'Overworld via <code>IWorldGenerator</code>. La rarete est relative : Valterite > Aetherite > Erinium, avec l'Erinium tres rare et profond.</p>
+
+      <h3 class="first">Distribution</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Minerai</th>
+              <th>Y min</th>
+              <th>Y max</th>
+              <th>Taille veine</th>
+              <th>Veines / chunk</th>
+              <th>Rarete relative</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="tier-valterite">Valterite</td>
+              <td>5</td>
+              <td>40</td>
+              <td>4-8</td>
+              <td>2-4</td>
+              <td>Peu commun</td>
+            </tr>
+            <tr>
+              <td class="tier-aetherite">Aetherite</td>
+              <td>5</td>
+              <td>25</td>
+              <td>2-5</td>
+              <td>1-2</td>
+              <td>Rare</td>
+            </tr>
+            <tr>
+              <td class="tier-erinium">Erinium</td>
+              <td>1</td>
+              <td>15</td>
+              <td>1-3</td>
+              <td>0-1</td>
+              <td>Tres rare</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Regles de generation</h3>
+      <ul>
+        <li><strong>Dimension</strong> — Overworld uniquement (dimension ID 0). Pas de generation dans le Nether ou l'End.</li>
+        <li><strong>Biomes exclus</strong> — Aucun biome exclu par defaut (configurable via config future).</li>
+        <li><strong>Chunk seed</strong> — Utilise la seed du chunk pour garantir la reproducibilite avec la meme seed de monde.</li>
+        <li><strong>Erinium 0-1 veine</strong> — La valeur "0" signifie qu'il peut ne pas apparaitre dans un chunk. Le calcul utilise un Random par chunk pour le nombre de veines.</li>
+      </ul>
+
+      <h3>Implementation</h3>
+      <div class="code-block"><span class="an">@GameRegistry.worldGenerator</span>
+<span class="kw">public class</span> <span class="cl">EriniumWorldGenerator</span> <span class="kw">implements</span> <span class="ty">IWorldGenerator</span> {
+
+    <span class="an">@Override</span>
+    <span class="kw">public void</span> <span class="fn">generate</span>(<span class="ty">Random</span> rand, <span class="kw">int</span> chunkX, <span class="kw">int</span> chunkZ,
+                          <span class="ty">World</span> world, <span class="ty">IChunkGenerator</span> gen, <span class="ty">IChunkProvider</span> prov) {
+
+        <span class="kw">if</span> (world.provider.<span class="fn">getDimension</span>() != <span class="nu">0</span>) <span class="kw">return</span>;
+        <span class="kw">if</span> (!<span class="cl">FactionConfig</span>.oreGenerationEnabled) <span class="kw">return</span>;
+
+        <span class="fn">generateOre</span>(rand, world, chunkX, chunkZ,
+            <span class="cl">EriniumBlocks</span>.VALTERITE_ORE.getDefaultState(),
+            <span class="cl">FactionConfig</span>.valteriteVeinSize,
+            <span class="cl">FactionConfig</span>.valteriteVeinsPerChunk,
+            <span class="nu">5</span>, <span class="cl">FactionConfig</span>.valteriteMaxHeight);
+
+        <span class="cm">// idem pour aetherite et erinium...</span>
+    }
+
+    <span class="kw">private void</span> <span class="fn">generateOre</span>(...) {
+        <span class="kw">new</span> <span class="cl">WorldGenMinable</span>(state, size).<span class="fn">generate</span>(world, rand,
+            world.<span class="fn">getTopSolidOrLiquidBlock</span>(...));
+    }
+}</div>
+    </div>
+
+    <!-- ═══ S9 — CONFIGURATION ═══ -->
+    <div class="section-card" id="s9">
+      <h2><span class="s-num">09</span> Configuration</h2>
+
+      <p>Nouvelles entrees FactionConfig pour controler la generation du monde.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cle config</th>
+              <th>Type</th>
+              <th>Defaut</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>oreGenerationEnabled</td>
+              <td>boolean</td>
+              <td>true</td>
+              <td>Activer/desactiver toute la generation de minerais</td>
+            </tr>
+            <tr>
+              <td>valteriteVeinsPerChunk</td>
+              <td>int</td>
+              <td>3</td>
+              <td>Nombre moyen de veines de valterite par chunk</td>
+            </tr>
+            <tr>
+              <td>valteriteVeinSize</td>
+              <td>int</td>
+              <td>6</td>
+              <td>Taille moyenne d'une veine de valterite</td>
+            </tr>
+            <tr>
+              <td>valteriteMaxHeight</td>
+              <td>int</td>
+              <td>40</td>
+              <td>Hauteur Y maximale de generation du valterite</td>
+            </tr>
+            <tr>
+              <td>aetheriteVeinsPerChunk</td>
+              <td>int</td>
+              <td>1</td>
+              <td>Nombre moyen de veines d'aetherite par chunk</td>
+            </tr>
+            <tr>
+              <td>aetheriteVeinSize</td>
+              <td>int</td>
+              <td>4</td>
+              <td>Taille moyenne d'une veine d'aetherite</td>
+            </tr>
+            <tr>
+              <td>aetheriteMaxHeight</td>
+              <td>int</td>
+              <td>25</td>
+              <td>Hauteur Y maximale de generation de l'aetherite</td>
+            </tr>
+            <tr>
+              <td>eriniumVeinsPerChunk</td>
+              <td>int</td>
+              <td>1</td>
+              <td>Nombre max de veines d'erinium par chunk (peut etre 0)</td>
+            </tr>
+            <tr>
+              <td>eriniumVeinSize</td>
+              <td>int</td>
+              <td>2</td>
+              <td>Taille moyenne d'une veine d'erinium</td>
+            </tr>
+            <tr>
+              <td>eriniumMaxHeight</td>
+              <td>int</td>
+              <td>15</td>
+              <td>Hauteur Y maximale de generation de l'erinium</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S10 — TEXTURES & ASSETS ═══ -->
+    <div class="section-card" id="s10">
+      <h2><span class="s-num orange-num">10</span> Textures et assets</h2>
+
+      <h3 class="first">Direction artistique par minerai</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Minerai</th>
+              <th>Palette dominante</th>
+              <th>Style</th>
+              <th>Glow</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="tier-valterite">Valterite</td>
+              <td>#5B9BD5 / #2E6DA4</td>
+              <td>Metal bleu acier, reflets metalliques, veinures claires</td>
+              <td><span class="tag-no">NON</span></td>
+            </tr>
+            <tr>
+              <td class="tier-aetherite">Aetherite</td>
+              <td>#A855F7 / #7C3AED</td>
+              <td>Cristal violet energetique, inclusions lumineuses, fractures</td>
+              <td>Subtil</td>
+            </tr>
+            <tr>
+              <td class="tier-erinium">Erinium</td>
+              <td>#F59E0B / #D97706</td>
+              <td>Mineral dore rare, veines ambre, particules scintillantes</td>
+              <td><span class="tag-yes">OUI</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Liste complete des textures (36 total)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Categorie</th>
+              <th>Chemin</th>
+              <th>Dimensions</th>
+              <th>Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Blocs de minerai</td>
+              <td>textures/blocks/valterite_ore.png, aetherite_ore.png, erinium_ore.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Blocs de stockage</td>
+              <td>textures/blocks/valterite_block.png, aetherite_block.png, erinium_block.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Items bruts</td>
+              <td>textures/items/valterite_raw.png, aetherite_raw.png, erinium_raw.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Items raffines</td>
+              <td>textures/items/valterite_ingot.png, aetherite_crystal.png, erinium_fragment.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Epees</td>
+              <td>textures/items/valterite_sword.png, aetherite_sword.png, erinium_sword.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Pioches</td>
+              <td>textures/items/valterite_pickaxe.png, aetherite_pickaxe.png, erinium_pickaxe.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Haches</td>
+              <td>textures/items/valterite_axe.png, aetherite_axe.png, erinium_axe.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Pelles</td>
+              <td>textures/items/valterite_shovel.png, aetherite_shovel.png, erinium_shovel.png</td>
+              <td>16x16</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Armor layers (casque)</td>
+              <td>textures/models/armor/valterite_layer_1.png, aetherite_layer_1.png, erinium_layer_1.png</td>
+              <td>64x32</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Armor layers (jambieres)</td>
+              <td>textures/models/armor/valterite_layer_2.png, aetherite_layer_2.png, erinium_layer_2.png</td>
+              <td>64x32</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Items armure</td>
+              <td>textures/items/valterite_helmet.png, _chestplate.png, _leggings.png, _boots.png (x3 tiers)</td>
+              <td>16x16</td>
+              <td>12</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#8505;</span>
+        <div class="content"><strong>Workflow SVG → PNG</strong> — Lire <code>docs/ASSETS_WORKFLOW.md</code> avant toute creation de texture. Toutes les textures de blocs et items sont en 16x16. Les armor layers sont en 64x32 selon le format Minecraft standard.</div>
+      </div>
+    </div>
+
+    <!-- ═══ S11 — FICHIERS ═══ -->
+    <div class="section-card" id="s11">
+      <h2><span class="s-num cyan-num">11</span> Fichiers a creer et modifier</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fichier</th>
+              <th>Action</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>content/EriniumBlocks.java</td>
+              <td><span class="tag-yes">CREER</span></td>
+              <td>Registres statiques des 6 blocs (3 minerais + 3 stockage)</td>
+            </tr>
+            <tr>
+              <td>content/EriniumItems.java</td>
+              <td><span class="tag-yes">CREER</span></td>
+              <td>Registres statiques des 30 items (materiaux + outils + armures)</td>
+            </tr>
+            <tr>
+              <td>content/EriniumMaterials.java</td>
+              <td><span class="tag-yes">CREER</span></td>
+              <td>Definitions des ToolMaterial et ArmorMaterial pour les 3 tiers</td>
+            </tr>
+            <tr>
+              <td>world/EriniumWorldGenerator.java</td>
+              <td><span class="tag-yes">CREER</span></td>
+              <td>IWorldGenerator pour la generation procedurale des minerais</td>
+            </tr>
+            <tr>
+              <td>content/EriniumCreativeTab.java</td>
+              <td><span class="tag-yes">CREER</span></td>
+              <td>Creative tab dedie avec icone erinium_fragment</td>
+            </tr>
+            <tr>
+              <td>proxy/CommonProxy.java</td>
+              <td><span class="tag-no">MODIFIER</span></td>
+              <td>Enregistrement blocs/items/recettes + GameRegistry.registerWorldGenerator()</td>
+            </tr>
+            <tr>
+              <td>config/FactionConfig.java</td>
+              <td><span class="tag-no">MODIFIER</span></td>
+              <td>Ajout des 10 nouvelles entrees de config worldgen</td>
+            </tr>
+            <tr>
+              <td>resources/assets/.../lang/en_US.lang</td>
+              <td><span class="tag-no">MODIFIER</span></td>
+              <td>Traductions EN pour les 36 items/blocs</td>
+            </tr>
+            <tr>
+              <td>resources/assets/.../lang/fr_FR.lang</td>
+              <td><span class="tag-no">MODIFIER</span></td>
+              <td>Traductions FR pour les 36 items/blocs</td>
+            </tr>
+            <tr>
+              <td>resources/assets/.../blockstates/*.json</td>
+              <td><span class="tag-yes">CREER</span></td>
+              <td>6 fichiers blockstates (1 par bloc)</td>
+            </tr>
+            <tr>
+              <td>resources/assets/.../models/block/*.json</td>
+              <td><span class="tag-yes">CREER</span></td>
+              <td>6 models de blocs (cube_all)</td>
+            </tr>
+            <tr>
+              <td>resources/assets/.../models/item/*.json</td>
+              <td><span class="tag-yes">CREER</span></td>
+              <td>30 models d'items (generated ou handheld)</td>
+            </tr>
+            <tr>
+              <td>resources/assets/.../textures/*</td>
+              <td><span class="tag-yes">CREER</span></td>
+              <td>36 fichiers PNG de textures (voir section 10)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ S12 — ÉQUILIBRE ═══ -->
+    <div class="section-card" id="s12">
+      <h2><span class="s-num green-num">12</span> Equilibre et design</h2>
+
+      <h3 class="first">Philosophie PvP</h3>
+      <ul>
+        <li>La progression doit etre <strong>significative mais pas ecrasante</strong>. Un joueur en Erinium ne doit pas one-shot un joueur en Aetherite — le skill reste determinant.</li>
+        <li>Les degats bonus sont calcules en DPS reel (degats * vitesse). L'Erinium donne environ +35% de DPS vs diamant, pas 35% de degats bruts.</li>
+        <li>La durabilite plus elevee recompense l'investissement dans la progression sans rendre l'equipement jetable.</li>
+      </ul>
+
+      <h3>Progression naturelle</h3>
+      <ul>
+        <li>Un nouveau joueur trouve du Valterite avant de pouvoir crafter le diamant necessaire pour miner l'Aetherite.</li>
+        <li>L'Erinium est intentionnellement rare — un set complet est un objectif de mid/late game pour une faction etablie.</li>
+        <li>Les blocs de stockage permettent un stockage compact pour les grandes factions qui accumulent des ressources.</li>
+      </ul>
+
+      <h3>Compatibilite future</h3>
+      <ul>
+        <li>Les <code>ToolMaterial</code> et <code>ArmorMaterial</code> sont definis comme constantes statiques dans <code>EriniumMaterials</code> pour faciliter l'extension future (nouveaux items).</li>
+        <li>La config de worldgen laisse ouverte la possibilite d'ajouter de nouveaux minerais sans modifier le generateur principal.</li>
+        <li>Les armures pourront recevoir des effets de set bonus dans une version ulterieure (via mixin EntityPlayer ou capability).</li>
+      </ul>
+
+      <div class="info-box tip">
+        <span class="icon">&#10003;</span>
+        <div class="content"><strong>Placeholder d'abord</strong> — Commencer avec des textures placeholder simples (repaint des textures vanilla) pour valider la logique de jeu, puis remplacer par les textures definitives apres validation du gameplay.</div>
+      </div>
+    </div>
+
+  </main><!-- /main -->
+
+</div><!-- /layout -->
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+
+<script>
+  const sections = document.querySelectorAll('[id^="s"]');
+  const links    = document.querySelectorAll('.nav-link');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

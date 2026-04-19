@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Systeme de Mail | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #4AE0E0; --aetherite: #9B59B6; --erinium: #FFD700;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(74,224,224,0.09) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(255,215,0,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, #4AE0E0 40%, #FFD700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '>'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Architecture Technique</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Structures de Donnees</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Interface Graphique</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Packets Reseau</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Commandes</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Configuration</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Regles Metier</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Integrations</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Cas Limites &amp; Securite</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Systeme de Mail</h1>
+      <p>Un systeme de messagerie asynchrone permettant aux joueurs de recevoir des items, de l'argent et des messages meme lorsqu'ils sont hors ligne. Colonne vertebrale de l'economie asynchrone (HDV, lootbox, cadeaux admin, trade offline).</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-cyan">Asynchrone</span>
+        <span class="badge badge-green">WorldSavedData</span>
+        <span class="badge badge-gold">Multi-Integration</span>
+        <span class="badge badge-violet">EriAPI GUI</span>
+        <span class="badge badge-orange">Expiration configurable</span>
+      </div>
+    </div>
+
+    <!-- S1 — CONTEXTE & OBJECTIFS -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Vision du systeme</h3>
+      <p>Le systeme de mail est l'<strong>infrastructure de livraison asynchrone</strong> du serveur. Chaque fois qu'un joueur doit recevoir quelque chose alors qu'il est potentiellement hors ligne, le mail est le vecteur de livraison. Cela inclut :</p>
+      <ul>
+        <li><strong>Hotel des Ventes (HDV) :</strong> items achetes, argent des ventes, items invendus expires, encheres gagnees/perdues.</li>
+        <li><strong>Lootbox / Recompenses :</strong> items gagnes via des lootbox, events serveur, ou recompenses de defis.</li>
+        <li><strong>Cadeaux administratifs :</strong> les admins peuvent envoyer des items a n'importe quel joueur via commande.</li>
+        <li><strong>Trade offline fallback :</strong> si un joueur se deconnecte pendant un trade, les items sont renvoyes par mail.</li>
+        <li><strong>Systeme de faction :</strong> recompenses de guerre, pillages, dividendes de banque faction.</li>
+      </ul>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Fiabilite absolue :</strong> aucun item ne doit etre perdu. Le mail est le filet de securite de l'economie. Si un mail est cree, le joueur DOIT pouvoir le recuperer.</li>
+        <li><strong>Zero duplication :</strong> le claim d'items doit etre atomique cote serveur. Impossible de claim deux fois le meme mail.</li>
+        <li><strong>Performance :</strong> avec 500-1000 joueurs, le systeme ne doit pas iterer tous les mails a chaque tick. Chargement lazy par joueur, pas de polling global.</li>
+        <li><strong>Simplicite d'utilisation :</strong> un bouton dans l'inventaire ou un keybind ouvre la boite mail. Pas de commande complexe a retenir.</li>
+        <li><strong>Expiration configurable :</strong> les mails non reclames expirent apres une duree configurable (defaut : 30 jours). Les items expires sont perdus definitivement.</li>
+      </ul>
+
+      <h3>Ce que le systeme ne fait pas</h3>
+      <ul>
+        <li><strong>Pas de messagerie joueur-a-joueur :</strong> les joueurs ne peuvent PAS s'envoyer de mails entre eux. Le mail est un systeme de livraison automatique, pas une messagerie sociale. La communication entre joueurs passe par le chat.</li>
+        <li><strong>Pas de mail sans items :</strong> chaque mail doit contenir au moins un item OU un montant d'argent/Eris. Les messages purement textuels sont interdits (sauf pour les mails admin qui peuvent avoir un message seul).</li>
+        <li><strong>Pas de renvoi :</strong> le joueur ne peut pas renvoyer ou transferer un mail a un autre joueur.</li>
+      </ul>
+    </section>
+
+    <!-- S2 — ARCHITECTURE TECHNIQUE -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Architecture Technique</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <div class="ascii-diagram"><span class="ac">+-------------------+</span>     <span class="av">+--------------------+</span>     <span class="ag">+------------------+</span>
+<span class="ac">|   HDV / Auction   |</span>----><span class="av">|   MailManager      |</span>----><span class="ag">| WorldSavedData    |</span>
+<span class="ac">+-------------------+</span>     <span class="av">|   (Singleton)      |</span>     <span class="ag">| MailWorldData     |</span>
+<span class="ac">+-------------------+</span>     <span class="av">|                    |</span>     <span class="ag">| "erinium_mail"    |</span>
+<span class="ac">| Lootbox / Events  |</span>----><span class="av">| - sendMail()       |</span>     <span class="ag">+------------------+</span>
+<span class="ac">+-------------------+</span>     <span class="av">| - getMails()       |</span>
+<span class="ac">+-------------------+</span>     <span class="av">| - claimMail()      |</span>     <span class="ay">+------------------+</span>
+<span class="ac">| Admin Commands    |</span>----><span class="av">| - deleteMail()     |</span>----><span class="ay">| GuiNetworkHandler |</span>
+<span class="ac">+-------------------+</span>     <span class="av">| - cleanExpired()   |</span>     <span class="ay">| (Client Sync)     |</span>
+<span class="ac">+-------------------+</span>     <span class="av">+--------------------+</span>     <span class="ay">+------------------+</span>
+<span class="ac">| Trade Fallback    |</span>---------^
+<span class="ac">+-------------------+</span></div>
+
+      <h3>Package</h3>
+      <p>Toutes les classes du systeme de mail sont dans <code>fr.eriniumgroup.eriniumfaction.mail</code>.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Classe</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td>MailManager</td><td>Singleton. API principale : sendMail(), getMails(), claimMail(), cleanExpired(). Gere le cache en memoire et la persistence via MailWorldData.</td></tr>
+            <tr><td>MailEntry</td><td>POJO representant un mail : UUID id, UUID recipientUUID, String senderName, String senderType, String message, List&lt;ItemStack&gt; items, long dollars, long eris, long timestamp, boolean claimed.</td></tr>
+            <tr><td>MailWorldData</td><td>Extends WorldSavedData. Stocke tous les mails de tous les joueurs dans le world save. Serialise/deserialise via readFromNBT()/writeToNBT(). Cle : "erinium_mail".</td></tr>
+            <tr><td>MailConfig</td><td>Configuration : expiration duration, max mails per player, cleanup interval.</td></tr>
+            <tr><td>GuiMail</td><td>GUI client (extends EriGuiScreen). Affiche la boite de reception avec pagination.</td></tr>
+            <tr><td>GuiMailDetail</td><td>GUI detail d'un mail : message, items claimables, bouton claim.</td></tr>
+            <tr><td>MailCommand</td><td>Commande /mail (ouvre le GUI) et sous-commandes admin.</td></tr>
+            <tr><td>MailCleanupTask</td><td>Tache planifiee (EriScheduler.repeat) qui purge les mails expires periodiquement.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Stockage — WorldSavedData</h3>
+      <p>Les mails sont stockes dans une classe <code>MailWorldData extends WorldSavedData</code>, liee au world save (comme le systeme vanilla MapData). La cle de stockage est <code>"erinium_mail"</code>.</p>
+      <div class="code-block"><span class="cm">// Acces au stockage</span>
+<span class="ty">MailWorldData</span> data = (<span class="ty">MailWorldData</span>) world.getMapStorage()
+    .getOrLoadData(<span class="ty">MailWorldData</span>.<span class="kw">class</span>, <span class="st">"erinium_mail"</span>);
+<span class="kw">if</span> (data == <span class="kw">null</span>) {
+    data = <span class="kw">new</span> <span class="ty">MailWorldData</span>(<span class="st">"erinium_mail"</span>);
+    world.getMapStorage().setData(<span class="st">"erinium_mail"</span>, data);
+}</div>
+
+      <p>Raison du choix WorldSavedData :</p>
+      <ul>
+        <li><strong>Reset saisonnier :</strong> quand le monde est reset pour une nouvelle saison, tous les mails sont automatiquement wipes avec le monde. Aucun nettoyage manuel necessaire. Les joueurs ne peuvent PAS transporter des items entre saisons via le systeme de mail.</li>
+        <li><strong>Coherence :</strong> les mails font partie de l'economie du monde en cours. Un reset de monde = un reset complet de l'economie, y compris les mails en attente.</li>
+        <li><strong>Serialisation NBT :</strong> les donnees sont serialisees via <code>readFromNBT()</code> / <code>writeToNBT()</code>, le format natif de Minecraft. Les ItemStack sont sauvegardes avec <code>ItemStack.writeToNBT()</code> / <code>new ItemStack(nbt)</code>, compatible avec tous les NBT data (enchantements, noms custom, lore, etc.).</li>
+        <li><strong>Sauvegarde automatique :</strong> WorldSavedData est sauvegarde automatiquement par Minecraft lors des sauvegardes monde. Appeler <code>markDirty()</code> apres chaque modification pour signaler qu'une sauvegarde est necessaire.</li>
+      </ul>
+
+      <h3>Cache en memoire</h3>
+      <p>Le MailManager maintient un cache <code>Map&lt;UUID, List&lt;MailEntry&gt;&gt;</code> pour les joueurs actuellement connectes. Le cache est charge au login du joueur (<code>PlayerLoggedInEvent</code>) et decharge au logout (<code>PlayerLoggedOutEvent</code>). Cela evite les lectures disque a chaque ouverture du GUI.</p>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Atomicite des ecritures :</strong> Apres chaque operation critique (ajout de mail, claim, suppression), appeler <code>mailWorldData.markDirty()</code> pour signaler que les donnees ont change. WorldSavedData est sauvegarde automatiquement par le serveur lors des sauvegardes monde periodiques et a l'arret. Pour les operations critiques (claim d'items), appeler <code>world.getMapStorage().saveAllData()</code> immediatement apres pour forcer la persistence.</div>
+      </div>
+    </section>
+
+    <!-- S3 — STRUCTURES DE DONNEES -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Structures de Donnees</h2>
+
+      <h3 class="first">MailEntry</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">MailEntry</span> {
+    <span class="kw">private final</span> <span class="ty">UUID</span> id;              <span class="cm">// Identifiant unique du mail (UUID.randomUUID())</span>
+    <span class="kw">private final</span> <span class="ty">UUID</span> recipientUUID;   <span class="cm">// UUID du joueur destinataire</span>
+    <span class="kw">private final</span> <span class="ty">String</span> senderName;    <span class="cm">// Nom affiche de l'expediteur ("HDV", "Admin", "Lootbox", nom joueur)</span>
+    <span class="kw">private final</span> <span class="ty">MailSenderType</span> senderType; <span class="cm">// Enum: SYSTEM, ADMIN, HDV, AUCTION, LOOTBOX, TRADE, FACTION</span>
+    <span class="kw">private final</span> <span class="ty">String</span> message;       <span class="cm">// Message texte (max 256 chars, peut etre vide)</span>
+    <span class="kw">private final</span> <span class="ty">List&lt;ItemStack&gt;</span> items; <span class="cm">// Items attaches (0 a 27 slots max, comme un coffre simple)</span>
+    <span class="kw">private final</span> <span class="ty">long</span> dollars;         <span class="cm">// Montant en dollars (0 si aucun)</span>
+    <span class="kw">private final</span> <span class="ty">long</span> eris;            <span class="cm">// Montant en Eris (0 si aucun)</span>
+    <span class="kw">private final</span> <span class="ty">long</span> timestamp;        <span class="cm">// System.currentTimeMillis() a la creation</span>
+    <span class="kw">private</span> <span class="ty">boolean</span> claimed;            <span class="cm">// true si le joueur a recupere le contenu</span>
+    <span class="kw">private</span> <span class="ty">boolean</span> read;               <span class="cm">// true si le joueur a ouvert le detail du mail</span>
+}</div>
+
+      <h3>MailSenderType (enum)</h3>
+      <div class="code-block"><span class="kw">public enum</span> <span class="cl">MailSenderType</span> {
+    <span class="an">SYSTEM</span>,     <span class="cm">// Messages systeme generiques</span>
+    <span class="an">ADMIN</span>,      <span class="cm">// Cadeaux/messages d'administrateurs</span>
+    <span class="an">HDV</span>,        <span class="cm">// Ventes HDV (items invendus, argent des ventes)</span>
+    <span class="an">AUCTION</span>,    <span class="cm">// Encheres (item gagne, argent enchere perdue, surencheri)</span>
+    <span class="an">LOOTBOX</span>,    <span class="cm">// Recompenses de lootbox</span>
+    <span class="an">TRADE</span>,      <span class="cm">// Fallback de trade (deconnexion pendant trade)</span>
+    <span class="an">FACTION</span>;    <span class="cm">// Recompenses de faction (guerre, dividendes, etc.)</span>
+
+    <span class="cm">// Chaque type a une couleur et une icone pour le GUI</span>
+    <span class="kw">public</span> <span class="ty">int</span> <span class="fn">getColor</span>() { ... }
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">getTranslationKey</span>() { ... }
+}</div>
+
+      <h3>Format NBT (WorldSavedData)</h3>
+      <div class="code-block"><span class="cm">// Structure NBT dans MailWorldData</span>
+<span class="cm">// Racine NBTTagCompound</span>
+<span class="st">"players"</span>: NBTTagCompound {
+    <span class="st">"550e8400-e29b-41d4-a716-446655440000"</span>: NBTTagList [  <span class="cm">// UUID joueur</span>
+        NBTTagCompound {                                     <span class="cm">// Un mail</span>
+            <span class="st">"id"</span>: <span class="st">"a1b2c3d4-e5f6-7890-abcd-ef1234567890"</span>,
+            <span class="st">"senderName"</span>: <span class="st">"Hotel des Ventes"</span>,
+            <span class="st">"senderType"</span>: <span class="st">"HDV"</span>,
+            <span class="st">"message"</span>: <span class="st">"Votre vente de 64x Diamant a ete completee."</span>,
+            <span class="st">"items"</span>: NBTTagList [                           <span class="cm">// ItemStacks serialises</span>
+                NBTTagCompound { <span class="cm">ItemStack.writeToNBT()</span> }
+            ],
+            <span class="st">"dollars"</span>: <span class="nu">15000</span>L,
+            <span class="st">"eris"</span>: <span class="nu">0</span>L,
+            <span class="st">"timestamp"</span>: <span class="nu">1711411200000</span>L,
+            <span class="st">"claimed"</span>: <span class="nu">false</span>,
+            <span class="st">"read"</span>: <span class="nu">false</span>
+        },
+        ...
+    ]
+}</div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Serialisation des ItemStack :</strong> Chaque ItemStack est serialise via <code>ItemStack.writeToNBT(new NBTTagCompound())</code> et deserialise via <code>new ItemStack(nbt)</code>. Ce format natif NBT est le plus fiable pour Minecraft et supporte tous les NBT data (enchantements, noms custom, lore, etc.). Pas de conversion JSON intermediaire.</div>
+      </div>
+    </section>
+
+    <!-- S4 — INTERFACE GRAPHIQUE -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Interface Graphique</h2>
+
+      <h3 class="first">Acces au GUI</h3>
+      <ul>
+        <li><strong>Keybind :</strong> touche configurable (defaut: <code>M</code>) enregistree via <code>EriKeys.create("eriniumfaction.open_mail")</code> avec <code>KeyContext.IN_GAME</code>.</li>
+        <li><strong>Commande :</strong> <code>/mail</code> sans argument ouvre le GUI.</li>
+        <li><strong>Notification :</strong> a la connexion, si le joueur a des mails non lus, un message chat cliquable l'informe (ex: "Vous avez 3 nouveaux mails ! [OUVRIR]").</li>
+      </ul>
+
+      <h3>GuiMail — Boite de reception (extends EriGuiScreen)</h3>
+      <p>Ecran principal en 1920x1080 design pixels. Panneau central de 1200x800, fond translucide Liquid Glass.</p>
+      <div class="ascii-diagram"><span class="ac">+================================================================+</span>
+<span class="ac">|</span>  <span class="ay">BOITE MAIL</span>                                    <span class="as">[X] Fermer</span>  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">3 mails non lus</span>                                            <span class="ac">|</span>
+<span class="ac">|================================================================|</span>
+<span class="ac">|</span>                                                                <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ar">●</span> <span class="ay">[HDV]</span> Vente completee — 64x Diamant        <span class="as">il y a 2h</span>   <span class="ac">|</span>
+<span class="ac">|</span>     <span class="as">+$15,000</span>                                    <span class="ag">[Claim]</span>  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">------------------------------------------------------</span>    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ar">●</span> <span class="av">[ADMIN]</span> Cadeau de bienvenue !               <span class="as">il y a 1j</span>   <span class="ac">|</span>
+<span class="ac">|</span>     <span class="as">16x Diamant, +$5,000, +100 Eris</span>            <span class="ag">[Claim]</span>  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">------------------------------------------------------</span>    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">○</span> <span class="ac">[AUCTION]</span> Enchere gagnee — Epee Legendaire  <span class="as">il y a 3j</span>   <span class="ac">|</span>
+<span class="ac">|</span>     <span class="as">1x Epee en Diamant (Sharpness V)</span>           <span class="ag">[Claim]</span>  <span class="ac">|</span>
+<span class="ac">|</span>                                                                <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Page 1/1</span>                      <span class="as">[&lt; Prev]  [Next &gt;]</span>        <span class="ac">|</span>
+<span class="ac">|</span>                                                   <span class="ar">[Tout Claim]</span><span class="ac">|</span>
+<span class="ac">+================================================================+</span>
+
+<span class="ar">●</span> = non lu    <span class="ag">○</span> = lu    <span class="as">Couleur du tag = MailSenderType.getColor()</span></div>
+
+      <h3>Elements du GUI — Boite de reception</h3>
+      <ul>
+        <li><strong>Titre :</strong> Label "Boite Mail" avec scale 2.5, couleur doree, ombre portee.</li>
+        <li><strong>Compteur non lus :</strong> Label sous le titre, couleur slate, indiquant "X mails non lus".</li>
+        <li><strong>Liste des mails :</strong> ScrollList vertical avec des items de 120px de haut chacun. Chaque item affiche : indicateur lu/non lu (cercle colore), tag du type (badge colore), message resume (tronque a 60 chars), date relative ("il y a Xh/Xj"), resume du contenu (items + argent), bouton [Claim].</li>
+        <li><strong>Pagination :</strong> boutons Prev/Next si plus de 8 mails. Affichage "Page X/Y".</li>
+        <li><strong>Bouton "Tout Claim" :</strong> en bas a droite, claim tous les mails non reclames d'un coup. Bouton rouge pour visibilite.</li>
+        <li><strong>Tri :</strong> par defaut les mails les plus recents en premier. Pas de tri personnalise dans V1.</li>
+      </ul>
+
+      <h3>Detail d'un mail (clic sur un mail)</h3>
+      <p>Au clic sur un mail dans la liste, un panneau de detail glisse depuis la droite (animation slideIn) ou remplace le contenu.</p>
+      <div class="ascii-diagram"><span class="ac">+================================================================+</span>
+<span class="ac">|</span>  <span class="as">[&lt; Retour]</span>                                                    <span class="ac">|</span>
+<span class="ac">|</span>                                                                <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">Hotel des Ventes</span>                            <span class="as">25 mars 2026</span>   <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Type: HDV</span>                                    <span class="as">14:30</span>         <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">------------------------------------------------------</span>    <span class="ac">|</span>
+<span class="ac">|</span>                                                                <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">"Votre vente de 64x Diamant a ete completee."</span>               <span class="ac">|</span>
+<span class="ac">|</span>                                                                <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ag">Contenu :</span>                                                   <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">+$15,000</span>    <span class="ac">+0 Eris</span>                                      <span class="ac">|</span>
+<span class="ac">|</span>                                                                <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Items :</span> (aucun)                                              <span class="ac">|</span>
+<span class="ac">|</span>                                                                <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Expire dans : 28 jours</span>                                      <span class="ac">|</span>
+<span class="ac">|</span>                                                                <span class="ac">|</span>
+<span class="ac">|</span>                                           <span class="ag">[  RECUPERER  ]</span>     <span class="ac">|</span>
+<span class="ac">+================================================================+</span></div>
+
+      <h3>Notification in-game</h3>
+      <p>Quand un mail arrive alors que le joueur est en ligne, une <code>Notification</code> (EriAPI NotificationManager) apparait en haut a droite :</p>
+      <ul>
+        <li><strong>Type :</strong> INFO</li>
+        <li><strong>Titre :</strong> "Nouveau mail"</li>
+        <li><strong>Message :</strong> resume du mail (ex: "HDV: Vente completee — +$15,000")</li>
+        <li><strong>Duree :</strong> 5 secondes</li>
+      </ul>
+    </section>
+
+    <!-- S5 — PACKETS RESEAU -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num orange-num">05</span> Packets Reseau</h2>
+
+      <h3 class="first">Architecture des packets</h3>
+      <p>Le systeme utilise <code>GuiNetworkHandler</code> d'EriAPI. Tous les packets transitent via des actions nommees avec un payload <code>NBTTagCompound</code>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Action</th><th>Direction</th><th>Payload NBT</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>mail_open</td>
+              <td>Client &rarr; Serveur</td>
+              <td>(vide)</td>
+              <td>Le client demande a ouvrir sa boite mail. Le serveur repond avec mail_list.</td>
+            </tr>
+            <tr>
+              <td>mail_list</td>
+              <td>Serveur &rarr; Client</td>
+              <td>NBTTagList de mails (id, senderName, senderType, message tronque, timestamp, claimed, read, itemCount, dollars, eris)</td>
+              <td>Liste des mails du joueur pour affichage. Les items sont envoyes en resume (count seulement), pas en entier.</td>
+            </tr>
+            <tr>
+              <td>mail_detail</td>
+              <td>Client &rarr; Serveur</td>
+              <td>String mailId</td>
+              <td>Le client demande le detail complet d'un mail specifique.</td>
+            </tr>
+            <tr>
+              <td>mail_detail_response</td>
+              <td>Serveur &rarr; Client</td>
+              <td>MailEntry complet (avec items serialises en NBT)</td>
+              <td>Detail complet du mail incluant les ItemStack.</td>
+            </tr>
+            <tr>
+              <td>mail_claim</td>
+              <td>Client &rarr; Serveur</td>
+              <td>String mailId</td>
+              <td>Le client demande a recuperer le contenu d'un mail.</td>
+            </tr>
+            <tr>
+              <td>mail_claim_all</td>
+              <td>Client &rarr; Serveur</td>
+              <td>(vide)</td>
+              <td>Le client demande a recuperer tous les mails non reclames.</td>
+            </tr>
+            <tr>
+              <td>mail_claim_result</td>
+              <td>Serveur &rarr; Client</td>
+              <td>boolean success, String mailId, String errorKey (si echec)</td>
+              <td>Resultat du claim. Erreurs possibles : inventaire plein, mail deja reclame, mail expire.</td>
+            </tr>
+            <tr>
+              <td>mail_notify</td>
+              <td>Serveur &rarr; Client</td>
+              <td>String senderName, String senderType, String messagePreview</td>
+              <td>Notification push quand un nouveau mail arrive alors que le joueur est connecte.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Optimisation :</strong> La liste des mails (<code>mail_list</code>) n'envoie PAS les ItemStack complets. Seul le nombre d'items et un resume sont envoyes. Les items complets ne sont envoyes que lors de <code>mail_detail_response</code> quand le joueur consulte un mail specifique. Cela reduit considerablement la taille des packets pour les joueurs avec beaucoup de mails.</div>
+      </div>
+    </section>
+
+    <!-- S6 — COMMANDES -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num red-num">06</span> Commandes</h2>
+
+      <h3 class="first">Commandes joueur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Description</th><th>Permission</th></tr></thead>
+          <tbody>
+            <tr><td>/mail</td><td>Ouvre le GUI de la boite mail</td><td>Aucune (tous les joueurs)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Commandes administrateur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Description</th><th>Permission</th></tr></thead>
+          <tbody>
+            <tr><td>/mailadmin send &lt;player&gt; &lt;message&gt;</td><td>Envoie un mail admin avec le message. L'admin tient l'item a envoyer en main (ou main vide pour message seul).</td><td>eriniumfaction.mail.admin.send</td></tr>
+            <tr><td>/mailadmin senditem &lt;player&gt; &lt;item&gt; &lt;count&gt; [message]</td><td>Envoie un item specifique par ID avec un message optionnel.</td><td>eriniumfaction.mail.admin.send</td></tr>
+            <tr><td>/mailadmin sendmoney &lt;player&gt; &lt;dollars&gt; &lt;eris&gt; [message]</td><td>Envoie de l'argent (dollars et/ou Eris) avec un message optionnel.</td><td>eriniumfaction.mail.admin.send</td></tr>
+            <tr><td>/mailadmin list &lt;player&gt;</td><td>Liste tous les mails d'un joueur (meme offline) dans le chat.</td><td>eriniumfaction.mail.admin.list</td></tr>
+            <tr><td>/mailadmin delete &lt;player&gt; &lt;mailId&gt;</td><td>Supprime un mail specifique d'un joueur.</td><td>eriniumfaction.mail.admin.delete</td></tr>
+            <tr><td>/mailadmin clear &lt;player&gt;</td><td>Supprime tous les mails d'un joueur. Demande confirmation.</td><td>eriniumfaction.mail.admin.clear</td></tr>
+            <tr><td>/mailadmin cleanup</td><td>Force le nettoyage des mails expires de tous les joueurs maintenant.</td><td>eriniumfaction.mail.admin.cleanup</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Auto-completion</h3>
+      <ul>
+        <li><strong>&lt;player&gt; :</strong> suggestions dynamiques via noms des joueurs en ligne + joueurs connus (cache UUID).</li>
+        <li><strong>&lt;mailId&gt; :</strong> suggestions dynamiques des IDs de mails du joueur cible.</li>
+        <li><strong>&lt;item&gt; :</strong> suggestions via registre Forge des items.</li>
+      </ul>
+    </section>
+
+    <!-- S7 — CONFIGURATION -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num">07</span> Configuration</h2>
+
+      <h3 class="first">Fichier de configuration</h3>
+      <p>Fichier : <code>config/eriniumfaction/mail.cfg</code> (Forge Configuration standard).</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Parametre</th><th>Type</th><th>Defaut</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>mail.expirationDays</td><td>int</td><td>30</td><td>Nombre de jours avant expiration d'un mail non reclame. -1 = jamais.</td></tr>
+            <tr><td>mail.maxMailsPerPlayer</td><td>int</td><td>100</td><td>Nombre maximum de mails non reclames par joueur. Au-dela, les plus anciens sont supprimes pour faire de la place.</td></tr>
+            <tr><td>mail.cleanupIntervalMinutes</td><td>int</td><td>60</td><td>Intervalle en minutes entre les nettoyages automatiques des mails expires.</td></tr>
+            <tr><td>mail.maxItemsPerMail</td><td>int</td><td>27</td><td>Nombre maximum d'ItemStack distincts dans un seul mail (1 a 54).</td></tr>
+            <tr><td>mail.notifyOnLogin</td><td>boolean</td><td>true</td><td>Envoyer un message chat au joueur a la connexion s'il a des mails non lus.</td></tr>
+            <tr><td>mail.notifyOnReceive</td><td>boolean</td><td>true</td><td>Afficher une notification quand un mail arrive en temps reel.</td></tr>
+            <tr><td>mail.claimAllMaxItems</td><td>int</td><td>108</td><td>Nombre maximum d'items (stacks) pouvant etre claim en une seule operation "Tout Claim". Previent les abus.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- S8 — REGLES METIER -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num cyan-num">08</span> Regles Metier</h2>
+
+      <h3 class="first">Creation d'un mail</h3>
+      <ul>
+        <li><strong>API interne :</strong> <code>MailManager.getInstance().sendMail(UUID recipient, String senderName, MailSenderType type, String message, List&lt;ItemStack&gt; items, long dollars, long eris)</code></li>
+        <li><strong>Validation :</strong> le destinataire doit avoir joue au moins une fois sur le serveur (UUID connu). Les items sont clones (deep copy) au moment de la creation pour eviter les references mutables.</li>
+        <li><strong>Limite :</strong> si le joueur a atteint <code>maxMailsPerPlayer</code>, le mail le plus ancien NON RECLAME est supprime pour faire de la place. Les mails deja reclames (mais pas encore cleanup) ne comptent pas.</li>
+        <li><strong>Notification :</strong> si le joueur est en ligne, un packet <code>mail_notify</code> est envoye immediatement.</li>
+      </ul>
+
+      <h3>Claim d'un mail</h3>
+      <ul>
+        <li><strong>Verification inventaire :</strong> avant de donner les items, le serveur verifie que le joueur a assez de place dans son inventaire. Si l'inventaire ne peut pas contenir TOUS les items, le claim est refuse avec un message d'erreur "Inventaire plein".</li>
+        <li><strong>Atomicite :</strong> le claim est tout-ou-rien. Soit tous les items + argent sont donnes, soit rien. Pas de claim partiel.</li>
+        <li><strong>Argent :</strong> dollars et Eris sont ajoutes au compte du joueur via l'API economie.</li>
+        <li><strong>Marquage :</strong> apres un claim reussi, <code>claimed = true</code>. Le mail reste dans le WorldSavedData jusqu'au prochain cleanup (pour historique). <code>markDirty()</code> est appele immediatement.</li>
+        <li><strong>Idempotence :</strong> si un joueur tente de claim un mail deja reclame, le serveur repond avec une erreur "Deja reclame" sans modifier quoi que ce soit.</li>
+      </ul>
+
+      <h3>Claim All</h3>
+      <ul>
+        <li><strong>Ordre :</strong> les mails sont claim du plus ancien au plus recent.</li>
+        <li><strong>Arret :</strong> si l'inventaire est plein en cours de route, les mails restants ne sont pas claim. Le joueur est informe du nombre de mails claim avec succes.</li>
+        <li><strong>Limite :</strong> maximum <code>claimAllMaxItems</code> stacks en une operation.</li>
+      </ul>
+
+      <h3>Expiration</h3>
+      <ul>
+        <li><strong>Calcul :</strong> un mail est expire si <code>System.currentTimeMillis() - timestamp > expirationDays * 86400000L</code>.</li>
+        <li><strong>Nettoyage :</strong> la tache <code>MailCleanupTask</code> tourne periodiquement et supprime les mails expires ET les mails reclames de plus de 7 jours.</li>
+        <li><strong>Items perdus :</strong> les items d'un mail expire sont perdus definitivement. Le joueur n'a aucun recours (sauf intervention admin).</li>
+      </ul>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Perte d'items :</strong> L'expiration des mails est une perte definitive. Le message de notification a la connexion DOIT etre clair sur le nombre de jours restants avant expiration du mail le plus ancien. Format : "Vous avez X mails non lus. Le plus ancien expire dans Y jours !"</div>
+      </div>
+    </section>
+
+    <!-- S9 — INTEGRATIONS -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num green-num">09</span> Integrations</h2>
+
+      <h3 class="first">Hotel des Ventes (HDV)</h3>
+      <ul>
+        <li><strong>Vente completee :</strong> quand un acheteur achete un item au HDV, l'argent est envoye au vendeur par mail (type HDV, message "Votre vente de NxItem a ete completee").</li>
+        <li><strong>Item achete :</strong> l'item achete est envoye a l'acheteur par mail si celui-ci a ferme le GUI entre temps ou est hors ligne.</li>
+        <li><strong>Item invendu expire :</strong> quand une vente expire au HDV, l'item est renvoye au vendeur par mail.</li>
+        <li><strong>Enchere gagnee :</strong> l'item de l'enchere est envoye au gagnant par mail (type AUCTION).</li>
+        <li><strong>Enchere perdue :</strong> l'argent misee est rembourse au perdant par mail (type AUCTION).</li>
+      </ul>
+
+      <h3>Lootbox / Recompenses</h3>
+      <ul>
+        <li><strong>Lootbox :</strong> si un joueur recoit une recompense de lootbox alors que son inventaire est plein, l'item est envoye par mail (type LOOTBOX).</li>
+        <li><strong>Events serveur :</strong> les recompenses d'events (type SYSTEM) sont distribuees par mail.</li>
+      </ul>
+
+      <h3>Trade Fallback</h3>
+      <ul>
+        <li><strong>Deconnexion :</strong> si un joueur se deconnecte pendant un trade en cours (avant validation), ses items sont renvoyes par mail (type TRADE, message "Trade annule — vos items ont ete renvoyes").</li>
+      </ul>
+
+      <h3>Faction</h3>
+      <ul>
+        <li><strong>Recompenses de guerre :</strong> pillage d'une faction ennemie, recompenses distribuees par mail (type FACTION).</li>
+        <li><strong>Dividendes banque :</strong> distribution automatique de dividendes faction par mail.</li>
+      </ul>
+
+      <h3>Admin</h3>
+      <ul>
+        <li><strong>Cadeaux :</strong> les admins utilisent <code>/mailadmin send</code> pour distribuer des items a des joueurs specifiques ou en masse.</li>
+        <li><strong>Compensations :</strong> en cas de bug, les admins peuvent compenser les joueurs via mail.</li>
+      </ul>
+    </section>
+
+    <!-- S10 — CAS LIMITES & SECURITE -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num red-num">10</span> Cas Limites &amp; Securite</h2>
+
+      <h3 class="first">Anti-duplication</h3>
+      <ul>
+        <li><strong>UUID unique :</strong> chaque mail a un UUID genere cote serveur. Le client ne peut pas forger un ID.</li>
+        <li><strong>Claim atomique :</strong> le claim est verrouille par un <code>synchronized</code> sur le cache du joueur. Un seul claim peut etre traite a la fois par joueur.</li>
+        <li><strong>Double-click :</strong> le GUI desactive le bouton Claim immediatement apres un clic (cote client). Le serveur verifie <code>claimed == false</code> avant de traiter.</li>
+        <li><strong>Packet replay :</strong> meme si un packet <code>mail_claim</code> est rejoue, le serveur verifie l'etat et refuse si deja reclame.</li>
+      </ul>
+
+      <h3>Inventaire plein</h3>
+      <ul>
+        <li><strong>Verification pre-claim :</strong> le serveur calcule le nombre de slots libres dans l'inventaire du joueur AVANT de donner quoi que ce soit.</li>
+        <li><strong>Stacking :</strong> prendre en compte le stacking — 32 diamants dans un mail ne necessitent qu'un slot si le joueur a deja un stack de 32 diamants.</li>
+        <li><strong>Armor slots :</strong> ne PAS utiliser les armor slots pour le claim. Seulement l'inventaire principal (36 slots) + offhand.</li>
+      </ul>
+
+      <h3>Joueur jamais connecte</h3>
+      <ul>
+        <li><strong>Verification :</strong> <code>MailManager.sendMail()</code> doit verifier que l'UUID correspond a un joueur ayant deja joue (playerdata existant ou cache UUID). Si le joueur n'existe pas, le mail est refuse et une erreur est loguee.</li>
+      </ul>
+
+      <h3>Crash serveur pendant ecriture</h3>
+      <ul>
+        <li><strong>Persistence automatique :</strong> WorldSavedData est sauvegarde automatiquement par Minecraft lors des sauvegardes monde. <code>markDirty()</code> est appele apres chaque modification. Pour les operations critiques (claim), <code>world.getMapStorage().saveAllData()</code> est appele immediatement pour forcer la persistence.</li>
+        <li><strong>Recovery au demarrage :</strong> WorldSavedData est charge automatiquement depuis le world save au demarrage du serveur. Aucune recovery manuelle n'est necessaire — Minecraft gere les cas de crash via son systeme de sauvegarde atomique interne (region files).</li>
+      </ul>
+
+      <h3>Charge serveur</h3>
+      <ul>
+        <li><strong>Pas de polling :</strong> le serveur n'envoie JAMAIS de mails au client sauf sur demande explicite (ouverture du GUI) ou push (nouveau mail).</li>
+        <li><strong>Cleanup :</strong> le nettoyage des mails expires se fait sur le main thread (les donnees sont deja en memoire via WorldSavedData). L'iteration sur la map en memoire est rapide meme avec 1000 joueurs.</li>
+        <li><strong>Limite de mails :</strong> la limite <code>maxMailsPerPlayer</code> empeche l'accumulation infinie.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>NBT size :</strong> Les items Minecraft avec beaucoup de NBT (livres ecrits, bannieres complexes, shulker boxes pleines) peuvent etre tres lourds en serialisation. Le systeme doit refuser les mails dont la serialisation NBT totale depasse 1 MB. Cela previent l'inflation du fichier WorldSavedData.</div>
+      </div>
+    </section>
+
+    <!-- S11 — PLAN DE TESTS -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num gold-num">11</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests fonctionnels</h3>
+      <ul class="checklist">
+        <li><strong>Envoi basique :</strong> envoyer un mail avec items + argent via l'API. Verifier qu'il apparait dans le WorldSavedData et dans le GUI du destinataire.</li>
+        <li><strong>Claim items :</strong> ouvrir un mail, cliquer Claim. Verifier que les items sont dans l'inventaire et l'argent sur le compte. Verifier que le mail est marque claimed.</li>
+        <li><strong>Claim All :</strong> avoir 5 mails non reclames. Cliquer Tout Claim. Verifier que les 5 sont reclames dans l'ordre.</li>
+        <li><strong>Inventaire plein :</strong> remplir l'inventaire, tenter un claim. Verifier le message d'erreur et que le mail reste non reclame.</li>
+        <li><strong>Expiration :</strong> creer un mail avec un timestamp de 31 jours dans le passe. Declencher le cleanup. Verifier que le mail est supprime.</li>
+        <li><strong>Notification login :</strong> avoir des mails non lus, se deconnecter et reconnecter. Verifier le message chat de notification.</li>
+        <li><strong>Notification push :</strong> etre en ligne, recevoir un mail. Verifier la notification toast.</li>
+        <li><strong>Limite mails :</strong> configurer maxMailsPerPlayer a 5, envoyer 6 mails. Verifier que le plus ancien est supprime.</li>
+      </ul>
+
+      <h3>Tests de securite</h3>
+      <ul class="checklist">
+        <li><strong>Double claim :</strong> envoyer un packet mail_claim deux fois rapidement pour le meme mail. Verifier qu'un seul claim est traite.</li>
+        <li><strong>Claim mail d'un autre joueur :</strong> forger un packet mail_claim avec l'ID d'un mail appartenant a un autre joueur. Verifier le refus.</li>
+        <li><strong>Claim mail inexistant :</strong> envoyer un mail_claim avec un UUID invente. Verifier le refus sans crash.</li>
+        <li><strong>Packet flood :</strong> envoyer 100 packets mail_open en 1 seconde. Verifier que le serveur rate-limit et ne crash pas.</li>
+        <li><strong>NBT injection :</strong> via la commande admin, tenter d'envoyer un item avec un NBT enorme. Verifier le refus si > 1 MB.</li>
+      </ul>
+
+      <h3>Tests de performance</h3>
+      <ul class="checklist">
+        <li><strong>100 mails par joueur :</strong> creer 100 mails pour un joueur. Mesurer le temps de chargement du GUI (doit etre &lt; 50ms).</li>
+        <li><strong>500 joueurs simultanes :</strong> simuler 500 joueurs qui ouvrent leur boite mail en meme temps. Verifier l'impact TPS.</li>
+        <li><strong>Cleanup 10,000 mails :</strong> creer 10,000 mails expires dans le WorldSavedData. Lancer le cleanup. Verifier que le main thread n'est pas bloque.</li>
+        <li><strong>Ecriture concurrente :</strong> envoyer 10 mails au meme joueur dans le meme tick. Verifier qu'aucun mail n'est perdu.</li>
+      </ul>
+
+      <h3>Tests d'integration</h3>
+      <ul class="checklist">
+        <li><strong>HDV &rarr; Mail :</strong> vendre un item au HDV, un autre joueur l'achete. Verifier que le vendeur recoit l'argent par mail.</li>
+        <li><strong>Auction &rarr; Mail :</strong> gagner une enchere. Verifier que l'item arrive par mail.</li>
+        <li><strong>Trade disconnect &rarr; Mail :</strong> commencer un trade, deconnecter un joueur. Verifier que ses items reviennent par mail.</li>
+        <li><strong>Admin send &rarr; Mail :</strong> utiliser /mailadmin send. Verifier que le mail arrive correctement avec le bon type.</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+<script>
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', () => document.getElementById('sidebar').classList.remove('open'));
+});
+window.addEventListener('scroll', () => {
+  const sections = document.querySelectorAll('.section-card[id]');
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  document.querySelectorAll('.nav-link').forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+</body>
+</html>

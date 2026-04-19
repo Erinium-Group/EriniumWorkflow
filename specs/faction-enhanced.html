@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Faction Enhanced | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     RESET & BASE
+  ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0A0A0F;
+    --violet:    #6B2FA0;
+    --violet-l:  #9B4FCF;
+    --cyan:      #00E5FF;
+    --green:     #2ECC71;
+    --red:       #E74C3C;
+    --gold:      #F1C40F;
+    --text:      #F0F2FF;
+    --slate:     #8892A4;
+    --card-bg:   rgba(14,14,22,0.55);
+    --card-bdr:  rgba(255,255,255,0.06);
+    --radius:    18px;
+    --radius-sm: 10px;
+    --font:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* =========================================================
+     NOISE + GRADIENTS
+  ========================================================= */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 700px 500px at 85% 75%, rgba(0,229,255,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 60% 10%, rgba(46,204,113,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* =========================================================
+     LAYOUT — SIDEBAR + MAIN
+  ========================================================= */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px;
+    background: rgba(10,10,15,0.70);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violet) transparent;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .sidebar-logo span { color: var(--cyan); }
+
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+    margin-bottom: 4px;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+
+  .sidebar-back:hover {
+    color: var(--cyan);
+    border-color: rgba(0,229,255,0.25);
+    background: rgba(0,229,255,0.04);
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 16px 0 6px 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet-l);
+    background: rgba(107,47,160,0.15);
+    border-radius: 4px;
+    padding: 1px 5px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.12);
+    border-color: rgba(107,47,160,0.25);
+  }
+
+  .nav-link.active {
+    color: var(--cyan);
+    background: rgba(0,229,255,0.06);
+    border-color: rgba(0,229,255,0.18);
+  }
+
+  .sidebar-sep {
+    height: 1px;
+    background: var(--card-bdr);
+    margin: 10px 0 4px;
+  }
+
+  .sidebar-doc-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 4px 0 6px 8px;
+  }
+
+  .nav-link-doc {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+
+  .nav-link-doc:hover {
+    color: var(--text);
+    background: rgba(107,47,160,0.10);
+    border-color: rgba(107,47,160,0.2);
+  }
+
+  .nav-link-doc.active-doc {
+    color: var(--gold);
+    background: rgba(241,196,15,0.06);
+    border-color: rgba(241,196,15,0.2);
+  }
+
+  /* MAIN */
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px 56px;
+    max-width: 1100px;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .page-header {
+    margin-bottom: 56px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .page-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet-l);
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text) 0%, var(--violet-l) 60%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .page-header p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+
+  .badge-violet { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan   { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green  { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold   { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+
+  /* =========================================================
+     CARDS
+  ========================================================= */
+  .section-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+
+  .section-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-card h2 .s-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%);
+    border-radius: 6px;
+    padding: 3px 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .section-card h2 .s-num.cyan-num {
+    background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%);
+  }
+
+  .section-card h2 .s-num.gold-num {
+    background: linear-gradient(135deg, #c0960a 0%, var(--gold) 100%);
+  }
+
+  .section-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-bdr);
+  }
+
+  .section-card h3.first { margin-top: 0; }
+
+  .section-card p {
+    color: var(--slate);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-card p:last-child { margin-bottom: 0; }
+
+  .section-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .section-card ul li {
+    font-size: 14px;
+    color: var(--slate);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .section-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--violet-l);
+    font-weight: 700;
+  }
+
+  .section-card ul li strong { color: var(--text); }
+
+  /* =========================================================
+     TABLES
+  ========================================================= */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-bdr);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr {
+    background: rgba(107,47,160,0.18);
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(107,47,160,0.3);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--card-bdr);
+    transition: background .15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+
+  tbody td {
+    padding: 9px 16px;
+    color: var(--slate);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+
+  .tag-yes {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(46,204,113,0.12);
+    color: var(--green);
+    border: 1px solid rgba(46,204,113,0.3);
+    letter-spacing: 0.05em;
+  }
+
+  .tag-no {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(231,76,60,0.10);
+    color: #E74C3C;
+    border: 1px solid rgba(231,76,60,0.25);
+    letter-spacing: 0.05em;
+  }
+
+  .tag-lv {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(0,229,255,0.10);
+    color: var(--cyan);
+    border: 1px solid rgba(0,229,255,0.25);
+    letter-spacing: 0.05em;
+  }
+
+  .tag-gold {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(241,196,15,0.10);
+    color: var(--gold);
+    border: 1px solid rgba(241,196,15,0.25);
+    letter-spacing: 0.05em;
+  }
+
+  /* =========================================================
+     CODE BLOCKS
+  ========================================================= */
+  .code-block {
+    background: rgba(5,5,10,0.80);
+    border: 1px solid rgba(107,47,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 14px 0;
+    color: #B8C0D0;
+    white-space: pre;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107,47,160,0.4) transparent;
+  }
+
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+
+  /* Syntax highlighting */
+  .kw  { color: #C792EA; }
+  .ty  { color: #FFCB6B; }
+  .fn  { color: #82AAFF; }
+  .st  { color: #C3E88D; }
+  .cm  { color: #546E7A; font-style: italic; }
+  .an  { color: #F78C6C; }
+  .nu  { color: #F78C6C; }
+  .op  { color: #89DDFF; }
+  .cl  { color: #FFCB6B; }
+
+  /* =========================================================
+     PERK TREE
+  ========================================================= */
+  .perk-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    margin: 20px 0;
+  }
+
+  .perk-branch {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .perk-branch-header {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .perk-branch-icon {
+    font-size: 16px;
+  }
+
+  .perk-branch.guerre { border-top: 3px solid var(--red); }
+  .perk-branch.eco    { border-top: 3px solid var(--gold); }
+  .perk-branch.terri  { border-top: 3px solid var(--green); }
+
+  .perk-node {
+    background: rgba(14,14,22,0.7);
+    border: 1px solid var(--card-bdr);
+    border-radius: 8px;
+    padding: 12px 14px;
+    position: relative;
+  }
+
+  .perk-node-tier {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin-bottom: 4px;
+  }
+
+  .perk-node-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .perk-node-desc {
+    font-size: 11.5px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  .perk-node.t4 { border-left: 3px solid var(--violet-l); }
+
+  .perk-connector {
+    text-align: center;
+    color: var(--slate);
+    font-size: 12px;
+    margin: -2px 0;
+  }
+
+  /* =========================================================
+     CHALLENGE CARDS
+  ========================================================= */
+  .challenge-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .challenge-card {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .challenge-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .challenge-card-desc {
+    font-size: 12px;
+    color: var(--slate);
+  }
+
+  .challenge-card-xp {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--cyan);
+    margin-top: 2px;
+  }
+
+  /* =========================================================
+     PRESTIGE STARS
+  ========================================================= */
+  .prestige-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+
+  .prestige-card {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid rgba(241,196,15,0.15);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    flex: 1;
+    min-width: 160px;
+    text-align: center;
+  }
+
+  .prestige-stars {
+    font-size: 20px;
+    margin-bottom: 6px;
+    color: var(--gold);
+  }
+
+  .prestige-bonus {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+
+  .prestige-label {
+    font-size: 11px;
+    color: var(--slate);
+  }
+
+  /* =========================================================
+     INFO BOXES
+  ========================================================= */
+  .info-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15);  }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2);  }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2);  }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2);   }
+
+  /* =========================================================
+     METHOD CARDS
+  ========================================================= */
+  .method-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .method-card {
+    background: rgba(5,5,10,0.5);
+    border: 1px solid var(--card-bdr);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    border-left: 3px solid var(--violet);
+  }
+
+  .method-card.cyan-accent  { border-left-color: var(--cyan); }
+  .method-card.green-accent { border-left-color: var(--green); }
+  .method-card.gold-accent  { border-left-color: var(--gold); }
+
+  .method-sig {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12px;
+    color: #82AAFF;
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+
+  .method-desc {
+    font-size: 13px;
+    color: var(--slate);
+    margin-bottom: 6px;
+  }
+
+  .method-note {
+    font-size: 12px;
+    color: rgba(136,146,164,0.7);
+    font-style: italic;
+  }
+
+  .method-note strong { color: rgba(0,229,255,0.7); font-style: normal; }
+
+  /* =========================================================
+     FLOW BLOCKS
+  ========================================================= */
+  .flow-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 12px 0;
+  }
+
+  .flow-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 16px;
+    background: rgba(5,5,10,0.45);
+    border: 1px solid var(--card-bdr);
+    border-radius: 8px;
+    font-size: 13px;
+  }
+
+  .flow-arrow {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .flow-cs { background: rgba(107,47,160,0.2); color: var(--violet-l); border: 1px solid rgba(107,47,160,0.3); }
+  .flow-sc { background: rgba(0,229,255,0.1);  color: var(--cyan);     border: 1px solid rgba(0,229,255,0.2); }
+
+  .flow-text { color: var(--slate); }
+  .flow-text code {
+    font-family: 'JetBrains Mono','Fira Code','Consolas',monospace;
+    font-size: 11.5px;
+    color: var(--cyan);
+    background: rgba(0,229,255,0.07);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  /* =========================================================
+     DIVIDER
+  ========================================================= */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-bdr), transparent);
+    margin: 24px 0;
+  }
+
+  /* =========================================================
+     ANIMATIONS
+  ========================================================= */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* =========================================================
+     MOBILE TOGGLE
+  ========================================================= */
+  .mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--violet);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(107,47,160,0.4);
+    transition: transform .2s;
+  }
+
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 50;
+      width: 260px;
+    }
+
+    .sidebar.open { transform: translateX(0); }
+
+    .main { padding: 32px 20px 60px; }
+
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+
+    .perk-grid { grid-template-columns: 1fr; }
+    .challenge-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    .section-card { padding: 24px 18px; }
+    .page-header h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="index.html">&#8592; Index specs</a>
+
+    <span class="sidebar-title">Sommaire</span>
+
+    <a class="nav-link" href="#s1"><span class="num">01</span> Vue d&#8217;ensemble</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Syst&#232;me de niveaux</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Sources d&#8217;XP</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Arbre de comp&#233;tences</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> D&#233;fis de faction</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Syst&#232;me de prestige</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Interface GUI</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Donn&#233;es techniques</a>
+
+    <div class="sidebar-sep"></div>
+    <span class="sidebar-doc-title">Autres specs</span>
+    <a class="nav-link-doc" href="faction-system.html">Syst&#232;me de Faction</a>
+    <a class="nav-link-doc active-doc" href="faction-enhanced.html">Faction Enhanced</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <!-- HEADER -->
+    <header class="page-header" id="top">
+      <div class="eyebrow">EriniumFaction &#8212; Sp&#233;cification technique</div>
+      <h1>Cahier des charges<br>Faction Enhanced</h1>
+      <p>Syst&#232;me de progression collective par niveaux, XP collaboratif, arbre de comp&#233;tences strat&#233;gique, d&#233;fis hebdomadaires et prestige. Document de r&#233;f&#233;rence exhaustif pour l&#8217;impl&#233;mentation.</p>
+      <div class="header-badges">
+        <span class="badge badge-violet">Minecraft 1.12.2</span>
+        <span class="badge badge-cyan">EriAPI Framework</span>
+        <span class="badge badge-green">Niveaux 1&#8211;20</span>
+        <span class="badge badge-gold">Prestige &#x2605; x5</span>
+        <span class="badge badge-violet">3 Branches de comp&#233;tences</span>
+      </div>
+    </header>
+
+    <!-- =====================================================================
+         SECTION 1 — VUE D'ENSEMBLE
+    ====================================================================== -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Vue d&#8217;ensemble</h2>
+
+      <p>Faction Enhanced est un syst&#232;me de <strong>progression collective</strong> qui attribue un niveau (1&#8211;20) &#224; chaque faction. L&#8217;XP est gagn&#233;e par des actions collaboratives des membres. Chaque niveau d&#233;bloque des bonus passifs et des jalons sp&#233;cifiques. &#192; certains paliers, la faction gagne des <strong>points de comp&#233;tence</strong> &#224; investir dans un arbre &#224; 3 branches, for&#231;ant des choix strat&#233;giques qui d&#233;finissent l&#8217;identit&#233; de la faction.</p>
+
+      <h3 class="first">Objectifs de design</h3>
+      <ul>
+        <li><strong>Collaboration</strong> &#8212; XP gagn&#233; en groupe &gt; solo, incitation permanente &#224; jouer ensemble</li>
+        <li><strong>Identit&#233; unique</strong> &#8212; l&#8217;arbre de comp&#233;tences impose des choix qui diff&#233;rencient chaque faction</li>
+        <li><strong>Alliances strat&#233;giques</strong> &#8212; la sp&#233;cialisation est temporaire en early&#160;/ mid game, les factions progressent &#224; des rythmes diff&#233;rents et les compl&#233;mentarit&#233;s restent strat&#233;giques tout au long de la progression</li>
+        <li><strong>Endgame</strong> &#8212; le syst&#232;me de prestige offre un objectif long terme apr&#232;s le niveau 20</li>
+        <li><strong>Activit&#233; r&#233;guli&#232;re</strong> &#8212; les d&#233;fis hebdomadaires r&#233;compensent la pr&#233;sence continue</li>
+      </ul>
+
+      <div class="info-box tip" style="margin-top:20px">
+        <div class="icon" style="color:var(--green)">&#9670;</div>
+        <div class="content"><strong>R&#232;gle absolue&#160;:</strong> tous les GUIs, la gestion des donn&#233;es, les events, les packets et le scheduling DOIVENT utiliser EriAPI. Aucun boilerplate Forge brut l&#224; o&#249; l&#8217;API existe d&#233;j&#224;.</div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SECTION 2 — SYSTEME DE NIVEAUX
+    ====================================================================== -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num">02</span> Syst&#232;me de niveaux</h2>
+
+      <p>La faction progresse de <strong>niveau 1 &#224; 20</strong> selon une courbe d&#8217;XP croissante. Le co&#251;t total (7&#160;500 XP) est calibr&#233; pour qu&#8217;une faction active de 20 membres atteigne le niveau 20 en <strong>environ 2 semaines</strong>. Avec le syst&#232;me de prestige (6 cycles &#215; ~2 semaines, acc&#233;l&#233;r&#233;s par le bonus XP cumulatif), le prestige 5 est atteignable en <strong>~3 mois</strong> de jeu r&#233;gulier.</p>
+
+      <h3 class="first">Table XP par niveau</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Niveau</th>
+              <th>XP requise</th>
+              <th>XP cumul&#233;e</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1 &#8594; 2</td><td>100</td><td>100</td></tr>
+            <tr><td>2 &#8594; 3</td><td>150</td><td>250</td></tr>
+            <tr><td>3 &#8594; 4</td><td>200</td><td>450</td></tr>
+            <tr><td>4 &#8594; 5</td><td>250</td><td>700</td></tr>
+            <tr><td>5 &#8594; 6</td><td>300</td><td>1&#160;000</td></tr>
+            <tr><td>6 &#8594; 7</td><td>300</td><td>1&#160;300</td></tr>
+            <tr><td>7 &#8594; 8</td><td>350</td><td>1&#160;650</td></tr>
+            <tr><td>8 &#8594; 9</td><td>350</td><td>2&#160;000</td></tr>
+            <tr><td>9 &#8594; 10</td><td>400</td><td>2&#160;400</td></tr>
+            <tr><td>10 &#8594; 11</td><td>400</td><td>2&#160;800</td></tr>
+            <tr><td>11 &#8594; 12</td><td>450</td><td>3&#160;250</td></tr>
+            <tr><td>12 &#8594; 13</td><td>450</td><td>3&#160;700</td></tr>
+            <tr><td>13 &#8594; 14</td><td>500</td><td>4&#160;200</td></tr>
+            <tr><td>14 &#8594; 15</td><td>500</td><td>4&#160;700</td></tr>
+            <tr><td>15 &#8594; 16</td><td>500</td><td>5&#160;200</td></tr>
+            <tr><td>16 &#8594; 17</td><td>550</td><td>5&#160;750</td></tr>
+            <tr><td>17 &#8594; 18</td><td>550</td><td>6&#160;300</td></tr>
+            <tr><td>18 &#8594; 19</td><td>600</td><td>6&#160;900</td></tr>
+            <tr><td>19 &#8594; 20</td><td>600</td><td>7&#160;500</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Bonus passifs automatiques par niveau</h3>
+      <p>Ces bonus s&#8217;appliquent &#224; tous les membres de la faction, automatiquement, sans action requise.</p>
+      <ul>
+        <li><strong>+2 power max par membre</strong> &#8212; tous les 10 niveaux (niv. 10 et niv. 20)</li>
+        <li><strong>+1 membre max</strong> &#8212; &#224; chaque niveau (permanent, jamais perdu au prestige)</li>
+      </ul>
+
+      <h3>Jalons de d&#233;blocage</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Niveau</th>
+              <th>D&#233;blocage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="tag-lv">Niv. 2</span></td><td><strong>1er point de comp&#233;tence</strong> &#8212; Phase Early d&#233;marre</td></tr>
+            <tr><td><span class="tag-lv">Niv. 3</span></td><td>R&#233;g&#233;n&#233;ration de power acc&#233;l&#233;r&#233;e (+25&#160;% vitesse de regen pour tous les membres)</td></tr>
+            <tr><td><span class="tag-lv">Niv. 4</span></td><td><strong>2&#232;me point de comp&#233;tence</strong></td></tr>
+            <tr><td><span class="tag-lv">Niv. 5</span></td><td><strong>3&#232;me point de comp&#233;tence</strong> + Buffs territoriaux mineurs (R&#233;g&#233;n&#233;ration I dans le claim)</td></tr>
+            <tr><td><span class="tag-lv">Niv. 7</span></td><td><strong>4&#232;me point de comp&#233;tence</strong> &#8212; fin Phase Early (1&#232;re branche compl&#232;te possible) + Rangs personnalis&#233;s (cr&#233;ation de rangs custom avec permissions configurables)</td></tr>
+            <tr><td><span class="tag-lv">Niv. 8</span></td><td><strong>5&#232;me point de comp&#233;tence</strong> &#8212; Phase Mid d&#233;marre</td></tr>
+            <tr><td><span class="tag-lv">Niv. 10</span></td><td><strong>6&#232;me point de comp&#233;tence</strong> + Notification d&#8217;intrusion territoire (alerte quand un ennemi entre)</td></tr>
+            <tr><td><span class="tag-lv">Niv. 12</span></td><td><strong>7&#232;me point de comp&#233;tence</strong></td></tr>
+            <tr><td><span class="tag-lv">Niv. 13</span></td><td>Syst&#232;me d&#8217;avant-poste (home secondaire hors territoire principal)</td></tr>
+            <tr><td><span class="tag-lv">Niv. 14</span></td><td><strong>8&#232;me point de comp&#233;tence</strong> &#8212; fin Phase Mid (2&#232;me branche compl&#232;te possible)</td></tr>
+            <tr><td><span class="tag-lv">Niv. 15</span></td><td><strong>9&#232;me point de comp&#233;tence</strong> &#8212; Phase Late d&#233;marre + Banni&#232;re de faction (cosmetic dans le chat et le tab)</td></tr>
+            <tr><td><span class="tag-lv">Niv. 17</span></td><td><strong>10&#232;me point de comp&#233;tence</strong></td></tr>
+            <tr><td><span class="tag-lv">Niv. 18</span></td><td><strong>11&#232;me point de comp&#233;tence</strong> + Aura territoriale (effets de particules custom visibles dans le territoire claim&#233;)</td></tr>
+            <tr><td><span class="tag-lv">Niv. 20</span></td><td><strong>12&#232;me point de comp&#233;tence</strong> &#8212; fin Phase Late (arbre entier compl&#232;t) + Prestige disponible (reset volontaire r&#233;compens&#233;)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <div class="icon" style="color:var(--cyan)">&#9432;</div>
+        <div class="content">Les 12 points de comp&#233;tence sont obtenus aux niveaux <strong>2, 4, 5, 7, 8, 10, 12, 14, 15, 17, 18 et 20</strong> (4 points par phase). Au niveau 20, la faction a accumul&#233; suffisamment de points pour <strong>d&#233;bloquer l&#8217;int&#233;gralit&#233; des 3 branches</strong>. Le choix strat&#233;gique porte sur l&#8217;ordre d&#8217;investissement, pas sur des branches &#224; ignorer.</div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SECTION 3 — SOURCES D'XP
+    ====================================================================== -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num">03</span> Sources d&#8217;XP</h2>
+
+      <p>L&#8217;XP est <strong>toujours attribu&#233;e &#224; la faction</strong>, jamais au joueur individuellement. Les actions r&#233;alis&#233;es en groupe b&#233;n&#233;ficient d&#8217;un multiplicateur pour encourager la coop&#233;ration.</p>
+
+      <h3 class="first">Territoire</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Action</th><th>XP</th><th>Condition / Cap</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Claim d&#8217;un nouveau chunk</td><td>15 XP</td><td>Cap&#160;: 50 XP/jour par ce biais</td></tr>
+            <tr><td>Construction dans le territoire (poses de blocs)</td><td>1 XP / 100 blocs</td><td>Cap&#160;: 30 XP/jour</td></tr>
+            <tr><td>Minage dans le territoire (blocs cass&#233;s)</td><td>1 XP / 150 blocs</td><td>Cap&#160;: 20 XP/jour. Uniquement blocs naturels (stone, ores, etc.)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Combat</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Action</th><th>XP</th><th>Condition</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Kill d&#8217;un ennemi en warzone</td><td>25 XP</td><td>La cible doit appartenir &#224; une faction ennemie</td></tr>
+            <tr><td>Kill en territoire ennemi (raid)</td><td>40 XP</td><td>Bonus pour l&#8217;audace offensive</td></tr>
+            <tr><td>D&#233;fense du territoire (kill d&#8217;un intrus)</td><td>35 XP</td><td>L&#8217;intrus est dans le claim de la faction</td></tr>
+            <tr><td>Kill de mob hostile (en groupe)</td><td>1 XP / 10 mobs</td><td>Cap&#160;: 15 XP/jour. 2+ membres dans un rayon de 32 blocs requis</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Economie</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Action</th><th>XP</th><th>Condition</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>D&#233;p&#244;t en banque de faction</td><td>1 XP / 100$</td><td>Cap&#160;: 30 XP/jour</td></tr>
+            <tr><td>Echange commercial avec un alli&#233;</td><td>10 XP / trade</td><td>Via le syst&#232;me de trade inter-faction. Cap&#160;: 30 XP/jour</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Exploration &amp; Crafting</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Action</th><th>XP</th><th>Condition</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Craft d&#8217;un item custom du mod</td><td>5 XP</td><td>Items EriniumFaction uniquement. Cap&#160;: 25 XP/jour</td></tr>
+            <tr><td>D&#233;couverte de biome (premier membre &#224; y entrer)</td><td>10 XP</td><td>Chaque biome unique ne compte qu&#8217;une fois par faction</td></tr>
+            <tr><td>Kill de boss (Wither, Ender Dragon)</td><td>50 XP</td><td>Au moins 2 membres de la faction pr&#233;sents. 1&#215; par boss par semaine</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Pr&#233;sence &amp; Collaboration</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Action</th><th>XP</th><th>Condition</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Bonus d&#8217;activit&#233; journalier</td><td>5 XP / membre connect&#233;</td><td>Calcul&#233; &#224; minuit serveur. Minimum 3 membres, cap 15 membres max</td></tr>
+            <tr><td>Bonus de groupe</td><td>&#215;1.5 multiplicateur</td><td>3+ membres dans le m&#234;me chunk claim simultan&#233;ment</td></tr>
+            <tr><td>Connexion simultan&#233;e</td><td>20 XP</td><td>5+ membres en ligne en m&#234;me temps. Maximum 1&#215; par jour</td></tr>
+            <tr><td>S&#233;rie de connexion (streak)</td><td>10 XP / jour de streak</td><td>Au moins 1 membre connect&#233; chaque jour. Reset si aucun membre ne se connecte. Cap&#160;: 70 XP (7 jours)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Anti-exploit</h3>
+      <div class="info-box danger">
+        <div class="icon" style="color:var(--red)">&#9888;</div>
+        <div class="content">
+          <strong>R&#232;gles anti-abus obligatoires &#224; impl&#233;menter&#160;:</strong><br>
+          &#8212; Caps journaliers stricts sur chaque source d&#8217;XP (voir section 8)<br>
+          &#8212; Aucune XP pour le PvP entre membres d&#8217;une m&#234;me faction<br>
+          &#8212; Aucune XP pour le PvP contre des joueurs sans faction<br>
+          &#8212; Cooldown de 5 minutes entre kills du m&#234;me joueur par la m&#234;me faction<br>
+          &#8212; Les blocs pos&#233;s puis cass&#233;s dans la m&#234;me minute ne comptent pas pour la construction
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SECTION 4 — ARBRE DE COMPETENCES
+    ====================================================================== -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num">04</span> Arbre de comp&#233;tences</h2>
+
+      <p>La faction dispose de <strong>12 points de comp&#233;tence</strong> au total, obtenus progressivement selon 3 phases. L&#8217;arbre comporte 3 branches de 4 paliers chacune. Pour d&#233;bloquer un palier, le pr&#233;c&#233;dent dans la m&#234;me branche est requis. Les points sont <strong>redistribuables</strong> avec un cooldown de 7 jours.</p>
+      <ul style="margin:12px 0 0">
+        <li><strong>Phase Early</strong> (Niv. 2, 4, 5, 7) &#8594; 4 points &#8212; permet de compl&#233;ter une 1&#232;re branche</li>
+        <li><strong>Phase Mid</strong> (Niv. 8, 10, 12, 14) &#8594; 4 points &#8212; permet de compl&#233;ter une 2&#232;me branche</li>
+        <li><strong>Phase Late</strong> (Niv. 15, 17, 18, 20) &#8594; 4 points &#8212; permet de compl&#233;ter la 3&#232;me branche</li>
+      </ul>
+
+      <div class="info-box warn">
+        <div class="icon" style="color:var(--gold)">&#9679;</div>
+        <div class="content">Avec 12 points au total pour 12 paliers, une faction au <strong>niveau 20 d&#233;bloque l&#8217;int&#233;gralit&#233; de l&#8217;arbre</strong>. L&#8217;enjeu strat&#233;gique porte sur l&#8217;<strong>ordre d&#8217;investissement</strong>&#160;: la branche choisie en early game d&#233;finit l&#8217;identit&#233; de la faction pendant toute sa mont&#233;e en puissance.</div>
+      </div>
+
+      <h3>Aper&#231;u visuel de l&#8217;arbre</h3>
+      <div class="perk-grid">
+
+        <!-- Branche Guerriere -->
+        <div class="perk-branch guerre">
+          <div class="perk-branch-header">
+            <span class="perk-branch-icon">&#9876;</span> Branche Guerri&#232;re
+          </div>
+          <div class="perk-node">
+            <div class="perk-node-tier">Palier 1</div>
+            <div class="perk-node-name">T&#233;nacit&#233;</div>
+            <div class="perk-node-desc">R&#233;sistance I permanente dans le territoire claim de la faction.</div>
+          </div>
+          <div class="perk-connector">&#8595;</div>
+          <div class="perk-node">
+            <div class="perk-node-tier">Palier 2</div>
+            <div class="perk-node-name">Endurance</div>
+            <div class="perk-node-desc">&#8722;25&#160;% de perte de power &#224; la mort pour tous les membres.</div>
+          </div>
+          <div class="perk-connector">&#8595;</div>
+          <div class="perk-node">
+            <div class="perk-node-tier">Palier 3</div>
+            <div class="perk-node-name">Fureur</div>
+            <div class="perk-node-desc">Force I pendant 30&#160;s apr&#232;s un kill en warzone (cooldown 2&#160;min).</div>
+          </div>
+          <div class="perk-connector">&#8595;</div>
+          <div class="perk-node t4">
+            <div class="perk-node-tier">Palier 4 &#8212; Ultime</div>
+            <div class="perk-node-name">Cri de guerre</div>
+            <div class="perk-node-desc">Activation manuelle&#160;: tous les membres de la faction en ligne re&#231;oivent Strength&#160;I + Speed&#160;I pendant 60&#160;s. Cooldown 4&#160;h. Minimum 3 membres en ligne requis. Leader ou officier requis.</div>
+          </div>
+          <div class="perk-connector">&#8595;</div>
+          <div class="perk-node t4" style="border-color:var(--gold);box-shadow:0 0 12px rgba(241,196,15,0.3)">
+            <div class="perk-node-tier" style="color:var(--gold)">Palier 5 &#8212; L&#233;gendaire <span style="color:var(--gold)">&#9733;&#9733;&#9733;&#9733;&#9733;</span></div>
+            <div class="perk-node-name">Rage de guerre</div>
+            <div class="perk-node-desc">Tous les membres de la faction infligent +10&#160;% de d&#233;g&#226;ts permanents en warzone.</div>
+          </div>
+        </div>
+
+        <!-- Branche Economique -->
+        <div class="perk-branch eco">
+          <div class="perk-branch-header">
+            <span class="perk-branch-icon">&#128181;</span> Branche Economique
+          </div>
+          <div class="perk-node">
+            <div class="perk-node-tier">Palier 1</div>
+            <div class="perk-node-name">Prospection</div>
+            <div class="perk-node-desc">+15&#160;% de drops de min&#233;rais dans le territoire claim.</div>
+          </div>
+          <div class="perk-connector">&#8595;</div>
+          <div class="perk-node">
+            <div class="perk-node-tier">Palier 2</div>
+            <div class="perk-node-name">Coffre de faction</div>
+            <div class="perk-node-desc">Ender chest partag&#233;e entre tous les membres (27 slots, extensible).</div>
+          </div>
+          <div class="perk-connector">&#8595;</div>
+          <div class="perk-node">
+            <div class="perk-node-tier">Palier 3</div>
+            <div class="perk-node-name">Taxation</div>
+            <div class="perk-node-desc">Taxe automatique configurable (0&#8211;10&#160;%) sur les picks des membres, d&#233;pos&#233;e en banque.</div>
+          </div>
+          <div class="perk-connector">&#8595;</div>
+          <div class="perk-node t4">
+            <div class="perk-node-tier">Palier 4 &#8212; Ultime</div>
+            <div class="perk-node-name">Contrats de Ressources</div>
+            <div class="perk-node-desc">Le leader ou un officier cr&#233;e des contrats de ressources&#160;: les membres contribuent des items demand&#233;s et re&#231;oivent une r&#233;compense en $ proportion&#8203;nelle &#224; leur contribution. La faction gagne de l&#8217;XP &#224; chaque contrat compl&#233;t&#233;.</div>
+          </div>
+          <div class="perk-connector">&#8595;</div>
+          <div class="perk-node t4" style="border-color:var(--gold);box-shadow:0 0 12px rgba(241,196,15,0.3)">
+            <div class="perk-node-tier" style="color:var(--gold)">Palier 5 &#8212; L&#233;gendaire <span style="color:var(--gold)">&#9733;&#9733;&#9733;&#9733;&#9733;</span></div>
+            <div class="perk-node-name">Monopole</div>
+            <div class="perk-node-desc">La banque de faction g&#233;n&#232;re 2&#160;% d&#8217;int&#233;r&#234;ts par jour. Les membres ont &#8722;50&#160;% de perte d&#8217;items &#224; la mort en territoire claim.</div>
+          </div>
+        </div>
+
+        <!-- Branche Territoriale -->
+        <div class="perk-branch terri">
+          <div class="perk-branch-header">
+            <span class="perk-branch-icon">&#127988;</span> Branche Territoriale
+          </div>
+          <div class="perk-node">
+            <div class="perk-node-tier">Palier 1</div>
+            <div class="perk-node-name">Vitalit&#233; territoriale</div>
+            <div class="perk-node-desc">+20&#160;% de power max par membre quand ils sont dans le territoire claim&#233; de la faction.</div>
+          </div>
+          <div class="perk-connector">&#8595;</div>
+          <div class="perk-node">
+            <div class="perk-node-tier">Palier 2</div>
+            <div class="perk-node-name">Sentinelle</div>
+            <div class="perk-node-desc">Notification quand un joueur ennemi entre dans le territoire + particules de warning.</div>
+          </div>
+          <div class="perk-connector">&#8595;</div>
+          <div class="perk-node">
+            <div class="perk-node-tier">Palier 3</div>
+            <div class="perk-node-name">Avant-postes</div>
+            <div class="perk-node-desc">Permet de placer jusqu&#8217;&#224; 2 bases secondaires (homes suppl&#233;mentaires).</div>
+          </div>
+          <div class="perk-connector">&#8595;</div>
+          <div class="perk-node t4">
+            <div class="perk-node-tier">Palier 4 &#8212; Ultime</div>
+            <div class="perk-node-name">Ancrage territorial</div>
+            <div class="perk-node-desc">Les blocs du territoire claim&#233; ont +50&#160;% de r&#233;sistance aux explosions (pas d&#8217;immunit&#233; totale). Les membres qui respawnent dans le territoire claim&#233; re&#231;oivent Speed&#160;II pendant 10&#160;s.</div>
+          </div>
+          <div class="perk-connector">&#8595;</div>
+          <div class="perk-node t4" style="border-color:var(--gold);box-shadow:0 0 12px rgba(241,196,15,0.3)">
+            <div class="perk-node-tier" style="color:var(--gold)">Palier 5 &#8212; L&#233;gendaire <span style="color:var(--gold)">&#9733;&#9733;&#9733;&#9733;&#9733;</span></div>
+            <div class="perk-node-name">Sanctuaire</div>
+            <div class="perk-node-desc">Les membres re&#231;oivent Regeneration&#160;I permanent dans le territoire claim. Les ennemis qui entrent subissent Slowness&#160;I et Mining Fatigue&#160;I.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <h3>Exemples de builds strat&#233;giques par palier de progression</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Palier</th><th>Points investis (exemple)</th><th>Profil</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Level 7 &#8212; Full Guerri&#232;re</td><td>G T1 + G T2 + G T3 + G T4</td><td>Sp&#233;cialisation PvP d&#232;s l&#8217;early&#160;: branche compl&#232;te, Cri de guerre disponible</td></tr>
+            <tr><td>Level 7 &#8212; Full Economique</td><td>E T1 + E T2 + E T3 + E T4</td><td>Faction &#233;conomique op&#233;rationnelle en early&#160;: taxation active, coffre partag&#233; et contrats de ressources disponibles</td></tr>
+            <tr><td>Level 7 &#8212; Full Territoriale</td><td>T T1 + T T2 + T T3 + T T4</td><td>Forteresse d&#232;s l&#8217;early&#160;: territoire maxim&#233;, Ancrage territorial actif</td></tr>
+            <tr><td>Level 10 &#8212; Guerri&#232;re + d&#233;but Eco</td><td>G T1&#8211;T4 + E T1</td><td>PvP complet + amorce &#233;conomique (+15&#160;% drops min&#233;rais)</td></tr>
+            <tr><td>Level 14 &#8212; Guerri&#232;re + Eco compl&#232;te</td><td>G T1&#8211;T4 + E T1&#8211;T4</td><td>Faction hybride PvP / &#233;conomique&#160;: auto-suffisante gr&#226;ce aux contrats de ressources, redoutable en combat</td></tr>
+            <tr><td>Level 20 &#8212; Arbre complet</td><td>G T1&#8211;T4 + E T1&#8211;T4 + T T1&#8211;T4</td><td>Toutes les branches d&#233;bloqu&#233;es&#160;: faction au sommet de sa puissance</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <div class="icon" style="color:var(--green)">&#9670;</div>
+        <div class="content"><strong>Synergies entre factions&#160;:</strong> la sp&#233;cialisation est temporaire en early&#160;/ mid game&#160;&#8212; les alliances restent strat&#233;giques car les factions progressent &#224; des rythmes diff&#233;rents. Une faction qui atteint le niveau 20 avant ses alli&#233;es b&#233;n&#233;ficie d&#8217;un avantage d&#233;cisif&#160;; s&#8217;allier avec une faction avanc&#233;e dans une branche que vous n&#8217;avez pas encore combl&#233;e garde sa pertinence pendant toute la progression.</div>
+      </div>
+
+      <!-- ------------------------------------------------------------------ -->
+      <!-- D&#233;tail perk ECO T4 : Contrats de Ressources                         -->
+      <!-- ------------------------------------------------------------------ -->
+      <h3 id="contrats-ressources" style="margin-top:32px">4.A &#8212; Contrats de Ressources (d&#233;tail ECO Palier&#160;4)</h3>
+      <p>Le perk <strong>Contrats de Ressources</strong> d&#233;bloque un syst&#232;me collaboratif&#160;: le leader ou un officier publie des besoins en ressources avec une r&#233;compense en $, les membres y contribuent librement, et la faction gagne de l&#8217;XP &#224; chaque contrat men&#233; &#224; terme.</p>
+
+      <h4 style="color:var(--cyan);margin:20px 0 8px;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Cr&#233;ation d&#8217;un contrat</h4>
+      <ul>
+        <li>Le leader ou un officier cr&#233;e un contrat via <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">/f contract create &lt;item|hand&gt; &lt;quantit&#233;&gt; &lt;r&#233;compense$&gt;</code></li>
+        <li>Exemple&#160;: <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">/f contract create hand 64 500</code> &#8212; 64 de l&#8217;item tenu en main, r&#233;compense 500&#160;$</li>
+        <li>L&#8217;item peut &#234;tre sp&#233;cifi&#233; par son registry name&#160;: <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">minecraft:diamond</code></li>
+        <li>Maximum <strong>3 contrats actifs simultan&#233;s</strong> par faction</li>
+        <li>La r&#233;compense est <strong>pr&#233;lev&#233;e imm&#233;diatement</strong> sur la banque de faction et r&#233;serv&#233;e &#8212; cr&#233;ation impossible si fonds insuffisants</li>
+        <li>Accessible aussi via le GUI Progression &#8594; onglet <em>Contrats</em></li>
+      </ul>
+
+      <h4 style="color:var(--cyan);margin:20px 0 8px;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Contribution des membres</h4>
+      <ul>
+        <li>Tout membre peut contribuer via <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">/f contract deposit &lt;id&gt;</code> en tenant l&#8217;item requis en main</li>
+        <li>D&#233;p&#244;ts partiels autoris&#233;s (ex.&#160;: d&#233;poser 10 des 64 demand&#233;s)</li>
+        <li>On ne peut pas d&#233;poser plus que la quantit&#233; restante n&#233;cessaire</li>
+        <li>La progression (quantit&#233; d&#233;pos&#233;e / quantit&#233; cible) est visible par tous les membres</li>
+        <li>Via le GUI&#160;: cliquer sur la carte du contrat &#8594; fen&#234;tre de d&#233;p&#244;t depuis l&#8217;inventaire</li>
+      </ul>
+
+      <h4 style="color:var(--cyan);margin:20px 0 8px;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Completion du contrat</h4>
+      <ul>
+        <li>Quand <code>currentQty</code> atteint <code>targetQty</code>&#160;:</li>
+        <li>Les items d&#233;pos&#233;s sont <strong>consomm&#233;s</strong> (ils disparaissent)</li>
+        <li>La r&#233;compense en $ est distribu&#233;e <strong>proportionnellement</strong> aux contributions de chaque contributeur</li>
+        <li>La faction gagne de l&#8217;XP source <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">ECONOMY_TRADE</code>&#160;: <strong>r&#233;compense&#160;&#247;&#160;50</strong> (ex.&#160;: contrat 500&#160;$ = 10 XP, soumis au cap journalier &#233;conomie 100 XP)</li>
+        <li>Un message broadcast annonce la completion &#224; tous les membres</li>
+        <li>Le slot de contrat est lib&#233;r&#233;</li>
+      </ul>
+
+      <h4 style="color:var(--cyan);margin:20px 0 8px;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Annulation</h4>
+      <ul>
+        <li>Le leader ou un officier peut annuler via <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">/f contract cancel &lt;id&gt;</code></li>
+        <li>Les items d&#233;j&#224; d&#233;pos&#233;s sont retourn&#233;s&#160;: dans le coffre de faction si le perk <em>Coffre de Faction</em> (ECO T2) est actif, sinon droppés au home de faction</li>
+        <li>La r&#233;compense r&#233;serv&#233;e est rendue &#224; la banque de faction</li>
+        <li>Aucun XP n&#8217;est accord&#233; en cas d&#8217;annulation</li>
+      </ul>
+
+      <h4 style="color:var(--cyan);margin:20px 0 8px;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Structure de donn&#233;es dans FactionInfo</h4>
+      <div class="code-block"><span class="cm">// Champ CSV dans FactionInfo — 3 contrats max</span>
+<span class="cm">// Format : "id:registryName:meta:targetQty:currentQty:reward$:uuid1=amount,uuid2=amount;..."</span>
+<span class="ty">String</span> activeContracts <span class="op">=</span> <span class="st">""</span>
+
+<span class="cm">// Exemple (1 contrat actif) :</span>
+<span class="cm">// "5:minecraft:diamond:0:64:32:500:uuid1=10,uuid2=22"</span>
+<span class="cm">//   id=5 | item=minecraft:diamond | meta=0 | target=64 | current=32 | reward=500$ | contrib</span></div>
+
+      <h4 style="color:var(--cyan);margin:20px 0 8px;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Commandes</h4>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Commande</th><th>Permission</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code style="font-family:monospace;font-size:12px;color:var(--cyan)">/f contract list</code></td><td>Tous les membres</td><td>Affiche les contrats actifs avec leur progression dans le chat</td></tr>
+            <tr><td><code style="font-family:monospace;font-size:12px;color:var(--cyan)">/f contract create &lt;item|hand&gt; &lt;qt&#233;&gt; &lt;r&#233;compense&gt;</code></td><td>Leader / Officier (perk ECO T4 requis)</td><td>Cr&#233;e un nouveau contrat — pr&#233;l&#232;ve la r&#233;compense sur la banque</td></tr>
+            <tr><td><code style="font-family:monospace;font-size:12px;color:var(--cyan)">/f contract deposit &lt;id&gt;</code></td><td>Tous les membres</td><td>D&#233;pose les items tenus en main dans le contrat sp&#233;cifi&#233;</td></tr>
+            <tr><td><code style="font-family:monospace;font-size:12px;color:var(--cyan)">/f contract cancel &lt;id&gt;</code></td><td>Leader / Officier</td><td>Annule un contrat et rembourse items + r&#233;compense</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4 style="color:var(--cyan);margin:20px 0 8px;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Int&#233;gration GUI</h4>
+      <ul>
+        <li>Nouvel onglet <strong>&#171;&#160;Contrats&#160;&#187;</strong> dans le TabView de la section Progression (&#224; c&#244;t&#233; de <em>D&#233;fis</em>)</li>
+        <li>Chaque contrat affich&#233; comme une carte&#160;: ic&#244;ne de l&#8217;item, nom, barre de progression, r&#233;compense en $, liste des contributeurs</li>
+        <li>Bouton <em>&#171;&#160;Contribuer&#160;&#187;</em> sur chaque carte &#8594; fen&#234;tre de d&#233;p&#244;t depuis l&#8217;inventaire du joueur</li>
+        <li>Bouton <em>&#171;&#160;Nouveau contrat&#160;&#187;</em> visible uniquement pour leader et officiers (gris&#233; si 3 contrats actifs)</li>
+        <li>Si le perk ECO T4 n&#8217;est pas d&#233;bloqu&#233;, l&#8217;onglet Contrats est visible mais verrouill&#233; avec un message explicatif</li>
+      </ul>
+
+      <div class="info-box warn">
+        <div class="icon" style="color:var(--gold)">&#9888;</div>
+        <div class="content"><strong>Anti-exploit&#160;:</strong> la r&#233;compense provient obligatoirement de la banque de faction (impossible de cr&#233;er un contrat sans fonds). La v&#233;rification item porte sur le registry name ET la meta (damage value). On ne peut pas d&#233;poser plus que la quantit&#233; restante requise. Les contrats annul&#233;s retournent les items sans octroyer d&#8217;XP. Le maximum de 3 contrats simultan&#233;s limite les abus.</div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SECTION 5 — DEFIS DE FACTION
+    ====================================================================== -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num">05</span> D&#233;fis de faction</h2>
+
+      <p>Chaque <strong>lundi &#224; minuit</strong> (heure serveur), 3 d&#233;fis sont tir&#233;s al&#233;atoirement depuis le pool. Compl&#233;ter les 3 d&#233;clenche un bonus d&#8217;XP suppl&#233;mentaire de <strong>+500 XP</strong>.</p>
+
+      <h3 class="first">Pool de d&#233;fis disponibles</h3>
+      <div class="challenge-grid">
+        <div class="challenge-card">
+          <div class="challenge-card-name">Conqu&#234;te</div>
+          <div class="challenge-card-desc">Claim 10 nouveaux chunks durant la semaine.</div>
+          <div class="challenge-card-xp">+500 XP</div>
+        </div>
+        <div class="challenge-card">
+          <div class="challenge-card-name">Arm&#233;e active</div>
+          <div class="challenge-card-desc">5+ membres en ligne simultan&#233;ment pendant 1 heure continue.</div>
+          <div class="challenge-card-xp">+400 XP</div>
+        </div>
+        <div class="challenge-card">
+          <div class="challenge-card-name">Domination</div>
+          <div class="challenge-card-desc">R&#233;aliser 15 kills faction en warzone.</div>
+          <div class="challenge-card-xp">+450 XP</div>
+        </div>
+        <div class="challenge-card">
+          <div class="challenge-card-name">Prosp&#233;rit&#233;</div>
+          <div class="challenge-card-desc">D&#233;poser l&#8217;&#233;quivalent de 50 diamants en banque de faction.</div>
+          <div class="challenge-card-xp">+350 XP</div>
+        </div>
+        <div class="challenge-card">
+          <div class="challenge-card-name">Diplomatie</div>
+          <div class="challenge-card-desc">Forger une nouvelle alliance avec une autre faction.</div>
+          <div class="challenge-card-xp">+300 XP</div>
+        </div>
+        <div class="challenge-card">
+          <div class="challenge-card-name">Gardiens</div>
+          <div class="challenge-card-desc">D&#233;fendre le territoire contre 5 intrusions ennemies.</div>
+          <div class="challenge-card-xp">+400 XP</div>
+        </div>
+        <div class="challenge-card">
+          <div class="challenge-card-name">B&#226;tisseurs</div>
+          <div class="challenge-card-desc">Poser 5&#160;000 blocs dans le territoire claim de la faction.</div>
+          <div class="challenge-card-xp">+350 XP</div>
+        </div>
+        <div class="challenge-card">
+          <div class="challenge-card-name">Explorateurs</div>
+          <div class="challenge-card-desc">Claim des chunks dans 3 biomes diff&#233;rents.</div>
+          <div class="challenge-card-xp">+450 XP</div>
+        </div>
+        <div class="challenge-card">
+          <div class="challenge-card-name">Moissonneurs</div>
+          <div class="challenge-card-desc">Miner 500 min&#233;rais dans le territoire claim.</div>
+          <div class="challenge-card-xp">+300 XP</div>
+        </div>
+        <div class="challenge-card">
+          <div class="challenge-card-name">Chasseurs</div>
+          <div class="challenge-card-desc">Tuer 100 mobs hostiles dans le territoire claim.</div>
+          <div class="challenge-card-xp">+250 XP</div>
+        </div>
+      </div>
+
+      <div class="info-box info" style="margin-top:8px">
+        <div class="icon" style="color:var(--cyan)">&#9432;</div>
+        <div class="content"><strong>Bonus de completion totale&#160;:</strong> compl&#233;ter les 3 d&#233;fis de la semaine rapporte un bonus suppl&#233;mentaire de <strong>+500 XP</strong>, soit un gain potentiel hebdomadaire de 1&#160;250 &#224; 1&#160;950 XP selon les d&#233;fis tir&#233;s.</div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SECTION 6 — SYSTEME DE PRESTIGE
+    ====================================================================== -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num gold-num">06</span> Syst&#232;me de prestige</h2>
+
+      <p>Au niveau 20, le leader peut activer le <strong>Prestige</strong>. C&#8217;est un reset volontaire qui r&#233;compense la faction pour son engagement sur le long terme. Le prestige est un endgame&#160;: il offre des avantages cumulatifs permanents qui s&#8217;accumulent sur plusieurs cycles.</p>
+
+      <h3 class="first">Effets du prestige (&#224; chaque reset)</h3>
+      <ul>
+        <li>La faction revient au <strong>niveau 1</strong></li>
+        <li>Tous les <strong>12 points de comp&#233;tence</strong> sont r&#233;initialis&#233;s (l&#8217;arbre repart &#224; z&#233;ro)</li>
+        <li>La faction gagne <strong>une &#233;toile de prestige</strong> affich&#233;e dans le chat, le tab et le GUI</li>
+        <li>Bonus de <strong>+5&#160;% de gain d&#8217;XP permanent</strong> (cumulatif)</li>
+        <li>Les bonus passifs (power, claims) reviennent &#224; leur valeur de base (niveau 1)</li>
+        <li>Le <strong>nombre de membres max est conserv&#233;</strong> (jamais r&#233;duit, &#233;vite les kicks forc&#233;s)</li>
+        <li>Pendant les niveaux de prestige, <strong>pas de +1 membre/niveau</strong> (uniquement les bonus power/claims progressent)</li>
+      </ul>
+
+      <h3>Prestige maximum&#160;: 5 &#233;toiles</h3>
+      <p>&#192; 5 &#233;toiles, la faction obtient le titre <strong>&#171;&#160;L&#233;gendaire&#160;&#187;</strong> et un effet de particules unique autour du home principal de la faction.</p>
+
+      <div class="prestige-row">
+        <div class="prestige-card">
+          <div class="prestige-stars">&#9733;</div>
+          <div class="prestige-bonus">+5%</div>
+          <div class="prestige-label">XP bonus permanent<br>+1 alliance max</div>
+        </div>
+        <div class="prestige-card">
+          <div class="prestige-stars">&#9733;&#9733;</div>
+          <div class="prestige-bonus">+10%</div>
+          <div class="prestige-label">XP bonus permanent<br>+5 power max/membre</div>
+        </div>
+        <div class="prestige-card">
+          <div class="prestige-stars">&#9733;&#9733;&#9733;</div>
+          <div class="prestige-bonus">+15%</div>
+          <div class="prestige-label">XP bonus permanent<br>-10% cd comp. T4</div>
+        </div>
+        <div class="prestige-card">
+          <div class="prestige-stars">&#9733;&#9733;&#9733;&#9733;</div>
+          <div class="prestige-bonus">+20%</div>
+          <div class="prestige-label">XP bonus permanent<br>+2 membres max</div>
+        </div>
+        <div class="prestige-card">
+          <div class="prestige-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <div class="prestige-bonus">+25%</div>
+          <div class="prestige-label">XP bonus permanent<br>T5 exclusif/branche<br><strong style="color:var(--gold)">LEGENDAIRE</strong></div>
+        </div>
+      </div>
+
+      <div class="info-box warn">
+        <div class="icon" style="color:var(--gold)">&#9888;</div>
+        <div class="content"><strong>Note de design&#160;:</strong> avec 12 points au niveau 20, la faction d&#233;bloque l&#8217;arbre entier &#224; chaque cycle. Le prestige ne conserve plus de perks (inutile puisqu&#8217;on les r&#233;cup&#232;re tous en re-levelant) mais offre des <strong>bonus exclusifs cumulatifs</strong> impossibles &#224; obtenir autrement&#160;: alliance suppl&#233;mentaire, power bonus, r&#233;duction de cooldowns, membres suppl&#233;mentaires, et &#224; 5 &#233;toiles un T5 exclusif par branche. La re-progression est acc&#233;l&#233;r&#233;e par le bonus XP cumulatif (+25&#160;% &#224; prestige 5). Le nombre de membres max n&#8217;est jamais r&#233;duit au prestige pour &#233;viter les kicks forc&#233;s, mais les +1 membre/niveau ne s&#8217;appliquent pas pendant les cycles prestige.</div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SECTION 7 — INTERFACE GUI
+    ====================================================================== -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num cyan-num">07</span> Interface GUI</h2>
+
+      <p>Un nouvel onglet <strong>&#171;&#160;Progression&#160;&#187;</strong> est ajout&#233; dans la sidebar de navigation du GUI faction principal, situ&#233; entre &#171;&#160;Banque&#160;&#187; et &#171;&#160;Couleur&#160;&#187;. Il contient 5 sous-onglets accessibles via un <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">TabView</code> EriAPI.</p>
+
+      <h3 class="first">7.1 Vue d&#8217;ensemble niveau</h3>
+      <ul>
+        <li><strong>Barre XP horizontale</strong> &#8212; niveau actuel et XP actuel / requis affich&#233;s (composant <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">ProgressBar</code> EriAPI avec animation de remplissage)</li>
+        <li><strong>Prochain d&#233;blocage</strong> &#8212; texte dynamique &#171;&#160;Prochain&#160;: T&#233;l&#233;portation home faction au niveau 5&#160;&#187;</li>
+        <li><strong>Etoiles de prestige</strong> &#8212; affich&#233;es &#224; c&#244;t&#233; du num&#233;ro de niveau (couleur or, style &#9733;)</li>
+        <li><strong>Titre L&#233;gendaire</strong> &#8212; affich&#233; en gold gras si prestige max atteint</li>
+      </ul>
+
+      <h3>7.2 Arbre de comp&#233;tences</h3>
+      <ul>
+        <li>Vue visuelle des 3 branches dispos&#233;es en <strong>colonnes</strong></li>
+        <li>Chaque noeud est un rectangle avec ic&#244;ne + nom + tooltip au survol (description, pr&#233;-requis)</li>
+        <li>Noeuds <strong>d&#233;bloquables</strong> en cyan, <strong>actifs</strong> en vert, <strong>verrouill&#233;s</strong> en gris</li>
+        <li>Connexions verticales entre les paliers (lignes simples)</li>
+        <li>Compteur &#171;&#160;X points disponibles&#160;&#187; affich&#233; en haut de la vue</li>
+        <li>Clic sur un noeud d&#233;bloquable &#8594; bo&#238;te de confirmation &#8594; investissement via packet <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">investPerk</code></li>
+        <li>Bouton <strong>&#171;&#160;Redistribuer&#160;&#187;</strong> en bas de page (gris&#233; avec timer si cooldown actif)</li>
+      </ul>
+
+      <h3>7.3 D&#233;fis hebdomadaires</h3>
+      <ul>
+        <li>3 cartes de d&#233;fis affich&#233;es avec titre, description, barre de progression et r&#233;compense XP</li>
+        <li>Timer de renouvellement&#160;: <em>&#171;&#160;Renouvellement dans&#160;: 3j 14h 22m&#160;&#187;</em></li>
+        <li>Badge vert &#171;&#160;Compl&#233;t&#233; &#10003;&#160;&#187; quand le d&#233;fi est valid&#233;</li>
+        <li>Barre de meta-progression pour le bonus des 3 d&#233;fis complets (<em>3/3 &#8594; +500 XP</em>)</li>
+      </ul>
+
+      <h3>7.4 Contrats de Ressources</h3>
+      <ul>
+        <li>Liste des contrats actifs (max 3) affich&#233;s sous forme de <strong>cartes</strong>&#160;: ic&#244;ne de l&#8217;item, nom, barre de progression (<code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">ProgressBar</code>), r&#233;compense en $, liste des contributeurs</li>
+        <li>Bouton <em>&#171;&#160;Contribuer&#160;&#187;</em> sur chaque carte &#8594; fen&#234;tre de d&#233;p&#244;t avec visualisation des items en inventaire</li>
+        <li>Bouton <em>&#171;&#160;Nouveau contrat&#160;&#187;</em> visible uniquement pour leader et officiers (gris&#233; si 3 contrats actifs ou ECO T4 non d&#233;bloqu&#233;)</li>
+        <li>Formulaire de cr&#233;ation&#160;: champ item (saisie registry name ou bouton &#171;&#160;Depuis la main&#160;&#187;), <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">NumericField</code> quantit&#233;, <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">NumericField</code> r&#233;compense, bouton &#171;&#160;Cr&#233;er&#160;&#187;</li>
+        <li>Si le perk ECO T4 n&#8217;est pas actif, l&#8217;onglet s&#8217;affiche en &#233;tat verrouill&#233; avec un message explicatif</li>
+      </ul>
+
+      <h3>7.5 Historique XP</h3>
+      <ul>
+        <li>Liste scrollable (<code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">ScrollList</code> EriAPI) des 100 derniers gains d&#8217;XP de la faction</li>
+        <li>Format&#160;: <em>[12:34] +25 XP &#8212; Kill ennemi en warzone (PlayerName)</em></li>
+        <li>Filtre par type d&#8217;action via <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">RadioGroup</code>&#160;: Tout, Combat, Territoire, Economie, D&#233;fi, Contrats</li>
+      </ul>
+
+      <div class="info-box info" style="margin-top:8px">
+        <div class="icon" style="color:var(--cyan)">&#9432;</div>
+        <div class="content">Toute la navigation GUI utilise le syst&#232;me <code style="font-family:monospace;font-size:12px;color:var(--cyan)">TabView / Tab</code> d&#8217;EriAPI. Toutes les coordonn&#233;es sont en design 1920&#215;1080. Le <code style="font-family:monospace;font-size:12px;color:var(--cyan)">ScaleManager</code> g&#232;re la conversion automatique vers la r&#233;solution r&#233;elle.</div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SECTION 8 — DONNEES TECHNIQUES
+    ====================================================================== -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num">08</span> Donn&#233;es techniques</h2>
+
+      <h3 class="first">Structure FactionEnhancedData</h3>
+      <p>Nouveau POJO annot&#233; <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">@EriData</code> avec scope <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">WORLD</code>, index&#233; par faction ID. Stock&#233; dans <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">FactionWorldData</code> ou en POJO s&#233;par&#233; selon l&#8217;impl&#233;mentation retenue.</p>
+      <div class="code-block"><span class="cm">// Champs principaux de FactionEnhancedData (pseudo-code structurel)</span>
+<span class="ty">int</span>              level              <span class="op">=</span> <span class="nu">1</span>
+<span class="ty">long</span>             currentXp          <span class="op">=</span> <span class="nu">0</span>
+<span class="ty">int</span>              prestigeStars      <span class="op">=</span> <span class="nu">0</span>
+<span class="ty">int</span>              maxMembersEarned   <span class="op">=</span> <span class="nu">0</span>    <span class="cm">// membres max acquis (jamais r&#233;duit)</span>
+<span class="ty">Map&lt;String,Integer&gt;</span> perkTree        <span class="op">=</span> <span class="op">{}</span>   <span class="cm">// "guerriere_t1" &#8594; 1 (actif) | 0 (inactif)</span>
+<span class="ty">long</span>             lastPerkReset      <span class="op">=</span> <span class="nu">0</span>    <span class="cm">// timestamp du dernier reset de points</span>
+<span class="ty">String</span>           activeChallenge1   <span class="op">=</span> <span class="st">""</span>
+<span class="ty">String</span>           activeChallenge2   <span class="op">=</span> <span class="st">""</span>
+<span class="ty">String</span>           activeChallenge3   <span class="op">=</span> <span class="st">""</span>
+<span class="ty">Map&lt;String,Integer&gt;</span> challengeProgress <span class="op">=</span> <span class="op">{}</span> <span class="cm">// "conquete" &#8594; 7</span>
+<span class="ty">long</span>             challengeWeekStart <span class="op">=</span> <span class="nu">0</span>
+<span class="ty">Map&lt;String,String&gt;</span>  dailyXpCaps    <span class="op">=</span> <span class="op">{}</span>   <span class="cm">// "territory_claim" &#8594; "timestamp:amount"</span>
+<span class="ty">List&lt;String&gt;</span>     xpHistory          <span class="op">=</span> <span class="op">[]</span>   <span class="cm">// 100 derniers &#233;v&#233;nements horodat&#233;s</span>
+<span class="ty">String</span>           activeContracts    <span class="op">=</span> <span class="st">""</span>   <span class="cm">// CSV contrats (voir 4.A) — stock&#233; dans FactionInfo</span>
+<span class="ty">int</span>              nextContractId     <span class="op">=</span> <span class="nu">1</span>    <span class="cm">// compteur incr&#233;mental d&#8217;ID contrat</span></div>
+
+      <h3>Caps XP journaliers par source</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Source</th><th>Cap / jour</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Claims territoriaux</td><td>50 XP</td></tr>
+            <tr><td>Construction (poses de blocs)</td><td>30 XP</td></tr>
+            <tr><td>Combat (total toutes actions)</td><td>200 XP</td></tr>
+            <tr><td>Economie (banque + trade)</td><td>100 XP</td></tr>
+            <tr><td>Pr&#233;sence et collaboration</td><td>50 XP</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Packets r&#233;seau (via GuiNetworkHandler EriAPI)</h3>
+      <div class="flow-block">
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">C &#8594; S</span>
+          <div class="flow-text"><code>faction_enhanced</code> / <code>requestData</code> &#8212; le client demande les donn&#233;es compl&#232;tes pour afficher le GUI</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-sc">S &#8594; C</span>
+          <div class="flow-text"><code>faction_enhanced</code> / <code>enhancedData</code> &#8212; r&#233;ponse serveur avec tout le FactionEnhancedData s&#233;rialis&#233; en NBT</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">C &#8594; S</span>
+          <div class="flow-text"><code>faction_enhanced</code> / <code>investPerk</code> &#8212; valeur = perk ID (ex. <code>"guerriere_t1"</code>). V&#233;rification des points dispo c&#244;t&#233; serveur.</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">C &#8594; S</span>
+          <div class="flow-text"><code>faction_enhanced</code> / <code>resetPerks</code> &#8212; redistribution des points. V&#233;rification du cooldown 7j c&#244;t&#233; serveur.</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">C &#8594; S</span>
+          <div class="flow-text"><code>faction_enhanced</code> / <code>prestige</code> &#8212; leader only. D&#233;clenche la s&#233;quence de prestige avec confirmation.</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">C &#8594; S</span>
+          <div class="flow-text"><code>faction_enhanced</code> / <code>prestigeConfirm</code> &#8212; confirmation finale du prestige apr&#232;s le dialogue de validation.</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">C &#8594; S</span>
+          <div class="flow-text"><code>faction_enhanced</code> / <code>contractCreate</code> &#8212; leader/officier uniquement. NBT&#160;: <code>item</code> (registry name), <code>meta</code> (int), <code>qty</code> (int), <code>reward</code> (int). V&#233;rification du perk ECO T4, des fonds et du max 3 contrats c&#244;t&#233; serveur.</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">C &#8594; S</span>
+          <div class="flow-text"><code>faction_enhanced</code> / <code>contractDeposit</code> &#8212; tout membre. NBT&#160;: <code>contractId</code> (int), <code>amount</code> (int). Le serveur v&#233;rifie l&#8217;item tenu en main, consomme les items, met &#224; jour les contributeurs et d&#233;clenche la completion si target atteinte.</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-cs">C &#8594; S</span>
+          <div class="flow-text"><code>faction_enhanced</code> / <code>contractCancel</code> &#8212; leader/officier uniquement. NBT&#160;: <code>contractId</code> (int). Retourne les items et la r&#233;compense r&#233;serv&#233;e.</div>
+        </div>
+        <div class="flow-item">
+          <span class="flow-arrow flow-sc">S &#8594; C</span>
+          <div class="flow-text"><code>faction_enhanced</code> / <code>contractsUpdate</code> &#8212; broadcast &#224; tous les membres de la faction apr&#232;s tout changement (cr&#233;ation, d&#233;p&#244;t, completion, annulation). NBT&#160;: champ <code>activeContracts</code> s&#233;rialis&#233;.</div>
+        </div>
+      </div>
+
+      <h3>Events Forge &#224; &#233;couter</h3>
+      <p>Via <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">EriEvents</code> — aucun <code style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,229,255,0.07);padding:1px 6px;border-radius:4px">@SubscribeEvent</code> brut.</p>
+      <div class="method-group">
+        <div class="method-card cyan-accent">
+          <div class="method-sig">LivingDeathEvent</div>
+          <div class="method-desc">Attribution d&#8217;XP combat (kill ennemi en warzone, kill en territoire ennemi, d&#233;fense). V&#233;rification du cooldown 5 min par couple (killer, victim).</div>
+        </div>
+        <div class="method-card cyan-accent">
+          <div class="method-sig">BlockEvent.PlaceEvent</div>
+          <div class="method-desc">Comptage des poses de blocs pour l&#8217;XP de construction. V&#233;rification que le chunk est un claim de la faction du poseur.</div>
+        </div>
+        <div class="method-card cyan-accent">
+          <div class="method-sig">BlockEvent.BreakEvent</div>
+          <div class="method-desc">Suivi du d&#233;fi &#171;&#160;Moissonneurs&#160;&#187; (500 min&#233;rais) et du d&#233;fi &#171;&#160;B&#226;tisseurs&#160;&#187; (anti-exploit&#160;: blocs pos&#233;s puis cass&#233;s).</div>
+        </div>
+        <div class="method-card cyan-accent">
+          <div class="method-sig">PlayerEvent.PlayerLoggedInEvent</div>
+          <div class="method-desc">Calcul du bonus de pr&#233;sence. D&#233;clenchement du bonus de connexion simultan&#233;e si 5+ membres en ligne.</div>
+        </div>
+        <div class="method-card cyan-accent">
+          <div class="method-sig">ChunkEvent.Load / custom claim event</div>
+          <div class="method-desc">Attribution de l&#8217;XP de claim et suivi du d&#233;fi &#171;&#160;Conqu&#234;te&#160;&#187;. V&#233;rification du cap journalier 50 XP.</div>
+        </div>
+        <div class="method-card">
+          <div class="method-sig">TickEvent.ServerTickEvent (r&#233;p&#233;tition via EriScheduler)</div>
+          <div class="method-desc">V&#233;rification p&#233;riodique des caps journaliers, reset du pool de d&#233;fis chaque lundi minuit, calcul du bonus d&#8217;activit&#233; journalier &#224; minuit serveur.</div>
+        </div>
+      </div>
+
+      <h3>Commandes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Commande</th><th>Permission</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code style="font-family:monospace;font-size:12px;color:var(--cyan)">/f level</code></td><td>Tous les membres</td><td>Affiche le niveau actuel, l&#8217;XP et le prochain d&#233;blocage dans le chat</td></tr>
+            <tr><td><code style="font-family:monospace;font-size:12px;color:var(--cyan)">/f perks</code></td><td>Tous les membres</td><td>Ouvre le GUI de l&#8217;arbre de comp&#233;tences (lecture seule pour les membres)</td></tr>
+            <tr><td><code style="font-family:monospace;font-size:12px;color:var(--cyan)">/f challenges</code></td><td>Tous les membres</td><td>Ouvre le GUI des d&#233;fis hebdomadaires avec progression en temps r&#233;el</td></tr>
+            <tr><td><code style="font-family:monospace;font-size:12px;color:var(--cyan)">/f prestige</code></td><td>Leader uniquement</td><td>D&#233;clenche la s&#233;quence de prestige (confirmation requise) si niveau 20 atteint</td></tr>
+            <tr><td><code style="font-family:monospace;font-size:12px;color:var(--cyan)">/f contract list</code></td><td>Tous les membres</td><td>Affiche les contrats actifs avec leur progression dans le chat</td></tr>
+            <tr><td><code style="font-family:monospace;font-size:12px;color:var(--cyan)">/f contract create &lt;item|hand&gt; &lt;qt&#233;&gt; &lt;r&#233;compense&gt;</code></td><td>Leader / Officier (ECO T4 requis)</td><td>Cr&#233;e un contrat &#8212; pr&#233;l&#232;ve la r&#233;compense sur la banque</td></tr>
+            <tr><td><code style="font-family:monospace;font-size:12px;color:var(--cyan)">/f contract deposit &lt;id&gt;</code></td><td>Tous les membres</td><td>D&#233;pose les items de la main dans le contrat sp&#233;cifi&#233;</td></tr>
+            <tr><td><code style="font-family:monospace;font-size:12px;color:var(--cyan)">/f contract cancel &lt;id&gt;</code></td><td>Leader / Officier</td><td>Annule le contrat et rembourse items + r&#233;compense</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" id="navToggle" aria-label="Toggle navigation">&#9776;</button>
+
+<script>
+  const toggle = document.getElementById('navToggle');
+  const sidebar = document.getElementById('sidebar');
+  toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+
+  // Active nav link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

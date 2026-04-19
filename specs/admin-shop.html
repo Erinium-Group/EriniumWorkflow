@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Admin Shop | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #4AE0E0; --aetherite: #9B59B6; --erinium: #FFD700;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(74,224,224,0.09) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(255,215,0,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, #4AE0E0 40%, #FFD700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '>'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Architecture Technique</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Structures de Donnees</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> Fluctuation des Prix</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Interface Graphique</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Packets Reseau</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Commandes &amp; Permissions</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Configuration JSON</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Regles Metier</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Cas Limites &amp; Securite</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Admin Shop</h1>
+      <p>Boutique administree par le serveur avec prix dynamiques bases sur l'offre et la demande. Les joueurs achetent et vendent des items a des prix qui fluctuent automatiquement en fonction de l'activite economique.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-gold">Prix Dynamiques</span>
+        <span class="badge badge-green">Offre/Demande</span>
+        <span class="badge badge-cyan">Categories</span>
+        <span class="badge badge-violet">JSON Config</span>
+        <span class="badge badge-orange">WorldSavedData</span>
+        <span class="badge badge-red">Money Sink</span>
+      </div>
+    </div>
+
+    <!-- S1 — CONTEXTE & OBJECTIFS -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Vision du systeme</h3>
+      <p>L'Admin Shop est la <strong>source et le puits d'argent principal</strong> de l'economie du serveur. Contrairement au HDV ou les joueurs echangent entre eux, l'Admin Shop est une entite economique illimitee : il peut acheter et vendre une quantite infinie d'items. Cela garantit que chaque item a toujours un prix de reference et que les joueurs peuvent toujours vendre leurs surplus.</p>
+      <p>Pour eviter l'abus (acheter massivement un item bon marche, le revendre quand le prix monte), le shop utilise un <strong>systeme de fluctuation automatique</strong> des prix base sur l'offre et la demande :</p>
+      <ul>
+        <li><strong>Les joueurs achetent beaucoup :</strong> le prix d'achat (buy) augmente. La demande est forte, le shop augmente ses prix.</li>
+        <li><strong>Les joueurs vendent beaucoup :</strong> le prix de rachat (sell) diminue. L'offre est forte, le shop baisse ses prix de rachat.</li>
+        <li><strong>Retour a l'equilibre :</strong> sans transaction, les prix reviennent lentement vers leur valeur de base (decay naturel).</li>
+      </ul>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Reference de prix :</strong> donner une valeur de reference a chaque item du jeu. Les joueurs au HDV s'alignent naturellement sur les prix du shop.</li>
+        <li><strong>Money sink :</strong> le spread buy/sell (le prix d'achat est toujours superieur au prix de vente) retire de l'argent de l'economie. Essentiel pour eviter l'inflation.</li>
+        <li><strong>Anti-exploitation :</strong> la fluctuation empeche les joueurs de farmer un item en masse et de vider le shop d'argent. Plus ils vendent, moins le prix de rachat est interessant.</li>
+        <li><strong>Simplicite :</strong> GUI clair avec des categories. Un joueur debutant doit pouvoir acheter son premier set d'outils en 30 secondes.</li>
+        <li><strong>Configurabilite :</strong> tout est en JSON. Les admins ajoutent/retirent des items, ajustent les prix, sans recompiler le mod.</li>
+      </ul>
+
+      <h3>Ce que le systeme ne fait pas</h3>
+      <ul>
+        <li><strong>Pas de stock limite :</strong> le shop a un stock infini en V1. Pas de "Rupture de stock".</li>
+        <li><strong>Pas de monnaie Eris :</strong> l'Admin Shop fonctionne uniquement en Dollars ($). Les Eris sont reserves aux echanges joueur-a-joueur (HDV, trade).</li>
+        <li><strong>Pas de craft :</strong> le shop ne fabrique rien. Il vend des items bruts, pas des equipements enchantes.</li>
+      </ul>
+    </section>
+
+    <!-- S2 — ARCHITECTURE TECHNIQUE -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Architecture Technique</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <div class="ascii-diagram"><span class="ay">+---------------------------+</span>
+<span class="ay">| shop-config.json          |</span>  <span class="as">(Fichier config statique — defini par les admins)</span>
+<span class="ay">| - categories[]            |</span>  <span class="as">Categories, sous-categories, items</span>
+<span class="ay">| - items[] (baseBuy/Sell)  |</span>  <span class="as">Prix de base de chaque item</span>
+<span class="ay">+------------+--------------+</span>
+             <span class="as">| lu au demarrage</span>
+             <span class="as">v</span>
+<span class="av">+---------------------------+</span>
+<span class="av">| AdminShopManager          |</span>  <span class="as">(Singleton serveur)</span>
+<span class="av">| - shopConfig (statique)   |</span>  <span class="as">Catalogue des items + prix de base</span>
+<span class="av">| - priceInfluence (dyna.)  |</span>  <span class="as">Influence actuelle par item (WorldSavedData)</span>
+<span class="av">| - getCurrentBuyPrice()    |</span>
+<span class="av">| - getCurrentSellPrice()   |</span>
+<span class="av">| - buy() / sell()          |</span>
+<span class="av">+------------+--------------+</span>
+             <span class="as">|</span>
+     <span class="as">+-------+-------+</span>
+     <span class="as">v</span>               <span class="as">v</span>
+<span class="ag">+-----------+</span>  <span class="ac">+----------------+</span>
+<span class="ag">| WorldSaved|</span>  <span class="ac">| GuiAdminShop   |</span>
+<span class="ag">| Data      |</span>  <span class="ac">| (EriGuiScreen) |</span>
+<span class="ag">| influence |</span>  <span class="ac">| Categories,    |</span>
+<span class="ag">| per item  |</span>  <span class="ac">| Buy/Sell popup |</span>
+<span class="ag">+-----------+</span>  <span class="ac">+----------------+</span></div>
+
+      <h3>Package</h3>
+      <p>Toutes les classes dans <code>fr.eriniumgroup.eriniumfaction.shop</code>.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Classe</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td>AdminShopManager</td><td>Singleton. Charge la config JSON, maintient les prix dynamiques, execute les transactions buy/sell.</td></tr>
+            <tr><td>ShopCategory</td><td>POJO : nom, icone, liste de sous-categories ou items directs.</td></tr>
+            <tr><td>ShopSubCategory</td><td>POJO : nom, icone, liste d'items.</td></tr>
+            <tr><td>ShopItem</td><td>POJO : itemId, meta, baseBuyPrice, baseSellPrice, displayName, description.</td></tr>
+            <tr><td>ShopPriceData</td><td>WorldSavedData. Stocke l'influence (float) par itemId:meta. Sauvegarde automatique Forge.</td></tr>
+            <tr><td>ShopPriceEngine</td><td>Calcul des prix dynamiques : formules, decay, clamp.</td></tr>
+            <tr><td>ShopConfigLoader</td><td>Lecture et validation du fichier JSON de configuration.</td></tr>
+            <tr><td>GuiAdminShop</td><td>GUI principal (extends EriGuiScreen). Navigation par categories, sous-categories, items.</td></tr>
+            <tr><td>AdminShopCommand</td><td>Commande /shop pour ouvrir le GUI + sous-commandes admin.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Stockage</h3>
+      <ul>
+        <li><strong>Config statique :</strong> <code>config/eriniumfaction/shop-config.json</code> — defini par les admins, lu au demarrage, reloadable a chaud via commande.</li>
+        <li><strong>Donnees dynamiques :</strong> <code>ShopPriceData</code> (extends <code>WorldSavedData</code>) — stocke les influences de prix. Sauvegarde automatique par Forge dans les donnees du monde.</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Pourquoi WorldSavedData :</strong> Les influences de prix sont liees au monde et doivent survivre aux redemarrages. WorldSavedData est le mecanisme Forge natif pour cela. Pas de JSON custom necessaire — Forge gere la persistence automatiquement.</div>
+      </div>
+    </section>
+
+    <!-- S3 — STRUCTURES DE DONNEES -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Structures de Donnees</h2>
+
+      <h3 class="first">ShopItem</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">ShopItem</span> {
+    <span class="kw">private final</span> <span class="ty">String</span> itemId;          <span class="cm">// "minecraft:diamond", "eriniumfaction:valterite_ingot"</span>
+    <span class="kw">private final</span> <span class="ty">int</span> meta;               <span class="cm">// Metadata (0 par defaut)</span>
+    <span class="kw">private final</span> <span class="ty">long</span> baseBuyPrice;      <span class="cm">// Prix d'achat de base (joueur achete au shop)</span>
+    <span class="kw">private final</span> <span class="ty">long</span> baseSellPrice;     <span class="cm">// Prix de vente de base (joueur vend au shop). -1 = non rachetable.</span>
+    <span class="kw">private final</span> <span class="ty">String</span> displayNameKey;  <span class="cm">// Cle i18n pour le nom affiche (optionnel, sinon nom MC)</span>
+    <span class="kw">private final</span> <span class="ty">String</span> descriptionKey;  <span class="cm">// Cle i18n pour la description (optionnel)</span>
+    <span class="kw">private final</span> <span class="ty">NBTTagCompound</span> nbt;     <span class="cm">// NBT specifique (optionnel, pour items enchantes, etc.)</span>
+
+    <span class="cm">// Identifiant unique pour le systeme d'influence</span>
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">getInfluenceKey</span>() {
+        <span class="kw">return</span> itemId + <span class="st">":"</span> + meta;
+    }
+}</div>
+
+      <h3>ShopCategory / ShopSubCategory</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">ShopCategory</span> {
+    <span class="kw">private final</span> <span class="ty">String</span> id;             <span class="cm">// "weapons", "blocks", "food"</span>
+    <span class="kw">private final</span> <span class="ty">String</span> nameKey;        <span class="cm">// Cle i18n : "shop.category.weapons"</span>
+    <span class="kw">private final</span> <span class="ty">String</span> iconItemId;     <span class="cm">// Item utilise comme icone : "minecraft:diamond_sword"</span>
+    <span class="kw">private final</span> <span class="ty">int</span> iconMeta;          <span class="cm">// Metadata de l'icone</span>
+    <span class="kw">private final</span> <span class="ty">List&lt;ShopSubCategory&gt;</span> subCategories; <span class="cm">// Peut etre vide si items directs</span>
+    <span class="kw">private final</span> <span class="ty">List&lt;ShopItem&gt;</span> items;  <span class="cm">// Items directs (si pas de sous-categories)</span>
+}
+
+<span class="kw">public class</span> <span class="cl">ShopSubCategory</span> {
+    <span class="kw">private final</span> <span class="ty">String</span> id;
+    <span class="kw">private final</span> <span class="ty">String</span> nameKey;
+    <span class="kw">private final</span> <span class="ty">String</span> iconItemId;
+    <span class="kw">private final</span> <span class="ty">int</span> iconMeta;
+    <span class="kw">private final</span> <span class="ty">List&lt;ShopItem&gt;</span> items;
+}</div>
+
+      <h3>ShopPriceData (WorldSavedData)</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">ShopPriceData</span> <span class="kw">extends</span> <span class="ty">WorldSavedData</span> {
+    <span class="kw">private final</span> <span class="ty">Map&lt;String, Float&gt;</span> buyInfluence;   <span class="cm">// influenceKey -> influence d'achat</span>
+    <span class="kw">private final</span> <span class="ty">Map&lt;String, Float&gt;</span> sellInfluence;  <span class="cm">// influenceKey -> influence de vente</span>
+
+    <span class="cm">// Influence positive = prix monte (beaucoup d'achats)</span>
+    <span class="cm">// Influence negative = prix baisse (beaucoup de ventes)</span>
+    <span class="cm">// Influence 0 = prix de base</span>
+
+    <span class="kw">public</span> <span class="ty">float</span> <span class="fn">getBuyInfluence</span>(<span class="ty">String</span> key) { ... }
+    <span class="kw">public</span> <span class="ty">float</span> <span class="fn">getSellInfluence</span>(<span class="ty">String</span> key) { ... }
+    <span class="kw">public</span> <span class="kw">void</span> <span class="fn">addBuyInfluence</span>(<span class="ty">String</span> key, <span class="ty">float</span> amount) { ... }
+    <span class="kw">public</span> <span class="kw">void</span> <span class="fn">addSellInfluence</span>(<span class="ty">String</span> key, <span class="ty">float</span> amount) { ... }
+    <span class="kw">public</span> <span class="kw">void</span> <span class="fn">decayAll</span>(<span class="ty">float</span> decayFactor) { ... }   <span class="cm">// Appele periodiquement</span>
+
+    <span class="cm">// Persistance NBT standard WorldSavedData</span>
+    <span class="kw">public</span> <span class="kw">void</span> <span class="fn">readFromNBT</span>(<span class="ty">NBTTagCompound</span> nbt) { ... }
+    <span class="kw">public</span> <span class="ty">NBTTagCompound</span> <span class="fn">writeToNBT</span>(<span class="ty">NBTTagCompound</span> nbt) { ... }
+}</div>
+    </section>
+
+    <!-- S4 — FLUCTUATION DES PRIX -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> Fluctuation des Prix</h2>
+
+      <h3 class="first">Formule de prix dynamique</h3>
+      <p>Les prix actuels sont calcules a partir du prix de base et de l'influence accumulee :</p>
+      <div class="code-block"><span class="cm">// Prix d'achat actuel (joueur achete au shop)</span>
+<span class="ty">currentBuyPrice</span> = <span class="ty">baseBuyPrice</span> * (<span class="nu">1.0</span> + <span class="ty">buyInfluence</span> * <span class="ty">buyFactor</span>)
+
+<span class="cm">// Prix de vente actuel (joueur vend au shop)</span>
+<span class="ty">currentSellPrice</span> = <span class="ty">baseSellPrice</span> * (<span class="nu">1.0</span> + <span class="ty">sellInfluence</span> * <span class="ty">sellFactor</span>)
+
+<span class="cm">// Contraintes</span>
+<span class="ty">currentBuyPrice</span>  = clamp(<span class="ty">currentBuyPrice</span>,  <span class="ty">baseBuyPrice</span> * <span class="nu">0.5</span>,  <span class="ty">baseBuyPrice</span> * <span class="nu">3.0</span>)
+<span class="ty">currentSellPrice</span> = clamp(<span class="ty">currentSellPrice</span>, <span class="ty">baseSellPrice</span> * <span class="nu">0.2</span>, <span class="ty">baseSellPrice</span> * <span class="nu">2.0</span>)
+<span class="ty">currentSellPrice</span> = min(<span class="ty">currentSellPrice</span>, <span class="ty">currentBuyPrice</span> * <span class="nu">0.9</span>) <span class="cm">// Toujours un spread minimum de 10%</span></div>
+
+      <h3>Modification de l'influence</h3>
+      <div class="code-block"><span class="cm">// Quand un joueur ACHETE N unites</span>
+<span class="ty">buyInfluence</span> += <span class="ty">N</span> * <span class="ty">influencePerUnit</span>    <span class="cm">// La demande augmente</span>
+<span class="ty">sellInfluence</span> -= <span class="ty">N</span> * <span class="ty">influencePerUnit</span> * <span class="nu">0.3</span>  <span class="cm">// Leger effet inverse sur la vente</span>
+
+<span class="cm">// Quand un joueur VEND N unites</span>
+<span class="ty">sellInfluence</span> -= <span class="ty">N</span> * <span class="ty">influencePerUnit</span>   <span class="cm">// L'offre augmente, prix de rachat baisse</span>
+<span class="ty">buyInfluence</span> -= <span class="ty">N</span> * <span class="ty">influencePerUnit</span> * <span class="nu">0.3</span>   <span class="cm">// Leger effet inverse sur l'achat</span></div>
+
+      <h3>Decay (retour a l'equilibre)</h3>
+      <p>Toutes les <strong>6 heures en temps reel</strong> (configurable), un decay est applique a toutes les influences :</p>
+      <div class="code-block"><span class="cm">// Decay multiplicatif — l'influence se rapproche de 0</span>
+<span class="ty">buyInfluence</span>  *= <span class="ty">decayFactor</span>   <span class="cm">// defaut: 0.85 (15% de reduction par cycle)</span>
+<span class="ty">sellInfluence</span> *= <span class="ty">decayFactor</span>
+
+<span class="cm">// Si |influence| &lt; 0.01, ramener a 0 (eviter les flottants infinitesimaux)</span></div>
+
+      <h3>Parametres configurables</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Parametre</th><th>Defaut</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>buyFactor</td><td>0.15</td><td>Sensibilite de l'influence sur le prix d'achat. 0.15 = +15% par point d'influence.</td></tr>
+            <tr><td>sellFactor</td><td>0.20</td><td>Sensibilite de l'influence sur le prix de vente. Plus sensible que l'achat.</td></tr>
+            <tr><td>influencePerUnit</td><td>0.01</td><td>Influence gagnee par unite achetee/vendue.</td></tr>
+            <tr><td>decayFactor</td><td>0.85</td><td>Multiplicateur de decay (0-1). Plus proche de 1 = retour lent.</td></tr>
+            <tr><td>decayIntervalMinutes</td><td>360</td><td>Intervalle du decay en minutes (defaut: 6h).</td></tr>
+            <tr><td>minBuyMultiplier</td><td>0.5</td><td>Prix d'achat minimum = baseBuyPrice * 0.5.</td></tr>
+            <tr><td>maxBuyMultiplier</td><td>3.0</td><td>Prix d'achat maximum = baseBuyPrice * 3.0.</td></tr>
+            <tr><td>minSellMultiplier</td><td>0.2</td><td>Prix de vente minimum = baseSellPrice * 0.2.</td></tr>
+            <tr><td>maxSellMultiplier</td><td>2.0</td><td>Prix de vente maximum = baseSellPrice * 2.0.</td></tr>
+            <tr><td>minSpreadPercent</td><td>10</td><td>Spread minimum entre buy et sell (en %). Garantit que le shop est toujours un money sink.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Exemple concret :</strong> Le diamant a un baseBuyPrice de $150 et baseSellPrice de $100. Apres que 500 joueurs aient achete 1000 diamants au total, la buyInfluence est a +10. Prix actuel : $150 * (1 + 10 * 0.15) = $150 * 2.5 = $375. Le prix a plus que double. Les joueurs arreteront d'acheter et le decay ramenera le prix a la normale en quelques jours.</div>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Performance :</strong> Le calcul du prix est une simple multiplication. Pas de boucle, pas d'iteration. Le calcul est fait a chaque affichage dans le GUI et a chaque transaction. Cout negligeable meme avec 1000 joueurs.</div>
+      </div>
+    </section>
+
+    <!-- S5 — INTERFACE GRAPHIQUE -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num orange-num">05</span> Interface Graphique</h2>
+
+      <h3 class="first">Navigation par categories</h3>
+      <div class="ascii-diagram"><span class="ac">+====================================================================+</span>
+<span class="ac">|</span>  <span class="ay">BOUTIQUE</span>                                              <span class="as">[X]</span>       <span class="ac">|</span>
+<span class="ac">|====================================================================|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">CATEGORIES</span>                                                       <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Epee]</span>  Armes     <span class="ay">[Casque]</span> Armures     <span class="ay">[Pioche]</span> Outils         <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Bloc]</span>  Blocs     <span class="ay">[Lingot]</span> Materiaux   <span class="ay">[Pomme]</span>  Nourriture     <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Potion]</span> Potions  <span class="ay">[Redst.]</span> Redstone    <span class="ay">[Divers]</span> Divers         <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Recherche : [________________________]</span>                          <span class="ac">|</span>
+<span class="ac">+====================================================================+</span></div>
+
+      <h3>Vue d'une categorie</h3>
+      <div class="ascii-diagram"><span class="ac">+====================================================================+</span>
+<span class="ac">|</span>  <span class="as">[&lt; Retour]</span>  <span class="ay">MATERIAUX</span>                                            <span class="ac">|</span>
+<span class="ac">|====================================================================|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Diamant]</span>       Acheter: <span class="ag">$158</span> <span class="as">($150 base)</span>  Vendre: <span class="ar">$92</span> <span class="as">($100)</span> <span class="ac">|</span>
+<span class="ac">|</span>                  <span class="ag">[Acheter]</span>  <span class="ar">[Vendre]</span>                              <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">--------------------------------------------------------------</span>  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Emeraude]</span>      Acheter: <span class="ag">$85</span>  <span class="as">($80 base)</span>   Vendre: <span class="ar">$38</span> <span class="as">($40)</span>  <span class="ac">|</span>
+<span class="ac">|</span>                  <span class="ag">[Acheter]</span>  <span class="ar">[Vendre]</span>                              <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">--------------------------------------------------------------</span>  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Or]</span>            Acheter: <span class="ag">$12</span>  <span class="as">($15 base)</span>   Vendre: <span class="ar">$7</span>  <span class="as">($8)</span>   <span class="ac">|</span>
+<span class="ac">|</span>                  <span class="ag">[Acheter]</span>  <span class="ar">[Vendre]</span>                              <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">--------------------------------------------------------------</span>  <span class="ac">|</span>
+<span class="ac">|</span>  <span class="ay">[Fer]</span>           Acheter: <span class="ag">$6</span>   <span class="as">($5 base)</span>    Vendre: <span class="as">N/A</span>         <span class="ac">|</span>
+<span class="ac">|</span>                  <span class="ag">[Acheter]</span>                                         <span class="ac">|</span>
+<span class="ac">|</span>                                                                    <span class="ac">|</span>
+<span class="ac">|</span>  <span class="as">Page 1/3</span>                              <span class="as">[&lt; Prev]  [Next &gt;]</span>      <span class="ac">|</span>
+<span class="ac">+====================================================================+</span>
+
+<span class="as">Prix en vert = en dessous de la base (bon deal)</span>
+<span class="as">Prix en rouge = au dessus de la base (cher)</span>
+<span class="as">N/A = item non rachetable (baseSellPrice = -1)</span></div>
+
+      <h3>Popup d'achat</h3>
+      <ul>
+        <li><strong>Item :</strong> icone + nom de l'item.</li>
+        <li><strong>Prix unitaire actuel :</strong> affiche en grand, avec indication de la tendance (fleche haut/bas par rapport au prix de base).</li>
+        <li><strong>Prix de base :</strong> affiche en petit, barre si different du prix actuel.</li>
+        <li><strong>Champ quantite :</strong> NumericField avec boutons rapides x1, x16, x64, xSTACK. Max = nombre qu'il peut acheter avec son solde.</li>
+        <li><strong>Prix total :</strong> calcule en temps reel.</li>
+        <li><strong>Solde joueur :</strong> affiche en bas.</li>
+        <li><strong>Bouton Confirmer :</strong> "Acheter pour $X". Grise si solde insuffisant ou inventaire plein.</li>
+      </ul>
+
+      <h3>Popup de vente</h3>
+      <ul>
+        <li><strong>Meme layout</strong> que l'achat, mais inverse.</li>
+        <li><strong>Quantite :</strong> max = nombre de cet item dans l'inventaire du joueur.</li>
+        <li><strong>Prix unitaire :</strong> prix de rachat actuel.</li>
+        <li><strong>Bouton :</strong> "Vendre pour $X".</li>
+      </ul>
+
+      <h3>Indicateurs visuels</h3>
+      <ul>
+        <li><strong>Fleche verte :</strong> prix actuel inferieur au prix de base (bonne affaire pour l'achat).</li>
+        <li><strong>Fleche rouge :</strong> prix actuel superieur au prix de base (cher).</li>
+        <li><strong>Pourcentage :</strong> affiche "+12%" ou "-8%" a cote du prix pour montrer l'ecart par rapport a la base.</li>
+        <li><strong>Couleur du prix :</strong> vert si favorable au joueur, rouge si defavorable, blanc si ~base.</li>
+      </ul>
+    </section>
+
+    <!-- S6 — PACKETS RESEAU -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num red-num">06</span> Packets Reseau</h2>
+
+      <h3 class="first">Packets via GuiNetworkHandler</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Action</th><th>Direction</th><th>Payload</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>shop_open</td><td>C &rarr; S</td><td>(vide)</td><td>Ouvre le shop. Serveur repond avec shop_categories.</td></tr>
+            <tr><td>shop_categories</td><td>S &rarr; C</td><td>NBTTagList (categories avec icones, noms)</td><td>Liste des categories pour la page d'accueil.</td></tr>
+            <tr><td>shop_category</td><td>C &rarr; S</td><td>String categoryId, int page</td><td>Demande le contenu d'une categorie.</td></tr>
+            <tr><td>shop_items</td><td>S &rarr; C</td><td>NBTTagList (items avec prix actuels, base, tendance)</td><td>Items de la categorie avec prix dynamiques calcules.</td></tr>
+            <tr><td>shop_search</td><td>C &rarr; S</td><td>String query, int page</td><td>Recherche par nom d'item.</td></tr>
+            <tr><td>shop_buy</td><td>C &rarr; S</td><td>String itemId, int meta, int quantity</td><td>Achat d'items.</td></tr>
+            <tr><td>shop_sell</td><td>C &rarr; S</td><td>String itemId, int meta, int quantity</td><td>Vente d'items au shop.</td></tr>
+            <tr><td>shop_result</td><td>S &rarr; C</td><td>boolean success, String errorKey, long newBalance</td><td>Resultat d'une transaction.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Calcul cote serveur :</strong> Les prix sont TOUJOURS calcules cote serveur au moment de la transaction. Le client affiche des prix informatifs mais le serveur recalcule le prix exact au moment du packet <code>shop_buy</code> / <code>shop_sell</code>. Cela empeche toute manipulation de prix cote client.</div>
+      </div>
+    </section>
+
+    <!-- S7 — COMMANDES & PERMISSIONS -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num">07</span> Commandes &amp; Permissions</h2>
+
+      <h3 class="first">Commandes joueur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Description</th><th>Permission</th></tr></thead>
+          <tbody>
+            <tr><td>/shop</td><td>Ouvre le GUI de la boutique</td><td>Aucune</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Commandes administrateur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Description</th><th>Permission</th></tr></thead>
+          <tbody>
+            <tr><td>/shopadmin reload</td><td>Recharge le fichier shop-config.json a chaud. Les prix dynamiques (influence) ne sont PAS reinitialises.</td><td>eriniumfaction.shop.admin.reload</td></tr>
+            <tr><td>/shopadmin resetprices</td><td>Reinitialise toutes les influences a 0 (prix de base). Confirmation requise.</td><td>eriniumfaction.shop.admin.resetprices</td></tr>
+            <tr><td>/shopadmin resetprice &lt;itemId&gt; [meta]</td><td>Reinitialise l'influence d'un item specifique.</td><td>eriniumfaction.shop.admin.resetprices</td></tr>
+            <tr><td>/shopadmin info &lt;itemId&gt; [meta]</td><td>Affiche les infos de prix d'un item : base, actuel, influence, tendance.</td><td>eriniumfaction.shop.admin.info</td></tr>
+            <tr><td>/shopadmin setinfluence &lt;itemId&gt; &lt;meta&gt; &lt;buyInf&gt; &lt;sellInf&gt;</td><td>Force l'influence d'un item (debug/equilibrage).</td><td>eriniumfaction.shop.admin.setinfluence</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Keybind</h3>
+      <p>Touche configurable (defaut: <code>B</code>) enregistree via <code>EriKeys.create("eriniumfaction.open_shop")</code> avec <code>KeyContext.IN_GAME</code>.</p>
+
+      <h3>Auto-completion</h3>
+      <ul>
+        <li><strong>&lt;itemId&gt; :</strong> suggestions dynamiques depuis le registre Forge des items (format "modid:name").</li>
+        <li><strong>&lt;meta&gt; :</strong> suggestions : 0 (defaut).</li>
+      </ul>
+    </section>
+
+    <!-- S8 — CONFIGURATION JSON -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num cyan-num">08</span> Configuration JSON</h2>
+
+      <h3 class="first">Fichier : config/eriniumfaction/shop-config.json</h3>
+      <div class="code-block">{
+  "<span class="st">priceEngine</span>": {
+    "<span class="st">buyFactor</span>": <span class="nu">0.15</span>,
+    "<span class="st">sellFactor</span>": <span class="nu">0.20</span>,
+    "<span class="st">influencePerUnit</span>": <span class="nu">0.01</span>,
+    "<span class="st">decayFactor</span>": <span class="nu">0.85</span>,
+    "<span class="st">decayIntervalMinutes</span>": <span class="nu">360</span>,
+    "<span class="st">minBuyMultiplier</span>": <span class="nu">0.5</span>,
+    "<span class="st">maxBuyMultiplier</span>": <span class="nu">3.0</span>,
+    "<span class="st">minSellMultiplier</span>": <span class="nu">0.2</span>,
+    "<span class="st">maxSellMultiplier</span>": <span class="nu">2.0</span>,
+    "<span class="st">minSpreadPercent</span>": <span class="nu">10</span>
+  },
+  "<span class="st">categories</span>": [
+    {
+      "<span class="st">id</span>": "<span class="st">materials</span>",
+      "<span class="st">nameKey</span>": "<span class="st">shop.category.materials</span>",
+      "<span class="st">iconItem</span>": "<span class="st">minecraft:diamond</span>",
+      "<span class="st">iconMeta</span>": <span class="nu">0</span>,
+      "<span class="st">subCategories</span>": [
+        {
+          "<span class="st">id</span>": "<span class="st">ores</span>",
+          "<span class="st">nameKey</span>": "<span class="st">shop.subcategory.ores</span>",
+          "<span class="st">iconItem</span>": "<span class="st">minecraft:iron_ore</span>",
+          "<span class="st">iconMeta</span>": <span class="nu">0</span>,
+          "<span class="st">items</span>": [
+            {
+              "<span class="st">itemId</span>": "<span class="st">minecraft:diamond</span>",
+              "<span class="st">meta</span>": <span class="nu">0</span>,
+              "<span class="st">baseBuyPrice</span>": <span class="nu">150</span>,
+              "<span class="st">baseSellPrice</span>": <span class="nu">100</span>
+            },
+            {
+              "<span class="st">itemId</span>": "<span class="st">minecraft:emerald</span>",
+              "<span class="st">meta</span>": <span class="nu">0</span>,
+              "<span class="st">baseBuyPrice</span>": <span class="nu">80</span>,
+              "<span class="st">baseSellPrice</span>": <span class="nu">40</span>
+            },
+            {
+              "<span class="st">itemId</span>": "<span class="st">minecraft:iron_ingot</span>",
+              "<span class="st">meta</span>": <span class="nu">0</span>,
+              "<span class="st">baseBuyPrice</span>": <span class="nu">5</span>,
+              "<span class="st">baseSellPrice</span>": <span class="nu">-1</span>,
+              "<span class="st">description</span>": "<span class="st">shop.item.iron_ingot.desc</span>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "<span class="st">id</span>": "<span class="st">food</span>",
+      "<span class="st">nameKey</span>": "<span class="st">shop.category.food</span>",
+      "<span class="st">iconItem</span>": "<span class="st">minecraft:cooked_beef</span>",
+      "<span class="st">iconMeta</span>": <span class="nu">0</span>,
+      "<span class="st">items</span>": [
+        {
+          "<span class="st">itemId</span>": "<span class="st">minecraft:cooked_beef</span>",
+          "<span class="st">meta</span>": <span class="nu">0</span>,
+          "<span class="st">baseBuyPrice</span>": <span class="nu">3</span>,
+          "<span class="st">baseSellPrice</span>": <span class="nu">1</span>
+        }
+      ]
+    }
+  ]
+}</div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Validation au chargement :</strong> Le <code>ShopConfigLoader</code> doit valider le JSON au demarrage : items existants dans le registre Forge, baseBuyPrice > 0, baseSellPrice <= baseBuyPrice (ou -1), pas de duplicats d'items, categories non vides. En cas d'erreur, log un WARNING et ignorer l'item/categorie invalide (ne pas crasher le serveur).</div>
+      </div>
+    </section>
+
+    <!-- S9 — REGLES METIER -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num green-num">09</span> Regles Metier</h2>
+
+      <h3 class="first">Achat au shop</h3>
+      <ul>
+        <li><strong>Verification :</strong> le serveur verifie que l'item existe dans la config, que le joueur a assez d'argent, et que son inventaire a de la place.</li>
+        <li><strong>Inventaire plein :</strong> si le joueur ne peut pas recevoir TOUS les items demandes, le serveur calcule combien il peut recevoir et ajuste la quantite. L'achat est partiel (le joueur achete ce qu'il peut porter).</li>
+        <li><strong>Debit :</strong> l'argent est debite du compte du joueur.</li>
+        <li><strong>Items donnes :</strong> les items sont crees a partir du template (itemId + meta + nbt optionnel) et ajoutes a l'inventaire.</li>
+        <li><strong>Influence mise a jour :</strong> buyInfluence augmente proportionnellement a la quantite achetee.</li>
+      </ul>
+
+      <h3>Vente au shop</h3>
+      <ul>
+        <li><strong>Verification :</strong> le serveur verifie que l'item est rachetable (baseSellPrice != -1), que le joueur possede la quantite demandee.</li>
+        <li><strong>Matching exact :</strong> l'item dans l'inventaire du joueur doit correspondre exactement a l'item du shop (meme ID + meta). Les items avec NBT custom ne sont PAS acceptes sauf si le shop les definit specifiquement.</li>
+        <li><strong>Items retires :</strong> les items sont retires de l'inventaire cote serveur.</li>
+        <li><strong>Credit :</strong> l'argent est credite sur le compte du joueur.</li>
+        <li><strong>Influence mise a jour :</strong> sellInfluence modifiee.</li>
+      </ul>
+
+      <h3>Reload a chaud</h3>
+      <ul>
+        <li><strong>Commande :</strong> <code>/shopadmin reload</code> relit le fichier JSON.</li>
+        <li><strong>Influences preservees :</strong> les influences de prix actuelles (WorldSavedData) ne sont PAS remises a zero.</li>
+        <li><strong>Nouveaux items :</strong> les items ajoutes dans la config sont immediatement disponibles avec une influence de 0.</li>
+        <li><strong>Items supprimes :</strong> les items retires de la config disparaissent du shop. Leurs influences restent en WorldSavedData (inactives) et seront nettoyees au prochain decay.</li>
+      </ul>
+    </section>
+
+    <!-- S10 — CAS LIMITES & SECURITE -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num red-num">10</span> Cas Limites &amp; Securite</h2>
+
+      <h3 class="first">Anti-exploitation economique</h3>
+      <ul>
+        <li><strong>Arbitrage :</strong> le spread minimum de 10% entre buy et sell rend l'arbitrage non profitable. Un joueur ne peut pas acheter et revendre pour gagner de l'argent.</li>
+        <li><strong>Manipulation de prix :</strong> un joueur qui achete massivement pour faire monter les prix se penalise lui-meme (il paie de plus en plus cher). Le decay ramene les prix a la normale.</li>
+        <li><strong>Vente en masse :</strong> un joueur qui farm un item et le vend en masse au shop voit le prix de rachat chuter rapidement. Le systeme s'auto-regule.</li>
+        <li><strong>Items non-vendables :</strong> les items trop facilement farmables (cobble, dirt, etc.) ont baseSellPrice = -1. Le shop ne les rachete pas.</li>
+      </ul>
+
+      <h3>Overflow numerique</h3>
+      <ul>
+        <li><strong>Prix :</strong> utiliser des <code>long</code> pour les prix. Clamp les influences pour eviter les valeurs extremes.</li>
+        <li><strong>Quantite :</strong> limiter l'achat/vente a 2304 unites par transaction (36 stacks de 64).</li>
+        <li><strong>Balance joueur :</strong> verifier que le credit ne depasse pas <code>Long.MAX_VALUE</code>.</li>
+      </ul>
+
+      <h3>Packet forgery</h3>
+      <ul>
+        <li><strong>Item validation :</strong> le serveur verifie que l'item demande existe dans la config du shop. Pas de packet avec un itemId arbitraire.</li>
+        <li><strong>Quantite validation :</strong> quantite > 0 et <= limite max.</li>
+        <li><strong>Rate limiting :</strong> max 20 transactions par joueur par minute.</li>
+      </ul>
+
+      <h3>Concurrence</h3>
+      <ul>
+        <li><strong>Tick thread unique :</strong> en Minecraft Forge, le server tick est single-threaded. Les transactions shop sont traitees dans le tick, donc pas de race condition. Les packets sont traites sequentiellement.</li>
+        <li><strong>Prix coherent :</strong> le prix est calcule au moment exact de la transaction. Deux joueurs achetant dans le meme tick paient le meme prix (l'influence n'est mise a jour qu'apres chaque transaction).</li>
+      </ul>
+    </section>
+
+    <!-- S11 — PLAN DE TESTS -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num gold-num">11</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests fonctionnels</h3>
+      <ul class="checklist">
+        <li><strong>Achat basique :</strong> acheter 16 diamants. Verifier items recus, argent debite, influence augmentee.</li>
+        <li><strong>Vente basique :</strong> vendre 32 fer. Verifier items retires, argent credite, influence modifiee.</li>
+        <li><strong>Item non vendable :</strong> tenter de vendre un item avec baseSellPrice = -1. Verifier le refus.</li>
+        <li><strong>Solde insuffisant :</strong> tenter d'acheter sans assez d'argent. Verifier le refus.</li>
+        <li><strong>Inventaire plein :</strong> remplir l'inventaire, acheter 64 items. Verifier l'achat partiel.</li>
+        <li><strong>Categories :</strong> naviguer dans les categories et sous-categories. Verifier l'affichage correct.</li>
+        <li><strong>Recherche :</strong> chercher "diamant". Verifier que le diamant apparait dans les resultats.</li>
+      </ul>
+
+      <h3>Tests de fluctuation des prix</h3>
+      <ul class="checklist">
+        <li><strong>Hausse d'achat :</strong> acheter 1000 diamants. Verifier que le prix d'achat a augmente significativement.</li>
+        <li><strong>Baisse de vente :</strong> vendre 1000 fer. Verifier que le prix de rachat a diminue.</li>
+        <li><strong>Clamp min/max :</strong> acheter massivement jusqu'au plafond. Verifier que le prix ne depasse pas baseBuyPrice * maxBuyMultiplier.</li>
+        <li><strong>Spread minimum :</strong> manipuler les influences pour que sell > buy * 0.9. Verifier que le clamp de spread s'applique.</li>
+        <li><strong>Decay :</strong> modifier l'influence, attendre le decay. Verifier que l'influence diminue de decayFactor.</li>
+        <li><strong>Retour a zero :</strong> apres plusieurs cycles de decay, verifier que l'influence est bien ramenee a 0.</li>
+      </ul>
+
+      <h3>Tests admin</h3>
+      <ul class="checklist">
+        <li><strong>Reload :</strong> modifier le JSON, /shopadmin reload. Verifier que les changements sont pris en compte sans redemarrage.</li>
+        <li><strong>Reset prix :</strong> /shopadmin resetprices. Verifier que toutes les influences sont a 0.</li>
+        <li><strong>Info item :</strong> /shopadmin info minecraft:diamond. Verifier l'affichage des infos de prix.</li>
+        <li><strong>Set influence :</strong> /shopadmin setinfluence minecraft:diamond 0 5.0 -2.0. Verifier les nouvelles valeurs.</li>
+      </ul>
+
+      <h3>Tests de securite</h3>
+      <ul class="checklist">
+        <li><strong>Item invalide :</strong> forger un packet shop_buy avec un itemId inexistant. Verifier pas de crash.</li>
+        <li><strong>Quantite negative :</strong> forger un packet avec quantite = -1. Verifier le refus.</li>
+        <li><strong>Config JSON invalide :</strong> mettre un JSON malformed, /shopadmin reload. Verifier log d'erreur et config precedente conservee.</li>
+        <li><strong>Rate limit :</strong> envoyer 30 packets shop_buy en 1 seconde. Verifier que seuls 20 sont traites.</li>
+      </ul>
+
+      <h3>Tests de performance</h3>
+      <ul class="checklist">
+        <li><strong>500 joueurs :</strong> simuler 500 joueurs ouvrant le shop simultanement. Verifier l'impact TPS (&lt; 1ms).</li>
+        <li><strong>Config large :</strong> charger un shop-config.json avec 500 items. Verifier le temps de chargement et la fluidite du GUI.</li>
+        <li><strong>Decay 10,000 items :</strong> avoir 10,000 influences en memoire. Mesurer le temps du decay.</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+<script>
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', () => document.getElementById('sidebar').classList.remove('open'));
+});
+window.addEventListener('scroll', () => {
+  const sections = document.querySelectorAll('.section-card[id]');
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  document.querySelectorAll('.nav-link').forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+</body>
+</html>
