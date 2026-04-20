@@ -21,7 +21,7 @@ Première séquence du jeu dans laquelle les joueurs apprennent les fondements d
 > Elle permet l'apprentissage du jeu et donc l'arrivée de nouveaux joueurs peu "qualifiés" 
 
 ### Objectif principal
-> Il pourra apprendre les bases du pvp faction ainsi que celles du serveur et débloquer le pet
+> Elle pourra apprendre les bases du pvp faction ainsi que celles du serveur et débloquer le pet
 
 ### Lien avec d'autres features
 > débloquage du pet 
@@ -56,26 +56,33 @@ Première séquence du jeu dans laquelle les joueurs apprennent les fondements d
 
 | Action | Comment ? | Condition requise |
 |--------|-----------|-------------------|
-| Exemple : Placer l'objet | Clic droit sur le sol | Avoir l'item dans l'inventaire |
-| | | |
-| | | |
+| apprendre le pvp | grâce à la première salle | finir la cinématique te avoir récupéré le pet |
+| apprende le pillage | grâce à la 2ème salle | finir la première salle |
+| apprendre la protection de base | grâce à la 3 ème salle | finir la deuxième salle |
+| apprendre la magie | grâce à la dernière salle | finir toutes les salles d'avant |
+| sortir de la salle | grâce au premier pouvoir magique | avoir fait toutes les salles précédentes|
+| apprendre les bases du serv | grâce aux conseils du pet| sortir de la salle de base |
+
 
 ### Ce que le jeu fait automatiquement
 
-> *Quels comportements se déclenchent sans action du joueur ? (timers, effets passifs, cooldowns, etc.)*
+| Action | Comment ? | Condition requise |
+|--------|-----------|-------------------|
+| le joueur visionne une cinématique | grâce au mod Video Player de NGoedix | rejoindre le serveur pour la première fois |
+| le joueur récupère le pet | celui ci le réveille et viens sur son épaule | avoir fini le visionnage de la cinématique |
 
 ---
 
 ## 5. Interface & Retours visuels
 
 ### Ce que le joueur VOIT
-> *Décris les effets visuels : animations, particules, couleurs, textes à l'écran, etc.*
+> Cinématique puis texte à l'écran et une autre cinématique 
 
 ### Ce que le joueur ENTEND
-> *Sons déclenchés : clic, explosion, notification, musique d'ambiance, etc.*
+> Sons déclenchés : Une musique digne du jeu crawl (en soft) durant la cinématique et une musique de donjon dans la zone de tutoriel et si possible des conseils du pet sous forme de voice-lines
 
 ### Menus ou interfaces
-> *Y a-t-il un menu à ouvrir ? Des boutons ? Des informations affichées ? Décris ce que contient chaque écran.*
+> du texte au mur et les interfaces de base modifiées en biff pour une présentation de celles ci
 
 ---
 
@@ -85,15 +92,14 @@ Première séquence du jeu dans laquelle les joueurs apprennent les fondements d
 
 | Paramètre | Valeur proposée | Justification |
 |-----------|-----------------|---------------|
-| Exemple : Durée de cooldown | 10 secondes | Évite le spam |
-| Exemple : Nombre max par faction | 5 | Évite le pay-to-win / la domination totale |
-| | | |
+| obligation de faire le tuto | true| permet aux joueurs "confiant" d'apprendre de nouvelles choses |
+
 
 ### Ce qui peut être modifié par le joueur
-> *Le joueur peut-il personaliser des valeurs ? Lesquelles ? Dans quelles limites ?*
+> Ses touches (proposé dans le tuto) 
 
 ### Ce qui ne peut PAS être changé
-> *Quelles valeurs sont fixes pour des raisons d'équilibre ?*
+> La salle, l'orga, la cinématique... TOUT  ??
 
 ---
 
@@ -102,33 +108,30 @@ Première séquence du jeu dans laquelle les joueurs apprennent les fondements d
 > *Les règles absolues de la feature — les "ça DOIT" et "ça NE DOIT PAS".*
 
 **Doit toujours :**
-- Exemple : La tourelle doit s'arrêter de tirer si la faction n'a plus de ressources.
-- 
+- être objectif et simple à comprendre
+- être une sorte d'aventure 
+- poser l'intrigue
+- présenter le serveur de la meilleure façon possible
+- encourager le joueur
 
 **Ne doit jamais :**
-- Exemple : Une tourelle ne peut jamais attaquer un allié de la faction.
-- 
+- être chiant / affligeant 
+- être passable
+- être trop compliqué
 
 **Cas particuliers à gérer :**
-- Exemple : Que se passe-t-il si la faction est dissoute ? La tourelle disparaît ? Reste neutre ?
-- 
+- auncun actuellement 
+
 
 ---
 
-## 8. Ressources & Progression
+## 8. Progression
 
 ### Comment le joueur obtient cette feature ?
-> *Craft ? Achat dans un shop ? Récompense de quête ? Tier de faction requis ?*
-
-### Coût ou prérequis
-| Élément | Quantité | Obtenu comment ? |
-|---------|----------|-----------------|
-| Exemple : Lingot d'Erinium | 8 | Miné en zone dangereuse |
-| | | |
+> Besoin de se connecter au serveur pour la première fois 
 
 ### Progression possible
-> *Y a-t-il des améliorations, des niveaux, des variantes de cette feature ? Si oui, décris les paliers.*
-
+> Il y a différentes salles comme "paliers" chacune apprenant une feature
 ---
 
 ## 9. Interactions avec d'autres systèmes
@@ -142,8 +145,8 @@ Première séquence du jeu dans laquelle les joueurs apprennent les fondements d
 - [ ] **Crafting** — *ex: recipe spécifique*
 - [ ] **Permissions / Grades** — *ex: réservé aux officiers+*
 - [ ] **Événements / Raids** — *ex: désactivé pendant un événement serveur*
-- [ ] **Interface / HUD** — *ex: affiche une icône en jeu*
-- [ ] Autre : ___________
+- [x] **Interface / HUD** — *ex: affiche une icône en jeu*
+- [x] Autre : Pet 
 
 ---
 
@@ -151,8 +154,8 @@ Première séquence du jeu dans laquelle les joueurs apprennent les fondements d
 
 > *Très important : note explicitement ce que tu N'inclus pas dans cette version, pour éviter les malentendus.*
 
-- Exemple : La tourelle ne peut pas être déplacée une fois posée (dans cette version).
-- Exemple : Pas de système de ciblage prioritaire dans cette version.
+- Dégoute le joueur du jeu
+- modifie le jeu
 
 ---
 
@@ -162,8 +165,9 @@ Première séquence du jeu dans laquelle les joueurs apprennent les fondements d
 
 | Risque | Impact | Suggestion |
 |--------|--------|------------|
-| Exemple : Le joueur spam des tourelles partout | Lag + expérience dégradée | Limiter à 5 par faction |
-| | | |
+| découragement du joueur | perte de joueurs | faire un truc simple |
+| use bug | lag ?? | réfléchir sur le fonctionnement du truc |
+| Cinématique qui ne se déclenche pas | Joueur perdu dès l'arrivée | Prévoir un mécanisme de relance manuelle |
 
 ---
 
@@ -171,9 +175,9 @@ Première séquence du jeu dans laquelle les joueurs apprennent les fondements d
 
 > *Ce qui n'est pas encore décidé. Mets ici tout ce qui nécessite une validation ou une discussion.*
 
-- [ ] Question 1 : *ex: Est-ce que les tourelles doivent fonctionner pendant les événements de trêve ?*
-- [ ] Question 2 :
-- [ ] Question 3 :
+- [ ] Question 1 : Est-ce que le tutoriel est passable ?
+- [ ] Question 2 : Est-ce que dans le tutoriel d'autres joueurs peuvent se voir ?
+- [ ] Question 3 : Est-ce que une animation sera jouée ?
 
 ---
 
@@ -181,11 +185,12 @@ Première séquence du jeu dans laquelle les joueurs apprennent les fondements d
 
 > *Jeux, vidéos, screenshots ou mécaniques existantes qui ont inspiré cette feature.*
 
-- Exemple : *Système de tourelles de [Nom du jeu] — [lien vidéo ou description]*
-- 
+- Musique de *Crawl* (ambiance douce et mystérieuse)
+- Introduction de *The Legend of Zelda: Breath of the Wild / Tears of the Kingdom* 
+- Déroulement et progression de *Breath of the Wild / Tears of the Kingdom*
 
 ---
 
 ## 14. Notes supplémentaires
 
-> *Tout ce qui ne rentre pas dans les sections précédentes.*
+> Les fonctions de base du serveur ne sont pas incluses dans les salles, mais bien dans le spawn et partout sur le serveur grâce aux voice-lines du pet.
