@@ -1130,3 +1130,19 @@
 - **Problème** : Enchanter un livre dans la table d'enchantement moddée ne donnait aucun enchant vanilla (Sharpness, Protection, etc.), uniquement les enchants custom EriniumEnchantment.
 - **Cause** : `Enchantment.canApplyAtEnchantingTable(Items.BOOK)` retourne `false` pour les enchants vanilla car leur `EnumEnchantmentType` (WEAPON, ARMOR, TOOL…) ne matche pas `Items.BOOK`. Le `ContainerEnchantment` vanilla contourne ça avec une logique spéciale pour les livres — notre système custom ne l'avait pas.
 - **Solution** : Pour les enchants vanilla sur un livre, remplacer le check `canApplyAtEnchantingTable` par `!isTreasureEnchantment()` (même logique que vanilla). Les `EriniumEnchantment` gardent leur check normal pour respecter le `minBookshelfPower`.
+
+---
+
+## Block — Méthodes de collision : onEntityWalk vs onEntityCollision
+
+- **Date** : 2026-04-22
+- **Système** : Erina Phase 2 (BlockErinaAsh, BlockErinaMud, BlockCryoIce, BlockAlienLava, BlockToxicPlant, BlockToxicVine, BlockFluidPlasma)
+- **Problème** : Build failed avec `method does not override or implement a method from a supertype` sur `onEntityCollidedWithBlock(World, BlockPos, IBlockState, Entity)`. 7 fichiers bloqués.
+- **Cause** : En MCP stable_39 pour 1.12.2, le nom `onEntityCollidedWithBlock` n'existe PAS sur `Block`. Les bonnes mappings sont :
+  - **`onEntityWalk(World world, BlockPos pos, Entity entity)`** (3 paramètres, pas d'IBlockState) — appelée quand une entité MARCHE SUR TOP d'un bloc plein. Utiliser pour sand/mud/ash/ice/lava décorative (blocs qui ont une hitbox complète sur laquelle on marche).
+  - **`onEntityCollision(World world, BlockPos pos, IBlockState state, Entity entity)`** (4 paramètres AVEC IBlockState) — appelée quand une entité est DANS un bloc (collision 3D). Utiliser pour plantes/vignes/fluides (blocs traversables via `getCollisionBoundingBox → NULL_AABB` ou les fluides).
+- **Solution** :
+  - Blocs pleins (walk on top) → `onEntityWalk(World, BlockPos, Entity)` — ne JAMAIS importer `IBlockState` dans ces fichiers
+  - Plantes/vignes/fluides (collision through) → `onEntityCollision(World, BlockPos, IBlockState, Entity)`
+  - Pour les fluides étendant `BlockFluidClassic`, toujours appeler `super.onEntityCollision(...)` en premier pour préserver le comportement par défaut du fluide
+- **Règle** : Avant d'override une méthode de collision sur Block, décider d'abord : l'entité marche-t-elle SUR le bloc (full cube) ou À TRAVERS (NULL_AABB collision, fluide) ? Ce choix détermine le bon override.
