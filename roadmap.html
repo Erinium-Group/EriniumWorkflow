@@ -3620,10 +3620,10 @@
       </div>
       <div class="card-progress-row">
         <span class="card-progress-label">Progression</span>
-        <span class="card-progress-count">0 / 135 taches</span>
+        <span class="card-progress-count">9 / 135 taches</span>
       </div>
       <div class="card-track">
-        <div class="card-fill" style="width: 0%;"></div>
+        <div class="card-fill" style="width: 6.67%;"></div>
       </div>
       <div class="card-body">
       <div class="task-list">
@@ -3631,40 +3631,40 @@
         <!-- Phase 1 — Fondations dimension -->
         <div class="task-section-title" style="font-size:11px;font-weight:700;text-transform:uppercase;color:#8892A4;margin:4px 0 6px 0;letter-spacing:0.08em;">Phase 1 — Fondations dimension</div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Creer ErinaDimensionType (constante DIM_ID = 42) et l'enregistrer via DimensionType.register + DimensionManager.registerDimension dans CommonProxy.preInit</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Creer ErinaDimensionType (constante DIM_ID = 42) et l'enregistrer via DimensionType.register + DimensionManager.registerDimension dans CommonProxy.preInit</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Implementer WorldProviderErina (extends WorldProvider, override createChunkGenerator, getBiomeProvider, isSurfaceWorld=true, canRespawnHere=false, getSunBrightnessFactor=0.65f)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Implementer WorldProviderErina (extends WorldProvider, override createChunkGenerator, getBiomeProvider, isSurfaceWorld=true, canRespawnHere=false, getSunBrightnessFactor=0.65f)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Override WorldProviderErina.getSkyLight et getFogColor (couleur 0x1A0A2E alpha 0.3, skyLight=10 pour crepuscule permanent)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Override WorldProviderErina.getSkyLight et getFogColor (couleur 0x1A0A2E alpha 0.3, skyLight=10 pour crepuscule permanent)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Implementer ErinaSkyRenderer via Mixin ou IRenderHandler (gradient violet sombre vers cyan pale, soleil dore plus petit, pas de nuages vanilla, nappes de brume statiques)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Implementer ErinaSkyRenderer via Mixin ou IRenderHandler (gradient violet sombre vers cyan pale, soleil dore plus petit, pas de nuages vanilla, nappes de brume statiques)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Appliquer Jump Boost I permanent sur Erina (Mixin sur EntityPlayer.onUpdate toutes les 40 ticks ou PlayerTickEvent, ambient=true, showParticles=false, check dimension ID)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Appliquer Jump Boost I permanent sur Erina (Mixin sur EntityPlayer.onUpdate toutes les 40 ticks ou PlayerTickEvent, ambient=true, showParticles=false, check dimension ID)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Reduire degats de chute de 30% sur Erina via Mixin sur Entity.fall (multiplier distance par 0.7 si dimension Erina)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Reduire degats de chute de 30% sur Erina via Mixin sur Entity.fall (multiplier distance par 0.7 si dimension Erina)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Bloquer les claims faction dans la dimension Erina (FactionManager.canClaim retourne false si world.dimensionId == ERINA_DIM_ID, message chat d'erreur)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Bloquer les claims faction dans la dimension Erina (FactionManager.canClaim retourne false si world.dimensionId == ERINA_DIM_ID, message chat d'erreur)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Desactiver FactionProtection et safezones sur Erina (check DimensionType dans FactionProtection, PvP toujours autorise)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Desactiver FactionProtection et safezones sur Erina (check DimensionType dans FactionProtection, PvP toujours autorise)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Forcer keepInventory=false et drop total a la mort sur Erina (LivingDeathEvent handler, override event.keepInventory)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Forcer keepInventory=false et drop total a la mort sur Erina (LivingDeathEvent handler, override event.keepInventory)</span>
         </div>
 
         <!-- Phase 2 — Blocs & Items de base -->
