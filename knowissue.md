@@ -1070,3 +1070,13 @@
 - **Probleme** : `EntityEntryBuilder.entity(GeneratedEntity.class)` ne supporte qu'un seul mapping Class→Entity. Si plusieurs EriEntities utilisent la meme classe, Forge ne peut pas differencier au respawn NBT.
 - **Cause** : Le spawn/despawn de Forge utilise la Class enregistree pour instancier via `newInstance()` avec le seul constructeur `(World)`. Toutes les entites de cette classe partagent donc la meme logique.
 - **Solution** : Pool de 32 sous-classes statiques `Slot0`, `Slot1`, ..., `Slot31` qui hardcodent chacune leur slot index via `super(world, N)`. Chaque `EriEntity.register()` alloue le prochain slot libre via `GeneratedEntitySlots.allocate(def, id)`. Evite toute generation de bytecode (compatible CleanRoom). Augmenter `SLOT_COUNT` si on depasse 32 entities toutes-mods confondues.
+
+---
+
+## CleanRoomLoader — Méthodes FoodStats manquantes
+
+- **Date** : 2026-04-22
+- **Système** : DeathHandler (rpg/event)
+- **Problème** : `player.getFoodStats().setFoodSaturationLevel(float)` lève `NoSuchMethodError: FoodStats.func_75119_b(float)` sur le serveur CleanRoomLoader. Le crash se produit à la mort du joueur, empêchant le TP spawn.
+- **Cause** : CleanRoomLoader (fork Forge 1.12.2, Java 25) ne fournit pas la méthode `func_75119_b` sur `FoodStats`. La méthode existe dans le Forge standard mais est absente dans cette implémentation.
+- **Solution** : Accès direct au field `foodSaturationLevel` (SRG : `field_75126_e`) via `ObfuscationReflectionHelper.setPrivateValue` avec try-catch silencieux. Ne jamais appeler `setFoodSaturationLevel` directement — utiliser la réflexion.

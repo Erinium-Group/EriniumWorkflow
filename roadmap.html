@@ -3546,64 +3546,588 @@
       </div>
       <div class="card-progress-row">
         <span class="card-progress-label">Progression</span>
-        <span class="card-progress-count">0 / 13 taches</span>
+        <span class="card-progress-count">0 / 135 taches</span>
       </div>
       <div class="card-track">
         <div class="card-fill" style="width: 0%;"></div>
       </div>
       <div class="card-body">
       <div class="task-list">
+
+        <!-- Phase 1 — Fondations dimension -->
+        <div class="task-section-title" style="font-size:11px;font-weight:700;text-transform:uppercase;color:#8892A4;margin:4px 0 6px 0;letter-spacing:0.08em;">Phase 1 — Fondations dimension</div>
         <div class="task-item">
           <div class="task-check"></div>
-          <span class="task-name">Dimension Erina (DimensionType, WorldProviderErina, DimensionManager, SkyRenderer, gravite reduite)</span>
+          <span class="task-name">Creer ErinaDimensionType (constante DIM_ID = 42) et l'enregistrer via DimensionType.register + DimensionManager.registerDimension dans CommonProxy.preInit</span>
         </div>
         <div class="task-item">
           <div class="task-check"></div>
-          <span class="task-name">ErinaWorldGen (ErinaBiomeProvider, ErinaChunkGenerator, ErinaGenLayer chain, grottes cristallines, geodes)</span>
+          <span class="task-name">Implementer WorldProviderErina (extends WorldProvider, override createChunkGenerator, getBiomeProvider, isSurfaceWorld=true, canRespawnHere=false, getSunBrightnessFactor=0.65f)</span>
         </div>
         <div class="task-item">
           <div class="task-check"></div>
-          <span class="task-name">12 biomes custom (terrain, vegetation bioluminescente, mobs, hazards environnementaux, structures)</span>
+          <span class="task-name">Override WorldProviderErina.getSkyLight et getFogColor (couleur 0x1A0A2E alpha 0.3, skyLight=10 pour crepuscule permanent)</span>
         </div>
         <div class="task-item">
           <div class="task-check"></div>
-          <span class="task-name">12 nouvelles ressources d'Erina (blocs minerais, items, textures, spawn conditions)</span>
+          <span class="task-name">Implementer ErinaSkyRenderer via Mixin ou IRenderHandler (gradient violet sombre vers cyan pale, soleil dore plus petit, pas de nuages vanilla, nappes de brume statiques)</span>
         </div>
         <div class="task-item">
           <div class="task-check"></div>
-          <span class="task-name">Rocket Maker (BlockRocketMaker, TileEntity, ContainerRocketMaker, GuiRocketMaker multi-slots, assemblage 10s)</span>
+          <span class="task-name">Appliquer Jump Boost I permanent sur Erina (Mixin sur EntityPlayer.onUpdate toutes les 40 ticks ou PlayerTickEvent, ambient=true, showParticles=false, check dimension ID)</span>
         </div>
         <div class="task-item">
           <div class="task-check"></div>
-          <span class="task-name">Entite Fusee (EntityRocket, voyage aller/retour, sequence decollage, carburant Blaze Rod, destruction PvP 100HP)</span>
+          <span class="task-name">Reduire degats de chute de 30% sur Erina via Mixin sur Entity.fall (multiplier distance par 0.7 si dimension Erina)</span>
         </div>
         <div class="task-item">
           <div class="task-check"></div>
-          <span class="task-name">Table de R&D (BlockRnDTable, GUI, systeme PR (kills PvP) + $, RnDPlayerData, RnDRecipeRegistry, deblocages personnels)</span>
+          <span class="task-name">Bloquer les claims faction dans la dimension Erina (FactionManager.canClaim retourne false si world.dimensionId == ERINA_DIM_ID, message chat d'erreur)</span>
         </div>
         <div class="task-item">
           <div class="task-check"></div>
-          <span class="task-name">Items R&D combat (Ancre de Resurrection, Flare, Fumigenes 3 tiers, Grappin 3 tiers, Bouclier, Totems 3 tiers)</span>
+          <span class="task-name">Desactiver FactionProtection et safezones sur Erina (check DimensionType dans FactionProtection, PvP toujours autorise)</span>
         </div>
         <div class="task-item">
           <div class="task-check"></div>
-          <span class="task-name">Items R&D defense (Piege Gravite, Mine Terrestre, Razor Wire 7 tiers, Protective Bricks 3 tiers x 7 variantes, Slime Pad)</span>
+          <span class="task-name">Forcer keepInventory=false et drop total a la mort sur Erina (LivingDeathEvent handler, override event.keepInventory)</span>
+        </div>
+
+        <!-- Phase 2 — Blocs & Items de base -->
+        <div class="task-section-title" style="font-size:11px;font-weight:700;text-transform:uppercase;color:#8892A4;margin:16px 0 6px 0;letter-spacing:0.08em;">Phase 2 — Blocs terrain &amp; fluide Plasma</div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Creer BlockErinaStone, BlockErinaGrass (light=5), BlockErinaSurface, BlockErinaSand (light=3), BlockErinaAsh, BlockErinaMud (ralentit le joueur)</span>
         </div>
         <div class="task-item">
           <div class="task-check"></div>
-          <span class="task-name">Orbes de Competences PvP (8 types : Speed, Jump, Heal, Strength, Repulsive, Disorder, Invisibility, Dash)</span>
+          <span class="task-name">Creer BlockVoidStone (sombre), BlockBurnedErinaStone, BlockCryoIce (Slowness I au contact), BlockAlienLava (comportement lave vanilla mais teinte violet/orange)</span>
         </div>
         <div class="task-item">
           <div class="task-check"></div>
-          <span class="task-name">Explosifs moddees (3 TNT tiers Valterite/Aetherite/Erinium + Dynamite throwable, sans R&D)</span>
+          <span class="task-name">Creer FluidPlasma (extends Fluid) + BlockFluidPlasma (extends BlockFluidClassic) — enregistrer via FluidRegistry.registerFluid + addBucketForFluid</span>
         </div>
         <div class="task-item">
           <div class="task-check"></div>
-          <span class="task-name">Features hors R&D (10 items : Balise Faction, Combinaison Spatiale, Extracteur Plasma, Portail Retour, Drone, Telepathie, Camp, Piege Ombre, Stabilite, Champignon)</span>
+          <span class="task-name">Implementer BlockFluidPlasma.onEntityCollidedWithBlock : Slowness II 2s + 0.5 coeur/sec (1 HP par 2 ticks), light=8, pas de fire</span>
         </div>
         <div class="task-item">
           <div class="task-check"></div>
-          <span class="task-name">Textures (80+ PNG) + modeles 3D (Fusee, RocketMaker, RnDTable) + sons + traductions FR/EN + equilibrage final</span>
+          <span class="task-name">Creer ItemPlasmaBucket + enregistrer le model via ModelLoader.setBucketModelDefinition dans ClientProxy.init</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Creer vegetation bioluminescente : BlockGlowLog (side+top), BlockGlowLeaves (light=7), BlockGlowMushroom (light=9), BlockCrystalFormation (light=8)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Creer BlockTentaclePlant, BlockToxicPlant (Poison I 2s au contact, light=6), BlockToxicVine, BlockLuminousFlower (light=5)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Creer BlockGravityTrap render client-side transparent via Mixin BlockRendererDispatcher.renderBlock (visible seulement pour la faction proprietaire)</span>
+        </div>
+
+        <!-- Phase 3 — Ressources (minerais + items) -->
+        <div class="task-section-title" style="font-size:11px;font-weight:700;text-transform:uppercase;color:#8892A4;margin:16px 0 6px 0;letter-spacing:0.08em;">Phase 3 — Ressources d'Erina (12 minerais + drops)</div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Creer 8 blocs minerais : BlockErinaCrystal, BlockEchoStone, BlockSolidPlasma, BlockAeriumOre, BlockCompactedAsh, BlockCryoCrystal, BlockImpactCore, BlockVoidFragment, BlockEriniteOre, BlockStabilityOre</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Creer 12 items ressources : ItemErinaCrystal, ItemLuminousSpore, ItemEchoStone, ItemSolidPlasma, ItemAerium, ItemCompactedAsh, ItemCryoCrystal, ItemErinaToxin, ItemImpactCore, ItemVoidFragment, ItemPlasmaPearl, ItemEriniteGem + ItemStabilityFragment</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Creer ItemToxinExtractor (outil de recolte) — onItemUse sur BlockToxicPlant : consomme 1 charge, donne 1-3 Toxines</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Implementer drop loot sur Aerium (flotte en liquide via Mixin EntityItem.onUpdate, effet cosmetique)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Classe ErinaBlocks (registration centrale des 20+ blocs) et ErinaItems (registration centrale) via ContentRegistry / EriItem.register</span>
+        </div>
+
+        <!-- Phase 4 — WorldGen -->
+        <div class="task-section-title" style="font-size:11px;font-weight:700;text-transform:uppercase;color:#8892A4;margin:16px 0 6px 0;letter-spacing:0.08em;">Phase 4 — WorldGen Erina (biomes, terrain, structures)</div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Creer les 12 classes Biome custom (BiomeCrystalPlains, BiomeGlowForest, BiomeEchoCanyon, BiomePlasmaSwamp, BiomeFloatingPlateaus, BiomeAshDesert, BiomeCrystalTundra, BiomeToxicJungle, BiomeImpactCrater, BiomeCrystalCaverns, BiomeVoidPeaks, BiomeLuminousShore)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Configurer topBlock/fillerBlock, heightRange (Y=72-80 Plains, Y=75-88 Forest, etc.), decorator.treesPerChunk par biome</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Creer ErinaBiomeProvider (extends BiomeProvider) — override getBiomesForGeneration, getBiome, overlay GenLayer chain custom</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Creer ErinaGenLayer chain (GenLayerErinaBiomes, GenLayerErinaZoom, GenLayerErinaSmooth) assignant les 12 biomes avec zones (centrale/frequente/rare)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Implementer ErinaChunkGenerator (implements IChunkGenerator) — heightmap bruit de Perlin 3D, niveau plasma Y=64, surface 0-4 blocs Erina, stone en dessous</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Optimiser ErinaChunkGenerator avec noiseMap pre-calcule pour tout le chunk (16x256x16 single pass, pattern ChunkGeneratorOverworld vanilla)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Generation de grottes via algorithme worm (MapGenErinaCaves) — rayon plus grand, moins tortueux que caves vanilla, cristaux de parois light=4-6</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">WorldGenGeode — cavernes spheriques 6-12 blocs rayon, parois cristaux multicolores, interieur vide, sous Y=40 dans Crystal Caverns</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">WorldGenCrystalFormation — formations cristallines 2-5 blocs (Crystal Plains) a 20-30 blocs (Floating Plateaus, Void Peaks)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ErinaOreGenerator (WorldGenMinable par ressource, parametres veines/profondeur Section 05 du spec) enregistre via GameRegistry.registerWorldGenerator weight 2</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ErinaStructureGenerator (IWorldGenerator) — Ruines Alien 15x10x15 (1/64 chunks), Tours Cristallines 20-30 blocs (1/32), Nids de Creatures (1/48), weight 1</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">LootTable des coffres Ruines Alien (Cristal Erina, Aerium, Impact Core avec raretes adaptees)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Cap global mobs Erina (200 max configurable) via EntityJoinWorldEvent + world.getEntities count</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Tick geysers Ash Desert (40-80 ticks aleatoires, Poison I 3s dans rayon 2 blocs)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Damage passif Crystal Tundra (0.5 HP / 30s sans Combinaison Spatiale complete) via PlayerTickEvent + check ErinaPlayerData.hasFullSpaceSuit</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Effet Wither I au-dessus de Y=140 sur Void Peaks sans casque spatial (PlayerTickEvent check biome + Y + casque)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Sons ambients Erina (eriniumfaction:ambient.erina.wind toutes 300-600 ticks 10% chance, ambient.erina.crystal par biomes cristal)</span>
+        </div>
+
+        <!-- Phase 5 — Fusee & Rocket Maker -->
+        <div class="task-section-title" style="font-size:11px;font-weight:700;text-transform:uppercase;color:#8892A4;margin:16px 0 6px 0;letter-spacing:0.08em;">Phase 5 — Fusee &amp; Rocket Maker</div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Craft des 5 composants (Coque x4, Reacteur, Reservoir, Navigation, Siege x2) via EriRecipe shaped (RocketRecipes.java)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">BlockRocketMaker (PropertyDirection FACING 4 directions, hasTileEntity) + recette shaped (ENE/DRD/EBE)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">TileEntityRocketMaker (ITickable) — 9 slots ItemStackHandler, validation ingredient par slot, timer 200 ticks d'assemblage</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ContainerRocketMaker (slot sync serveur-client, blocage slots mauvais ingredient)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">GuiRocketMaker (EriGuiScreen 1920x1080) — 9 slots 3x3 avec descriptions, bordures rouges si mauvais ingredient, bouton Assembler, ProgressBar 200 ticks</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">EntityRocket (extends Entity) — modele 3D custom, placement sur clic droit avec ItemRocket, 100 HP, NBT (FuelCount, Health, OwnerUUID, FactionId, OriginX/Z/Dim)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Embarquement 2 joueurs max (Entity.addPassenger, refus 3eme avec message)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Sequence decollage touche ESPACE : check carburant Blaze Rod, particules feu, sound item.rocket.launch, shake camera 20 ticks, ecran noir 60 ticks, teleportation</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Teleportation Overworld → Erina (X=0, Z=0, Y=80) et Erina → Overworld (OriginX/Z sauvegardes, dimension 0) via PlayerList.transferPlayerToDimension</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Consommation 1 Blaze Rod par voyage (aller OU retour), erreur chat si pas de carburant</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Destruction PvP Fusee (attackEntityFrom, decrease Health, entite retiree a 0 HP, passagers ejectes a la position actuelle ou tp spawn Erina si en vol)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemRocket (result de l'assemblage) — stack=1, NBT carburant, clic droit pose EntityRocket dans le monde</span>
+        </div>
+
+        <!-- Phase 6 — Table de R&D -->
+        <div class="task-section-title" style="font-size:11px;font-weight:700;text-transform:uppercase;color:#8892A4;margin:16px 0 6px 0;letter-spacing:0.08em;">Phase 6 — Table de R&amp;D (PR, GUI, registry)</div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">RnDPlayerData (@EriData scope=PLAYER persistOnDeath=true) : @Sync int researchPoints, Set&lt;String&gt; unlockedRecipes, Map&lt;String,Integer&gt; orbCooldowns, int grapplinCooldownTick, BlockPos anchorPos</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">RnDRecipe POJO (id, displayName, description, int costPR, long costMoney, ItemStack previewItem, String category)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">RnDRecipeRegistry singleton (Map&lt;String,RnDRecipe&gt;, methods register/get/getAll/getByCategory) — declarer les 30+ recettes R&amp;D</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ResearchPointManager (EriEvents.on(LivingDeathEvent)) — +10 PR par kill joueur PvP (check EntityPlayer target, pas suicide, ajouter message chat "+10 PR, Total : X")</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">BlockRnDTable (onBlockHarvested/removedByPlayer bloque si TileEntityRnDTable.isResearching==true, message d'erreur)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">TileEntityRnDTable (stocke isResearching + playerUsing UUID)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">GuiRnDTable (EriGuiScreen) — panneau gauche 280x600 (PR, $, breadcrumb), central 600x600 (ScrollList recettes + overlay cadenas + indicateur vert), droit 280x600 (details + bouton Debloquer)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Filtres par categorie (TabView Combat/Defense/Explosifs) dans GuiRnDTable</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">RnDPacketHandler (GuiNetworkHandler.sendAction "rnd_unlock") — revalidation serveur PR + $ avant deblocage, EconomyManager.withdraw, ajout dans unlockedRecipes</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Recette shaped de la Table R&amp;D (CEC / ENE / CEC = Cristal Erina, Erinium Fragment, Noyau Impact)</span>
+        </div>
+
+        <!-- Phase 7 — Items R&D Combat -->
+        <div class="task-section-title" style="font-size:11px;font-weight:700;text-transform:uppercase;color:#8892A4;margin:16px 0 6px 0;letter-spacing:0.08em;">Phase 7 — Items R&amp;D Combat</div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">BlockResurrectionAnchor + AnchorDeathHandler (LivingDeathEvent, respawn sur anchorPos si RnDPlayerData.anchorPos != null et &lt; 30min, bloc detruit au declenchement, check pas en CombatManager)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Verrou "une seule ancre active" (placement d'une 2eme desactive la 1ere)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemEriniumFlare + EntityFlare (extends EntityThrowable) — onImpact : 200+ particules SPELL_MOB orange, son item.flare.explode, Glowing 8s aux joueurs dans 50 blocs</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemSmokeBomb 3 tiers (enum TierSmoke VAL/AETH/ERIN) + EntitySmokeBomb (EntityThrowable) — zone particules SMOKE_LARGE, tier Erinium applique Blindness 1s</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Rayons/durees Smoke : Valterite 3b/4s, Aetherite 5b/6s, Erinium 5b/8s + Blindness (ScheduledTask particules chaque tick)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemGrapplingHook 3 tiers + EntityGrapplingHook — portee 10/15/20 blocs, durabilite 20/15/10, vitesse Erinium +50%, cooldown 3s via RnDPlayerData.grapplinCooldownTick</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Crochet : projectile ligne droite, impact bloc = velocity player vers position, disparait apres tract ou 60 ticks sans impact</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemForceShield + BlockForceField — activation clic droit maintenu, mur 2x3 blocs devant le joueur pendant 3s</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">BlockForceField non-solide transparent, Mixin EntityThrowable.onUpdate pour detecter collision et annuler velocity projectile</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Bouclier : knockback 3 blocs joueurs proches, cooldown 20s, 30 utilisations, rendu particules lumineuses violet/cyan chaque tick</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemEriniumTotem 3 tiers — LivingDeathEvent scan inventaire complet slots 0-35, priorite Erinium&gt;Aetherite&gt;Valterite, setCanceled + restore HP + effet tier + stack.shrink(1)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Effets Totems : Valterite 3 coeurs + Speed II 5s ; Aetherite 5 coeurs + Explosion AoE 3b (pas degat bloc) ; Erinium 7 coeurs + Resistance X 3s</span>
+        </div>
+
+        <!-- Phase 8 — Items R&D Defense -->
+        <div class="task-section-title" style="font-size:11px;font-weight:700;text-transform:uppercase;color:#8892A4;margin:16px 0 6px 0;letter-spacing:0.08em;">Phase 8 — Items R&amp;D Defense</div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">BlockGravityTrap — placement check territoire faction (refus hors claim), onEntityWalk verifie ennemi, velocity Y +3.5, destruction bloc</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Packet custom pour envoyer au client la faction proprietaire des pieges (rendu transparent Mixin BlockRendererDispatcher si joueur local non-faction)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">BlockLandMine — explosion power 2 sans degat terrain, 4 coeurs + knockback, limite FactionData.activeMines &lt;= 5 (compteur atomique)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Particule subtile rouge (40 ticks, packet oriente faction uniquement) sur les LandMine actives</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">BlockRazorWire (extends BlockBush, 7 tiers via PropertyEnum TierRazor) — onEntityCollidedWithBlock degats + Slowness selon tier</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Tiers Razor : Wood 0.5c/Slow I, Iron 1c/Slow I, Gold 1c/Slow II, Diamond 1.5c/Slow II, Valterite 2c/Slow II, Aetherite 2.5c/Slow III, Erinium 3c+Wither1s/Slow III</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Recettes crafts Razor Wire : Wood/Iron/Gold/Diamond sans R&amp;D, Valterite/Aetherite/Erinium via R&amp;D (150/300/600 PR)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">BlockProtectiveBrick (3 tiers de base : Valterite 450 HP, Aetherite 600 HP, Erinium 900 HP) — integration systeme BlockHealth existant</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">BlockVariantBrick x 7 variantes x 3 tiers = 21 blocs : Lava, Water, RazorWire, Poison, Wither, Explosion, Repulsive (HP = 30% de la brique de base)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Effets variantes declenches dans Block.breakBlock/onBlockDestroyedByPlayer : Lava/Water = place le fluide, Razor = place BlockRazorWire tier, Poison = Poison II 5s rayon 3, Wither = Wither II 3s, Explosion = power 2 no terrain, Repulsive = knockback rayon 4</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemBrickStick — clic droit sur variante : check acces chunk (membre faction), retire bloc et donne item, durabilite 20 usages</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">BlockSlimePad (extends BlockSlab) + TileEntitySlimePad — onEntityWalk propulse selon direction+force NBT, mini GUI config shift+clic droit</span>
+        </div>
+
+        <!-- Phase 9 — Orbes & Explosifs -->
+        <div class="task-section-title" style="font-size:11px;font-weight:700;text-transform:uppercase;color:#8892A4;margin:16px 0 6px 0;letter-spacing:0.08em;">Phase 9 — Orbes de Competences &amp; Explosifs</div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Classe de base ItemSkillOrb (durabilite = charges, cooldown via RnDPlayerData.orbCooldowns Map, decrement par PlayerTickEvent)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">8 orbes : Speed (Speed III 5s/15s/5ch), Jump (velocity Y+4 + NoFall 5s/30s/3ch), Heal (+8HP/20s/5ch), Strength (Strength II 5s/20s/5ch)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Repulsive Orb — AABB 5b, velocity vers exterieur pour joueurs ennemis (pas meme faction), 25s cd, 3 charges</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Disorder Orb — packet shuffle slots hotbar 0-8 des ennemis dans 8 blocs, 45s cd, 3 charges</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Invisibility Orb (PotionEffect INVISIBILITY 200 ticks, 30s cd, 3 charges), Dash Orb (impulsion 8b direction regard, 10s cd, 10 charges)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Son item.orb.activate generique au clic droit, message chat "X secondes restantes" si cooldown actif</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">BlockModdedTNT (3 tiers) + EntityModdedTNTPrimed (extends EntityTNTPrimed) — power 6.0/8.0/12.0 via setExplosionPower</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemDynamite + EntityDynamite (EntityThrowable) — onImpact delay 40 ticks (EriScheduler.delay) + son fuse, explosion power 3.0, stack 16, sans R&amp;D</span>
+        </div>
+
+        <!-- Phase 10 — Items hors R&D -->
+        <div class="task-section-title" style="font-size:11px;font-weight:700;text-transform:uppercase;color:#8892A4;margin:16px 0 6px 0;letter-spacing:0.08em;">Phase 10 — Features hors R&amp;D (10 items)</div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemLootAmplifier — Set&lt;UUID&gt; + timestamp expiration 6000 ticks, BlockEvent.HarvestDropsEvent duplique drops si bloc minerai Erina</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemSpaceSuit 4 pieces (Helmet/Chestplate/Leggings/Boots) — crafts Aerium+Cryo/Plasma selon piece</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Protections Combinaison par piece (PlayerTickEvent) : casque vs Y&gt;140, torse vs Poison Toxic Jungle, jambieres vs froid Tundra, bottes reduction 80% plasma, set complet = Feather Falling II</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ErinaPlayerData (@EriData PLAYER persistOnDeath=true) : @Sync boolean hasFullSpaceSuit, long lastErinaVisitTime, BlockPos deployedCampPos, long deployedCampExpiry</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">BlockPlasmaExtractor + TileEntityPlasmaExtractor (ITickable) — toutes les 1200 ticks, check adjacent BlockFluidPlasma, +1 SolidPlasma dans inventaire interne (max 16, no RF)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemReturnPortal + BlockPortalReturn — clic droit place bloc portail violet 600 ticks, onEntityCollided tp bidirectionnel Erina↔Overworld</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">EntityDrone — modele 3D, deplacement 0.8 b/tick direction regard, 250 ticks max (200 blocs), Glowing 3s aux entites dans 2b, 1 HP, cooldown 2400 ticks</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemSignalScrambler + SignalScramblerManager — zone rayon 30b pendant 1200 ticks, intercepter commandes TP (/tpa /home /back /warp /spawn) et bloquer si dans zone</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemVoidContainer — 27 slots NBT dans ItemStack, ContainerVoidContainer + GuiVoidContainer, drop normal a la mort (contenu preserve)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">BlockShadowTrap — placement territoire faction, onEntityWalk tp aleatoire horizontal 10b + Blindness 2s, destruction bloc, invisible ennemis</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemStabilityFragment — GUI EriAPI slots inventaire, clic item cible, check NBT "StabilityLastRepair" &lt; 24h reel, sinon restore 50% durabilite max</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemVisionMushroom (extends ItemFood, maxStack=1) — drop naturel 30% BlockGlowMushroom, Night Vision 6000 ticks + Glowing ennemis 30b 10s + Nausea 3s finale via EriScheduler</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemTelepathyCrystal — affiche positions membres faction sur Erina (packet serveur → overlay client via OverlayMod EriAPI)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">ItemDeployableCamp — placement temporaire structure tente, position + expiry dans ErinaPlayerData.deployedCampPos/Expiry</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">BlockFactionBeacon + TileEntityFactionBeacon — modele 3D beacon custom, signal faction visible de loin sur Erina</span>
+        </div>
+
+        <!-- Phase 11 — Mobs d'Erina -->
+        <div class="task-section-title" style="font-size:11px;font-weight:700;text-transform:uppercase;color:#8892A4;margin:16px 0 6px 0;letter-spacing:0.08em;">Phase 11 — Mobs d'Erina</div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">EntityCrystallite (passif, Crystal Plains), EntitySporeling (Slowness I 3s projectile spores, Glow Forest)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">EntityEcholith (teleport reflection sonore, Echo Canyon), EntityPlasmaLeech (aquatique, Poison I 3s, Plasma Swamp)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">EntityPlateauDrifter (volant, knockback eleve pour pousser dans vide), EntityAshLurker (cache sous cendre, emerge au passage)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">EntityFrostCrawler (Slowness II 5s attaque), EntityToxicCrawler (rapide Poison II 4s), EntityVenomSpitter (projectile Poison II 6s)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">EntityImpactBrute (40 HP elite, Impact Crater), EntityMagmaCrawler (nage lave alien, jaillit pour attaquer)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">EntityCrystalGolem (immunise fleches, faible explosifs, Crystal Caverns), EntityVoidShade (invisible sauf avec Flare/Vision Mushroom)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">EntityShoreCrab (passif, drop Perle de Plasma 80%) — spawn conditions par biome via Biome.spawnableCreatureList</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">LootTables des 12 mobs (drops Spore Lumineuse, Toxine, Perle Plasma, etc. selon mob et tables spec)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Spawn rules Erina : check cap 200 mobs dimension avant spawn (world.getEntities count + event.setCanceled si plein)</span>
+        </div>
+
+        <!-- Phase 12 — Assets & Finitions -->
+        <div class="task-section-title" style="font-size:11px;font-weight:700;text-transform:uppercase;color:#8892A4;margin:16px 0 6px 0;letter-spacing:0.08em;">Phase 12 — Assets, Sons, Traductions, Polish</div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Textures blocs terrain (9) : erina_grass top/side, erina_stone, erina_sand, erina_ash, erina_mud, void_stone, burned_erina_stone, cryo_ice (texture-gen ou preset stone/dirt)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Textures vegetation (8) : glow_log top/side, glow_leaves, glow_mushroom top/side, tentacle_plant, toxic_plant, crystal_formation</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Fluide plasma anime : plasma_liquid_still + plasma_liquid_flow sprite sheets (base Dokucraft water_still.png 32x1632 teinte cyan + mcmeta)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Textures minerais (8) via texture-gen categorie ore : erina_crystal, echo_stone, plasma_solidified, aerium, cryo_crystal, impact_core, void_fragment, erinite</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Textures Razor Wire 128x128 (7 tiers) via texture-gen categorie razor_wire</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Textures briques 3 base + 7 variantes x 3 tiers = 24 textures (texture-gen categorie bricks + overlay effet)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Textures items 64x64 : 12 ressources + 11 combat + 8 orbes + 4 explosifs + 4 armure spatiale + 5 composants fusee + 9 divers</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Modeles 3D Blockbench : rocket_maker, entity_rocket, rnd_table, entity_drone, plasma_extractor, faction_beacon, gravity_trap, land_mine, slime_pad</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Blockstates + models JSON pour tous les blocs (terrain + variantes + PropertyEnum razor_wire/bricks)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Layer armure spatiale 128x64 (layer_1 + layer_2) via texture-gen categorie armorlayer</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Sons custom .ogg : ambient.erina.wind/crystal, item.rocket.launch/land, item.flare.shoot/explode, item.grapple.shoot/latch, item.orb.activate, item.dynamite.fuse, block.plasma.splash + sounds.json</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Traductions fr_FR.lang + en_US.lang : items, blocs, dimension, 12 biomes, GUI Rocket Maker + RnD Table, messages (pr_gained, no_fuel, no_claim, etc.)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Enregistrement ModelLoader client-side pour tous les items/blocs dans ClientProxy.init</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Permissions dans docs/permissions.md (admin.erina.bypass, etc.) + commandes admin /erina tp, /erina set-spawn</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Mise a jour wiki/ : page dediee Planete Erina (atmosphere, biomes, ressources), page Fusee, page Table R&amp;D, page Items combat/defense, copier assets dans wiki/img/</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Tests plan spec : verification des 40+ checklists (dimension, worldgen, fusee, R&amp;D, items, performance, cas limites)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Mesure performance finale : 50 joueurs Erina simultanes &lt; 2ms/tick additionnels, worldgen chunk &lt; 50ms, ResearchPointManager &lt; 0.1ms</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Equilibrage final : ajustement couts PR/$ R&amp;D, durees cooldowns orbes, HP briques, degats Razor Wire selon playtests</span>
         </div>
       </div>
       <a href="specs/spatial-update.html" class="spec-link">
