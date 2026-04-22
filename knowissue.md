@@ -1080,3 +1080,53 @@
 - **Problème** : `player.getFoodStats().setFoodSaturationLevel(float)` lève `NoSuchMethodError: FoodStats.func_75119_b(float)` sur le serveur CleanRoomLoader. Le crash se produit à la mort du joueur, empêchant le TP spawn.
 - **Cause** : CleanRoomLoader (fork Forge 1.12.2, Java 25) ne fournit pas la méthode `func_75119_b` sur `FoodStats`. La méthode existe dans le Forge standard mais est absente dans cette implémentation.
 - **Solution** : Accès direct au field `foodSaturationLevel` (SRG : `field_75126_e`) via `ObfuscationReflectionHelper.setPrivateValue` avec try-catch silencieux. Ne jamais appeler `setFoodSaturationLevel` directement — utiliser la réflexion.
+
+---
+
+## EriniumAntiCheat — Faux positif anti-cheat bateau
+
+- **Date** : 2026-04-22
+- **Système** : CheckMovement (EriniumAntiCheat)
+- **Problème** : Un joueur en bateau se faisait kick par le check Blink et le check Step. Le compteur `staleTicks` s'accumulait pendant la navigation (pas de mouvement), puis le joueur se faisait flag au premier déplacement.
+- **Cause** : Les checks Blink et Step n'avaient pas de garde `player.isRiding()`.
+- **Solution** : Ajout de `&& !player.isRiding()` sur les deux checks. Ajout d'un `else if (player.isRiding()) { data.staleTicks = 0; }` pour reset le compteur pendant la navigation.
+
+---
+
+## EriniumAntiCheat — Anti-xray génère des faux minerais dans les feuillages
+
+- **Date** : 2026-04-22
+- **Système** : AntiXrayEngine mode 2 (EriniumAntiCheat)
+- **Problème** : En mode 2 (injection de faux minerais), les feuilles et troncs d'arbres entourés de blocs opaques se faisaient remplacer par des faux minerais visibles à l'explosion de TNT.
+- **Cause** : Le check de remplacement (bloc opaque entouré de blocs opaques) ne distinguait pas les blocs végétaux des blocs de terrain.
+- **Solution** : Ajout d'une liste `excludedBlocks` configurable (défaut : `minecraft:log,minecraft:log2,minecraft:leaves,minecraft:leaves2`). Les blocs exclus ne sont jamais remplacés par des faux minerais.
+
+---
+
+## EriniumAntiCheat — Anti-xray actif sur tous les mondes
+
+- **Date** : 2026-04-22
+- **Système** : AntiXrayEngine / AntiXraySetup / AntiXrayEventHandler (EriniumAntiCheat)
+- **Problème** : L'anti-xray s'appliquait à l'Overworld et au Nether, causant des problèmes de performance et de comportement hors monde minage.
+- **Cause** : Aucun filtre par dimension dans le système anti-xray.
+- **Solution** : Ajout d'une config `allowedDimensions` (défaut : `"2"` = monde minage uniquement) et d'une méthode `isWorldAllowed(World)` vérifiée à tous les points d'entrée (chunk load, block break/place).
+
+---
+
+## EriniumWorld — WorldGuard /rg flag : tab completion "allow"/"deny" cassée
+
+- **Date** : 2026-04-22
+- **Système** : WorldGuardCommands (EriniumWorld)
+- **Problème** : L'auto-complétion de l'argument `value` (allow/deny) ne fonctionnait pas pour la commande `/rg flag`.
+- **Cause** : Utilisation de `StringArgumentType.greedyString()` pour l'argument `value`. En Forge 1.12.2 avec Brigadier, `greedyString()` consomme tout le reste de l'input, ce qui casse le calcul de `builder.getRemaining()` et empêche les suggestions de s'afficher.
+- **Solution** : Remplacer `greedyString()` par `StringArgumentType.word()`. Règle générale : ne jamais utiliser `greedyString()` pour des arguments avec suggestions en Forge 1.12.2.
+
+---
+
+## EnchantOfferGenerator — Livres n'affichent pas les enchants vanilla
+
+- **Date** : 2026-04-22
+- **Système** : EnchantOfferGenerator (enchant/gui)
+- **Problème** : Enchanter un livre dans la table d'enchantement moddée ne donnait aucun enchant vanilla (Sharpness, Protection, etc.), uniquement les enchants custom EriniumEnchantment.
+- **Cause** : `Enchantment.canApplyAtEnchantingTable(Items.BOOK)` retourne `false` pour les enchants vanilla car leur `EnumEnchantmentType` (WEAPON, ARMOR, TOOL…) ne matche pas `Items.BOOK`. Le `ContainerEnchantment` vanilla contourne ça avec une logique spéciale pour les livres — notre système custom ne l'avait pas.
+- **Solution** : Pour les enchants vanilla sur un livre, remplacer le check `canApplyAtEnchantingTable` par `!isTreasureEnchantment()` (même logique que vanilla). Les `EriniumEnchantment` gardent leur check normal pour respecter le `minBookshelfPower`.
