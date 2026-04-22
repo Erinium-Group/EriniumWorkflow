@@ -687,6 +687,73 @@
     .cat-card:nth-child(6)  { animation: fadeUp 0.5s 0.60s ease both; }
     .cat-card:nth-child(7)  { animation: fadeUp 0.5s 0.66s ease both; }
     .cat-card:nth-child(8)  { animation: fadeUp 0.5s 0.72s ease both; }
+
+    /* =========================================================
+       TAG FILTER BAR
+    ========================================================= */
+    .tag-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    .tag-filter-label {
+      color: var(--slate);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-right: 4px;
+      white-space: nowrap;
+    }
+    .tag-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 13px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      color: var(--slate);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      user-select: none;
+      font-family: inherit;
+    }
+    .tag-btn:hover {
+      border-color: rgba(0,229,255,0.4);
+      color: var(--cyan);
+      background: rgba(0,229,255,0.06);
+    }
+    .tag-btn.active {
+      border-color: var(--cyan);
+      background: rgba(0,229,255,0.12);
+      color: var(--cyan);
+      box-shadow: 0 0 14px rgba(0,229,255,0.15);
+    }
+    .tag-btn.tag-all.active {
+      border-color: var(--violet-light);
+      background: rgba(107,47,160,0.18);
+      color: var(--violet-light);
+      box-shadow: 0 0 14px rgba(107,47,160,0.2);
+    }
+    .tag-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 4px;
+      border-radius: 9px;
+      background: rgba(255,255,255,0.08);
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .cat-card.tag-hidden { display: none !important; }
   </style>
 </head>
 <body>
@@ -731,6 +798,13 @@
         <span class="global-stat-lbl">En cours</span>
       </div>
     </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TAG FILTER
+  ═══════════════════════════════════════ -->
+  <div class="tag-filter-bar" id="tag-filter-bar">
+    <span class="tag-filter-label">Filtrer :</span>
   </div>
 
   <!-- ═══════════════════════════════════════
@@ -4859,6 +4933,136 @@
 </div><!-- /page -->
 
 <script>
+// ── TAG FILTER ───────────────────────────────────────────────────────────────
+(function() {
+  var CARD_TAGS = [
+    { match: 'Systeme de Faction',       tags: ['faction'] },
+    { match: 'Faction Enhanced',         tags: ['faction', 'rpg'] },
+    { match: 'Systeme de Grades',        tags: ['faction', 'admin'] },
+    { match: 'Systeme de Siege',         tags: ['faction', 'combat'] },
+    { match: 'Machines de Faction',      tags: ['faction', 'combat'] },
+    { match: 'Reconnaissance',           tags: ['faction', 'anti-cheat'] },
+    { match: 'Electricite',              tags: ['faction'] },
+    { match: 'Economie',                 tags: ['economie'] },
+    { match: 'Hotel des Ventes',         tags: ['economie'] },
+    { match: 'Admin Shop',               tags: ['economie', 'admin'] },
+    { match: 'Systeme de Trade',         tags: ['economie', 'social'] },
+    { match: 'Systeme de Lootbox',       tags: ['economie'] },
+    { match: 'Eris',                     tags: ['economie'] },
+    { match: 'Systeme RPG',              tags: ['rpg'] },
+    { match: 'Artefacts',                tags: ['rpg', 'combat'] },
+    { match: 'Cosmetique',               tags: ['rpg', 'ui'] },
+    { match: 'Systeme de Magie',         tags: ['rpg', 'combat'] },
+    { match: 'Combat',                   tags: ['combat'] },
+    { match: 'Accessoires',              tags: ['combat', 'rpg'] },
+    { match: 'Enchantements',            tags: ['combat'] },
+    { match: 'Endgame',                  tags: ['combat', 'evenements'] },
+    { match: 'PvP',                      tags: ['combat'] },
+    { match: 'Enclumes',                 tags: ['combat'] },
+    { match: 'Monde Minage',             tags: ['monde'] },
+    { match: 'Biomes Custom',            tags: ['monde'] },
+    { match: 'WorldEnhanced',            tags: ['monde'] },
+    { match: 'Spatial Update',           tags: ['monde'] },
+    { match: 'Commandes Serveur',        tags: ['admin'] },
+    { match: "Systeme d'Administration", tags: ['admin'] },
+    { match: 'Report Chat',              tags: ['admin', 'social'] },
+    { match: 'Systeme de Chat',          tags: ['social', 'admin'] },
+    { match: 'Systeme de Mail',          tags: ['social'] },
+    { match: 'Profil Joueur',            tags: ['ui', 'social'] },
+    { match: 'Anti Use Bug',             tags: ['anti-cheat'] },
+    { match: 'Anti Cheat',              tags: ['anti-cheat'] },
+    { match: 'Server Performance',       tags: ['performance'] },
+    { match: 'Optimisation Performance', tags: ['performance'] },
+    { match: 'EriAPI',                   tags: ['api'] },
+    { match: 'Erigineering',             tags: ['api'] },
+    { match: 'Framework Animation',      tags: ['api'] },
+    { match: 'ModOverlays',              tags: ['ui', 'api'] },
+    { match: 'Tab List',                 tags: ['ui'] },
+    { match: 'HUD',                      tags: ['ui'] },
+    { match: 'Evenements',               tags: ['evenements'] },
+    { match: 'Site Web',                 tags: ['infra'] },
+    { match: 'Launcher',                 tags: ['infra'] },
+    { match: 'Telechargement',           tags: ['infra'] },
+  ];
+
+  var TAG_LABELS = {
+    'faction':    'Faction',
+    'combat':     'Combat',
+    'rpg':        'RPG',
+    'monde':      'Monde',
+    'economie':   'Économie',
+    'admin':      'Admin',
+    'social':     'Social',
+    'anti-cheat': 'Anti-Cheat',
+    'performance':'Performance',
+    'api':        'API / Outils',
+    'ui':         'Interface',
+    'evenements': 'Événements',
+    'infra':      'Infra',
+  };
+
+  // Assign data-tags to each card
+  var tagCounts = {};
+  var cards = document.querySelectorAll('.cat-card');
+  cards.forEach(function(card) {
+    var titleEl = card.querySelector('.card-title');
+    if (!titleEl) return;
+    var title = titleEl.textContent;
+    var cardTags = [];
+    CARD_TAGS.forEach(function(rule) {
+      if (title.indexOf(rule.match) !== -1) {
+        rule.tags.forEach(function(t) {
+          if (cardTags.indexOf(t) === -1) cardTags.push(t);
+        });
+      }
+    });
+    if (cardTags.length === 0) cardTags = ['autre'];
+    card.setAttribute('data-tags', cardTags.join(','));
+    cardTags.forEach(function(t) { tagCounts[t] = (tagCounts[t] || 0) + 1; });
+  });
+
+  // Build filter bar
+  var bar = document.getElementById('tag-filter-bar');
+  if (!bar) return;
+
+  var allBtn = document.createElement('button');
+  allBtn.className = 'tag-btn tag-all active';
+  allBtn.setAttribute('data-tag', 'all');
+  allBtn.innerHTML = 'Tout <span class="tag-count">' + cards.length + '</span>';
+  bar.appendChild(allBtn);
+
+  // Sort tags by predefined order
+  var tagOrder = ['faction','combat','rpg','monde','economie','admin','social','anti-cheat','performance','api','ui','evenements','infra','autre'];
+  tagOrder.forEach(function(tag) {
+    if (!tagCounts[tag]) return;
+    var btn = document.createElement('button');
+    btn.className = 'tag-btn';
+    btn.setAttribute('data-tag', tag);
+    btn.innerHTML = (TAG_LABELS[tag] || tag) + ' <span class="tag-count">' + tagCounts[tag] + '</span>';
+    bar.appendChild(btn);
+  });
+
+  // Click to filter
+  var activeTag = 'all';
+  bar.addEventListener('click', function(e) {
+    var btn = e.target.closest('.tag-btn');
+    if (!btn) return;
+    var tag = btn.getAttribute('data-tag');
+    if (tag === activeTag) return;
+    activeTag = tag;
+    bar.querySelectorAll('.tag-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    cards.forEach(function(card) {
+      if (tag === 'all') {
+        card.classList.remove('tag-hidden');
+      } else {
+        var tags = (card.getAttribute('data-tags') || '').split(',');
+        card.classList.toggle('tag-hidden', tags.indexOf(tag) === -1);
+      }
+    });
+  });
+})();
+
 // Toggle cards
 document.querySelectorAll('.card-head').forEach(function(head) {
   head.addEventListener('click', function() {
