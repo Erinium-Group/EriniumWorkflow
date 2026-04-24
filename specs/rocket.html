@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Fusee & Rocket Maker | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0A0A0F;--violet:#6B2FA0;--violet-l:#9B4FCF;--cyan:#00E5FF;--green:#2ECC71;--red:#E74C3C;--gold:#F1C40F;--orange:#E67E22;--text:#F0F2FF;--slate:#8892A4;--card-bg:rgba(14,14,22,0.55);--card-bdr:rgba(255,255,255,0.06);--radius:18px;--radius-sm:10px;--font:'Inter',sans-serif;--erinium:#F59E0B}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--font);background-color:var(--bg);color:var(--text);line-height:1.7;min-height:100vh;overflow-x:hidden;padding:40px 60px}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 900px 600px at 10% 20%,rgba(231,76,60,0.12) 0%,transparent 70%),radial-gradient(ellipse 700px 500px at 85% 75%,rgba(0,229,255,0.08) 0%,transparent 70%);pointer-events:none;z-index:0}
+  .container{max-width:1200px;margin:0 auto;position:relative;z-index:1}
+  h1{font-size:44px;font-weight:800;letter-spacing:-0.02em;margin-bottom:12px;background:linear-gradient(135deg,#FF4400 0%,#F59E0B 50%,#00E5FF 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .sub{color:var(--slate);font-size:16px;margin-bottom:40px}
+  h2{font-size:28px;font-weight:700;margin:36px 0 18px;color:var(--cyan);border-bottom:1px solid var(--card-bdr);padding-bottom:8px}
+  h3{font-size:20px;font-weight:600;margin:24px 0 12px;color:var(--erinium)}
+  h4{font-size:16px;font-weight:600;margin:18px 0 8px;color:var(--text)}
+  p,li{font-size:15px}
+  ul,ol{padding-left:24px;margin:8px 0}
+  li{margin:6px 0}
+  code{font-family:'Courier New',monospace;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+  .code-block{background:rgba(14,14,22,0.85);border:1px solid var(--card-bdr);border-radius:var(--radius-sm);padding:14px 18px;margin:12px 0;font-family:'Courier New',monospace;font-size:13px;white-space:pre-wrap;color:#CDE9FF;overflow-x:auto}
+  .card{background:var(--card-bg);border:1px solid var(--card-bdr);border-radius:var(--radius);padding:22px 26px;margin:16px 0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:16px 0}
+  .grid .card{margin:0}
+  .badge{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-right:6px;letter-spacing:0.05em}
+  .badge-erinium{background:rgba(245,158,11,0.15);color:var(--erinium)}
+  .badge-danger{background:rgba(231,76,60,0.15);color:var(--red)}
+  .danger{border-left:3px solid var(--red);padding:10px 14px;background:rgba(231,76,60,0.08);border-radius:var(--radius-sm);margin:12px 0}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--card-bdr)}
+  th{color:var(--cyan);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.05em}
+  td code{font-size:12px}
+  .back{display:inline-block;color:var(--slate);font-size:13px;text-decoration:none;margin-bottom:24px}
+  .back:hover{color:var(--cyan)}
+</style>
+</head>
+<body>
+<div class="container">
+  <a class="back" href="../roadmap.html">&larr; Retour roadmap</a>
+  <h1>Fusee &amp; Rocket Maker</h1>
+  <div class="sub">Phase 5 de la Spatial Update. Systeme complet de fusee intere-dimensionnelle pour transporter les joueurs entre l'Overworld et Erina (DIM 42).</div>
+
+  <h2>1. Contexte &amp; Objectifs</h2>
+  <p>La Fusee est le <strong>seul</strong> moyen legitime d'acceder a la dimension Erina. Elle represente un investissement lourd de la faction : craft cher, 5 composants a assembler, et risque de destruction PvP sur Erina. C'est une mecanique strategique cle de la Spatial Update : la faction qui controle les fusees controle les expeditions.</p>
+  <ul>
+    <li><span class="badge badge-erinium">Craft</span> Bloc <code>Rocket Maker</code> (patron ENE/DRD/EBE) sert d'atelier d'assemblage</li>
+    <li><span class="badge badge-erinium">Composants</span> 5 types a crafter separement (Coque x4, Reacteur, Reservoir, Navigation, Siege x2)</li>
+    <li><span class="badge badge-erinium">Entite</span> <code>EntityRocket</code> placee dans le monde, 100 HP, 2 passagers max</li>
+    <li><span class="badge badge-danger">Destruction PvP</span> La fusee peut etre abattue sur Erina, bloquant l'expedition</li>
+  </ul>
+
+  <h2>2. Composants de la Fusee</h2>
+  <p>L'assemblage de la fusee necessite exactement <strong>9 items</strong> repartis dans les 9 slots du <code>Rocket Maker</code> :</p>
+
+  <table>
+    <thead><tr><th>Slot</th><th>Item</th><th>Registry</th><th>Craft</th></tr></thead>
+    <tbody>
+      <tr><td>1-4</td><td>Coque x4</td><td><code>rocket_hull</code></td><td>4 Erinium Block + 4 Iron Block + 1 Aerium &rarr; 1 Coque</td></tr>
+      <tr><td>5</td><td>Reacteur</td><td><code>rocket_engine</code></td><td>Nether Star + 4 Blaze Rod + 4 Erinium Fragment</td></tr>
+      <tr><td>6</td><td>Reservoir</td><td><code>rocket_tank</code></td><td>4 Aetherite Block + 4 Glass + 1 Iron Block</td></tr>
+      <tr><td>7</td><td>Navigation</td><td><code>rocket_nav</code></td><td>Diamond + Compass + Ender Eye + 2 Erinium Fragment + 4 Redstone</td></tr>
+      <tr><td>8-9</td><td>Siege x2</td><td><code>rocket_seat</code></td><td>2 Wool + 2 Iron Ingot + 1 Leather + 4 Leather &rarr; 2 Sieges</td></tr>
+    </tbody>
+  </table>
+
+  <p>Resultat : 1 <code>item_rocket</code> (stack=1) qui peut etre pose dans le monde pour faire apparaitre l'<code>EntityRocket</code>.</p>
+
+  <h2>3. Rocket Maker — Bloc d'assemblage</h2>
+  <p>Bloc special dedie a l'assemblage de la fusee. N'est pas une crafting table : il a son propre GUI multi-slots.</p>
+
+  <h3>Craft du bloc</h3>
+  <div class="code-block">Patron shaped (3x3) :
+  E N E
+  D R D
+  E B E
+
+E = erinium_fragment (EriniumFaction)
+N = nether_star
+D = diamond_block
+R = redstone_block
+B = blaze_rod</div>
+
+  <h3>Classes Java</h3>
+  <ul>
+    <li><code>BlockRocketMaker</code> (erina/block/) — <code>extends Block implements ITileEntityProvider</code>. <code>PropertyDirection FACING</code> (4 directions horizontales). <code>hasTileEntity=true</code>. <code>onBlockActivated</code> ouvre le GUI via <code>player.openGui(EriniumFaction.instance, GUI_ID, world, x, y, z)</code>.</li>
+    <li><code>TileEntityRocketMaker</code> (erina/tile/) — <code>extends TileEntity implements ITickable</code>. Stocke 9 slots via <code>ItemStackHandler</code>, un champ <code>int assemblyProgress</code> (0-200) et <code>boolean assemblyActive</code>. Validation par slot : chaque slot accepte uniquement son composant attendu.</li>
+    <li><code>ContainerRocketMaker</code> (erina/container/) — 9 slots TE + 36 slots inventaire joueur. <code>SlotRocketComponent extends SlotItemHandler</code> refuse les mauvais ingredients (retour false dans <code>isItemValid</code>).</li>
+    <li><code>GuiRocketMaker</code> (erina/gui/) — <code>extends GuiContainer</code>. Affiche les 9 slots avec bordures vertes/rouges selon validation, bouton "Assembler" qui envoie un custom payload, barre de progression 0-200 ticks.</li>
+  </ul>
+
+  <h3>Validation par slot</h3>
+  <p><code>TileEntityRocketMaker.isValidForSlot(int slot, ItemStack stack)</code> compare le registry name du stack au composant attendu. Table :</p>
+  <table>
+    <thead><tr><th>Slot index</th><th>Composant attendu</th></tr></thead>
+    <tbody>
+      <tr><td>0-3</td><td><code>eriniumfaction:rocket_hull</code></td></tr>
+      <tr><td>4</td><td><code>eriniumfaction:rocket_engine</code></td></tr>
+      <tr><td>5</td><td><code>eriniumfaction:rocket_tank</code></td></tr>
+      <tr><td>6</td><td><code>eriniumfaction:rocket_nav</code></td></tr>
+      <tr><td>7-8</td><td><code>eriniumfaction:rocket_seat</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>GUI</h3>
+  <p>Inspiree du style sobre des anciens GuiContainer. 9 slots en layout 3x3 au centre, labels au-dessus de chaque slot. Bordure <strong>verte</strong> si le slot contient le bon ingredient, <strong>rouge</strong> si mauvais, <strong>neutre</strong> si vide. Bouton "Assembler" en bas, active uniquement quand les 9 slots sont valides. Barre de progression visible pendant les 200 ticks d'assemblage. A la fin, les 9 slots sont consommes et <code>item_rocket</code> est place dans le dernier slot vide du joueur (ou dropped au sol).</p>
+
+  <h2>4. EntityRocket — entite placeable</h2>
+
+  <h3>Classe</h3>
+  <p><code>EntityRocket</code> (erina/entity/) extends <code>Entity</code>. Enregistree dans <code>EriniumFaction.preInit</code> via <code>EntityRegistry.registerModEntity(new ResourceLocation(MODID,"rocket"), EntityRocket.class, "rocket", 71, this, 80, 3, true)</code>.</p>
+
+  <h3>NBT</h3>
+  <div class="code-block">{
+  "FuelCount":  1-4,     // nombre de Blaze Rods restants
+  "Health":     0-100,   // HP actuels
+  "OwnerUUID":  "uuid",  // proprietaire (celui qui a pose)
+  "FactionId":  "id",    // faction du proprio (optionnel)
+  "OriginX":    int,     // X de depart en Overworld
+  "OriginY":    int,     // Y de depart
+  "OriginZ":    int,     // Z de depart
+  "OriginDim":  int      // dimension de depart (normalement 0)
+}</div>
+
+  <h3>Embarquement</h3>
+  <ul>
+    <li>Clic droit sur l'entite = <code>startRiding(rocket)</code>. Capacite 2 passagers (donnee par <code>canFitPassenger</code>).</li>
+    <li>Si deja 2 passagers : message erreur au 3eme qui tente d'embarquer.</li>
+    <li><code>updatePassenger</code> replace le passager juste au-dessus du siege (offset +0.8 Y par passager, X/Z identiques a l'entite).</li>
+  </ul>
+
+  <h3>Destruction PvP</h3>
+  <ul>
+    <li><code>attackEntityFrom(DamageSource src, float amount)</code> decremente <code>health</code>. Si 0 : <code>setDead()</code>, ejection des passagers a la position actuelle, drop d'un peu de feraille (optionnel).</li>
+    <li>La fusee ne regenere pas.</li>
+    <li><code>canBeCollidedWith</code> = true, <code>canBePushed</code> = false.</li>
+  </ul>
+
+  <div class="danger">
+    <strong>Destruction en vol :</strong> Si la fusee est detruite sur Erina alors qu'un joueur est dedans, le passager est ejecte a la position de l'entite (pas teleporte ailleurs). Il reste coince sur Erina jusqu'a une autre fusee ou sa mort.
+  </div>
+
+  <h2>5. Sequence de decollage</h2>
+
+  <h3>Declenchement</h3>
+  <p>Le joueur <strong>pilote</strong> (premier embarque) appuie sur la touche <code>R</code> (configurable via EriKeys, contexte IN_GAME). Le client envoie un <code>RocketLaunchPacket</code> au serveur avec l'ID de l'entite fusee.</p>
+
+  <h3>Checks cote serveur</h3>
+  <ol>
+    <li>Le joueur est bien passager pilote de l'entite ?</li>
+    <li>L'entite est bien une <code>EntityRocket</code> ?</li>
+    <li>Le joueur a au moins 1 Blaze Rod dans son inventaire ?</li>
+    <li>Un decollage n'est pas deja en cours (flag <code>launching</code>) ?</li>
+  </ol>
+  <p>Si un check echoue : message erreur chat, aucune action. Si tous OK : consomme 1 Blaze Rod, active le flag <code>launching</code>, envoie un <code>RocketLaunchStartPacket</code> a tous les passagers.</p>
+
+  <h3>Sequence visuelle (20 + 60 = 80 ticks)</h3>
+  <ul>
+    <li><strong>Ticks 0-20 (tremblement) :</strong> particules de feu sous la fusee (FLAME, 20 par tick), son <code>item.rocket.launch</code> joue une fois au tick 0, camera du passager secoue (<code>player.rotationYaw += sin(t*0.5)*1.5</code>).</li>
+    <li><strong>Ticks 20-80 (ecran noir) :</strong> overlay noir qui fade-in sur 60 ticks (alpha 0 -&gt; 255). Aucune action possible pour le passager.</li>
+    <li><strong>Tick 80 (teleportation) :</strong> tous les passagers sont teleportes. L'ecran reste noir 20 ticks supplementaires cote client puis fade-out.</li>
+  </ul>
+
+  <h3>Destination</h3>
+  <ul>
+    <li><strong>Overworld &rarr; Erina :</strong> spawn fixe X=0, Z=0, Y=surface calculee via <code>findSafeSpawn</code>. La fusee reste sur place en Overworld (les passagers sont ejectes AVANT la teleportation).</li>
+    <li><strong>Erina &rarr; Overworld :</strong> spawn aux coordonnees <code>OriginX/OriginY/OriginZ</code> de la fusee. Si <code>OriginDim</code> est invalide, fallback au spawn Overworld.</li>
+    <li>Utilise <code>TeleportHelper.teleport(player, x, y, z, yaw, pitch, dimId)</code> (systeme existant).</li>
+  </ul>
+
+  <h3>Consommation carburant</h3>
+  <p>1 Blaze Rod est consomme dans l'inventaire du pilote a l'instant T=0 de la sequence. Si le vol est interrompu (rocket detruite en vol), le Blaze Rod n'est pas rembourse.</p>
+
+  <h2>6. ItemRocket</h2>
+  <p><code>ItemRocket</code> (erina/item/) extends <code>Item</code>. <code>setMaxStackSize(1)</code>. <code>onItemUse</code> : place un <code>EntityRocket</code> a la position cliquee, copie le NBT de l'ItemStack vers l'entite (<code>OwnerUUID</code> = player.uuid, <code>OriginX/Y/Z</code> = pos cliquee, <code>OriginDim</code> = player.dimension, <code>Health</code> = 100, <code>FuelCount</code> = 0). L'item est consomme.</p>
+
+  <h2>7. Integration ClientProxy</h2>
+  <ul>
+    <li><code>RenderingRegistry.registerEntityRenderingHandler(EntityRocket.class, RenderRocket::new)</code> (rendu simple cube colore en v1, modele Blockbench en v2)</li>
+    <li><code>EriKeys.create("eriniumfaction.rocket.launch").key(Keyboard.KEY_R).context(KeyContext.IN_GAME).onPress(() -&gt; RocketLaunchHandler.tryLaunchFromClient())</code></li>
+    <li><code>GuiNetworkHandler</code> enregistre l'action <code>rocket_maker_assemble</code> cote serveur</li>
+    <li><code>OverlayModManager.register(new RocketLaunchOverlay())</code> pour l'ecran noir de decollage</li>
+  </ul>
+
+  <h2>8. Lang &amp; Sounds</h2>
+  <div class="code-block"># Items
+item.rocket_hull.name=Coque de Fusee
+item.rocket_engine.name=Reacteur de Fusee
+item.rocket_tank.name=Reservoir de Fusee
+item.rocket_nav.name=Module de Navigation
+item.rocket_seat.name=Siege de Fusee
+item.item_rocket.name=Fusee
+
+# Bloc
+tile.rocket_maker.name=Assembleur de Fusee
+
+# GUI
+eriniumfaction.rocket_maker.title=Assembleur de Fusee
+eriniumfaction.rocket_maker.assemble=Assembler
+eriniumfaction.rocket_maker.missing=Composants manquants
+eriniumfaction.rocket_maker.assembling=Assemblage en cours...
+
+# Messages
+eriniumfaction.rocket.no_fuel=Carburant insuffisant : il faut 1 Blaze Rod !
+eriniumfaction.rocket.full=La fusee est pleine (2 passagers max).
+eriniumfaction.rocket.not_pilot=Seul le pilote peut declencher le decollage.
+eriniumfaction.rocket.launching=Decollage en cours !</div>
+
+  <h2>9. Commandes debug (optionnel)</h2>
+  <p>Pas de commandes explicitement requises en Phase 5. La commande <code>/erinadim</code> existe deja pour la teleportation admin.</p>
+
+  <h2>10. Plan de tests</h2>
+  <ul>
+    <li>Crafter les 5 composants un par un — verifier les quantites</li>
+    <li>Crafter le Rocket Maker — verifier patron shaped</li>
+    <li>Placer le Rocket Maker, verifier FACING (4 directions)</li>
+    <li>Ouvrir le GUI, mettre des mauvais items : verifier bordure rouge</li>
+    <li>Remplir avec les bons items : verifier bouton actif, clic bouton lance le timer</li>
+    <li>Apres 200 ticks : verifier consommation + apparition <code>item_rocket</code></li>
+    <li>Clic droit avec <code>item_rocket</code> dans l'Overworld : verifier EntityRocket spawned</li>
+    <li>Clic droit sur l'entite : monter dessus (1er passager = pilote)</li>
+    <li>2eme joueur clic droit : devient passager. 3eme joueur : refus avec message</li>
+    <li>Sans Blaze Rod : touche R = message erreur</li>
+    <li>Avec Blaze Rod : touche R = sequence complete (particules, son, shake, ecran noir, TP Erina X=0/Z=0)</li>
+    <li>Attaquer la fusee a l'epee : HP diminuent, a 0 HP elle disparait et eject les passagers</li>
+    <li>Sur Erina : retour via fusee = TP aux OriginX/Y/Z</li>
+  </ul>
+
+</div>
+</body>
+</html>

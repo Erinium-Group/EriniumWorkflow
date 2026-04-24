@@ -5,6 +5,37 @@
 
 ---
 
+## Blocks / Rendering
+
+### getBlockLayer() est @SideOnly(Side.CLIENT) sur Block.class en Forge 1.12.2
+- **Date** : 2026-04-24
+- **Systeme** : BlockRocketMaker (Phase 5 — Fusee)
+- **Probleme** : Ajout d'un `@Override public BlockRenderLayer getBlockLayer()` qui retournait `BlockRenderLayer.SOLID`. Build failed : `error: method does not override or implement a method from a supertype`.
+- **Cause** : La methode `getBlockLayer()` de `net.minecraft.block.Block` est annotee `@SideOnly(Side.CLIENT)`. Le compilateur ne la voit pas comme surchargeable dans les builds neutres/serveur selon le classpath utilise, ce qui provoque l'erreur `@Override`.
+- **Solution** : Supprimer purement et simplement la methode si elle retourne `BlockRenderLayer.SOLID` (c'est la valeur par defaut de tous les blocs). Alternative : ajouter `@SideOnly(Side.CLIENT)` sur la methode + l'import `net.minecraftforge.fml.relauncher.{Side,SideOnly}`.
+- **Regle** : Ne JAMAIS override `getBlockLayer()` pour retourner SOLID (inutile). Ne le faire que pour CUTOUT, CUTOUT_MIPPED, TRANSLUCENT — et dans ce cas, ajouter `@SideOnly(Side.CLIENT)`.
+
+### EntityPlayerSP vit dans net.minecraft.client.entity (pas player)
+- **Date** : 2026-04-24
+- **Systeme** : RocketLaunchOverlay (Phase 5)
+- **Probleme** : Import `net.minecraft.entity.player.EntityPlayerSP` → `cannot find symbol`.
+- **Cause** : En Forge 1.12.2, `EntityPlayerSP` est dans `net.minecraft.client.entity` (c'est une classe client-side). Seul `EntityPlayer` et `EntityPlayerMP` sont dans `net.minecraft.entity.player`.
+- **Solution** : Utiliser `import net.minecraft.client.entity.EntityPlayerSP;`.
+
+---
+
+## WorldGen / Biomes
+
+### Collision de ResourceLocation entre biomes Overworld et Erina
+- **Date** : 2026-04-24
+- **Systeme** : ErinaBiomes (Phase 4) + EriniumBiomes (Overworld WorldEnhanced)
+- **Probleme** : Crash au demarrage serveur avec `[WARN] Registry Biome: Override did not have an associated owner object. Name: eriniumfaction:crystal_plains` suivi de `RuntimeException: One of more entry values did not copy to the correct id` dans `ForgeRegistry.sync()` / `GameData.freezeData()`.
+- **Cause** : Deux biomes distincts (`world.biome.special.BiomeCrystalPlains` pour l'Overworld et `erina.biome.BiomeCrystalPlains` pour la dimension Erina) etaient enregistres avec le MEME `ResourceLocation` (`eriniumfaction:crystal_plains`). Forge considere le second comme un "override" du premier, mais comme il vient du meme mod ID, l'owner check echoue et la sync du registre plante.
+- **Solution** : Prefixer tous les 12 biomes de la dimension Erina avec `erina_` dans leur registry name (`erina_crystal_plains`, `erina_glow_forest`, etc.). Mis a jour : `ErinaBiomes.registerBiomes()` + cles de traduction `biome.eriniumfaction.erina_*.name` dans `fr_FR.lang` et `en_US.lang`. Aucun impact sur le code runtime (les references utilisent les constantes `ErinaBiomes.CRYSTAL_PLAINS`, pas la string).
+- **Regle** : Quand tu ajoutes un biome dans une dimension custom (Erina, Nether custom, etc.), toujours prefixer le registry name avec le nom de la dimension pour eviter les collisions avec les biomes Overworld (qui en comptent 53+).
+
+---
+
 ## Mixins
 
 ### Les classes Mixin ne peuvent PAS etre referencees directement
@@ -1146,3 +1177,26 @@
   - Plantes/vignes/fluides (collision through) → `onEntityCollision(World, BlockPos, IBlockState, Entity)`
   - Pour les fluides étendant `BlockFluidClassic`, toujours appeler `super.onEntityCollision(...)` en premier pour préserver le comportement par défaut du fluide
 - **Règle** : Avant d'override une méthode de collision sur Block, décider d'abord : l'entité marche-t-elle SUR le bloc (full cube) ou À TRAVERS (NULL_AABB collision, fluide) ? Ce choix détermine le bon override.
+
+---
+
+### 2026-04-24 — MapGenCaves.digBlock() signature changee en 1.12.2
+- **Système** : `erina/gen/cave/MapGenErinaCaves.java` (WorldGen Phase 4)
+- **Problème** : Build failed avec `method digBlock in class MapGenCaves cannot be applied to given types; required: ChunkPrimer,int,int,int,int,int,boolean,IBlockState,IBlockState; found: ChunkPrimer,int,int,int,int,int,boolean`.
+- **Cause** : En 1.12.2, la signature vanilla de `MapGenCaves#digBlock()` a 9 paramètres (ajoute `IBlockState state, IBlockState above` à la fin) et non 7 comme sur des versions plus anciennes. La signature à 7 paramètres est une mauvaise référence (1.10 ou earlier).
+- **Solution** : Soit utiliser la signature complète `(ChunkPrimer, int, int, int, int, int, boolean, IBlockState, IBlockState)`, soit ne PAS override `digBlock()` et se contenter de `canReplaceBlock(IBlockState, IBlockState)` pour filtrer les blocs qu'on peut creuser. Pour les caves Erina on a choisi la 2e option.
+- **Règle** : Avant d'override une méthode d'une classe vanilla, TOUJOURS vérifier la signature exacte en 1.12.2 (via `docs/1.12.2/` ou la Javadoc en ligne). Ne jamais supposer d'après une autre version.
+
+### 2026-04-24 — ForgeEventFactory.onChunkPopulate() renvoie void, pas boolean
+- **Système** : `erina/gen/ErinaChunkGenerator.java` (WorldGen Phase 4)
+- **Problème** : Build failed avec `incompatible types: void cannot be converted to boolean` sur `boolean populateEvent = ForgeEventFactory.onChunkPopulate(true, this, world, rand, chunkX, chunkZ, false);`.
+- **Cause** : `ForgeEventFactory.onChunkPopulate(boolean pre, IChunkGenerator gen, World world, Random rand, int chunkX, int chunkZ, boolean hasVillage)` renvoie `void` en 1.12.2 — il publie simplement `PopulateChunkEvent.Pre` ou `PopulateChunkEvent.Post`. Il n'y a PAS de boolean de retour pour annuler.
+- **Solution** : Appeler `ForgeEventFactory.onChunkPopulate(true, ...)` en Pre, exécuter la population, puis `ForgeEventFactory.onChunkPopulate(false, ...)` en Post — sans stocker ni conditionner le résultat.
+
+### 2026-04-24 — Loot table pool manque le champ `name` (Forge 1.12.2)
+- **Système** : `assets/eriniumfaction/loot_tables/chests/alien_ruins.json`
+- **Problème** : Erreur au démarrage serveur `JsonParseException: Loot Table "..." Missing 'name' entry for pool #0`.
+- **Cause** : Forge 1.12.2 exige un champ `"name"` sur chaque objet pool dans les loot tables (ajout Forge absent du format vanilla). Oublier ce champ cause un crash `JsonParseException` au chargement.
+- **Solution** : Ajouter `"name": "main"` (pool principal) et `"name": "rare"` (pools secondaires) à chaque entrée du tableau `"pools"`.
+- **Règle** : TOUJOURS inclure `"name"` sur chaque pool dans tous les fichiers loot table. Format correct : `{ "name": "main", "rolls": ..., "entries": [...] }`.
+- **Règle** : Les events Forge "Pre/Post" sont à fire-and-forget sauf si l'API explicitement renvoie un boolean (rare). Ne jamais supposer un contrat de retour sans vérifier.

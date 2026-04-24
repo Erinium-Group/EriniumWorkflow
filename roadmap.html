@@ -3620,10 +3620,10 @@
       </div>
       <div class="card-progress-row">
         <span class="card-progress-label">Progression</span>
-        <span class="card-progress-count">22 / 135 taches</span>
+        <span class="card-progress-count">39 / 135 taches</span>
       </div>
       <div class="card-track">
-        <div class="card-fill" style="width: 16.30%;"></div>
+        <div class="card-fill" style="width: 28.89%;"></div>
       </div>
       <div class="card-body">
       <div class="task-list">
@@ -3728,123 +3728,123 @@
         <!-- Phase 4 — WorldGen -->
         <div class="task-section-title" style="font-size:11px;font-weight:700;text-transform:uppercase;color:#8892A4;margin:16px 0 6px 0;letter-spacing:0.08em;">Phase 4 — WorldGen Erina (biomes, terrain, structures)</div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Creer les 12 classes Biome custom (BiomeCrystalPlains, BiomeGlowForest, BiomeEchoCanyon, BiomePlasmaSwamp, BiomeFloatingPlateaus, BiomeAshDesert, BiomeCrystalTundra, BiomeToxicJungle, BiomeImpactCrater, BiomeCrystalCaverns, BiomeVoidPeaks, BiomeLuminousShore)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Creer les 12 classes Biome custom (BiomeCrystalPlains, BiomeGlowForest, BiomeEchoCanyon, BiomePlasmaSwamp, BiomeFloatingPlateaus, BiomeAshDesert, BiomeCrystalTundra, BiomeToxicJungle, BiomeImpactCrater, BiomeCrystalCaverns, BiomeVoidPeaks, BiomeLuminousShore)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Configurer topBlock/fillerBlock, heightRange (Y=72-80 Plains, Y=75-88 Forest, etc.), decorator.treesPerChunk par biome</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Configurer topBlock/fillerBlock, heightRange (Y=72-80 Plains, Y=75-88 Forest, etc.), decorator.treesPerChunk par biome</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Creer ErinaBiomeProvider (extends BiomeProvider) — override getBiomesForGeneration, getBiome, overlay GenLayer chain custom</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Creer ErinaBiomeProvider (extends BiomeProvider) — override getBiomesForGeneration, getBiome, overlay GenLayer chain custom</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Creer ErinaGenLayer chain (GenLayerErinaBiomes, GenLayerErinaZoom, GenLayerErinaSmooth) assignant les 12 biomes avec zones (centrale/frequente/rare)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Creer ErinaGenLayer chain (GenLayerErinaBiomes, GenLayerErinaZoom, GenLayerErinaSmooth) assignant les 12 biomes avec zones (centrale/frequente/rare)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Implementer ErinaChunkGenerator (implements IChunkGenerator) — heightmap bruit de Perlin 3D, niveau plasma Y=64, surface 0-4 blocs Erina, stone en dessous</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Implementer ErinaChunkGenerator (implements IChunkGenerator) — heightmap bruit de Perlin 3D, niveau plasma Y=64, surface 0-4 blocs Erina, stone en dessous</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Optimiser ErinaChunkGenerator avec noiseMap pre-calcule pour tout le chunk (16x256x16 single pass, pattern ChunkGeneratorOverworld vanilla)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Optimiser ErinaChunkGenerator avec noiseMap pre-calcule pour tout le chunk (16x256x16 single pass, pattern ChunkGeneratorOverworld vanilla)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Generation de grottes via algorithme worm (MapGenErinaCaves) — rayon plus grand, moins tortueux que caves vanilla, cristaux de parois light=4-6</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Generation de grottes via algorithme worm (MapGenErinaCaves) — rayon plus grand, moins tortueux que caves vanilla, cristaux de parois light=4-6</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">WorldGenGeode — cavernes spheriques 6-12 blocs rayon, parois cristaux multicolores, interieur vide, sous Y=40 dans Crystal Caverns</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">WorldGenGeode — cavernes spheriques 6-12 blocs rayon, parois cristaux multicolores, interieur vide, sous Y=40 dans Crystal Caverns</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">WorldGenCrystalFormation — formations cristallines 2-5 blocs (Crystal Plains) a 20-30 blocs (Floating Plateaus, Void Peaks)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">WorldGenCrystalFormation — formations cristallines 2-5 blocs (Crystal Plains) a 20-30 blocs (Floating Plateaus, Void Peaks)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">ErinaOreGenerator (WorldGenMinable par ressource, parametres veines/profondeur Section 05 du spec) enregistre via GameRegistry.registerWorldGenerator weight 2</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">ErinaOreGenerator (WorldGenMinable par ressource, parametres veines/profondeur Section 05 du spec) enregistre via GameRegistry.registerWorldGenerator weight 2</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">ErinaStructureGenerator (IWorldGenerator) — Ruines Alien 15x10x15 (1/64 chunks), Tours Cristallines 20-30 blocs (1/32), Nids de Creatures (1/48), weight 1</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">ErinaStructureGenerator (IWorldGenerator) — Ruines Alien 15x10x15 (1/64 chunks), Tours Cristallines 20-30 blocs (1/32), Nids de Creatures (1/48), weight 1</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">LootTable des coffres Ruines Alien (Cristal Erina, Aerium, Impact Core avec raretes adaptees)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">LootTable des coffres Ruines Alien (Cristal Erina, Aerium, Impact Core avec raretes adaptees)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Cap global mobs Erina (200 max configurable) via EntityJoinWorldEvent + world.getEntities count</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Cap global mobs Erina (200 max configurable) via EntityJoinWorldEvent + world.getEntities count</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Tick geysers Ash Desert (40-80 ticks aleatoires, Poison I 3s dans rayon 2 blocs)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Tick geysers Ash Desert (40-80 ticks aleatoires, Poison I 3s dans rayon 2 blocs)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Damage passif Crystal Tundra (0.5 HP / 30s sans Combinaison Spatiale complete) via PlayerTickEvent + check ErinaPlayerData.hasFullSpaceSuit</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Damage passif Crystal Tundra (0.5 HP / 30s sans Combinaison Spatiale complete) via PlayerTickEvent + check ErinaPlayerData.hasFullSpaceSuit</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Effet Wither I au-dessus de Y=140 sur Void Peaks sans casque spatial (PlayerTickEvent check biome + Y + casque)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Effet Wither I au-dessus de Y=140 sur Void Peaks sans casque spatial (PlayerTickEvent check biome + Y + casque)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Sons ambients Erina (eriniumfaction:ambient.erina.wind toutes 300-600 ticks 10% chance, ambient.erina.crystal par biomes cristal)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Sons ambients Erina (eriniumfaction:ambient.erina.wind toutes 300-600 ticks 10% chance, ambient.erina.crystal par biomes cristal)</span>
         </div>
 
         <!-- Phase 5 — Fusee & Rocket Maker -->
         <div class="task-section-title" style="font-size:11px;font-weight:700;text-transform:uppercase;color:#8892A4;margin:16px 0 6px 0;letter-spacing:0.08em;">Phase 5 — Fusee &amp; Rocket Maker</div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Craft des 5 composants (Coque x4, Reacteur, Reservoir, Navigation, Siege x2) via EriRecipe shaped (RocketRecipes.java)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Craft des 5 composants (Coque x4, Reacteur, Reservoir, Navigation, Siege x2) via EriRecipe shaped (RocketRecipes.java)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">BlockRocketMaker (PropertyDirection FACING 4 directions, hasTileEntity) + recette shaped (ENE/DRD/EBE)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">BlockRocketMaker (PropertyDirection FACING 4 directions, hasTileEntity) + recette shaped (ENE/DRD/EBE)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">TileEntityRocketMaker (ITickable) — 9 slots ItemStackHandler, validation ingredient par slot, timer 200 ticks d'assemblage</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">TileEntityRocketMaker (ITickable) — 9 slots ItemStackHandler, validation ingredient par slot, timer 200 ticks d'assemblage</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">ContainerRocketMaker (slot sync serveur-client, blocage slots mauvais ingredient)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">ContainerRocketMaker (slot sync serveur-client, blocage slots mauvais ingredient)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">GuiRocketMaker (EriGuiScreen 1920x1080) — 9 slots 3x3 avec descriptions, bordures rouges si mauvais ingredient, bouton Assembler, ProgressBar 200 ticks</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">GuiRocketMaker (EriGuiScreen 1920x1080) — 9 slots 3x3 avec descriptions, bordures rouges si mauvais ingredient, bouton Assembler, ProgressBar 200 ticks</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">EntityRocket (extends Entity) — modele 3D custom, placement sur clic droit avec ItemRocket, 100 HP, NBT (FuelCount, Health, OwnerUUID, FactionId, OriginX/Z/Dim)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">EntityRocket (extends Entity) — modele 3D custom, placement sur clic droit avec ItemRocket, 100 HP, NBT (FuelCount, Health, OwnerUUID, FactionId, OriginX/Z/Dim)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Embarquement 2 joueurs max (Entity.addPassenger, refus 3eme avec message)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Embarquement 2 joueurs max (Entity.addPassenger, refus 3eme avec message)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Sequence decollage touche ESPACE : check carburant Blaze Rod, particules feu, sound item.rocket.launch, shake camera 20 ticks, ecran noir 60 ticks, teleportation</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Sequence decollage touche Y : check carburant Blaze Rod, particules feu, sound item.rocket.launch, shake camera 20 ticks, ecran noir 60 ticks, teleportation</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Teleportation Overworld → Erina (X=0, Z=0, Y=80) et Erina → Overworld (OriginX/Z sauvegardes, dimension 0) via PlayerList.transferPlayerToDimension</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Teleportation Overworld → Erina (X=0, Z=0, Y=surface) et Erina → Overworld (OriginX/Z sauvegardes, dimension 0) via TeleportHelper</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Consommation 1 Blaze Rod par voyage (aller OU retour), erreur chat si pas de carburant</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Consommation 1 Blaze Rod par voyage (aller OU retour), erreur chat si pas de carburant</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Destruction PvP Fusee (attackEntityFrom, decrease Health, entite retiree a 0 HP, passagers ejectes a la position actuelle ou tp spawn Erina si en vol)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Destruction PvP Fusee (attackEntityFrom, decrease Health, entite retiree a 0 HP, passagers ejectes a la position actuelle ou tp spawn Erina si en vol)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">ItemRocket (result de l'assemblage) — stack=1, NBT carburant, clic droit pose EntityRocket dans le monde</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">ItemRocket (result de l'assemblage) — stack=1, NBT carburant, clic droit pose EntityRocket dans le monde</span>
         </div>
 
         <!-- Phase 6 — Table de R&D -->
