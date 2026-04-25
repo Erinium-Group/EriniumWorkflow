@@ -5,6 +5,35 @@
 
 ---
 
+## 2026-04-25 — Fusee : decollage immobile (motionY sans deplacement reel)
+
+**Systeme** : EntityRocket (Phase 5)
+**Probleme** : Apres declenchement du decollage, la fusee jouait les particules et le son mais ne montait pas physiquement (posY ne changeait pas). Resultat : aucun TP, le joueur reste au sol.
+**Cause racine** : `EntityRocket extends Entity` (pas `EntityLivingBase`). La methode `Entity.onUpdate()` de base **ne fait pas** d'appel implicite a `move()` — contrairement a `EntityLivingBase.onUpdate()` qui appelle `travel()` -> `move()`. Set `motionY` ne suffit donc pas : il faut explicitement appeler `this.move(MoverType.SELF, motionX, motionY, motionZ)`.
+**Solution** : Apres `super.onUpdate()` dans la phase d'ascension (launchTick > WARMUP_TICKS), ajouter `this.move(MoverType.SELF, motionX, motionY, motionZ)`.
+**Regle** : Pour toute entite qui etend `Entity` directement (et non `EntityLivingBase`/`EntityMinecart`), si tu modifies `motionX/Y/Z`, tu DOIS appeler explicitement `move()` pour que le deplacement soit applique.
+
+## 2026-04-25 — Rocket Maker GUI : layout chevauche + labels texte illisibles
+
+**Systeme** : GuiRocketMaker / ContainerRocketMaker (Phase 5)
+**Probleme** : ySize=200, bouton "Assembler" a Y=172 (cy+ySize-28), hotbar a Y=178-194 → bouton chevauche le hotbar. Labels de slots reduits a 3 chars ("Cou", "Mot", "Res") illisibles.
+**Solution** :
+1. ySize=220, inventaire joueur Y=108, hotbar Y=166, bouton a Y=cy+ySize-26=cy+194 (sous le hotbar qui finit a 182).
+2. Suppression de SLOT_LABELS, remplacement par des icons d'items en gris fantome via `RenderHelper.enableGUIStandardItemLighting()` + `GlStateManager.color(0.35f, 0.35f, 0.35f, 1f)` + `renderItemIntoGUI()`.
+**Regle** : Pour un GUI custom, toujours verifier que le bouton final est sous le hotbar. Hauteur typique : titre (24) + slots TE (70) + status/inventory_label (15) + inventory (54) + hotbar_gap (4) + hotbar (16) + button_gap+button (26) ≈ 220.
+
+---
+
+## 2026-04-25 — Gravity Trap : implementation complete
+
+**Systeme** : BlockGravityTrap / TileEntityGravityTrap
+**Etat precedent** : Le bloc existait mais update() etait vide (stub) et ownerFactionId jamais assignee au placement.
+**Ce qui a ete ajoute** :
+1. `onBlockPlacedBy` dans BlockGravityTrap : verifie que le chunk est claime par la faction du joueur via `FactionManager.getFactionAt()`, refuse le placement sinon (casse + redrop l'item), assigne `ownerFactionId` via `TileEntityGravityTrap.setOwnerFactionId()`.
+2. `update()` dans TileEntityGravityTrap : check toutes les 5 ticks, detecte les joueurs ennemis dans la hitbox etendue (+1.5 Y), les propulse Y=+3.5 (≈15 blocs), detruit le bloc apres activation (usage unique).
+
+---
+
 ## Blocks / Rendering
 
 ### getBlockLayer() est @SideOnly(Side.CLIENT) sur Block.class en Forge 1.12.2
