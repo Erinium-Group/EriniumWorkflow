@@ -1207,3 +1207,11 @@
 **Problème** : `NoSuchMethodError: 'java.lang.String net.minecraft.creativetab.CreativeTabs.func_78013_b()'` au démarrage du serveur (ErinaBlocks.register(), ligne 117).  
 **Cause** : `getTabLabel()` (SRG `func_78013_b`) n'existe pas dans CleanRoom — méthode supprimée/renommée par rapport au Forge 1.12.2 standard.  
 **Solution** : Remplacer `erinaTab.getTabLabel()` dans le message de log par un message statique sans appel à cette méthode. En général : ne JAMAIS appeler `getTabLabel()` sur un `CreativeTabs` — CleanRoom ne le supporte pas.
+
+## 2026-04-25 — NoClassDefFoundError EntityPlayerSP dans le handler reseau serveur
+
+**Système** : Phase 5 Rocket / RocketLaunchHandler
+**Problème** : `NoClassDefFoundError: net/minecraft/client/entity/EntityPlayerSP` au declenchement du lancement fusee (touche Y), thread serveur.
+**Cause** : `RocketLaunchHandler.java` importait `net.minecraft.client.Minecraft` en en-tete. Quand le serveur charge la classe pour invoquer `handleLaunchRequest()` (appele depuis `CommonProxy`), Java resout aussi les imports en-tete et descend la chaine de classes client (`Minecraft` → `EntityPlayerSP`) → crash CleanRoom / serveur dedie.
+**Solution** : Separer en deux classes : `RocketServerHandler.java` (zero import client, utilise par `CommonProxy`) et `RocketLaunchHandler.java` (client uniquement, ouvre les GUIs et envoie les packets). `CommonProxy` ne reference plus que `RocketServerHandler`.
+**Règle générale** : Toute classe referencee depuis `CommonProxy` (ou tout code commun) NE DOIT PAS importer des classes `net.minecraft.client.*` ou des classes EriAPI client (`EriGuiScreen`, etc.) — meme dans les en-tetes d'import. Si une logique necessite un import client, la deplacer dans une classe dediee client-only et la referencer uniquement depuis `ClientProxy` (ou via un hook callback). C'est la meme contrainte que les Mixins.
