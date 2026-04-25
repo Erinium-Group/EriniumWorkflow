@@ -5,6 +5,37 @@
 
 ---
 
+## Blocks / Rendering
+
+### getBlockLayer() est @SideOnly(Side.CLIENT) sur Block.class en Forge 1.12.2
+- **Date** : 2026-04-24
+- **Systeme** : BlockRocketMaker (Phase 5 — Fusee)
+- **Probleme** : Ajout d'un `@Override public BlockRenderLayer getBlockLayer()` qui retournait `BlockRenderLayer.SOLID`. Build failed : `error: method does not override or implement a method from a supertype`.
+- **Cause** : La methode `getBlockLayer()` de `net.minecraft.block.Block` est annotee `@SideOnly(Side.CLIENT)`. Le compilateur ne la voit pas comme surchargeable dans les builds neutres/serveur selon le classpath utilise, ce qui provoque l'erreur `@Override`.
+- **Solution** : Supprimer purement et simplement la methode si elle retourne `BlockRenderLayer.SOLID` (c'est la valeur par defaut de tous les blocs). Alternative : ajouter `@SideOnly(Side.CLIENT)` sur la methode + l'import `net.minecraftforge.fml.relauncher.{Side,SideOnly}`.
+- **Regle** : Ne JAMAIS override `getBlockLayer()` pour retourner SOLID (inutile). Ne le faire que pour CUTOUT, CUTOUT_MIPPED, TRANSLUCENT — et dans ce cas, ajouter `@SideOnly(Side.CLIENT)`.
+
+### EntityPlayerSP vit dans net.minecraft.client.entity (pas player)
+- **Date** : 2026-04-24
+- **Systeme** : RocketLaunchOverlay (Phase 5)
+- **Probleme** : Import `net.minecraft.entity.player.EntityPlayerSP` → `cannot find symbol`.
+- **Cause** : En Forge 1.12.2, `EntityPlayerSP` est dans `net.minecraft.client.entity` (c'est une classe client-side). Seul `EntityPlayer` et `EntityPlayerMP` sont dans `net.minecraft.entity.player`.
+- **Solution** : Utiliser `import net.minecraft.client.entity.EntityPlayerSP;`.
+
+---
+
+## WorldGen / Biomes
+
+### Collision de ResourceLocation entre biomes Overworld et Erina
+- **Date** : 2026-04-24
+- **Systeme** : ErinaBiomes (Phase 4) + EriniumBiomes (Overworld WorldEnhanced)
+- **Probleme** : Crash au demarrage serveur avec `[WARN] Registry Biome: Override did not have an associated owner object. Name: eriniumfaction:crystal_plains` suivi de `RuntimeException: One of more entry values did not copy to the correct id` dans `ForgeRegistry.sync()` / `GameData.freezeData()`.
+- **Cause** : Deux biomes distincts (`world.biome.special.BiomeCrystalPlains` pour l'Overworld et `erina.biome.BiomeCrystalPlains` pour la dimension Erina) etaient enregistres avec le MEME `ResourceLocation` (`eriniumfaction:crystal_plains`). Forge considere le second comme un "override" du premier, mais comme il vient du meme mod ID, l'owner check echoue et la sync du registre plante.
+- **Solution** : Prefixer tous les 12 biomes de la dimension Erina avec `erina_` dans leur registry name (`erina_crystal_plains`, `erina_glow_forest`, etc.). Mis a jour : `ErinaBiomes.registerBiomes()` + cles de traduction `biome.eriniumfaction.erina_*.name` dans `fr_FR.lang` et `en_US.lang`. Aucun impact sur le code runtime (les references utilisent les constantes `ErinaBiomes.CRYSTAL_PLAINS`, pas la string).
+- **Regle** : Quand tu ajoutes un biome dans une dimension custom (Erina, Nether custom, etc.), toujours prefixer le registry name avec le nom de la dimension pour eviter les collisions avec les biomes Overworld (qui en comptent 53+).
+
+---
+
 ## Mixins
 
 ### Les classes Mixin ne peuvent PAS etre referencees directement
@@ -1070,3 +1101,117 @@
 - **Probleme** : `EntityEntryBuilder.entity(GeneratedEntity.class)` ne supporte qu'un seul mapping Class→Entity. Si plusieurs EriEntities utilisent la meme classe, Forge ne peut pas differencier au respawn NBT.
 - **Cause** : Le spawn/despawn de Forge utilise la Class enregistree pour instancier via `newInstance()` avec le seul constructeur `(World)`. Toutes les entites de cette classe partagent donc la meme logique.
 - **Solution** : Pool de 32 sous-classes statiques `Slot0`, `Slot1`, ..., `Slot31` qui hardcodent chacune leur slot index via `super(world, N)`. Chaque `EriEntity.register()` alloue le prochain slot libre via `GeneratedEntitySlots.allocate(def, id)`. Evite toute generation de bytecode (compatible CleanRoom). Augmenter `SLOT_COUNT` si on depasse 32 entities toutes-mods confondues.
+
+---
+
+## CleanRoomLoader — Méthodes FoodStats manquantes
+
+- **Date** : 2026-04-22
+- **Système** : DeathHandler (rpg/event)
+- **Problème** : `player.getFoodStats().setFoodSaturationLevel(float)` lève `NoSuchMethodError: FoodStats.func_75119_b(float)` sur le serveur CleanRoomLoader. Le crash se produit à la mort du joueur, empêchant le TP spawn.
+- **Cause** : CleanRoomLoader (fork Forge 1.12.2, Java 25) ne fournit pas la méthode `func_75119_b` sur `FoodStats`. La méthode existe dans le Forge standard mais est absente dans cette implémentation.
+- **Solution** : Accès direct au field `foodSaturationLevel` (SRG : `field_75126_e`) via `ObfuscationReflectionHelper.setPrivateValue` avec try-catch silencieux. Ne jamais appeler `setFoodSaturationLevel` directement — utiliser la réflexion.
+
+---
+
+## EriniumAntiCheat — Faux positif anti-cheat bateau
+
+- **Date** : 2026-04-22
+- **Système** : CheckMovement (EriniumAntiCheat)
+- **Problème** : Un joueur en bateau se faisait kick par le check Blink et le check Step. Le compteur `staleTicks` s'accumulait pendant la navigation (pas de mouvement), puis le joueur se faisait flag au premier déplacement.
+- **Cause** : Les checks Blink et Step n'avaient pas de garde `player.isRiding()`.
+- **Solution** : Ajout de `&& !player.isRiding()` sur les deux checks. Ajout d'un `else if (player.isRiding()) { data.staleTicks = 0; }` pour reset le compteur pendant la navigation.
+
+---
+
+## EriniumAntiCheat — Anti-xray génère des faux minerais dans les feuillages
+
+- **Date** : 2026-04-22
+- **Système** : AntiXrayEngine mode 2 (EriniumAntiCheat)
+- **Problème** : En mode 2 (injection de faux minerais), les feuilles et troncs d'arbres entourés de blocs opaques se faisaient remplacer par des faux minerais visibles à l'explosion de TNT.
+- **Cause** : Le check de remplacement (bloc opaque entouré de blocs opaques) ne distinguait pas les blocs végétaux des blocs de terrain.
+- **Solution** : Ajout d'une liste `excludedBlocks` configurable (défaut : `minecraft:log,minecraft:log2,minecraft:leaves,minecraft:leaves2`). Les blocs exclus ne sont jamais remplacés par des faux minerais.
+
+---
+
+## EriniumAntiCheat — Anti-xray actif sur tous les mondes
+
+- **Date** : 2026-04-22
+- **Système** : AntiXrayEngine / AntiXraySetup / AntiXrayEventHandler (EriniumAntiCheat)
+- **Problème** : L'anti-xray s'appliquait à l'Overworld et au Nether, causant des problèmes de performance et de comportement hors monde minage.
+- **Cause** : Aucun filtre par dimension dans le système anti-xray.
+- **Solution** : Ajout d'une config `allowedDimensions` (défaut : `"2"` = monde minage uniquement) et d'une méthode `isWorldAllowed(World)` vérifiée à tous les points d'entrée (chunk load, block break/place).
+
+---
+
+## EriniumWorld — WorldGuard /rg flag : tab completion "allow"/"deny" cassée
+
+- **Date** : 2026-04-22
+- **Système** : WorldGuardCommands (EriniumWorld)
+- **Problème** : L'auto-complétion de l'argument `value` (allow/deny) ne fonctionnait pas pour la commande `/rg flag`.
+- **Cause** : Utilisation de `StringArgumentType.greedyString()` pour l'argument `value`. En Forge 1.12.2 avec Brigadier, `greedyString()` consomme tout le reste de l'input, ce qui casse le calcul de `builder.getRemaining()` et empêche les suggestions de s'afficher.
+- **Solution** : Remplacer `greedyString()` par `StringArgumentType.word()`. Règle générale : ne jamais utiliser `greedyString()` pour des arguments avec suggestions en Forge 1.12.2.
+
+---
+
+## EnchantOfferGenerator — Livres n'affichent pas les enchants vanilla
+
+- **Date** : 2026-04-22
+- **Système** : EnchantOfferGenerator (enchant/gui)
+- **Problème** : Enchanter un livre dans la table d'enchantement moddée ne donnait aucun enchant vanilla (Sharpness, Protection, etc.), uniquement les enchants custom EriniumEnchantment.
+- **Cause** : `Enchantment.canApplyAtEnchantingTable(Items.BOOK)` retourne `false` pour les enchants vanilla car leur `EnumEnchantmentType` (WEAPON, ARMOR, TOOL…) ne matche pas `Items.BOOK`. Le `ContainerEnchantment` vanilla contourne ça avec une logique spéciale pour les livres — notre système custom ne l'avait pas.
+- **Solution** : Pour les enchants vanilla sur un livre, remplacer le check `canApplyAtEnchantingTable` par `!isTreasureEnchantment()` (même logique que vanilla). Les `EriniumEnchantment` gardent leur check normal pour respecter le `minBookshelfPower`.
+
+---
+
+## Block — Méthodes de collision : onEntityWalk vs onEntityCollision
+
+- **Date** : 2026-04-22
+- **Système** : Erina Phase 2 (BlockErinaAsh, BlockErinaMud, BlockCryoIce, BlockAlienLava, BlockToxicPlant, BlockToxicVine, BlockFluidPlasma)
+- **Problème** : Build failed avec `method does not override or implement a method from a supertype` sur `onEntityCollidedWithBlock(World, BlockPos, IBlockState, Entity)`. 7 fichiers bloqués.
+- **Cause** : En MCP stable_39 pour 1.12.2, le nom `onEntityCollidedWithBlock` n'existe PAS sur `Block`. Les bonnes mappings sont :
+  - **`onEntityWalk(World world, BlockPos pos, Entity entity)`** (3 paramètres, pas d'IBlockState) — appelée quand une entité MARCHE SUR TOP d'un bloc plein. Utiliser pour sand/mud/ash/ice/lava décorative (blocs qui ont une hitbox complète sur laquelle on marche).
+  - **`onEntityCollision(World world, BlockPos pos, IBlockState state, Entity entity)`** (4 paramètres AVEC IBlockState) — appelée quand une entité est DANS un bloc (collision 3D). Utiliser pour plantes/vignes/fluides (blocs traversables via `getCollisionBoundingBox → NULL_AABB` ou les fluides).
+- **Solution** :
+  - Blocs pleins (walk on top) → `onEntityWalk(World, BlockPos, Entity)` — ne JAMAIS importer `IBlockState` dans ces fichiers
+  - Plantes/vignes/fluides (collision through) → `onEntityCollision(World, BlockPos, IBlockState, Entity)`
+  - Pour les fluides étendant `BlockFluidClassic`, toujours appeler `super.onEntityCollision(...)` en premier pour préserver le comportement par défaut du fluide
+- **Règle** : Avant d'override une méthode de collision sur Block, décider d'abord : l'entité marche-t-elle SUR le bloc (full cube) ou À TRAVERS (NULL_AABB collision, fluide) ? Ce choix détermine le bon override.
+
+---
+
+### 2026-04-24 — MapGenCaves.digBlock() signature changee en 1.12.2
+- **Système** : `erina/gen/cave/MapGenErinaCaves.java` (WorldGen Phase 4)
+- **Problème** : Build failed avec `method digBlock in class MapGenCaves cannot be applied to given types; required: ChunkPrimer,int,int,int,int,int,boolean,IBlockState,IBlockState; found: ChunkPrimer,int,int,int,int,int,boolean`.
+- **Cause** : En 1.12.2, la signature vanilla de `MapGenCaves#digBlock()` a 9 paramètres (ajoute `IBlockState state, IBlockState above` à la fin) et non 7 comme sur des versions plus anciennes. La signature à 7 paramètres est une mauvaise référence (1.10 ou earlier).
+- **Solution** : Soit utiliser la signature complète `(ChunkPrimer, int, int, int, int, int, boolean, IBlockState, IBlockState)`, soit ne PAS override `digBlock()` et se contenter de `canReplaceBlock(IBlockState, IBlockState)` pour filtrer les blocs qu'on peut creuser. Pour les caves Erina on a choisi la 2e option.
+- **Règle** : Avant d'override une méthode d'une classe vanilla, TOUJOURS vérifier la signature exacte en 1.12.2 (via `docs/1.12.2/` ou la Javadoc en ligne). Ne jamais supposer d'après une autre version.
+
+### 2026-04-24 — ForgeEventFactory.onChunkPopulate() renvoie void, pas boolean
+- **Système** : `erina/gen/ErinaChunkGenerator.java` (WorldGen Phase 4)
+- **Problème** : Build failed avec `incompatible types: void cannot be converted to boolean` sur `boolean populateEvent = ForgeEventFactory.onChunkPopulate(true, this, world, rand, chunkX, chunkZ, false);`.
+- **Cause** : `ForgeEventFactory.onChunkPopulate(boolean pre, IChunkGenerator gen, World world, Random rand, int chunkX, int chunkZ, boolean hasVillage)` renvoie `void` en 1.12.2 — il publie simplement `PopulateChunkEvent.Pre` ou `PopulateChunkEvent.Post`. Il n'y a PAS de boolean de retour pour annuler.
+- **Solution** : Appeler `ForgeEventFactory.onChunkPopulate(true, ...)` en Pre, exécuter la population, puis `ForgeEventFactory.onChunkPopulate(false, ...)` en Post — sans stocker ni conditionner le résultat.
+
+### 2026-04-24 — Loot table pool manque le champ `name` (Forge 1.12.2)
+- **Système** : `assets/eriniumfaction/loot_tables/chests/alien_ruins.json`
+- **Problème** : Erreur au démarrage serveur `JsonParseException: Loot Table "..." Missing 'name' entry for pool #0`.
+- **Cause** : Forge 1.12.2 exige un champ `"name"` sur chaque objet pool dans les loot tables (ajout Forge absent du format vanilla). Oublier ce champ cause un crash `JsonParseException` au chargement.
+- **Solution** : Ajouter `"name": "main"` (pool principal) et `"name": "rare"` (pools secondaires) à chaque entrée du tableau `"pools"`.
+- **Règle** : TOUJOURS inclure `"name"` sur chaque pool dans tous les fichiers loot table. Format correct : `{ "name": "main", "rolls": ..., "entries": [...] }`.
+- **Règle** : Les events Forge "Pre/Post" sont à fire-and-forget sauf si l'API explicitement renvoie un boolean (rare). Ne jamais supposer un contrat de retour sans vérifier.
+
+## 2026-04-25 — CreativeTabs.getTabLabel() absent de CleanRoom
+
+**Système** : ErinaBlocks / ErinaCreativeTab  
+**Problème** : `NoSuchMethodError: 'java.lang.String net.minecraft.creativetab.CreativeTabs.func_78013_b()'` au démarrage du serveur (ErinaBlocks.register(), ligne 117).  
+**Cause** : `getTabLabel()` (SRG `func_78013_b`) n'existe pas dans CleanRoom — méthode supprimée/renommée par rapport au Forge 1.12.2 standard.  
+**Solution** : Remplacer `erinaTab.getTabLabel()` dans le message de log par un message statique sans appel à cette méthode. En général : ne JAMAIS appeler `getTabLabel()` sur un `CreativeTabs` — CleanRoom ne le supporte pas.
+
+## 2026-04-25 — NoClassDefFoundError EntityPlayerSP dans le handler reseau serveur
+
+**Système** : Phase 5 Rocket / RocketLaunchHandler
+**Problème** : `NoClassDefFoundError: net/minecraft/client/entity/EntityPlayerSP` au declenchement du lancement fusee (touche Y), thread serveur.
+**Cause** : `RocketLaunchHandler.java` importait `net.minecraft.client.Minecraft` en en-tete. Quand le serveur charge la classe pour invoquer `handleLaunchRequest()` (appele depuis `CommonProxy`), Java resout aussi les imports en-tete et descend la chaine de classes client (`Minecraft` → `EntityPlayerSP`) → crash CleanRoom / serveur dedie.
+**Solution** : Separer en deux classes : `RocketServerHandler.java` (zero import client, utilise par `CommonProxy`) et `RocketLaunchHandler.java` (client uniquement, ouvre les GUIs et envoie les packets). `CommonProxy` ne reference plus que `RocketServerHandler`.
+**Règle générale** : Toute classe referencee depuis `CommonProxy` (ou tout code commun) NE DOIT PAS importer des classes `net.minecraft.client.*` ou des classes EriAPI client (`EriGuiScreen`, etc.) — meme dans les en-tetes d'import. Si une logique necessite un import client, la deplacer dans une classe dediee client-only et la referencer uniquement depuis `ClientProxy` (ou via un hook callback). C'est la meme contrainte que les Mixins.
