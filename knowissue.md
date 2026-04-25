@@ -1200,3 +1200,10 @@
 - **Solution** : Ajouter `"name": "main"` (pool principal) et `"name": "rare"` (pools secondaires) à chaque entrée du tableau `"pools"`.
 - **Règle** : TOUJOURS inclure `"name"` sur chaque pool dans tous les fichiers loot table. Format correct : `{ "name": "main", "rolls": ..., "entries": [...] }`.
 - **Règle** : Les events Forge "Pre/Post" sont à fire-and-forget sauf si l'API explicitement renvoie un boolean (rare). Ne jamais supposer un contrat de retour sans vérifier.
+
+## 2026-04-25 — CreativeTabs.getTabLabel() absent de CleanRoom
+
+**Système** : ErinaBlocks / ErinaCreativeTab  
+**Problème** : `NoSuchMethodError: 'java.lang.String net.minecraft.creativetab.CreativeTabs.func_78013_b()'` au démarrage du serveur (ErinaBlocks.register(), ligne 117).  
+**Cause** : `getTabLabel()` (SRG `func_78013_b`) n'existe pas dans CleanRoom — méthode supprimée/renommée par rapport au Forge 1.12.2 standard.  
+**Solution** : Remplacer `erinaTab.getTabLabel()` dans le message de log par un message statique sans appel à cette méthode. En général : ne JAMAIS appeler `getTabLabel()` sur un `CreativeTabs` — CleanRoom ne le supporte pas.
