@@ -3850,44 +3850,44 @@
         <!-- Phase 6 — Table de R&D -->
         <div class="task-section-title" style="font-size:11px;font-weight:700;text-transform:uppercase;color:#8892A4;margin:16px 0 6px 0;letter-spacing:0.08em;">Phase 6 — Table de R&amp;D (PR, GUI, registry)</div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">RnDPlayerData (@EriData scope=PLAYER persistOnDeath=true) : @Sync int researchPoints, Set&lt;String&gt; unlockedRecipes, Map&lt;String,Integer&gt; orbCooldowns, int grapplinCooldownTick, BlockPos anchorPos</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">RnDPlayerData (@EriData scope=PLAYER persistOnDeath=true) : @Sync int researchPoints, Set&lt;String&gt; unlockedRecipes, Map&lt;String,Integer&gt; orbCooldowns, int grapplinCooldownTick, BlockPos anchorPos</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">RnDRecipe POJO (id, displayName, description, int costPR, long costMoney, ItemStack previewItem, String category)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">RnDRecipe POJO (id, displayName, description, int costPR, long costMoney, ItemStack previewItem, String category)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">RnDRecipeRegistry singleton (Map&lt;String,RnDRecipe&gt;, methods register/get/getAll/getByCategory) — declarer les 30+ recettes R&amp;D</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">RnDRecipeRegistry singleton (Map&lt;String,RnDRecipe&gt;, methods register/get/getAll/getByCategory) — declarer les 30+ recettes R&amp;D</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">ResearchPointManager (EriEvents.on(LivingDeathEvent)) — +10 PR par kill joueur PvP (check EntityPlayer target, pas suicide, ajouter message chat "+10 PR, Total : X")</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">ResearchPointManager (EriEvents.on(LivingDeathEvent)) — +100 PR par kill joueur PvP (check EntityPlayer target, pas suicide, ajouter message chat "+100 PR, Total : X")</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">BlockRnDTable (onBlockHarvested/removedByPlayer bloque si TileEntityRnDTable.isResearching==true, message d'erreur)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">BlockRnDTable (onBlockHarvested/removedByPlayer bloque si TileEntityRnDTable.isResearching==true, message d'erreur)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">TileEntityRnDTable (stocke isResearching + playerUsing UUID)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">TileEntityRnDTable (stocke isResearching + playerUsing UUID)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">GuiRnDTable (EriGuiScreen) — panneau gauche 280x600 (PR, $, breadcrumb), central 600x600 (ScrollList recettes + overlay cadenas + indicateur vert), droit 280x600 (details + bouton Debloquer)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">GuiRnDTable (EriGuiScreen) — panneau gauche 280x600 (PR, $, breadcrumb), central 600x600 (ScrollList recettes + overlay cadenas + indicateur vert), droit 280x600 (details + bouton Debloquer)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Filtres par categorie (TabView Combat/Defense/Explosifs) dans GuiRnDTable</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Filtres par categorie (TabView Combat/Defense/Explosifs) dans GuiRnDTable</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">RnDPacketHandler (GuiNetworkHandler.sendAction "rnd_unlock") — revalidation serveur PR + $ avant deblocage, EconomyManager.withdraw, ajout dans unlockedRecipes</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">RnDPacketHandler (GuiNetworkHandler.sendAction "rnd_unlock") — revalidation serveur PR + $ avant deblocage, EconomyManager.withdraw, ajout dans unlockedRecipes</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Recette shaped de la Table R&amp;D (CEC / ENE / CEC = Cristal Erina, Erinium Fragment, Noyau Impact)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Recette shaped de la Table R&amp;D (CEC / ENE / CEC = Cristal Erina, Erinium Fragment, Noyau Impact)</span>
         </div>
 
         <!-- Phase 7 — Items R&D Combat -->
