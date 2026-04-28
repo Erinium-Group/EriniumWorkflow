@@ -151,6 +151,7 @@ La verification des permissions suit cette chaine (dans l'ordre) :
 | `command.setwarp` | Creer un warp via `/setwarp <nom>` |
 | `command.delwarp` | Supprimer un warp via `/delwarp <nom>` |
 | `command.tp` | Teleporter des joueurs via `/tp`, `/tphere`, `/tppos` (commandes admin) |
+| `command.erinadim` | Teleporter vers/depuis la dimension Erina via `/erinadim` (commande admin). Fallback OP niveau 2. |
 | `warp.<nom>` | Autoriser l'acces a un warp specifique (ex: `warp.spawn`, `warp.pvp`) |
 | `warp.*` | Autoriser l'acces a tous les warps |
 | `homes.max.<N>` | Definir le nombre max de homes pour un joueur (ex: `homes.max.3` = 3 homes max). La valeur la plus haute trouvee est utilisee. |

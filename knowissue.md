@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-04-28 — Phase 6 R&D Table : Component.Direction.TOP inexistant
+
+**Systeme** : GuiRnDTable (Phase 6)
+**Probleme** : Build failed avec `cannot find symbol: variable TOP, location: class Direction` sur l'appel `title.slideIn(Component.Direction.TOP, 40, 10)`.
+**Cause racine** : L'enum `fr.eri.eriapi.gui.core.Component.Direction` ne contient que les valeurs `UP, DOWN, LEFT, RIGHT` — pas `TOP/BOTTOM`. C'est une convention "directionnelle" (mouvement) et non "positionnelle" (cote).
+**Solution** : Remplacer `Component.Direction.TOP` par `Component.Direction.UP` (slide depuis le haut = mouvement vers le bas, mais l'enum nomme la direction d'origine "UP" cad le titre vient du haut).
+**Regle** : Toujours verifier les valeurs d'un enum EriAPI avec `javap -classpath libs/eriapi-X.Y.Z-1.12.2.jar 'fr.eri.eriapi.gui.core.Component$Direction'` AVANT d'utiliser. Ne jamais supposer les noms (TOP/BOTTOM vs UP/DOWN).
+
+---
+
 ## 2026-04-25 — Fusee : decollage immobile (motionY sans deplacement reel)
 
 **Systeme** : EntityRocket (Phase 5)
