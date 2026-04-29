@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-04-29 — Vec3d.lengthVector() inexistant en stable_39
+
+**Systeme** : EntityFlare / EntityGrapplingHook (Phase 7)
+**Probleme** : `Vec3d#lengthVector()` -> `cannot find symbol`. Methode absente du Vec3d 1.12.2 stable_39.
+**Cause racine** : Avec les mappings stable_39, la methode s'appelle simplement `length()`. `lengthVector` etait un nom MCP plus ancien.
+**Solution** : Remplacer `vec.lengthVector()` par `vec.length()`. Disponibles aussi : `lengthSquared()`, `distanceTo(Vec3d)`, `squareDistanceTo(...)`.
+**Regle** : Utiliser `Vec3d#length()` en stable_39. Verifier la signature avec `javap forge-recomp.jar net.minecraft.util.math.Vec3d` avant de coder.
+
+---
+
+## 2026-04-29 — WorldServer.spawnParticle ambiguite sur litteraux entiers
+
+**Systeme** : EntityFlare (Phase 7 — Flashbang)
+**Probleme** : Build failed avec `reference to spawnParticle is ambiguous` sur `ws.spawnParticle(EnumParticleTypes.X, posX, posY, posZ, 1, 0, 0, 0, 0)`.
+**Cause racine** : `World#spawnParticle(EnumParticleTypes, double, double, double, double, double, double, int...)` (8 args + varargs) et `WorldServer#spawnParticle(EnumParticleTypes, double, double, double, int, double, double, double, double, int...)` (9 args + varargs) sont toutes deux candidates quand on passe `0` (litteral entier qui peut s'interpreter en int OU double).
+**Solution** : Toujours passer des litteraux double explicites (`0.0` au lieu de `0`) quand on appelle `WorldServer.spawnParticle` avec le 5e argument `int particleCount`.
+**Regle** : `ws.spawnParticle(EnumParticleTypes.EXPLOSION_LARGE, x, y, z, count, 0.0, 0.0, 0.0, 0.0)` — toujours `0.0`, jamais `0`.
+
+---
+
 ## 2026-04-28 — Phase 6 R&D Table : Component.Direction.TOP inexistant
 
 **Systeme** : GuiRnDTable (Phase 6)
