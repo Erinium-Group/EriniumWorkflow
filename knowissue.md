@@ -5,6 +5,33 @@
 
 ---
 
+## 2026-04-29 — Combat Log : ecran de mort + bouton Respawn au reconnect
+
+**Systeme** : CombatEventHandler.onPlayerLogout (Combat Tag)
+**Probleme** : Quand un joueur se deconnecte en combat, le serveur le tuait via `attackEntityFrom(OUT_OF_WORLD, MAX_VALUE)`. Au reconnect, le joueur voyait l'ecran de mort vanilla avec le bouton "Respawn" qui le TP au spawn, ce qui cassait l'experience (UI vanilla intrusive).
+**Cause racine** : Tuer un joueur deconnecte declenche le flow de mort vanilla. L'etat "isDead" est serialise dans le NBT, donc au reconnect le client affiche `GuiGameOver` au lieu d'apparaitre directement en jeu.
+**Solution** : Ne PAS tuer le joueur dans `onPlayerLogout`. A la place :
+1. Drop tout l'inventaire au sol via `player.dropItem(stack, true, false)` (slot par slot, puis `setNoPickupDelay()` + `lifespan = 6000`).
+2. `player.setHealth(player.getMaxHealth())`.
+3. `player.getFoodStats().setFoodLevel(20)` + reflexion sur `field_75126_e` pour la saturation (CleanRoom).
+4. Effacer tous les effets (`removePotionEffect` sur la liste copiee).
+5. `clearCombat(uuid)`.
+6. Si dimension != 0 : forcer `player.dimension = 0` + `player.setWorld(overworld)` (pas de `transferPlayerToDimension` en plein logout, le joueur va etre detache).
+7. `player.setPositionAndUpdate(spawnX, spawnY, spawnZ)` — la position est serialisee dans le NBT et le joueur reapparait au spawn au reconnect.
+**Regle** : Pour penaliser un joueur qui se deconnecte (combat log, AFK kick, etc.), JAMAIS le tuer via `attackEntityFrom`. Manipuler directement son etat (HP, inv, position) avant que le NBT soit serialise.
+
+---
+
+## 2026-04-29 — CombatOverlay : texte "Combat" coupe en "Comba"
+
+**Systeme** : CombatOverlay (overlay HUD du Combat Tag)
+**Probleme** : Le texte affiche etait coupe ("Comba" au lieu de "Combat 15s").
+**Cause racine** : Le `Label` avait `originalSize(DESIGN_W - 56, 20)` avec `scale(1.5f)` mais sans `scaleToFit(true)`. La largeur (200 - 56 = 144 design px) etait insuffisante pour le texte mis a l'echelle 1.5x, et le rendu ne reduisait pas automatiquement la taille pour rentrer.
+**Solution** : Activer `scaleToFit(true)` sur le `Label` EriAPI — l'API reduit alors la scale effective pour que le texte rentre dans la box. Egalement augmenter `DESIGN_W` (200 -> 280), centrer (`align(Align.CENTER)`), et augmenter la hauteur de la box texte (20 -> 28) pour eviter le clip vertical.
+**Regle** : Pour tout `Label` EriAPI dont le texte peut depasser la box (texte dynamique avec valeurs variables, traductions plus longues), TOUJOURS appeler `.scaleToFit(true)`. Combiner avec `align(Align.CENTER)` pour un rendu propre.
+
+---
+
 ## 2026-04-29 — Vec3d.lengthVector() inexistant en stable_39
 
 **Systeme** : EntityFlare / EntityGrapplingHook (Phase 7)
