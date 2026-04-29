@@ -54,6 +54,28 @@
 - **Solution** : Supprimer purement et simplement la methode si elle retourne `BlockRenderLayer.SOLID` (c'est la valeur par defaut de tous les blocs). Alternative : ajouter `@SideOnly(Side.CLIENT)` sur la methode + l'import `net.minecraftforge.fml.relauncher.{Side,SideOnly}`.
 - **Regle** : Ne JAMAIS override `getBlockLayer()` pour retourner SOLID (inutile). Ne le faire que pour CUTOUT, CUTOUT_MIPPED, TRANSLUCENT — et dans ce cas, ajouter `@SideOnly(Side.CLIENT)`.
 
+### Block#getRenderLayer() vs getBlockLayer() — nom different selon mappings
+- **Date** : 2026-04-29
+- **Systeme** : BlockForceField (Phase 7 — Force Shield)
+- **Probleme** : `@Override public BlockRenderLayer getBlockLayer()` echoue : `error: method does not override or implement a method from a supertype`. Pourtant l'annotation `@SideOnly(Side.CLIENT)` etait presente.
+- **Cause** : Avec les mappings stable_39 utilises par ce projet, le nom MCP de la methode est `getRenderLayer()` (et non `getBlockLayer()`). L'ancien nom MCP existait dans des mappings plus vieux. Comparer avec d'autres blocs : `BlockCave.getRenderLayer()` compile parfaitement.
+- **Solution** : Renommer `getBlockLayer()` en `getRenderLayer()`. Garder `@SideOnly(Side.CLIENT)` et le retour `BlockRenderLayer.TRANSLUCENT/CUTOUT_MIPPED`.
+- **Regle** : Toujours utiliser `getRenderLayer()` en stable_39. Verifier le nom en grep d'un bloc existant qui override (ex: BlockCave) avant de coder.
+
+### SoundEvents.BLOCK_BEACON_ACTIVATE n'existe pas en 1.12.2
+- **Date** : 2026-04-29
+- **Systeme** : ItemForceShield (Phase 7)
+- **Probleme** : `SoundEvents.BLOCK_BEACON_ACTIVATE` introuvable. Compile : `cannot find symbol: variable BLOCK_BEACON_ACTIVATE`.
+- **Cause** : En 1.12.2 il n'y a pas de constante `BLOCK_BEACON_ACTIVATE`. Les sons Beacon disponibles sont `BLOCK_BEACON_AMBIENT`, `BLOCK_BEACON_ACTIVATE` n'existe que dans 1.13+.
+- **Solution** : Pour un placement de bloc translucide, utiliser `SoundEvents.BLOCK_GLASS_PLACE` (cohérent visuellement). Toujours grep dans le projet (`SoundEvents\.`) pour confirmer qu'un son est deja utilise avant de l'ajouter.
+
+### Vec3d.addVector(double, double, double) renommé en add(double, double, double) en 1.12.2 stable_39
+- **Date** : 2026-04-29
+- **Systeme** : ItemGrapplingHook (Phase 7)
+- **Probleme** : `eye.addVector(...)` introuvable.
+- **Cause** : Avec stable_39, la methode s'appelle simplement `add(x, y, z)`. `addVector` etait un nom MCP plus ancien.
+- **Solution** : Remplacer `vec.addVector(x, y, z)` par `vec.add(x, y, z)`. Idem pour `vec.add(otherVec3d)` qui existe aussi en surcharge.
+
 ### EntityPlayerSP vit dans net.minecraft.client.entity (pas player)
 - **Date** : 2026-04-24
 - **Systeme** : RocketLaunchOverlay (Phase 5)
