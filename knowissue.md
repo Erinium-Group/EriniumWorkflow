@@ -5,6 +5,36 @@
 
 ---
 
+## 2026-05-01 — Phase 9 : EntityTNTPrimed.explode() est private (non-overridable)
+
+**Systeme** : EntityModdedTNTPrimed (Phase 9 — TNT custom)
+**Probleme** : Tentative d'override `protected void explode()` dans une sous-classe d'`EntityTNTPrimed` -> `error: method does not override or implement a method from a supertype`. La methode `explode()` de `EntityTNTPrimed` est `private` en stable_39, donc impossible a overrider directement.
+**Cause racine** : Le code vanilla declare `private void explode()` dans `EntityTNTPrimed`. Etendre la classe ne donne pas acces a la methode et `@Override` echoue.
+**Solution** : Ne PAS etendre `EntityTNTPrimed`. A la place, etendre `Entity` directement et reimplementer la mecanique : DataParameter `FUSE`, `setSize(0.98F, 0.98F)`, `entityInit()`, `onUpdate()` qui gere gravite (`motionY -= 0.04`), `move(MoverType.SELF, motionX, motionY, motionZ)`, friction (`*0.98`), bounce (`*0.7` + `motionY*=-0.5` au sol), decrement fuse, et appel a `world.createExplosion(this, posX, posY + height/16.0F, posZ, power, false)` quand fuse atteint 0.
+**Regle** : Avant d'override une methode "protected" supposee, TOUJOURS verifier avec `javap -p <classpath> <className>` que la methode est bien `protected` et non `private`. La signature `private` ne descend pas dans les sous-classes.
+
+---
+
+## 2026-05-01 — Block.onBlockDestroyedByExplosion -> onExplosionDestroy en stable_39
+
+**Systeme** : BlockModdedTNT (Phase 9)
+**Probleme** : `@Override public void onBlockDestroyedByExplosion(World, BlockPos, Explosion)` -> `error: method does not override or implement a method from a supertype`.
+**Cause racine** : Avec les mappings stable_39, le nom MCP est `onExplosionDestroy(World, BlockPos, Explosion)`. `onBlockDestroyedByExplosion` etait l'ancien nom MCP.
+**Solution** : Renommer en `onExplosionDestroy`. La methode est appelee par `Block#onBlockExploded` (Forge wrapper) quand l'explosion detruit le bloc.
+**Regle** : Toujours utiliser `onExplosionDestroy` en stable_39. Pour reagir au declenchement par explosion (chain reaction TNT), utiliser cette methode.
+
+---
+
+## 2026-05-01 — SoundType.GRASS n'existe pas en stable_39
+
+**Systeme** : BlockModdedTNT (Phase 9)
+**Probleme** : `setSoundType(SoundType.GRASS)` -> `cannot find symbol: variable GRASS`.
+**Cause racine** : En stable_39, l'enum `SoundType` contient `WOOD, GROUND, PLANT, STONE, METAL, GLASS, CLOTH, SAND, SNOW, LADDER, ANVIL, SLIME` — pas de `GRASS`. Vanilla TNT utilise `PLANT`.
+**Solution** : Remplacer `SoundType.GRASS` par `SoundType.PLANT`.
+**Regle** : Pour un bloc de type herbe/feuille/TNT vanilla, utiliser `SoundType.PLANT`. Verifier avec `javap` les constantes disponibles avant d'en utiliser une.
+
+---
+
 ## 2026-04-29 — Combat Log : ecran de mort + bouton Respawn au reconnect
 
 **Systeme** : CombatEventHandler.onPlayerLogout (Combat Tag)
