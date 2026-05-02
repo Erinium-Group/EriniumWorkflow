@@ -206,7 +206,8 @@
     <a class="nav-link" href="#s9"><span class="num">09</span> Items R&amp;D — Defense</a>
     <a class="nav-link" href="#s10"><span class="num">10</span> Items R&amp;D — Explosifs</a>
     <a class="nav-link" href="#s11"><span class="num">11</span> Features hors R&amp;D</a>
-    <a class="nav-link" href="#s12"><span class="num">12</span> Architecture &amp; Assets</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Mobs d'Erina</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Architecture &amp; Assets</a>
   </nav>
 
   <!-- ========== MAIN ========== -->
@@ -1259,11 +1260,281 @@ N = Noyau d'Impact</div>
       </div>
     </section>
 
-    <!-- ═══ S12 — ARCHITECTURE & ASSETS ═══ -->
+    <!-- ═══ S12 — MOBS D'ERINA ═══ -->
     <section class="section-card" id="s12">
-      <h2><span class="s-num cyan-num">12</span> Architecture Technique &amp; Assets</h2>
+      <h2><span class="s-num erinium-num">12</span> Mobs d'Erina — Faune &amp; Bestiaire</h2>
 
-      <h3 class="first">12.1 — Structure de packages</h3>
+      <h3 class="first">12.0 — Architecture commune</h3>
+      <p><strong>Package :</strong> <code>fr.eriniumgroup.eriniumfaction.erina.mob</code></p>
+      <p><strong>Hiérarchie de base :</strong></p>
+      <ul>
+        <li>Mobs passifs : <code>EntityErinaMob extends EntityAnimal</code> (classe abstraite intermédiaire)</li>
+        <li>Mobs hostiles : <code>EntityErinaHostile extends EntityMob</code> (classe abstraite intermédiaire)</li>
+        <li>Mobs volants : <code>EntityErinaFlying extends EntityFlying</code></li>
+        <li>Mobs aquatiques : <code>EntityErinaWater extends EntityWaterMob</code></li>
+      </ul>
+      <p><strong>Enregistrement :</strong> <code>EntityRegistry.registerModEntity()</code> dans <code>CommonProxy.preInit()</code>, IDs 100–113 réservés aux mobs Erina.</p>
+      <p><strong>Spawn :</strong> ajout dans <code>BiomeErina*.getSpawnableList(EnumCreatureType)</code> de chaque biome concerné dans le package <code>world/biome/</code>. Retourner une liste <code>SpawnListEntry</code> avec <code>weight</code>, <code>minGroupCount</code>, <code>maxGroupCount</code>.</p>
+
+      <h3>12.1 — Cap global de spawn Erina</h3>
+      <p>Le serveur tourne avec 500–1000 joueurs simultanés. Limiter à <strong>200 mobs maximum</strong> dans la dimension Erina (DIM 42) toutes entités confondues.</p>
+      <ul>
+        <li>Écouter <code>LivingSpawnEvent.CheckSpawn</code> (annulable, Forge event bus).</li>
+        <li>Si <code>event.getWorld().provider.getDimension() != 42</code> → ne pas intervenir.</li>
+        <li>Compter via <code>world.getEntities(EntityCreature.class, e -> true).size()</code> — si ≥ 200 → <code>event.setResult(Event.Result.DENY)</code>.</li>
+        <li>Handler enregistré dans <code>CommonProxy.init()</code> via <code>@Mod.EventBusSubscriber</code>.</li>
+        <li>Valeur 200 configurable dans <code>docs/</code> — constante <code>ErinaSpawnCap.MAX_MOBS = 200</code>.</li>
+      </ul>
+      <div class="code-block"><span class="cm">// ErinaSpawnCapHandler.java</span>
+@SubscribeEvent
+public static void onSpawnCheck(LivingSpawnEvent.CheckSpawn event) {
+    if (event.getWorld().provider.getDimension() != ErinaDimension.DIM_ID) return;
+    World w = (World) event.getWorld();
+    if (w.isRemote) return;
+    int count = w.getEntities(EntityCreature.class, e -> true).size();
+    if (count >= ErinaSpawnCap.MAX_MOBS) event.setResult(Event.Result.DENY);
+}</div>
+
+      <h3>12.2 — Mobs passifs</h3>
+
+      <h4 style="margin:16px 0 8px;color:var(--cyan);">EntityCrystallite — Crystal Plains (ID 100)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>EntityCrystallite extends EntityAnimal</code></li>
+        <li><strong>HP :</strong> 10 (5 cœurs). <strong>Vitesse :</strong> 0.25. <strong>Taille :</strong> 0.6×0.8 (petite créature).</li>
+        <li><strong>IA :</strong> <code>EntityAIWander</code>, <code>EntityAILookIdle</code>, <code>EntityAIWatchClosest(EntityPlayer)</code>. Fuit si attaquée (<code>EntityAIPanic</code>).</li>
+        <li><strong>Spawn :</strong> Crystal Plains, groupe 2–4, weight 12.</li>
+        <li><strong>Loot :</strong> 0–1 <code>ItemErinaResource("erina_crystal")</code>, 0–1 <code>ItemErinaResource("aerium")</code>.</li>
+        <li><strong>Son :</strong> sons vanilla <code>SoundEvents.ENTITY_CHICKEN_AMBIENT</code> (placeholder).</li>
+        <li><strong>Texture :</strong> <code>textures/entity/crystallite.png</code> (64×32, modèle Biped simplifié ou custom JSON).</li>
+      </ul>
+
+      <h4 style="margin:16px 0 8px;color:var(--cyan);">EntityShoreCrab — Plasma Shore (ID 101)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>EntityShoreCrab extends EntityAnimal</code></li>
+        <li><strong>HP :</strong> 8 (4 cœurs). <strong>Vitesse :</strong> 0.20. <strong>Taille :</strong> 0.8×0.4.</li>
+        <li><strong>IA :</strong> <code>EntityAIWander</code>, <code>EntityAIPanic</code> si attaquée.</li>
+        <li><strong>Spawn :</strong> Plasma Shore uniquement, groupe 1–3, weight 10.</li>
+        <li><strong>Loot :</strong> <code>ItemErinaResource("plasma_pearl")</code> 80% chance (1), <code>ErinaItems.ERINITE_GEM</code> 10% chance (1).</li>
+        <li><strong>Texture :</strong> <code>textures/entity/shore_crab.png</code> (64×32).</li>
+      </ul>
+
+      <h3>12.3 — Mobs hostiles standards</h3>
+
+      <h4 style="margin:16px 0 8px;color:var(--orange);">EntitySporeling — Glow Forest (ID 102)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>EntitySporeling extends EntityMob</code></li>
+        <li><strong>HP :</strong> 16. <strong>Dégâts mêlée :</strong> 3. <strong>Vitesse :</strong> 0.28.</li>
+        <li><strong>IA :</strong> <code>EntityAIAttackRanged</code> — lance un projectile <code>EntitySpore extends EntityThrowable</code> toutes les 40 ticks (2s) à portée 10 blocs. Impact → <code>PotionEffect(MobEffects.SLOWNESS, 60, 0)</code> (Slowness I 3s) sur le joueur touché.</li>
+        <li><strong>Spawn :</strong> Glow Forest, groupe 1–3, weight 8.</li>
+        <li><strong>Loot :</strong> 1–2 <code>ItemErinaResource("luminous_spore")</code>, 0–1 <code>ErinaItems.ERINA_TOXIN</code>.</li>
+        <li><strong>Texture :</strong> <code>textures/entity/sporeling.png</code> (64×32). Projectile : <code>textures/entity/spore_projectile.png</code> (16×16).</li>
+      </ul>
+
+      <h4 style="margin:16px 0 8px;color:var(--orange);">EntityEcholith — Echo Canyon (ID 103)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>EntityEcholith extends EntityMob</code></li>
+        <li><strong>HP :</strong> 24. <strong>Dégâts :</strong> 5. <strong>Vitesse :</strong> 0.30.</li>
+        <li><strong>Mécanique spéciale — Téléportation :</strong> Si le joueur est à moins de 8 blocs → 30% de chance par tick (1/20s) de se téléporter derrière lui (<code>entity.setPositionAndUpdate(player.posX + offsetX, ..., player.posZ + offsetZ)</code> décalé de ±2 blocs aléatoires). Cooldown interne 40 ticks entre deux TP.</li>
+        <li><strong>IA :</strong> <code>EntityAIAttackMelee</code>, <code>EntityAINearestAttackableTarget(EntityPlayer)</code>.</li>
+        <li><strong>Spawn :</strong> Echo Canyon, groupe 1–2, weight 6.</li>
+        <li><strong>Loot :</strong> 0–1 <code>ItemErinaResource("echo_stone")</code>, 0–1 <code>ItemErinaResource("erina_crystal")</code>.</li>
+        <li><strong>Texture :</strong> <code>textures/entity/echolith.png</code> (64×32).</li>
+      </ul>
+
+      <h4 style="margin:16px 0 8px;color:var(--orange);">EntityAshLurker — Ash Fields (ID 104)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>EntityAshLurker extends EntityMob</code></li>
+        <li><strong>HP :</strong> 22. <strong>Dégâts :</strong> 4. <strong>Vitesse :</strong> 0.22 (lent mais surprend).</li>
+        <li><strong>Mécanique spéciale — Embuscade :</strong> Spawn invisible (<code>entity.setInvisible(true)</code>, dataWatcher). Tant qu'aucun joueur dans 6 blocs → reste invisible et immobile (<code>EntityAITasks</code> désactivées via flag). Quand joueur dans 6 blocs → <code>setInvisible(false)</code>, joue un son (<code>SoundEvents.ENTITY_ENDERMAN_SCREAM</code> placeholder), active les IA normales. Ne se ré-invisibilise pas.</li>
+        <li><strong>IA active :</strong> <code>EntityAIAttackMelee</code>, <code>EntityAINearestAttackableTarget(EntityPlayer)</code>.</li>
+        <li><strong>Spawn :</strong> Ash Fields, groupe 1–2, weight 7, sur blocs <code>BlockAsh</code> ou <code>BlockErinaAsh</code> uniquement (vérifier <code>isValidLightLevel</code> override).</li>
+        <li><strong>Loot :</strong> 0–2 <code>ItemErinaResource("compact_ash")</code>, 0–1 <code>ErinaItems.ERINA_TOXIN</code>.</li>
+        <li><strong>Texture :</strong> <code>textures/entity/ash_lurker.png</code> (64×32).</li>
+      </ul>
+
+      <h4 style="margin:16px 0 8px;color:var(--orange);">EntityFrostCrawler — Crystal Caverns (ID 105)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>EntityFrostCrawler extends EntitySpider</code> (pour le mouvement araignée — grimpe murs)</li>
+        <li><strong>HP :</strong> 26. <strong>Dégâts :</strong> 5 + effet. <strong>Vitesse :</strong> 0.32.</li>
+        <li><strong>Effet d'attaque :</strong> Chaque coup mêlée → <code>PotionEffect(MobEffects.SLOWNESS, 100, 1)</code> (Slowness II 5s) sur la cible.</li>
+        <li><strong>IA :</strong> <code>EntityAIAttackMelee</code>, <code>EntityAINearestAttackableTarget(EntityPlayer)</code>. Grimpe les murs (hérité d'EntitySpider).</li>
+        <li><strong>Spawn :</strong> Crystal Caverns (biome souterrain), groupe 1–2, weight 5, lumière ≤ 7.</li>
+        <li><strong>Loot :</strong> 0–1 <code>ItemErinaResource("cryo_crystal")</code>, 0–1 <code>ItemErinaResource("erina_crystal")</code>.</li>
+        <li><strong>Texture :</strong> <code>textures/entity/frost_crawler.png</code> (64×32, remplace texture araignée).</li>
+      </ul>
+
+      <h4 style="margin:16px 0 8px;color:var(--red);">EntityToxicCrawler — Toxic Jungle (ID 106)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>EntityToxicCrawler extends EntitySpider</code></li>
+        <li><strong>HP :</strong> 20. <strong>Dégâts :</strong> 4. <strong>Vitesse :</strong> 0.40 (rapide).</li>
+        <li><strong>Effet d'attaque :</strong> <code>PotionEffect(MobEffects.POISON, 80, 1)</code> (Poison II 4s).</li>
+        <li><strong>IA :</strong> Identique FrostCrawler, vitesse plus élevée.</li>
+        <li><strong>Spawn :</strong> Toxic Jungle, groupe 2–4, weight 10, lumière ≤ 11 (actif le jour).</li>
+        <li><strong>Loot :</strong> 0–1 <code>ErinaItems.ERINA_TOXIN</code>, 0–1 <code>ErinaItems.LUMINOUS_SPORE</code>.</li>
+        <li><strong>Texture :</strong> <code>textures/entity/toxic_crawler.png</code>.</li>
+      </ul>
+
+      <h4 style="margin:16px 0 8px;color:var(--red);">EntityVenomSpitter — Toxic Jungle (ID 107)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>EntityVenomSpitter extends EntityMob</code></li>
+        <li><strong>HP :</strong> 22. <strong>Dégâts mêlée :</strong> 3. <strong>Vitesse :</strong> 0.26.</li>
+        <li><strong>Attaque à distance :</strong> <code>EntityAIAttackRanged</code> — projectile <code>EntityVenomBall extends EntityThrowable</code> toutes les 30 ticks à portée 14 blocs. Impact → <code>PotionEffect(MobEffects.POISON, 120, 1)</code> (Poison II 6s).</li>
+        <li><strong>Spawn :</strong> Toxic Jungle, groupe 1–2, weight 6.</li>
+        <li><strong>Loot :</strong> 0–2 <code>ErinaItems.ERINA_TOXIN</code>, 0–1 <code>ErinaItems.PLASMA_PEARL</code>.</li>
+        <li><strong>Texture :</strong> <code>textures/entity/venom_spitter.png</code>. Projectile : <code>textures/entity/venom_ball.png</code> (16×16).</li>
+      </ul>
+
+      <h4 style="margin:16px 0 8px;color:var(--orange);">EntityPlasmaLeech — Plasma Swamp (ID 108)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>EntityPlasmaLeech extends EntityWaterMob</code></li>
+        <li><strong>HP :</strong> 18. <strong>Dégâts :</strong> 3. <strong>Vitesse dans fluide :</strong> 0.35.</li>
+        <li><strong>Comportement :</strong> Se déplace exclusivement dans le fluide plasma (<code>BlockFluidPlasma</code>). Sur attaque mêlée → <code>PotionEffect(MobEffects.POISON, 60, 0)</code> (Poison I 3s). Hors du plasma → meurt en 5 secondes (100 ticks → <code>entity.attackEntityFrom(DamageSource.DRY_OUT, 2.0f)</code> chaque 20 ticks).</li>
+        <li><strong>IA :</strong> <code>EntityAIAttackMelee</code>, cible les joueurs dans le plasma uniquement. Ne sort pas du liquide.</li>
+        <li><strong>Spawn :</strong> Plasma Swamp, dans blocs de plasma liquide, groupe 1–3, weight 8.</li>
+        <li><strong>Loot :</strong> 0–1 <code>ErinaItems.SOLID_PLASMA</code>, 0–1 <code>ErinaItems.PLASMA_PEARL</code>.</li>
+        <li><strong>Texture :</strong> <code>textures/entity/plasma_leech.png</code> (64×32).</li>
+      </ul>
+
+      <h3>12.4 — Mobs volants</h3>
+
+      <h4 style="margin:16px 0 8px;color:var(--red);">EntityPlateauDrifter — Floating Plateaus (ID 109)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>EntityPlateauDrifter extends EntityFlying</code></li>
+        <li><strong>HP :</strong> 20. <strong>Dégâts :</strong> 4 (knockback x3 — <code>entity.knockBack(target, 3.0f, ...)</code>). <strong>Vitesse :</strong> 0.60 (rapide dans les airs).</li>
+        <li><strong>Mécanique :</strong> Pousse les joueurs → knockback vertical élevé conçu pour faire tomber dans le vide entre les plateaux. Sur attaque : appliquer <code>entity.addVelocity(dx * 0.8, 0.5, dz * 0.8)</code> en plus du knockback standard.</li>
+        <li><strong>IA :</strong> Patrouille entre Y=80 et Y=130. <code>EntityAINearestAttackableTarget(EntityPlayer)</code>. Attaque en piqué (vole vers le joueur, attaque, remonte).</li>
+        <li><strong>Spawn :</strong> Floating Plateaus entre Y=85 et Y=125, groupe 1–2, weight 5.</li>
+        <li><strong>Loot :</strong> 0–1 <code>ErinaItems.AERIUM</code>, 0–1 <code>ErinaItems.ERINA_CRYSTAL</code>.</li>
+        <li><strong>Texture :</strong> <code>textures/entity/plateau_drifter.png</code> (64×32, modèle type Ghast simplifié ou custom).</li>
+      </ul>
+
+      <h3>12.5 — Mobs élites</h3>
+
+      <h4 style="margin:16px 0 8px;color:var(--red);">EntityImpactBrute — Impact Crater (ID 110)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>EntityImpactBrute extends EntityMob</code></li>
+        <li><strong>HP :</strong> 40 (20 cœurs). <strong>Dégâts :</strong> 8 (4 cœurs). <strong>Vitesse :</strong> 0.24 (lent mais brutal). <strong>Armure :</strong> 8 (réduction dégâts).</li>
+        <li><strong>Mécanique — Zone Slam :</strong> Quand joueur à ≤ 3 blocs, 20% chance par tick (1s) de faire un "slam" AoE → <code>world.getEntitiesWithinAABB(EntityPlayer.class, AABB 5×5×5)</code> → 6 HP + knockback 2 sur chaque joueur dans la zone. Cooldown 60 ticks.</li>
+        <li><strong>IA :</strong> <code>EntityAIAttackMelee</code>, <code>EntityAIHurtByTarget</code>, <code>EntityAINearestAttackableTarget(EntityPlayer)</code>.</li>
+        <li><strong>Spawn :</strong> Impact Crater uniquement (Y=50–80), groupe 1, weight 3 (rare).</li>
+        <li><strong>Loot :</strong> 1–2 <code>ErinaItems.IMPACT_CORE</code>, 1 <code>ErinaItems.ERINITE_GEM</code> (100%).</li>
+        <li><strong>Texture :</strong> <code>textures/entity/impact_brute.png</code> (64×64, grand modèle).</li>
+      </ul>
+
+      <h4 style="margin:16px 0 8px;color:var(--red);">EntityMagmaCrawler — Impact Crater (ID 111)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>EntityMagmaCrawler extends EntitySpider</code></li>
+        <li><strong>HP :</strong> 30. <strong>Dégâts :</strong> 6 + Fire 3s. <strong>Vitesse :</strong> 0.38.</li>
+        <li><strong>Mécanique — Nage lave alien :</strong> <code>isImmuneToFire() = true</code>. Peut se déplacer dans <code>BlockAlienLava</code> sans prendre de dégâts. Override <code>handleWaterMovement()</code> pour ne pas traiter la lave alien comme de l'eau. Attaque mêlée → applique <code>entity.setFire(3)</code> sur la cible.</li>
+        <li><strong>Comportement — Jaillissement :</strong> Si joueur à ≥ 6 blocs et mob dans la lave alien → 10% par tick de "jaillir" : appliquer une velocity verticale de +0.8 puis une velocity horizontale vers le joueur (+0.5). Cooldown 80 ticks.</li>
+        <li><strong>Spawn :</strong> Impact Crater, dans ou adjacent à <code>BlockAlienLava</code>, groupe 1–2, weight 4.</li>
+        <li><strong>Loot :</strong> 0–1 <code>ErinaItems.IMPACT_CORE</code>, 0–2 <code>ErinaItems.ERINITE_GEM</code>.</li>
+        <li><strong>Texture :</strong> <code>textures/entity/magma_crawler.png</code>.</li>
+      </ul>
+
+      <h4 style="margin:16px 0 8px;color:var(--cyan);">EntityCrystalGolem — Crystal Caverns (ID 112)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>EntityCrystalGolem extends EntityMob</code></li>
+        <li><strong>HP :</strong> 35. <strong>Dégâts :</strong> 7. <strong>Vitesse :</strong> 0.18 (très lent). <strong>Armure :</strong> 12.</li>
+        <li><strong>Immunité flèches :</strong> Override <code>attackEntityFrom(DamageSource source, float amount)</code> — si <code>source.isProjectile()</code> → return false (aucun dégât). Afficher particules de rebond (<code>EnumParticleTypes.CRIT</code>).</li>
+        <li><strong>Faiblesse explosifs :</strong> Si <code>source == DamageSource.EXPLOSION</code> → multiplier <code>amount * 2.0f</code> avant d'appeler super.</li>
+        <li><strong>IA :</strong> <code>EntityAIAttackMelee</code>, <code>EntityAIHurtByTarget</code>.</li>
+        <li><strong>Spawn :</strong> Crystal Caverns (Y≤40), groupe 1, weight 3.</li>
+        <li><strong>Loot :</strong> 2–4 <code>ErinaItems.ERINA_CRYSTAL</code>, 0–1 <code>ErinaItems.CRYO_CRYSTAL</code>, 0–1 <code>ErinaItems.AERIUM</code>.</li>
+        <li><strong>Texture :</strong> <code>textures/entity/crystal_golem.png</code> (64×64, grand modèle type Golem).</li>
+      </ul>
+
+      <h4 style="margin:16px 0 8px;color:var(--violet-l);">EntityVoidShade — Void Wastes (ID 113)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>EntityVoidShade extends EntityMob</code></li>
+        <li><strong>HP :</strong> 28. <strong>Dégâts :</strong> 6. <strong>Vitesse :</strong> 0.34.</li>
+        <li><strong>Invisibilité permanente :</strong> Dans <code>onLivingUpdate()</code> → appliquer <code>PotionEffect(MobEffects.INVISIBILITY, 40, 0, true, false)</code> toutes les 20 ticks pour maintenir l'effet en continu (ambient=true, pas de particules).</li>
+        <li><strong>Révélation :</strong>
+          <ul>
+            <li><strong>ItemEriniumFlare :</strong> À l'explosion du flare (<code>EntityFlare.onImpact()</code>), appliquer <code>PotionEffect(MobEffects.GLOWING, 200, 0)</code> sur tous les <code>EntityVoidShade</code> dans le rayon 50. Le Glowing override l'invisibilité visuellement (le contour reste visible).</li>
+            <li><strong>ItemVisionMushroom :</strong> Le Glowing appliqué sur le joueur par le champignon révèle aussi les VoidShade dans le même rendu.</li>
+          </ul>
+        </li>
+        <li><strong>IA :</strong> <code>EntityAIAttackMelee</code>, <code>EntityAINearestAttackableTarget(EntityPlayer)</code>. S'approche furtivement (pas de son d'ambiance).</li>
+        <li><strong>Spawn :</strong> Void Wastes, lumière ≤ 5, groupe 1, weight 4.</li>
+        <li><strong>Loot :</strong> 0–1 <code>ErinaItems.VOID_FRAGMENT</code>, 0–1 <code>ErinaItems.ERINITE_GEM</code>.</li>
+        <li><strong>Texture :</strong> <code>textures/entity/void_shade.png</code> (64×32, silhouette sombre).</li>
+      </ul>
+
+      <h3>12.6 — Enregistrement EntityRegistry (CommonProxy.preInit)</h3>
+      <div class="code-block"><span class="cm">// IDs 100–113 réservés aux mobs Erina</span>
+EntityRegistry.registerModEntity(new ResourceLocation(MODID, "crystallite"),
+    EntityCrystallite.class, "crystallite", 100, instance, 64, 3, true);
+EntityRegistry.registerModEntity(new ResourceLocation(MODID, "shore_crab"),
+    EntityShoreCrab.class, "shore_crab", 101, instance, 48, 3, true);
+EntityRegistry.registerModEntity(new ResourceLocation(MODID, "sporeling"),
+    EntitySporeling.class, "sporeling", 102, instance, 64, 1, true);
+EntityRegistry.registerModEntity(new ResourceLocation(MODID, "echolith"),
+    EntityEcholith.class, "echolith", 103, instance, 64, 1, true);
+EntityRegistry.registerModEntity(new ResourceLocation(MODID, "ash_lurker"),
+    EntityAshLurker.class, "ash_lurker", 104, instance, 64, 1, true);
+EntityRegistry.registerModEntity(new ResourceLocation(MODID, "frost_crawler"),
+    EntityFrostCrawler.class, "frost_crawler", 105, instance, 64, 1, true);
+EntityRegistry.registerModEntity(new ResourceLocation(MODID, "toxic_crawler"),
+    EntityToxicCrawler.class, "toxic_crawler", 106, instance, 64, 1, true);
+EntityRegistry.registerModEntity(new ResourceLocation(MODID, "venom_spitter"),
+    EntityVenomSpitter.class, "venom_spitter", 107, instance, 64, 1, true);
+EntityRegistry.registerModEntity(new ResourceLocation(MODID, "plasma_leech"),
+    EntityPlasmaLeech.class, "plasma_leech", 108, instance, 48, 1, true);
+EntityRegistry.registerModEntity(new ResourceLocation(MODID, "plateau_drifter"),
+    EntityPlateauDrifter.class, "plateau_drifter", 109, instance, 80, 3, true);
+EntityRegistry.registerModEntity(new ResourceLocation(MODID, "impact_brute"),
+    EntityImpactBrute.class, "impact_brute", 110, instance, 80, 1, true);
+EntityRegistry.registerModEntity(new ResourceLocation(MODID, "magma_crawler"),
+    EntityMagmaCrawler.class, "magma_crawler", 111, instance, 80, 1, true);
+EntityRegistry.registerModEntity(new ResourceLocation(MODID, "crystal_golem"),
+    EntityCrystalGolem.class, "crystal_golem", 112, instance, 80, 1, true);
+EntityRegistry.registerModEntity(new ResourceLocation(MODID, "void_shade"),
+    EntityVoidShade.class, "void_shade", 113, instance, 64, 1, true);</div>
+
+      <h3>12.7 — Spawn par biome (dans chaque BiomeErina*.java)</h3>
+      <div class="code-block"><span class="cm">// Exemple dans BiomeErinaCrystalPlains.java</span>
+@Override
+public List&lt;SpawnListEntry&gt; getSpawnableList(EnumCreatureType creatureType) {
+    if (creatureType == EnumCreatureType.CREATURE) {
+        List&lt;SpawnListEntry&gt; list = new ArrayList&lt;&gt;(super.getSpawnableList(creatureType));
+        list.add(new SpawnListEntry(EntityCrystallite.class, 12, 2, 4));
+        return list;
+    }
+    return super.getSpawnableList(creatureType);
+}</div>
+      <p>Biomes et leurs mobs :</p>
+      <ul>
+        <li><strong>Crystal Plains :</strong> Crystallite (CREATURE, w12, 2–4)</li>
+        <li><strong>Glow Forest :</strong> Sporeling (MONSTER, w8, 1–3)</li>
+        <li><strong>Echo Canyon :</strong> Echolith (MONSTER, w6, 1–2)</li>
+        <li><strong>Ash Fields :</strong> AshLurker (MONSTER, w7, 1–2)</li>
+        <li><strong>Crystal Caverns :</strong> FrostCrawler (MONSTER, w5, 1–2), CrystalGolem (MONSTER, w3, 1)</li>
+        <li><strong>Floating Plateaus :</strong> PlateauDrifter (MONSTER, w5, 1–2)</li>
+        <li><strong>Toxic Jungle :</strong> ToxicCrawler (MONSTER, w10, 2–4), VenomSpitter (MONSTER, w6, 1–2)</li>
+        <li><strong>Impact Crater :</strong> ImpactBrute (MONSTER, w3, 1), MagmaCrawler (MONSTER, w4, 1–2)</li>
+        <li><strong>Void Wastes :</strong> VoidShade (MONSTER, w4, 1)</li>
+        <li><strong>Plasma Swamp :</strong> PlasmaLeech (WATER_CREATURE, w8, 1–3)</li>
+        <li><strong>Plasma Shore :</strong> ShoreCrab (CREATURE, w10, 1–3)</li>
+      </ul>
+
+      <h3>12.8 — Assets textures mobs</h3>
+      <p>Toutes les textures dans <code>src/main/resources/assets/eriniumfaction/textures/entity/</code>. Dimensions standards Forge 1.12.2 :</p>
+      <ul>
+        <li><strong>Modèle Biped (64×64) :</strong> crystallite, impact_brute, crystal_golem</li>
+        <li><strong>Modèle Quadruped/Spider (64×32) :</strong> sporeling, echolith, ash_lurker, frost_crawler, toxic_crawler, venom_spitter, plasma_leech, shore_crab, void_shade</li>
+        <li><strong>Modèle Ghast/Flottant (64×32) :</strong> plateau_drifter</li>
+        <li><strong>Projectiles (16×16) :</strong> spore_projectile, venom_ball</li>
+      </ul>
+      <p><strong>Workflow textures :</strong> SVG 64×64 (ou 64×32) dans <code>assets_wip/spatial-update/entities/</code> → conversion ImageMagick → PNG dans <code>textures/entity/</code>. Ne pas utiliser texture-gen (pas adapté aux entités). Les SVG définissent la silhouette aplatie de la skin (template UV Minecraft standard).</p>
+
+    </section>
+
+    <!-- ═══ S13 — ARCHITECTURE & ASSETS ═══ -->
+    <section class="section-card" id="s13">
+      <h2><span class="s-num cyan-num">13</span> Architecture Technique &amp; Assets</h2>
+
+      <h3 class="first">13.1 — Structure de packages</h3>
       <div class="code-block">fr.eriniumgroup.eriniumfaction.erina/
 ├── dimension/
 │   ├── ErinaDimensionType.java          <span class="cm">// constante DIM_ID + enregistrement</span>
@@ -1359,7 +1630,7 @@ N = Noyau d'Impact</div>
 ├── ErinaBlocks.java                     <span class="cm">// registration centrale blocs</span>
 └── ErinaRecipes.java                    <span class="cm">// toutes les recettes normales</span></div>
 
-      <h3>12.2 — Enregistrement de la dimension</h3>
+      <h3>13.2 — Enregistrement de la dimension</h3>
       <div class="code-block"><span class="cm">// Dans CommonProxy.preInit() :</span>
 <span class="kw">public static final int</span> <span class="nu">ERINA_DIM_ID</span> = <span class="nu">42</span>;
 
@@ -1381,7 +1652,7 @@ N = Noyau d'Impact</div>
 <span class="cl">GameRegistry</span>.<span class="fn">registerWorldGenerator</span>(<span class="kw">new</span> <span class="cl">ErinaStructureGenerator</span>(), <span class="nu">1</span>);
 <span class="cl">GameRegistry</span>.<span class="fn">registerWorldGenerator</span>(<span class="kw">new</span> <span class="cl">ErinaOreGenerator</span>(), <span class="nu">2</span>);</div>
 
-      <h3>12.3 — Structures de donnees</h3>
+      <h3>13.3 — Structures de donnees</h3>
       <div class="code-block"><span class="an">@EriData</span>(modId = <span class="st">"eriniumfaction"</span>, scope = <span class="cl">DataScope</span>.PLAYER, persistOnDeath = <span class="kw">true</span>)
 <span class="kw">public class</span> <span class="cl">RnDPlayerData</span> {
     <span class="an">@Sync</span> <span class="kw">public int</span> researchPoints = <span class="nu">0</span>;
@@ -1399,7 +1670,7 @@ N = Noyau d'Impact</div>
     <span class="kw">public long</span> deployedCampExpiry = <span class="nu">0</span>L; <span class="cm">// timestamp System.currentTimeMillis()</span>
 }</div>
 
-      <h3>12.4 — Liste des assets</h3>
+      <h3>13.4 — Liste des assets</h3>
 
       <div class="table-wrap">
         <table>
@@ -1484,7 +1755,7 @@ N = Noyau d'Impact</div>
         </table>
       </div>
 
-      <h3>12.5 — Plan de Tests</h3>
+      <h3>13.5 — Plan de Tests</h3>
 
       <h4>Dimension &amp; Worldgen</h4>
       <ul class="checklist">
