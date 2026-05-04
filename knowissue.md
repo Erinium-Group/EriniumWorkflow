@@ -1353,3 +1353,28 @@
 **Cause** : `RocketLaunchHandler.java` importait `net.minecraft.client.Minecraft` en en-tete. Quand le serveur charge la classe pour invoquer `handleLaunchRequest()` (appele depuis `CommonProxy`), Java resout aussi les imports en-tete et descend la chaine de classes client (`Minecraft` → `EntityPlayerSP`) → crash CleanRoom / serveur dedie.
 **Solution** : Separer en deux classes : `RocketServerHandler.java` (zero import client, utilise par `CommonProxy`) et `RocketLaunchHandler.java` (client uniquement, ouvre les GUIs et envoie les packets). `CommonProxy` ne reference plus que `RocketServerHandler`.
 **Règle générale** : Toute classe referencee depuis `CommonProxy` (ou tout code commun) NE DOIT PAS importer des classes `net.minecraft.client.*` ou des classes EriAPI client (`EriGuiScreen`, etc.) — meme dans les en-tetes d'import. Si une logique necessite un import client, la deplacer dans une classe dediee client-only et la referencer uniquement depuis `ClientProxy` (ou via un hook callback). C'est la meme contrainte que les Mixins.
+
+---
+
+## 2026-05-04 — NoClassDefFoundError: Could not initialize class ErinaBiomes (spawn lambdas pendant preInit)
+
+**Système** : EntityRegistryEF — enregistrement des 13 mobs de la Spatial Update (Erina)
+**Problème** : Crash serveur au démarrage : `java.lang.NoClassDefFoundError: Could not initialize class fr.eriniumgroup.eriniumfaction.erina.biome.ErinaBiomes` dans les lambdas `.spawn()` de `EntityRegistryEF`.
+**Cause racine** : Les lambdas `.spawn(s -> s.biome(ErinaBiomes.CRYSTAL_PLAINS))` forcent l'initialisation statique (`<clinit>`) de la classe `ErinaBiomes` au moment où ces lambdas sont créées — c'est-à-dire pendant `preInit`. Or `ErinaBiomes` possède des champs `public static final Biome CRYSTAL_PLAINS = new BiomeCrystalPlains()` qui peuvent échouer si les dépendances ne sont pas encore prêtes à ce stade du cycle de vie Forge.
+**Solution** : Ne JAMAIS référencer directement les champs statiques de `ErinaBiomes` (ou de tout registre de biomes) depuis des lambdas créées pendant `preInit`. Utiliser à la place `Biome.REGISTRY.getObject(new ResourceLocation(MODID, "erina_xxx"))` — les biomes sont déjà dans le registre après `RegistryEvent.Register<Biome>` (qui s'exécute avant `preInit`), mais cet appel ne force pas l'initialisation de `ErinaBiomes`. Toujours null-checker le résultat (`if (b != null) s.biome(b)`).
+
+```java
+// ❌ Crash : force ErinaBiomes.<clinit> pendant preInit
+.spawn(s -> s.biome(ErinaBiomes.CRYSTAL_PLAINS))
+
+// ✅ Correct : lookup registre safe
+private static Biome eb(String name) {
+    return Biome.REGISTRY.getObject(new ResourceLocation(EriniumFaction.MODID, name));
+}
+.spawn(s -> {
+    Biome b = eb("erina_crystal_plains");
+    if (b != null) s.biome(b);
+})
+```
+
+**Règle** : Pour tout enregistrement d'entité avec spawn dans un biome custom, utiliser exclusivement `Biome.REGISTRY.getObject()` dans les lambdas. Supprimer l'import de la classe registre de biomes (ex: `ErinaBiomes`) si elle n'est plus nécessaire ailleurs dans le fichier.
