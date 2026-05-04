@@ -1378,3 +1378,50 @@ private static Biome eb(String name) {
 ```
 
 **Règle** : Pour tout enregistrement d'entité avec spawn dans un biome custom, utiliser exclusivement `Biome.REGISTRY.getObject()` dans les lambdas. Supprimer l'import de la classe registre de biomes (ex: `ErinaBiomes`) si elle n'est plus nécessaire ailleurs dans le fichier.
+
+---
+
+## 2026-05-05 — EriEntityBase : eriDef null pendant initEntityAI / applyEntityAttributes
+
+**Système** : EriAPI 1.6.5 → 1.6.6 — `fr.eri.eriapi.content.EriEntityBase`
+**Problème** : Les 13 mobs de la Spatial Update spawnaient avec :
+- aucune AI (immobiles, ne ciblent rien)
+- les stats vanilla par défaut (10 HP, sans armure ni damage configurés)
+
+Or `EriEntityDef` définissait correctement HP, damage, armor, AI flags (`canSwim`, `canAttackPlayer`, etc.).
+**Cause racine** : Le constructeur `EriEntityBase(World world)` appelait `super(world)`. Le constructeur de `EntityLiving` (Minecraft) invoque virtuellement `applyEntityAttributes()` puis `initEntityAI()` AVANT que le constructeur de la sous-classe `EriEntityBase` ait pu assigner `this.eriDef = ContentRegistry.getEntityDef(...)`. Donc dans ces deux méthodes, `eriDef == null` et toute la configuration custom était silencieusement ignorée (early-return).
+**Solution** : Restructurer `EriEntityBase` :
+1. Les overrides `applyEntityAttributes()` et `initEntityAI()` sont des no-ops (juste `super` quand nécessaire) — ils ne peuvent rien faire d'utile vu le timing du super().
+2. Le constructeur fait `super(world)` puis :
+   - assigne `this.eriDef = ContentRegistry.getEntityDef(...)`
+   - appelle `applyEriAttributes()` (méthode privée) qui lit `eriDef` et configure les attributs
+   - appelle `setupEriAI()` (méthode privée) qui ajoute les tâches AI selon `eriDef` flags
+   - appelle `setHealth(getMaxHealth())` (sinon HP reste à 10 même après `applyEriAttributes`)
+3. Bump version 1.6.5 → 1.6.6 et rebuild EriAPI + update jar dans EriniumFaction.
+
+**Règle générale** : Quand on étend une classe vanilla qui appelle des méthodes virtuelles dans son constructeur (`EntityLiving`, `Block`, `Item`...), NE JAMAIS supposer que le state de la sous-classe est initialisé dans ces méthodes virtuelles. Utiliser un pattern à deux phases : super() → init du state → méthode privée qui consomme le state.
+
+---
+
+## 2026-05-05 — Texture path double "textures/" avec BlockbenchModelParser
+
+**Système** : 13 entity model JSONs (Spatial Update) + textures pink/black à l'écran
+**Problème** : Tous les modèles entity de la Spatial Update affichaient les textures roses/noires (texture introuvable). Aucune erreur visible côté serveur.
+**Cause racine** : `BlockbenchModelParser.parseJson()` (EriAPI) ajoute automatiquement le préfixe `textures/` et le suffixe `.png` aux références de texture. Donc `"eriniumfaction:textures/entity/crystallite/body"` devient `eriniumfaction:textures/textures/entity/crystallite/body.png` — chemin inexistant.
+**Solution** : Dans les JSON Blockbench, retirer le préfixe `textures/` des valeurs de `"textures": {...}`. Format correct : `"eriniumfaction:entity/crystallite/body"` (le parser ajoute `textures/` + `.png` lui-même).
+
+```json
+// ❌ Mauvais — produit "textures/textures/entity/.../body.png"
+"textures": {
+  "0": "eriniumfaction:textures/entity/crystallite/body",
+  "particle": "eriniumfaction:textures/entity/crystallite/body"
+}
+
+// ✅ Correct — produit "textures/entity/.../body.png"
+"textures": {
+  "0": "eriniumfaction:entity/crystallite/body",
+  "particle": "eriniumfaction:entity/crystallite/body"
+}
+```
+
+**Règle** : Pour tous les modèles Blockbench (entity ET block) parsés par `BlockbenchModelParser`, n'inclure JAMAIS le préfixe `textures/` ni le suffixe `.png` dans les valeurs de la map `"textures"`. Format : `"<modid>:<chemin-relatif-à-textures/>"`. Pour des textures vanilla : `"minecraft:blocks/glass"`.
