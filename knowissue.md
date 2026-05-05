@@ -5,6 +5,43 @@
 
 ---
 
+## 2026-05-05 — Phase 10 : translation keys Item/Block sans prefix modid affichent la cle brute
+
+**Systeme** : `erina/extra/Item*.java` + `erina/extra/Block*.java` (Phase 10 features creees a la main, hors EriItem builder)
+**Probleme** : Les items/blocs Phase 10 (`signal_scrambler`, `drone`, `loot_amplifier`, `return_portal`, `telepathy_crystal`, `vision_mushroom`, `void_container`, `portal_return`, `shadow_trap`, `deployable_camp`, `plasma_extractor`, `faction_beacon`) affichaient leur cle brute en jeu (ex : `item.signal_scrambler.name`) au lieu du nom traduit.
+**Cause racine** : Le code utilise `setTranslationKey("X")` (sans prefix modid). Avec ce setter, Minecraft genere la cle finale `item.X.name` (ou `tile.X.name`). Or les fichiers `fr_FR.lang` / `en_US.lang` contenaient uniquement le format namespaced `item.eriniumfaction.X.name` (utilise par EriItem builder). Les deux formats coexistent : EriItem builder genere automatiquement la cle namespaced, mais `setTranslationKey("X")` Forge brut genere la cle non-namespaced. Aucune des deux n'etait fausse — il faut juste les fournir toutes les deux.
+**Solution** : Ajouter dans `fr_FR.lang` et `en_US.lang` une section avec les entrees non-namespacees (`item.signal_scrambler.name=...`, `tile.faction_beacon.name=...`, etc.) en plus des entrees existantes namespacees. Garder les deux formats pour la compatibilite avec les futurs items qui pourraient utiliser EriItem.
+**Regle** : Quand on cree un Item/Block avec `setTranslationKey("X")` (Forge brut), TOUJOURS ajouter `item.X.name` / `tile.X.name` dans les lang files. Quand on cree avec `EriItem.create(MODID, "X")`, l'API genere `item.eriniumfaction.X.name`. Si en doute, fournir les deux formats.
+
+---
+
+## 2026-05-05 — Modeles 3D Blockbench : texture_size global incompatible avec textures multi-tailles
+
+**Systeme** : `RenderPlasmaExtractor` / `RenderFactionBeacon` (TESR Blockbench Phase 10)
+**Probleme** : Le Faction Beacon affichait un rendu totalement casse (textures glitchees, taille incorrecte). Le Plasma Extractor avait les bonnes formes 3D mais des textures glitchees (couleurs/patterns aleatoires).
+**Cause racine** : Le format Blockbench JSON ne supporte qu'un SEUL `texture_size` global pour toutes les textures du modele. Or :
+- Faction Beacon : `texture_size: [168, 168]` declare, mais les UV vont de 0 a ~15.81 (tres petite zone). Avec `uv / textureSize` = 0..0.094 → seulement 9% de la texture etait lue (toujours le coin haut-gauche).
+- Plasma Extractor : `texture_size: [32, 32]` declare, 8 textures de tailles differentes (32x32 a 448x448), UVs jusqu'a 16. Avec `uv / 32` = 0..0.5 → seulement la moitie de chaque texture lue, mais a un endroit qui ne correspond pas au contenu reel.
+
+Les UV ont ete generees par Blockbench avec un `texture_size` LOGIQUE de 16 (taille de reference par texture, peu importe la resolution reelle). Le parser EriAPI utilise correctement ce ratio (`uv / textureSize`). Le probleme etait dans le `texture_size` declare dans le JSON, pas dans le parser.
+**Solution** : Changer `texture_size` dans les deux JSON en `[16, 16]` (au lieu de [168,168] pour faction_beacon et [32,32] pour plasma_extractor). Apres ce fix, les UV se normalisent correctement en 0..1 et chaque texture est mappee sur l'integralite de sa surface (ou la zone de contenu reelle si l'UV max est inferieur a 16).
+**Regle** : Pour tout modele Blockbench parse par `BlockbenchModelParser` :
+1. Verifier le UV max reel (`max(uv[0], uv[2])` et `max(uv[1], uv[3])` sur toutes les faces).
+2. Le `texture_size` du JSON doit egal au UV max (typiquement 16 ou 32). Ne JAMAIS confondre avec la taille pixel de la texture image — les UV Blockbench sont en pixels logiques, pas en pixels reels.
+3. Si plusieurs textures de tailles differentes sont utilisees, elles seront toutes mappees au meme `texture_size` logique. C'est OK tant que les UV ont ete generees coherentes.
+
+---
+
+## 2026-05-05 — TESR modeles Blockbench : frustum culling premature pour modeles depassant le bloc
+
+**Systeme** : `TileEntityFactionBeacon` (TESR Blockbench Phase 10)
+**Probleme** : Le modele 3D du Faction Beacon disparaissait quand on s'eloignait ou regardait depuis certains angles, alors qu'il aurait du rester visible.
+**Cause racine** : Par defaut, `TileEntity#getRenderBoundingBox()` retourne un AABB de 1x1x1 sur le bloc. Si le modele 3D rendu par le TESR depasse cette boite (meme apres scaling), le frustum culling le supprime des qu'aucune partie de la boite 1x1x1 n'est visible. Pour le Faction Beacon, le modele scale tient en hauteur (1 bloc) mais peut avoir des effets visuels au-dessus.
+**Solution** : Override `getRenderBoundingBox()` dans le TileEntity et retourner une AABB plus large (ex : 1x2x1 pour englober le bloc + 1 bloc au-dessus). `@SideOnly(Side.CLIENT)` car cette methode n'existe que cote client.
+**Regle** : Pour tout TileEntity rendu par un TESR avec un modele 3D qui peut depasser le cube 1x1x1 (en hauteur, en largeur, ou en profondeur), TOUJOURS overrider `getRenderBoundingBox()` avec une AABB englobant la silhouette reelle du modele. Sans ca, le modele subit du frustum culling premature.
+
+---
+
 ## 2026-05-05 — EriAPI 1.6.7 : modeles Blockbench decales par rapport a la hitbox
 
 **Systeme** : `fr.eri.eriapi.anim.AnimatedEntityRenderer` (rendu d'entites animees)
