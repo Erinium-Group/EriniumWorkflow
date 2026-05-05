@@ -1458,3 +1458,12 @@ Or `EriEntityDef` définissait correctement HP, damage, armor, AI flags (`canSwi
 ```
 
 **Règle** : Pour tous les modèles Blockbench (entity ET block) parsés par `BlockbenchModelParser`, n'inclure JAMAIS le préfixe `textures/` ni le suffixe `.png` dans les valeurs de la map `"textures"`. Format : `"<modid>:<chemin-relatif-à-textures/>"`. Pour des textures vanilla : `"minecraft:blocks/glass"`.
+
+
+## 2026-05-05 — Import WorldClient dans le mauvais package
+
+**Systeme** : ErinaDimensionAmbience.java (event handler client tick)
+**Probleme** : Build failed avec `cannot find symbol class WorldClient` lors de l'import `net.minecraft.world.WorldClient`.
+**Cause racine** : Confusion package — `WorldClient` est dans `net.minecraft.client.multiplayer`, pas dans `net.minecraft.world` (ou serait le `World` server-side).
+**Solution** : Utiliser `import net.minecraft.client.multiplayer.WorldClient;`.
+**Regle** : Cote client side-only, `Minecraft.getMinecraft().world` retourne un `WorldClient`. Toujours importer depuis `net.minecraft.client.multiplayer.WorldClient`.
