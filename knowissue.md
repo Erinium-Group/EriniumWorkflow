@@ -5,6 +5,39 @@
 
 ---
 
+## 2026-05-05 — EriAPI 1.6.7 : modeles Blockbench decales par rapport a la hitbox
+
+**Systeme** : `fr.eri.eriapi.anim.AnimatedEntityRenderer` (rendu d'entites animees)
+**Probleme** : Les entites custom Spatial Update apparaissaient visuellement decalees d'environ un demi-bloc par rapport a leur hitbox de collision. La selection (outline) ne correspondait pas au modele affiche, et certaines animations de deplacement semblaient "glisser" hors de la position reelle.
+**Cause racine** : Les modeles Blockbench sont concus avec leur point d'origine au coin (0,0,0) et leur silhouette centree sur le pivot du modele aux coordonnees pixel (8, 0, 8) — soit (0.5, 0, 0.5) en coordonnees GL apres le `scale(1/16)`. Apres `GlStateManager.translate(x, y, z)` sur la position de l'entite et le `rotate(yaw)`, on rendait directement les cubes Blockbench sans recentrer : le modele etait donc decale de +0.5 sur X et +0.5 sur Z par rapport au centre de la hitbox.
+**Solution** : Ajouter `GlStateManager.translate(-0.5f, 0.0f, -0.5f)` immediatement apres la rotation yaw dans `doRender()`, AVANT le scale 1/16 et le rendu des elements. Cela aligne le pivot Blockbench (0.5,0,0.5) sur le centre de l'entite (0,0,0).
+**Regle** : Pour tout renderer Blockbench (entity ou TESR), le pipeline doit etre `translate(entityPos) -> rotate(yaw) -> translate(-0.5,0,-0.5) -> scale(1/16) -> render`. Ne jamais oublier le recentrage post-rotation.
+
+---
+
+## 2026-05-05 — EriAPI 1.6.7 : mobs hostiles attaquent les joueurs en creatif/spectateur
+
+**Systeme** : `EriEntityBase`, `GeneratedEntity`, `PathfinderBuilder.targetPlayers()` (AI hostile)
+**Probleme** : Les entites custom (HOSTILE_MELEE, HOSTILE_RANGED, BOSS) ciblaient et attaquaient les joueurs en mode creatif et spectateur, ce qui empechait la moderation et le test des donjons.
+**Cause racine** : Les taches `EntityAINearestAttackableTarget(creature, EntityPlayer.class, true)` (constructeur 3 args) n'appliquent aucun filtre sur le joueur cible. Vanilla zombie/skeleton utilisent un Predicate qui exclut les creatifs, mais notre framework d'entite ne le fournissait pas.
+**Solution** : Utiliser le constructeur 6 args `EntityAINearestAttackableTarget(creature, EntityPlayer.class, 10, true, false, predicate)` avec un singleton statique `Predicate<EntityPlayer> NON_CREATIVE_PLAYER` qui retourne `!p.isCreative() && !p.isSpectator()`. Singleton (pas lambda par instance) pour eviter les allocations a 500-1000 joueurs.
+**Regle** : Toute tache `EntityAINearestAttackableTarget` ciblant `EntityPlayer.class` DOIT utiliser le constructeur 6 args avec un Predicate filtrant `isCreative()` et `isSpectator()`. Ne jamais utiliser le constructeur 3 args pour des cibles joueur.
+
+---
+
+## 2026-05-05 — EriAPI 1.6.7 : chute de FPS sur modeles Blockbench a beaucoup de cubes
+
+**Systeme** : `AnimatedEntityRenderer.renderElement()` / `drawFace()` (rendu OpenGL immediate mode)
+**Probleme** : FPS qui chute drastiquement (5-15 FPS au lieu de 60) lorsque plusieurs entites avec modeles complexes (Crystal Golem, Echolith, Impact Brute - 30+ cubes) sont visibles a l'ecran. Profiling : la majorite du temps est passee dans les appels OpenGL, pas dans la logique d'animation.
+**Cause racine** : L'ancienne methode `drawFace()` faisait un cycle complet `tessellator.getBuffer().begin(QUADS, ...)` -> `pos().tex().endVertex()` x4 -> `tessellator.draw()` POUR CHAQUE FACE. Pour un cube = 6 begin/draw. Pour 30 cubes = 180 begin/draw par frame par entite. Chaque `draw()` est un flush GPU coûteux.
+**Solution** : Refactor du pipeline en batching par texture :
+1. Premier passage : grouper toutes les faces de l'element par texture
+2. Pour chaque groupe de texture : `bindTexture(tex)` puis UN SEUL `buffer.begin(QUADS, POSITION_TEX)` puis appel a `appendFaceVertices(buffer, from, to, facing, face)` pour chaque face (juste les `pos().tex().endVertex()` x4, sans begin/draw), puis UN SEUL `tessellator.draw()` final.
+Resultat : 6x a 12x reduction du nombre de draw calls par element (1 draw par texture au lieu de 1 draw par face).
+**Regle** : En OpenGL immediate mode (Tessellator/BufferBuilder), TOUJOURS batcher les vertices par texture. Un `begin()`/`draw()` est un cycle GPU coûteux — minimiser leur frequence est la premiere optimisation a faire pour tout renderer custom.
+
+---
+
 ## 2026-05-01 — Phase 9 : EntityTNTPrimed.explode() est private (non-overridable)
 
 **Systeme** : EntityModdedTNTPrimed (Phase 9 — TNT custom)
