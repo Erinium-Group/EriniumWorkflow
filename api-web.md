@@ -205,7 +205,10 @@ Grade du joueur. Fonctionne meme si le joueur est hors ligne (lit depuis les fic
 {
   "rankId": "vip",
   "rankName": "VIP",
-  "priority": 10
+  "priority": 10,
+  "prefix": "&6[VIP] ",
+  "suffix": "",
+  "color": "&6"
 }
 ```
 
@@ -215,9 +218,14 @@ Si le joueur n'a pas de grade specifique (ou grade par defaut) :
 {
   "rankId": "default",
   "rankName": "default",
-  "priority": 0
+  "priority": 0,
+  "prefix": "&7",
+  "suffix": "",
+  "color": "&7"
 }
 ```
+
+Les champs `prefix`, `suffix` et `color` peuvent contenir des codes Minecraft `&` (ou `§`) pour les couleurs et formats : `&0-9a-f` pour les couleurs, `&l` (gras), `&m` (barre), `&n` (souligne), `&o` (italique), `&r` (reset).
 
 ---
 
