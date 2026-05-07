@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-05-07 — Vercel serverless : filesystem read-only, stockage skins incompatible
+
+**Systeme** : `EriniumFactionWeb/src/app/api/profile/skin/route.ts` + `EriniumFactionWeb/src/app/api/skin/[uuid]/route.ts`
+**Probleme** : Upload de skin echoue en prod Vercel avec `ENOENT /var/task/public/skins`. Le code initial faisait `mkdir + writeFile` dans `public/skins/{uuid}.png`. En local Next.js OK, en prod Vercel KO.
+**Cause racine** : Vercel serverless (et toute plateforme serverless type AWS Lambda) execute chaque requete dans un container ephemere avec un filesystem **read-only** sauf `/tmp`. Le dossier `public/` est bundle au build et **immuable au runtime**. Toute tentative de creer/ecrire un fichier dans `public/` echoue. De plus, meme si `/tmp` etait utilise, il ne persiste pas entre invocations (cold starts) et n'est pas partage entre instances.
+**Solution** : Migrer le stockage des PNG vers Postgres (table `player_skins (uuid PRIMARY KEY, png_data BYTEA, updated_at TIMESTAMP)`). POST fait un `INSERT ... ON CONFLICT DO UPDATE`. GET fait un `SELECT png_data WHERE uuid = $1` et renvoie le buffer avec `Content-Type: image/png`. Fallback sur `public/steve.png` (lecture OK car bundle statique). La connexion Neon serverless gere automatiquement le pooling cote driver — pas de connexion persistante a maintenir.
+**Regle** : Sur Vercel/serverless, JAMAIS ecrire de fichiers utilisateurs sur le filesystem. Stocker en DB (bytea pour binaires < 1 MB, sinon Vercel Blob ou S3). Les assets statiques (steve.png, images du site) restent dans `public/` et sont lisibles. Le decodage du bytea Neon : peut renvoyer `Buffer`, `Uint8Array` ou string `\\x...` (hex) — toujours normaliser via un helper.
+
+---
+
 ## 2026-05-07 — SimpleNetworkWrapper.registerMessage doit etre appele des deux cotes
 
 **Systeme** : `skin/SkinNetwork.java` + `skin/client/SkinPacketHandler.java`
