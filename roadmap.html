@@ -4806,6 +4806,70 @@
       </div>
     </div>
 
+    <!-- ─── SYSTEME DE SKIN CUSTOM ─── -->
+    <div class="cat-card cat-card-done">
+      <div class="card-head">
+        <div class="card-title">Systeme de Skin Custom</div>
+        <div class="badge badge-done">Termine</div>
+        <span class="card-toggle-icon">&#9660;</span>
+      </div>
+      <div class="card-progress-row">
+        <span class="card-progress-label">Progression</span>
+        <span class="card-progress-count">10 / 10 taches</span>
+      </div>
+      <div class="card-track">
+        <div class="card-fill" style="width: 100%;"></div>
+      </div>
+      <div class="card-body">
+      <div class="task-list">
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Page profil avec viewer 3D du skin (skinview3d)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Upload drag &amp; drop + clic, validation client (preview live)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Endpoint POST /api/profile/skin (Bearer JWT ou cookie)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Validation stricte serveur : signature PNG + IHDR 64x64 + 100 KB max</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Stockage filesystem public/skins/{uuid}.png + ecriture atomique (rename)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Endpoint GET /api/skin/[uuid].png public + fallback steve.png</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Packet SyncSkinPacket (UUID + URL) broadcast au PlayerLoggedInEvent</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Cache RAM client (UUID -&gt; ResourceLocation) + fetch HTTP async</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Mixin AbstractClientPlayer.getLocationSkin via SkinHook (no mod imports)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Fallback Steve embarque + clear cache au disconnect</span>
+        </div>
+      </div>
+      <a href="specs/skin-system.html" class="spec-link">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6z"/><path d="M8 13h8v2H8zm0 4h5v2H8z"/></svg>
+        Voir le cahier des charges complet
+      </a>
+      </div>
+    </div>
+
     <!-- ─── BLOCK ANIMATION FRAMEWORK (EriAPI) ─── -->
     <div class="cat-card cat-card-wip wide">
       <div class="card-head">

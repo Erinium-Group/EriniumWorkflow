@@ -1504,3 +1504,12 @@ Or `EriEntityDef` définissait correctement HP, damage, armor, AI flags (`canSwi
 **Cause racine** : Confusion package — `WorldClient` est dans `net.minecraft.client.multiplayer`, pas dans `net.minecraft.world` (ou serait le `World` server-side).
 **Solution** : Utiliser `import net.minecraft.client.multiplayer.WorldClient;`.
 **Regle** : Cote client side-only, `Minecraft.getMinecraft().world` retourne un `WorldClient`. Toujours importer depuis `net.minecraft.client.multiplayer.WorldClient`.
+
+
+## 2026-05-07 — SkinNetwork constructor private blocks @SubscribeEvent registration
+
+**Systeme** : SkinNetwork.java (custom skin sync)
+**Probleme** : Build failed avec `SkinNetwork() has private access in SkinNetwork` quand on tente `MinecraftForge.EVENT_BUS.register(new SkinNetwork())`.
+**Cause racine** : Pattern utilitaire (toutes les methodes statiques) -> on avait declare `private SkinNetwork() {}` pour empecher l'instanciation. Mais l'enregistrement Forge `@SubscribeEvent` necessite une instance de la classe (la methode `onLogin` n'est pas statique).
+**Solution** : Soit (a) rendre `onLogin` static + utiliser `MinecraftForge.EVENT_BUS.register(SkinNetwork.class)`, soit (b) rendre le constructeur public/package-private. On a choisi (b) ici car la methode garde acces aux singletons.
+**Regle** : Quand une classe expose des `@SubscribeEvent` non-statiques destines a `MinecraftForge.EVENT_BUS.register(new X())`, le constructeur doit etre accessible (public ou package-private), pas private.

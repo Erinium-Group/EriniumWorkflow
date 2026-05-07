@@ -588,3 +588,61 @@ requests.post(f'{API}/api/admin/kick', json={
 | 405 | Methode HTTP non supportee |
 | 500 | Erreur serveur interne |
 | 503 | Serveur Minecraft non disponible |
+
+
+---
+
+## API site web (Next.js)
+
+> Ces endpoints sont **separes** du serveur API Netty embarque dans le mod. Ils tournent sur le site Next.js (`EriniumFactionWeb/`) et sont publics pour la lecture, prives pour l'ecriture (auth via cookie session ou Bearer JWT — middleware partage avec le launcher).
+
+### Skin custom
+
+Le site stocke les skins des joueurs sur le filesystem (`EriniumFactionWeb/public/skins/{uuid}.png`) et les sert publiquement. Le mod (cote client) telecharge ces URLs en async pour appliquer le skin sur le rendu du joueur.
+
+#### `POST /api/profile/skin`
+
+**Auth requise** (cookie session ou `Authorization: Bearer <jwt>`).
+
+Upload d'un skin Minecraft 64x64. Multipart form-data, champ `file`.
+
+Validation serveur stricte :
+- Taille <= 100 KB
+- Signature PNG (8 bytes magic + chunk IHDR)
+- Dimensions 64x64 (lues depuis IHDR, pas seulement le content-type)
+
+L'utilisateur doit avoir un compte Minecraft lie (`mc_uuid` non null), sinon `409`.
+
+Reponse 200 :
+```json
+{
+  "url": "/api/skin/<uuid>.png?v=1715175600000",
+  "uuid": "069a79f4-44e9-4726-a5be-fca90e38aaf5"
+}
+```
+
+Codes d'erreur :
+| Code | Signification |
+|------|---------------|
+| 401 | Non authentifie |
+| 403 | TOTP non verifie |
+| 400 | Aucun fichier / taille / format / dimensions invalides |
+| 409 | Compte Minecraft non lie ou UUID malforme |
+| 500 | Erreur d'ecriture |
+
+Ecriture atomique : le PNG est ecrit dans `{uuid}.<rand>.tmp` puis `fs.rename` vers `{uuid}.png` — un GET concurrent ne voit jamais un fichier partiel.
+
+#### `GET /api/skin/{uuid}.png`
+
+**Public**, sans auth.
+
+Sert le PNG correspondant a l'UUID. Si le fichier n'existe pas, retourne `public/steve.png` (200, fallback transparent).
+
+Headers :
+- `Content-Type: image/png`
+- `Cache-Control: public, max-age=60` (skin custom) ou `max-age=300` (fallback Steve)
+
+Le mod ajoute systematiquement `?v=<timestamp>` lors du fetch a la connexion pour forcer le contournement du cache HTTP.
+
+Format UUID accepte : avec ou sans tirets, lowercase ou uppercase. Le serveur normalise en lowercase-with-dashes pour matcher le nom de fichier.
+
