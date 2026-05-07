@@ -106,6 +106,14 @@ La verification des permissions suit cette chaine (dans l'ordre) :
 | `eriniumfaction.lootbox.preview` | Afficher le contenu d'un lootpool via `/lootbox preview` |
 | `eriniumfaction.lootbox.*` | Wildcard couvrant toutes les permissions `eriniumfaction.lootbox.` |
 
+### Profil (`eriniumfaction.profile.*`)
+
+| Permission | Description |
+|------------|-------------|
+| `eriniumfaction.profile.reset` | Remettre a zero les stats d'un joueur via `/profile reset <joueur>` |
+| `eriniumfaction.profile.set` | Definir une stat d'un joueur via `/profile set <joueur> <stat> <valeur>` |
+| `eriniumfaction.profile.*` | Wildcard couvrant toutes les permissions `eriniumfaction.profile.` |
+
 ### Securite Auth (`eriniumfaction.security.*`)
 
 | Permission | Description |
