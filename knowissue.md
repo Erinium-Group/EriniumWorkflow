@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-05-07 — SimpleNetworkWrapper.registerMessage doit etre appele des deux cotes
+
+**Systeme** : `skin/SkinNetwork.java` + `skin/client/SkinPacketHandler.java`
+**Probleme** : Crash serveur `Undefined discriminator for message type ...PacketSkinSync in channel eriniumfaction_skin` au login d'un joueur. Un fix precedent avait deplace l'appel `registerMessage(SkinPacketHandler.class, PacketSkinSync.class, 0, Side.CLIENT)` de `SkinNetwork.init()` (commun) vers `ClientProxy.init()` (client only) — pour eviter de charger la classe `@SideOnly(CLIENT)` cote serveur. Resultat : le serveur n'avait plus aucun encoder enregistre pour le message id 0, donc impossible d'envoyer le packet.
+**Cause racine** : `SimpleNetworkWrapper.registerMessage(handler, message, id, side)` doit etre appele des DEUX cotes : sur le sender (server) il enregistre l'encoder du message pour le discriminator id, sur le receiver (client) il enregistre le handler. Skipper l'appel cote serveur supprime la connaissance du discriminator.
+**Solution** : Retirer `@SideOnly(Side.CLIENT)` de la classe `SkinPacketHandler` et deplacer l'import `net.minecraft.client.Minecraft` au niveau methode (FQN inline). Le ClassLoader JVM reste lazy : tant que `onMessage` n'est pas invoque (jamais cote serveur, Forge route uniquement vers `Side.CLIENT`), `Minecraft` n'est pas resolu. Remettre l'appel `registerMessage(...)` dans `SkinNetwork.init()` (commun, appele dans `CommonProxy.init`). Retirer `registerClientHandler()` et son appel depuis ClientProxy.
+**Regle** : Pour TOUT `SimpleNetworkWrapper`, `registerMessage` doit imperativement etre appele des deux cotes (commun, dans `init`). Pour eviter le crash de classloading sur dedicated server, NE PAS mettre `@SideOnly(CLIENT)` sur les handlers de packets S->C. Garder les references client-only (Minecraft, TextureManager, etc.) UNIQUEMENT a l'interieur des corps de methodes (FQN ou import OK car la JVM est lazy), JAMAIS dans des champs statiques, des initializers, ou des signatures de methodes publiques.
+
+---
+
 ## 2026-05-05 — Phase 10 : translation keys Item/Block sans prefix modid affichent la cle brute
 
 **Systeme** : `erina/extra/Item*.java` + `erina/extra/Block*.java` (Phase 10 features creees a la main, hors EriItem builder)
