@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-05-07 — EriAPI EventBuilder.filter() ecrasait les filtres precedents (Jump Boost overworld)
+
+**Systeme** : `EriAPI/src/main/java/fr/eri/eriapi/event/EventBuilder.java` (impact : `ErinaEffects.java` Jump Boost)
+**Probleme** : Joueur en overworld (dim 0) recoit Jump Boost permanent. Effet AUSSI present hors Erina alors que `ErinaEffects.applyJumpBoost` est explicitement filtre sur `provider.getDimension() == ErinaDimension.DIM_ID` (= 42).
+**Cause racine** : `EventBuilder.filter(Predicate)` faisait `this.filter = predicate` a chaque appel. Donc une chaine `.filter(phaseEND).filter(notNull).filter(dim==42).filter(!isRemote)` ne conservait que **le dernier** predicate. Resultat : seul `!e.player.world.isRemote` etait teste, le check de dimension etait perdu, et `applyJumpBoost` etait appele dans toutes les dimensions cote serveur. Tout listener EriAPI utilisant plusieurs `.filter(...)` chaines etait silencieusement casse.
+**Solution** : Modifier `EventBuilder.filter()` pour combiner les predicats successifs avec `Predicate.and()` : `this.filter = (this.filter == null) ? predicate : this.filter.and(predicate);`. Bump EriAPI 1.6.7 -> 1.6.8, rebuild, copier le jar dans `EriniumFaction/libs/`, mettre a jour `build.gradle`, doc events.html FR/EN, README, patchnote.
+**Regle** : EriAPI EventBuilder combine maintenant les filtres en AND. Tout `.filter(...)` chaine est cumule. Si un comportement OR est voulu : combiner les predicats manuellement dans un seul `.filter(e -> p1.test(e) || p2.test(e))`. Toujours utiliser EriAPI >= 1.6.8 pour cette correction.
+
+---
+
 ## 2026-05-07 — Vercel serverless : filesystem read-only, stockage skins incompatible
 
 **Systeme** : `EriniumFactionWeb/src/app/api/profile/skin/route.ts` + `EriniumFactionWeb/src/app/api/skin/[uuid]/route.ts`
