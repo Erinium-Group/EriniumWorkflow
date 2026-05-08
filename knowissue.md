@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-05-08 — Nom de channel SimpleNetworkWrapper > 20 caracteres (deconnexion)
+
+**Systeme** : `profile/network/ProfileNetwork.java`
+
+**Probleme** : Le client se faisait deconnecter du serveur avec
+`io.netty.handler.codec.DecoderException: The received string length is longer than maximum allowed (22 > 20)`
+des qu'un packet etait envoye sur le channel du systeme profil.
+
+**Cause racine** : Le nom du channel passe a `NetworkRegistry.INSTANCE.newSimpleChannel(...)` est
+serialise comme une chaine Minecraft dans le packet `CustomPayload`, et celle-ci est limitee a
+**20 caracteres maximum**. Le channel `eriniumfaction_profile` (22 caracteres) depasse cette limite.
+
+**Solution** : Renommer le channel en `ef_profile` (10 caracteres). Tous les autres channels du
+mod respectent la limite (max actuel : `eriniumfaction_magic` a 20 chars, OK pile poil).
+
+**Regle** : TOUT nouveau `SimpleNetworkWrapper` doit avoir un nom de **20 caracteres ou moins**.
+Eviter le prefixe `EriniumFaction.MODID + "_..."` qui consomme deja 14 chars : preferer `ef_xxx` ou
+`erinium_xxx` pour avoir de la marge.
+
+---
+
 ## 2026-05-07 — EriAPI EventBuilder.filter() ecrasait les filtres precedents (Jump Boost overworld)
 
 **Systeme** : `EriAPI/src/main/java/fr/eri/eriapi/event/EventBuilder.java` (impact : `ErinaEffects.java` Jump Boost)
