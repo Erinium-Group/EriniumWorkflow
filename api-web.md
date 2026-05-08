@@ -227,6 +227,80 @@ Si le joueur n'a pas de grade specifique (ou grade par defaut) :
 
 Les champs `prefix`, `suffix` et `color` peuvent contenir des codes Minecraft `&` (ou `§`) pour les couleurs et formats : `&0-9a-f` pour les couleurs, `&l` (gras), `&m` (barre), `&n` (souligne), `&o` (italique), `&r` (reset).
 
+#### `GET /api/players/{uuid}/profile-stats`
+
+Statistiques `ProfilePlayerData` (kills, deaths, assists, blocs, temps de jeu) du joueur. Fonctionne meme si le joueur est hors ligne (lecture du NBT `playerdata/<uuid>.dat` depuis le disque).
+
+```json
+{
+  "uuid": "069a79f4-44e9-4726-a5be-fca90e38aaf5",
+  "name": "Notch",
+  "online": false,
+  "kills": 142,
+  "deaths": 67,
+  "assists": 23,
+  "kd": 2.119,
+  "kda": 2.462,
+  "blocksMined": 18432,
+  "blocksPlaced": 9821,
+  "playtimeSeconds": 432000,
+  "firstJoinMs": 1735689600000,
+  "factionId": "lions",
+  "factionName": "Les Lions",
+  "factionRole": "OFFICER",
+  "rankPrefix": "&6[VIP] "
+}
+```
+
+Reponse 404 si aucun fichier playerdata n'existe et le joueur n'est pas en ligne.
+
+---
+
+### Leaderboard
+
+#### `GET /api/leaderboard/{type}?limit=&faction=`
+
+Top joueurs trie par la statistique demandee.
+
+`type` accepte : `kills`, `deaths`, `kd`, `kda`, `assists`, `playtime`, `blocks_mined`, `blocks_placed`.
+
+Parametres optionnels :
+- `limit` : nombre max d'entrees (1-500, defaut 100).
+- `faction` : filtre par `factionId` ou `factionName`. Valeur `all` ou absence = pas de filtre.
+
+```json
+{
+  "type": "kills",
+  "limit": 100,
+  "faction": null,
+  "count": 87,
+  "lastRefreshMs": 1735776123456,
+  "entries": [
+    {
+      "rank": 1,
+      "uuid": "069a79f4-44e9-4726-a5be-fca90e38aaf5",
+      "name": "Notch",
+      "online": true,
+      "kills": 142,
+      "deaths": 67,
+      "assists": 23,
+      "kd": 2.119,
+      "kda": 2.462,
+      "blocksMined": 18432,
+      "blocksPlaced": 9821,
+      "playtimeSeconds": 432000,
+      "firstJoinMs": 1735689600000,
+      "factionId": "lions",
+      "factionName": "Les Lions",
+      "factionRole": "OFFICER",
+      "rankPrefix": "&6[VIP] "
+    }
+  ]
+}
+```
+
+Le cache de leaderboard est rafraichi de maniere asynchrone toutes les 60 secondes. Les disques sont scannes hors thread tick pour preserver le TPS. `lastRefreshMs` indique la date du dernier rafraichissement reussi.
+
 ---
 
 ### Factions
