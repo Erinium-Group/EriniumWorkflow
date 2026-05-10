@@ -1564,3 +1564,12 @@ Or `EriEntityDef` définissait correctement HP, damage, armor, AI flags (`canSwi
 **Cause racine** : Pattern utilitaire (toutes les methodes statiques) -> on avait declare `private SkinNetwork() {}` pour empecher l'instanciation. Mais l'enregistrement Forge `@SubscribeEvent` necessite une instance de la classe (la methode `onLogin` n'est pas statique).
 **Solution** : Soit (a) rendre `onLogin` static + utiliser `MinecraftForge.EVENT_BUS.register(SkinNetwork.class)`, soit (b) rendre le constructeur public/package-private. On a choisi (b) ici car la methode garde acces aux singletons.
 **Regle** : Quand une classe expose des `@SubscribeEvent` non-statiques destines a `MinecraftForge.EVENT_BUS.register(new X())`, le constructeur doit etre accessible (public ou package-private), pas private.
+
+
+## 2026-05-10 — @Inject keyTyped ne recoit pas Tab dans CleanRoomLoader
+
+**Systeme** : MixinGuiChat.java (chat Tab-completion hdv.@pseudo et @pseudo)
+**Probleme** : L'injection `@Inject(method = "keyTyped", at = @At("HEAD"), cancellable = true)` ne fire jamais quand Tab est presse dans GuiChat, malgre que les autres touches fonctionnent. Apres 4 tentatives (changement de priorite, ForgeEvent, recompute de suggestions), Tab toujours ignoré.
+**Cause racine** : Dans CleanRoomLoader (fork Java 25 de Forge 1.12.2), la touche Tab est interceptee AVANT que `keyTyped` soit appele — probablement dans la gestion native du clavier ou dans un patch CleanRoomLoader sur `handleKeyboardInput`. L'injection HEAD sur `keyTyped` ne recoit donc jamais keyCode=15.
+**Solution** : Injecter dans `handleKeyboardInput` (la methode parente qui appelle `keyTyped`) avec `@Inject(method = "handleKeyboardInput", at = @At("HEAD"), cancellable = true)`. A ce niveau, `Keyboard.getEventKey()` retourne bien 15 pour Tab, et `ci.cancel()` empeche `keyTyped` d'etre appele.
+**Regle** : Dans CleanRoomLoader, NE JAMAIS utiliser `@Inject(method = "keyTyped", ...)` pour intercepter la touche Tab dans un GuiScreen. Toujours passer par `handleKeyboardInput` ou un event Forge `GuiScreenEvent.KeyboardInputEvent.Pre`.
