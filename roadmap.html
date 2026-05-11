@@ -4264,52 +4264,84 @@
     </div>
 
     <!-- ─── HOTEL DES VENTES (HDV) ─── -->
-    <div class="cat-card cat-card-planned wide">
+    <div class="cat-card cat-card-done wide">
       <div class="card-head">
         <div class="card-title">Hotel des Ventes (HDV)</div>
-        <div class="badge badge-planned">Planifie</div>
+        <div class="badge badge-done">Termine</div>
         <span class="card-toggle-icon">&#9660;</span>
       </div>
       <div class="card-progress-row">
         <span class="card-progress-label">Progression</span>
-        <span class="card-progress-count">0 / 8 taches</span>
+        <span class="card-progress-count">16 / 16 taches</span>
       </div>
       <div class="card-track">
-        <div class="card-fill" style="width: 0%;"></div>
+        <div class="card-fill" style="width: 100%;"></div>
       </div>
       <div class="card-body">
       <div class="task-list">
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Structure AuctionHouse (listings, lucky blocks, encheres — JSON WorldSavedData)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Structure AuctionHouse (HDVListing, HDVData, WorldSavedData JSON)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Page vente directe (item + prix unite, quantite, dual currency dollars/Eris)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Page marche (vente directe, item + prix, quantite)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Systeme Lucky Block (popup 3x9, remplissage, prix, achat aleatoire, block posable)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Dual currency dollars / Eris (choix vendeur, choix acheteur)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Page encheres (mise en vente, duree, surenchere, fin automatique)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Boost listing (1000$ — annonce publique dans le chat serveur)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Page statistiques (graphique prix x quantite sur 7 jours par item)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Systeme Lucky Block (popup 3x9, remplissage, prix, achat aleatoire)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Page mes ventes (annulation, recuperation items restants)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Page encheres (mise en vente, duree, surenchere, fin automatique)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">GUI complet EriGuiScreen + packets reseau</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Page statistiques (graphique prix x quantite sur 7 jours par item)</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Commande /hdv et keybind</span>
+          <div class="task-check checked"></div>
+          <span class="task-name done">Page mes ventes (annulation listing, recuperation items restants)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">GUI complet EriGuiScreen (Starfield, TabView, barre de recherche partagee)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Packets reseau client/serveur (GuiNetworkHandler)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Commande /hdv (ouvrir, rechercher par @pseudo, filtres avances)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Recherche avancee : @pseudo, price.$&lt;N, price.$&gt;N, price.eris&lt;N, price.eris&gt;N (HdvSearchQuery)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Recherche en temps reel (debounce 400ms, plus de bouton Rechercher)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Helper ? — popup syntaxe des parametres de recherche</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Chat : liens hdv.@pseudo cliquables (cyan, gras, souligne — ouvre /hdv @pseudo)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Chat : autocomplete TAB hdv.@pseudo et @mention (popup suggestion, navigation clavier)</span>
         </div>
       </div>
       <a href="specs/auction-house.html" class="spec-link">
