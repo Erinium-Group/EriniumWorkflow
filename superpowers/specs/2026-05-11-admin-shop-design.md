@@ -60,7 +60,7 @@ Client [B] → GuiAdminShop → sendAction("shop_gui", "shop_gui", "buy", "id=X|
 
 ```java
 ShopItem {
-    String configId;        // clé unique ex: "iron_ingot"
+    String configId;        // clé unique = "<dossier_parent>/<id>" ex: "ressources/iron_ingot"
     ItemStack itemStack;    // résolu au chargement, pas à chaque tick
     String displayName;     // "Lingot de Fer"
     long baseBuyPrice;      // 0 = item non achetable par le joueur
@@ -69,9 +69,17 @@ ShopItem {
     int maxQtyPerTx;        // défaut 64
 }
 
-ShopSubCategory { String name; List<ShopItem> items; }
-ShopCategory    { String name; String iconItemId; List<ShopSubCategory> subs; }
+// ShopSubCategory supprimé — ShopCategory est récursif
+ShopCategory {
+    String configId;              // chemin du dossier relatif à adminshop/ ex: "ressources/metaux"
+    String displayName;           // depuis category.json, "Métaux"
+    String iconItemId;            // depuis category.json, "minecraft:iron_ingot"
+    List<ShopCategory> children;  // sous-catégories (triées alphabétiquement par nom de dossier)
+    List<ShopItem> items;         // items directs (depuis items.json, peuvent être vides)
+}
 ```
+
+**Ordre d'affichage en jeu** : pour chaque catégorie, les `children` (sous-catégories) apparaissent en premier (ordre alphabétique du nom de dossier), puis les `items` en dessous.
 
 ### ShopPriceData (WorldSavedData)
 
@@ -87,44 +95,69 @@ long lastDecayTimestamp;             // epoch ms — pour recalcul decay au rest
 
 **Decay au chargement** : `readFromNBT()` calcule `n = (now - lastDecay) / decayIntervalMs`, applique `influence *= decayFactor^n` pour compenser les periodes manquées pendant un redémarrage serveur.
 
-### Format shop-config.json
+### Structure de config (directory-based, récursive)
 
+```
+config/eriniumfaction/adminshop/
+├── shop-engine.json                    ← moteur de prix (seul fichier à la racine)
+├── ressources/
+│   ├── category.json                   ← obligatoire pour que le dossier soit reconnu
+│   ├── items.json                      ← optionnel : items vendus directement dans Ressources
+│   └── metaux/
+│       ├── category.json
+│       ├── items.json
+│       └── precieux/
+│           ├── category.json
+│           └── items.json
+└── combat/
+    ├── category.json
+    └── items.json
+```
+
+**Règles de chargement** :
+- Un dossier sans `category.json` → ignoré (warning log)
+- `items.json` absent ou vide → catégorie valide, juste sans items directs
+- Récursion illimitée (profondeur arbitraire)
+- Tri alphabétique sur le nom de dossier à chaque niveau
+
+**`shop-engine.json`** :
 ```json
 {
-  "priceEngine": {
-    "buyFactor": 0.3,
-    "sellFactor": 0.3,
-    "decayFactor": 0.85,
-    "decayIntervalMinutes": 360,
-    "minMultiplier": 0.5,
-    "maxMultiplier": 3.0,
-    "minSpreadPercent": 10
-  },
-  "categories": [
-    {
-      "name": "Ressources",
-      "icon": "minecraft:iron_ingot",
-      "subcategories": [
-        {
-          "name": "Métaux",
-          "items": [
-            {
-              "id": "iron_ingot",
-              "item": "minecraft:iron_ingot",
-              "display": "Lingot de Fer",
-              "buy": 50,
-              "sell": 40,
-              "maxQty": 64
-            }
-          ]
-        }
-      ]
-    }
-  ]
+  "buyFactor": 0.3,
+  "sellFactor": 0.3,
+  "decayFactor": 0.85,
+  "decayIntervalMinutes": 360,
+  "minMultiplier": 0.5,
+  "maxMultiplier": 3.0,
+  "minSpreadPercent": 10
 }
 ```
 
-`ShopConfigLoader` parse ce JSON avec Gson au démarrage et à chaque `/shopadmin reload`. Les `ItemStack` sont résolus une seule fois. Un item inconnu (`Item.getByNameOrId()` retourne null) génère un warning dans les logs et est ignoré silencieusement.
+**`category.json`** :
+```json
+{
+  "name": "Ressources",
+  "icon": "minecraft:iron_ingot"
+}
+```
+
+**`items.json`** :
+```json
+[
+  {
+    "id": "iron_ingot",
+    "item": "minecraft:iron_ingot",
+    "display": "Lingot de Fer",
+    "buy": 50,
+    "sell": 40,
+    "maxQty": 64
+  }
+]
+```
+
+Le champ `"id"` est la clé locale — `ShopItem.configId` = `"<chemin_dossier>/<id>"` pour garantir l'unicité globale même si deux catégories ont un item avec le même id local.
+
+`ShopConfigLoader` parcourt l'arbre récursivement avec `File.listFiles()`, parse les JSON avec Gson au démarrage et à chaque `/shopadmin reload`. Les `ItemStack` sont résolus une seule fois au chargement. Un item inconnu (`Item.getByNameOrId()` retourne null) génère un warning dans les logs et est ignoré silencieusement.
 
 ---
 
@@ -271,8 +304,7 @@ Le serveur répond via `GuiNetworkHandler.openGuiFor(player, "shop_gui", data)` 
 src/main/java/fr/eriniumgroup/eriniumfaction/shop/
 ├── AdminShopManager.java
 ├── ShopConfigLoader.java
-├── ShopCategory.java
-├── ShopSubCategory.java
+├── ShopCategory.java           (récursif, ShopSubCategory supprimé)
 ├── ShopItem.java
 ├── ShopPriceEngine.java
 ├── ShopPriceData.java
@@ -282,7 +314,11 @@ src/main/java/fr/eriniumgroup/eriniumfaction/shop/
 └── command/
     └── AdminShopCommand.java
 
-config/eriniumfaction/shop-config.json   (généré au 1er lancement si absent)
+config/eriniumfaction/adminshop/
+├── shop-engine.json            (généré au 1er lancement si absent)
+└── exemple/
+    ├── category.json           (exemple de catégorie)
+    └── items.json              (exemple d'items)
 ```
 
 ### Fichiers modifiés
