@@ -1573,3 +1573,35 @@ Or `EriEntityDef` définissait correctement HP, damage, armor, AI flags (`canSwi
 **Cause racine** : Dans CleanRoomLoader (fork Java 25 de Forge 1.12.2), la touche Tab est interceptee AVANT que `keyTyped` soit appele — probablement dans la gestion native du clavier ou dans un patch CleanRoomLoader sur `handleKeyboardInput`. L'injection HEAD sur `keyTyped` ne recoit donc jamais keyCode=15.
 **Solution** : Injecter dans `handleKeyboardInput` (la methode parente qui appelle `keyTyped`) avec `@Inject(method = "handleKeyboardInput", at = @At("HEAD"), cancellable = true)`. A ce niveau, `Keyboard.getEventKey()` retourne bien 15 pour Tab, et `ci.cancel()` empeche `keyTyped` d'etre appele.
 **Regle** : Dans CleanRoomLoader, NE JAMAIS utiliser `@Inject(method = "keyTyped", ...)` pour intercepter la touche Tab dans un GuiScreen. Toujours passer par `handleKeyboardInput` ou un event Forge `GuiScreenEvent.KeyboardInputEvent.Pre`.
+
+
+## 2026-05-13 — Gradle 5.6.4 "Failed to clean up stale outputs" / "Unable to delete file"
+
+**Systeme** : `build.gradle` — tâche `:compileJava` (sourceSets merger ForgeGradle)
+
+**Probleme** : Le build échoue avec deux erreurs possibles :
+- `Failed to clean up stale outputs` (CleanupStaleOutputsExecuter Gradle)
+- `java.io.IOException: Unable to delete file: ...HDVNetworkHandler.class` (SimpleStaleClassCleaner javac)
+
+**Cause racine** : Le `sourceSets merger` dans `build.gradle` (lignes ~175-179) place classes ET resources dans le même dossier (`build/sourcesSets/main`). Cela crée deux problèmes :
+1. Le registre `buildOutputCleanup` de Gradle accumule les anciens outputs et le `CleanupStaleOutputsExecuter` tente de les supprimer
+2. Les **daemons Gradle zombies** (de builds échoués précédents) maintiennent des handles ouverts sur les `.class` compilés — Java `File.delete()` échoue sur Windows quand un processus a un handle ouvert exclusif
+
+**Solution** :
+1. Tuer les daemons zombies : `JAVA_HOME=... ./gradlew --stop`
+2. Vider le registre buildOutputCleanup : `Remove-Item -Recurse -Force .gradle/buildOutputCleanup`
+3. Dans `build.gradle` — utiliser PowerShell dans `compileJava.doFirst` pour vider le dossier de sortie AVANT que le stale cleaner ne s'y attaque :
+```groovy
+compileJava.doFirst {
+    def outDir = compileJava.destinationDir.absolutePath
+    exec {
+        commandLine 'powershell', '-NoProfile', '-NonInteractive', '-Command',
+            "Remove-Item -Recurse -Force '${outDir}' -ErrorAction SilentlyContinue; " +
+            "New-Item -ItemType Directory -Force -Path '${outDir}' | Out-Null"
+        ignoreExitValue = true
+    }
+}
+compileJava.options.incremental = false
+```
+
+**Regle** : Si le build échoue avec une erreur "stale outputs" ou "Unable to delete file .class" → lancer `./gradlew --stop` pour tuer les daemons zombies, puis relancer le build. Vérifier que `org.gradle.daemon=false` est bien dans `gradle.properties` (déjà configuré). Note : `org.gradle.daemon=false` désactive les daemons pour les builds CLI, mais IntelliJ peut utiliser ses propres daemons — si le problème se reproduit depuis IntelliJ, lancer `./gradlew --stop` depuis un terminal.
