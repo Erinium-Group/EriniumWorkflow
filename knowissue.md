@@ -1605,3 +1605,18 @@ compileJava.options.incremental = false
 ```
 
 **Regle** : Si le build échoue avec une erreur "stale outputs" ou "Unable to delete file .class" → lancer `./gradlew --stop` pour tuer les daemons zombies, puis relancer le build. Vérifier que `org.gradle.daemon=false` est bien dans `gradle.properties` (déjà configuré). Note : `org.gradle.daemon=false` désactive les daemons pour les builds CLI, mais IntelliJ peut utiliser ses propres daemons — si le problème se reproduit depuis IntelliJ, lancer `./gradlew --stop` depuis un terminal.
+
+## 2026-05-13 — AdminShop packet NBT too big (2 MB limit)
+
+**Systeme** : AdminShopManager.java + ShopPriceData.java (historique prix) + PacketGuiOpen (EriAPI)
+**Probleme** : Crash deconnexion client a l'ouverture de l'AdminShop (touche B) :
+```
+RuntimeException: Tried to read NBT tag that was too big; tried to allocate: 2097178bytes where max allowed: 2097152
+at net.minecraft.nbt.NBTSizeTracker.read(NBTSizeTracker.java:26)
+at fr.eri.eriapi.network.PacketGuiOpen.fromBytes(PacketGuiOpen.java:42)
+```
+**Cause racine** : Le packet `PacketGuiOpen` contenant toutes les donnees AdminShop (categories + items + historique prix 288 samples * N items) depasse la limite NBT Minecraft de 2 MB hardcodee dans `PacketBuffer.readCompoundTag()` qui instancie `new NBTSizeTracker(2097152L)`.
+**Solution** :
+1. `MixinCompressedStreamTools.java` — `@Redirect` sur `PacketBuffer.readCompoundTag()` ciblant le `NEW NBTSizeTracker` pour passer 32 MB a la place (cible `PacketBuffer` car `CompressedStreamTools.read(DataInput)` n'existe pas — le constructeur 2MB est dans `PacketBuffer.readCompoundTag`).
+2. `ShopPriceData.MAX_HISTORY_SAMPLES` reduit de 288 -> 24 pour alleger le payload (24 * 30min = 12h de couverture).
+**Regle** : Si un GUI AdminShop/HDV crashe avec "NBT too big", verifier d'abord si `MixinCompressedStreamTools` est bien enregistre dans `mixins.eriniumfaction.json`. Pour tout nouveau GUI volumineux, envisager de paginer les donnees ou de charger lazily cote serveur via RPC plutot que de tout envoyer dans `PacketGuiOpen`.
