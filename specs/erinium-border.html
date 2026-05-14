@@ -114,97 +114,135 @@
     <div class="page-header">
       <div class="eyebrow">Generation du monde</div>
       <h1>EriniumBorder</h1>
-      <p>Bande exterieure de plaines neutres autour de la zone pre-generee de l'Overworld. Marque visuellement la fin de la carte explorable sans utiliser le World Border vanilla comme frontiere visuelle.</p>
+      <p>Bande exterieure de lissage progressif autour de la zone pre-generee de l'Overworld. Effectue une transition douce entre le sol pre-genere et le worldgen naturel, sans creer de mur vertical visible.</p>
       <div class="header-badges">
         <span class="badge badge-green">Statut: implemente</span>
         <span class="badge badge-cyan">Categorie: Monde</span>
-        <span class="badge badge-violet">Version: 1.0</span>
+        <span class="badge badge-violet">Version: 2.0 (smoothing)</span>
         <span class="badge badge-gold">Dimension: Overworld uniquement</span>
       </div>
     </div>
 
     <section class="section-card" id="contexte">
       <h2><span class="s-num">01</span> Contexte &amp; objectif</h2>
-      <p>EriniumFaction pre-genere une portion finie de l'Overworld au demarrage du serveur. Cette zone est definie par une <strong>bounding box arbitraire en blocs</strong> (pos1 et pos2, comme dans WorldEdit), par defaut <code>(-500, -500) -> (498, 498)</code> = zone spawn + warzone. Au-dela, la generation classique de Minecraft continue mais cree des biomes incoherents (chunks generes a la volee par les explorateurs determines, structures partielles, performance degradee).</p>
-      <p><strong>EriniumBorder</strong> resout ce probleme avec une bande de chunks "neutres" placee <strong>strictement a l'exterieur</strong> de la zone pre-generee. Cette bande sert de frontiere naturelle : des plaines vertes plates, simples, sans mineraux ni structures, qui forment une limite visuelle propre avant que le joueur n'atteigne le World Border vanilla.</p>
+      <p>EriniumFaction pre-genere une portion finie de l'Overworld au demarrage du serveur. Cette zone est definie par une <strong>bounding box arbitraire en blocs</strong> (pos1 et pos2, comme dans WorldEdit), par defaut <code>(-500, -500) -> (498, 498)</code> = zone spawn + warzone. Au-dela, la generation classique de Minecraft continue avec son relief naturel (montagnes, oceans, biomes Erinium). La rencontre brutale entre la zone pre-generee (plate, y=63) et le worldgen naturel cree un <strong>mur vertical</strong> tres visible.</p>
+      <p><strong>EriniumBorder v2</strong> resout ce probleme avec un <strong>lissage progressif</strong> sur plusieurs chunks autour de la zone pre-generee. Au lieu d'imposer un terrain plat sur 2 chunks (ce qui deplacait simplement le mur), chaque chunk de la bande interpole sa heightmap entre la baseline (surfaceY=63) cote interieur et la heightmap naturelle du worldgen cote exterieur.</p>
       <ul>
-        <li><strong>Plate</strong> : terrain uniforme y=63, pas de relief, pas de grottes, pas de minerais.</li>
-        <li><strong>Verte</strong> : biome plaines vanilla par defaut (configurable), mobs passifs et hostiles spawn normalement.</li>
-        <li><strong>Stricte</strong> : un chunk ne devient JAMAIS un chunk border s'il est dans la zone pre-generee.</li>
-        <li><strong>Reproductible</strong> : la commande <code>/eriniumborder regen confirm</code> permet a un admin de reappliquer le template aux chunks border deja charges (apres changement de config par exemple).</li>
+        <li><strong>Progressive</strong> : 5 chunks d'epaisseur par defaut, transition cubique ease-in-out (douce aux extremites).</li>
+        <li><strong>Naturelle</strong> : sur les chunks exterieurs de la bande, on garde le biome et les top blocks du worldgen normal (sable du desert, grass des plaines, etc.). Le biome n'est PAS force par defaut.</li>
+        <li><strong>Stricte</strong> : un chunk dont la position est dans la bbox pre-gen n'est JAMAIS modifie. La bbox subit un <strong>edge chunk shrinkage</strong> : si pos1/pos2 ne tombent pas exactement sur un bord de chunk, le chunk concerne est rejete de la zone protegee et devient le premier chunk de la bande de lissage (evite les murs sur le chunk de la pos).</li>
+        <li><strong>Reproductible</strong> : la commande <code>/eriniumborder regen confirm</code> reapplique le lissage aux chunks deja charges.</li>
       </ul>
     </section>
 
     <section class="section-card" id="geometrie">
       <h2><span class="s-num">02</span> Geometrie de la bande</h2>
-      <p>La zone pre-generee est definie en <strong>blocs</strong> dans la config par quatre cles : <code>pre_gen_pos1_x</code>, <code>pre_gen_pos1_z</code>, <code>pre_gen_pos2_x</code>, <code>pre_gen_pos2_z</code>. Les coordonnees peuvent etre saisies dans n'importe quel ordre : elles sont normalisees en <code>(min, max)</code> a la lecture. Conversion interne en chunks via <code>blockCoord &gt;&gt; 4</code>.</p>
-      <p>La bande border occupe les chunks dont la <strong>distance de Chebyshev en chunks au rectangle pre-gen</strong> est comprise entre <code>stripMinDist</code> et <code>stripMaxDist</code> inclus. La distance vaut 0 si le chunk est <em>dans</em> la bbox.</p>
-      <div class="code-block">minCX = min(pos1X, pos2X) &gt;&gt; 4    maxCX = max(pos1X, pos2X) &gt;&gt; 4
-minCZ = min(pos1Z, pos2Z) &gt;&gt; 4    maxCZ = max(pos1Z, pos2Z) &gt;&gt; 4
+      <p>La zone pre-generee est definie en <strong>blocs</strong> dans la config par quatre cles : <code>pre_gen_pos1_x</code>, <code>pre_gen_pos1_z</code>, <code>pre_gen_pos2_x</code>, <code>pre_gen_pos2_z</code>. Les coordonnees peuvent etre saisies dans n'importe quel ordre : elles sont normalisees en <code>(min, max)</code> a la lecture.</p>
+      <h3>Edge chunk shrinkage</h3>
+      <p>La conversion blocs -&gt; chunks utilise un <strong>retrecissement vers l'interieur</strong> de la bbox : si la position (en blocs) ne tombe pas exactement sur un bord de chunk, le chunk concerne est <em>retire</em> de la zone protegee et devient le premier chunk de la bande de lissage. Cela evite qu'un chunk soit considere comme pre-gen alors qu'il contient des blocs hors bbox.</p>
+      <div class="code-block">// minBlockX inclus dans pre-gen seulement si (minBlockX % 16 == 0)
+minChunkX = (minBlockX &amp; 15) == 0  ? (minBlockX &gt;&gt; 4)     : (minBlockX &gt;&gt; 4) + 1
+minChunkZ = (minBlockZ &amp; 15) == 0  ? (minBlockZ &gt;&gt; 4)     : (minBlockZ &gt;&gt; 4) + 1
 
-dx = max(minCX - cx, cx - maxCX, 0)
+// maxBlockX inclus dans pre-gen seulement si (maxBlockX % 16 == 15)
+maxChunkX = (maxBlockX &amp; 15) == 15 ? (maxBlockX &gt;&gt; 4)     : (maxBlockX &gt;&gt; 4) - 1
+maxChunkZ = (maxBlockZ &amp; 15) == 15 ? (maxBlockZ &gt;&gt; 4)     : (maxBlockZ &gt;&gt; 4) - 1
+
+isBboxValid = (minChunkX &lt;= maxChunkX) AND (minChunkZ &lt;= maxChunkZ)</div>
+      <p>Exemple avec les defauts pos1=(-500,-500), pos2=(498,498) :</p>
+      <ul>
+        <li>minBlockX = -500. -500 &amp; 15 = 12 (non zero) -&gt; minChunkX = (-500 &gt;&gt; 4) + 1 = -31</li>
+        <li>maxBlockX = 498. 498 &amp; 15 = 2 (non 15) -&gt; maxChunkX = (498 &gt;&gt; 4) - 1 = 30</li>
+        <li>Resultat : bbox pre-gen = chunks <code>[-31,-31] -> [30,30]</code> (62x62 chunks). Les chunks <code>-32</code> et <code>31</code> deviennent les premiers chunks de la bande border.</li>
+      </ul>
+      <div class="info-box warn">Si la bbox est trop petite et que le shrinkage la rend invalide (minChunk &gt; maxChunk), le systeme se desactive a l'execution avec une erreur claire au demarrage. La bbox doit couvrir au moins 1 chunk plein (16 blocs alignes sur la grille des chunks).</div>
+      <h3>Distance &amp; bande</h3>
+      <p>La bande border occupe les chunks dont la <strong>distance de Chebyshev en chunks au rectangle pre-gen</strong> est comprise entre 1 et <code>smoothing_width_chunks</code> inclus. La distance vaut 0 si le chunk est <em>dans</em> la bbox (jamais touche).</p>
+      <div class="code-block">dx = max(minCX - cx, cx - maxCX, 0)
 dz = max(minCZ - cz, cz - maxCZ, 0)
 distance(cx, cz) = max(dx, dz)
 
 isPreGenChunk(cx, cz) = (distance == 0)
-isBorderChunk(cx, cz) = (stripMinDist &lt;= distance &lt;= stripMaxDist)</div>
-      <p>Avec les defauts (pos1=(-500,-500), pos2=(498,498), inner=1, outer=2) : la bbox couvre les chunks <code>[-32,-32] -> [31,31]</code> (64x64 chunks). La bande commence a 1 chunk hors bbox et finit a 2 chunks hors bbox, formant un anneau rectangulaire de 2 chunks d'epaisseur.</p>
-      <div class="ascii-diagram">              distance = 2 (strip max)
-          +-------------------------+
-          | border (outer)          |
-          |  +---------------------+|
-          |  | border (inner)      ||
-          |  | +-----------------+ ||
-          |  | | pre-gen bbox    | ||
-          |  | | (NEVER touched) | ||
-          |  | | pos1 .. pos2    | ||
-          |  | |                 | ||
-          |  | +-----------------+ ||
-          |  +---------------------+|
-          +-------------------------+
-              distance = 1 (strip min)</div>
+isBorderChunk(cx, cz) = (1 &lt;= distance &lt;= smoothing_width_chunks)</div>
+      <div class="ascii-diagram">              distance = 5 (smoothing_width_chunks)
+          +-----------------------------+
+          | border d=5 (t=1.0, naturel) |
+          |  +-------------------------+|
+          |  | border d=4 (t~0.75)     ||
+          |  |  +---------------------+||
+          |  |  | border d=3 (t~0.5)  |||
+          |  |  |  +-----------------+|||
+          |  |  |  | border d=2 (t~0.25)|
+          |  |  |  |  +-------------+ |||
+          |  |  |  |  |border d=1   | |||
+          |  |  |  |  |(t=0, plat)  | |||
+          |  |  |  |  | +---------+ | |||
+          |  |  |  |  | |pre-gen  | | |||
+          |  |  |  |  | |(jamais  | | |||
+          |  |  |  |  | |touche)  | | |||
+          |  |  |  |  | +---------+ | |||
+          |  |  |  |  +-------------+ |||
+          |  |  |  +-----------------+|||
+          |  |  +---------------------+||
+          |  +-------------------------+|
+          +-----------------------------+</div>
       <div class="info-box note">Note : la zone pre-generee est strictement preservee. Tout chunk dont la distance Chebyshev a la bbox est <code>0</code> n'est jamais reecrit, meme par <code>/eriniumborder regen</code>. La bbox n'a pas besoin d'etre centree sur (0,0).</div>
     </section>
 
     <section class="section-card" id="template">
-      <h2><span class="s-num">03</span> Template de terrain</h2>
-      <p>Quand un chunk border est detecte, son contenu est entierement remplace par un template simple, deterministe et plat :</p>
+      <h2><span class="s-num">03</span> Lissage progressif (smoothing v2)</h2>
+      <p>Le worldgen genere le chunk normalement (terrain + structures + decorations). Apres population, EriniumBorder intervient pour <strong>blender la heightmap</strong> de chaque colonne entre une baseline plate cote interieur et la hauteur naturelle cote exterieur.</p>
+      <h3>Facteur d'interpolation</h3>
+      <p>Pour un chunk a la distance Chebyshev <code>d</code> de la bbox (1 &lt;= d &lt;= smoothing_width_chunks) :</p>
+      <div class="code-block">tChunk = (d - 1) / (smoothing_width_chunks - 1)   // [0, 1]
+eased  = easeInOutCubic(tChunk)
+
+// Pour chaque colonne (lx, lz) du chunk :
+hNatural = scan top-down [255..1] -&gt; premier bloc solide (ignore air, leaves, logs, fleurs, neige...)
+hTarget  = round(lerp(surfaceY, hNatural, eased))</div>
+      <ul>
+        <li><code>d=1</code> : <code>t=0</code> -&gt; <code>hTarget=surfaceY</code> (terrain plat au niveau baseline)</li>
+        <li><code>d=smoothing_width_chunks</code> : <code>t=1</code> -&gt; <code>hTarget=hNatural</code> (terrain naturel preserve)</li>
+        <li>Entre les deux : transition cubique douce (ease-in-out)</li>
+      </ul>
+      <h3>Application par colonne</h3>
+      <p>Trois cas selon la comparaison <code>hTarget</code> vs <code>hNatural</code> :</p>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Y</th><th>Bloc</th><th>Quantite</th></tr></thead>
+          <thead><tr><th>Cas</th><th>Action</th></tr></thead>
           <tbody>
-            <tr><td>0</td><td>Bedrock</td><td>1 couche (sol absolu)</td></tr>
-            <tr><td>1 &mdash; (surfaceY-5)</td><td>Stone</td><td>~58 couches</td></tr>
-            <tr><td>(surfaceY-4) &mdash; (surfaceY-1)</td><td>Dirt</td><td>4 couches (sous-couche vanilla feel)</td></tr>
-            <tr><td>surfaceY (defaut 63)</td><td>Grass</td><td>1 couche</td></tr>
-            <tr><td>surfaceY+1 et au-dessus</td><td>Air</td><td>jusqu'a y=255</td></tr>
+            <tr><td><code>hTarget &lt; hNatural</code> (abaisser)</td><td>Air de <code>hTarget+1</code> a <code>hNatural</code>. Grass a <code>hTarget</code>. 3 dirt sous. Nettoie aussi les decorations (arbres, neige, plantes) jusqu'a <code>hNatural+24</code>.</td></tr>
+            <tr><td><code>hTarget &gt; hNatural</code> (rehausser)</td><td>Stone de <code>hNatural+1</code> a <code>hTarget-1</code>. Grass a <code>hTarget</code>. 3 dirt sous (uniquement la ou c'etait stone). Nettoie les decorations au-dessus de <code>hNatural</code>.</td></tr>
+            <tr><td><code>hTarget == hNatural</code></td><td>Colonne laissee intacte. Garde tout : top blocks naturels, arbres, fleurs, structures. C'est le cas du bord exterieur de la bande (t ~ 1).</td></tr>
           </tbody>
         </table>
       </div>
-      <p>L'epaisseur de dirt s'aligne sur le comportement vanilla (4 couches de dirt sous le grass). Aucun minerai n'est genere : la couche stone est uniforme. Aucune structure (village, donjon, ruine) n'est populee. Aucun arbre, aucune fleur, aucun mob spawn pendant la population.</p>
-      <h3>Algorithme de remplacement</h3>
+      <h3>Detection de la hauteur naturelle</h3>
+      <p>Le scan top-down ignore les blocs qui ne representent pas le terrain solide : air, feuilles, troncs, herbes hautes, fleurs (jaune/rouge), champignons (et leurs blocs geants), couches de neige, nenuphars, vignes, cactus, canne a sucre, deadbush, citrouilles, pasteques. Le premier bloc qui n'est pas dans cette liste est considere comme la surface naturelle.</p>
+      <h3>Hook Forge</h3>
       <ol style="color: var(--slate); margin-left: 24px;">
-        <li>Recuperer le tableau <code>ExtendedBlockStorage[]</code> du chunk.</li>
-        <li>Mettre toutes les sections a <code>null</code> (nettoie grottes, minerais, structures partielles).</li>
-        <li>Re-allouer les sections necessaires (sections 0..surfaceY&gt;&gt;4).</li>
-        <li>Remplir chaque colonne (lx, lz) selon la regle Y ci-dessus.</li>
-        <li>Forcer le <code>biomeArray</code> du chunk au biome configure.</li>
-        <li>Recomputer la skylight, marker <code>lightPopulated</code> et <code>terrainPopulated</code> a true.</li>
-        <li>Marquer le chunk <code>dirty</code> pour sauvegarde sur disque.</li>
-        <li>Si l'operation est posterieure a la generation (regen ou ChunkEvent.Load), envoyer un <code>SPacketChunkData</code> aux joueurs traques sur ce chunk.</li>
+        <li><code>PopulateChunkEvent.Post</code> avec <code>priority = LOWEST</code> : on attend que tout le worldgen normal (terrain + structures + decorations) ait fini.</li>
+        <li>Skip si chunk hors bande ou hors Overworld.</li>
+        <li>Calcul de <code>tChunk</code> et <code>eased</code> une fois par chunk.</li>
+        <li>Pour chaque colonne (256 colonnes/chunk) : scan hNatural, calcul hTarget, application des blocs.</li>
+        <li>Override biome optionnel UNIQUEMENT si <code>border_biome_id</code> est non vide.</li>
+        <li>Regen skylight, mark dirty, repush <code>SPacketChunkData</code> aux clients trackant le chunk.</li>
       </ol>
+      <div class="info-box note">Performance : 256 colonnes/chunk, chacune avec un scan top-down O(256) et un rewrite O(64). Cout total par chunk ~5-15 ms. Comme la generation de chunk n'est pas un hot path tick (rare evenement), c'est invisible meme avec 500-1000 joueurs.</div>
     </section>
 
     <section class="section-card" id="biome">
       <h2><span class="s-num">04</span> Biome &amp; spawn de mobs</h2>
-      <h3>Biome configurable</h3>
-      <p>Le biome utilise dans la bande est defini par <code>border_biome_id</code> (ResourceLocation, par defaut <code>minecraft:plains</code>). Tout biome enregistre est accepte. Le biome est applique :</p>
+      <h3>Biome naturel par defaut (v2)</h3>
+      <p>En v2, <strong>le biome n'est PAS force</strong> dans la bande border. Le worldgen attribue ses biomes Erinium naturels et nous gardons ces biomes intacts. Le lissage modifie la heightmap mais conserve les top blocks adaptes au biome local (grass plaines, sable desert, etc.). Cela garantit une transition visuelle continue : pas de "ligne" entre les biomes Erinium et la bande de lissage.</p>
+      <h3>Override optionnel</h3>
+      <p>L'admin peut forcer un biome via <code>border_biome_id</code> (ResourceLocation, par defaut <code>""</code> = vide = pas d'override). Si non vide, le biome est applique a la fois :</p>
       <ul>
-        <li><strong>Dans le BiomeProvider</strong> : <code>EriniumBiomeProvider.getBiome(BlockPos)</code> retourne le biome border si le chunk est dans la bande. Cela couvre les lookups runtime (lighting, color blending, /locatebiome).</li>
-        <li><strong>Dans le chunk</strong> : le <code>biomeArray</code> du chunk est ecrase au biome border lors de l'application du template.</li>
+        <li><strong>Dans le BiomeProvider</strong> : <code>EriniumBiomeProvider.getBiome(BlockPos)</code> retourne le biome configure si le chunk est dans la bande.</li>
+        <li><strong>Dans le chunk</strong> : le <code>biomeArray</code> du chunk est ecrase au biome configure lors de l'application du lissage.</li>
       </ul>
       <h3>Spawn de mobs</h3>
-      <p>Par defaut (<code>allow_mob_spawn = true</code>), les mobs (passifs et hostiles) spawn normalement dans la bande, exactement comme dans un biome plaines vanilla. C'est le comportement attendu : la frontiere reste un lieu vivant.</p>
+      <p>Par defaut (<code>allow_mob_spawn = true</code>), les mobs (passifs et hostiles) spawn normalement dans la bande, en suivant les regles du biome naturel sous-jacent. C'est le comportement attendu : la frontiere reste un lieu vivant.</p>
       <p>Si l'admin met <code>allow_mob_spawn = false</code>, un handler <code>LivingSpawnEvent.CheckSpawn</code> place le resultat a <code>DENY</code> pour tout mob qui tente de spawn dans un chunk border.</p>
     </section>
 
@@ -229,8 +267,8 @@ isBorderChunk(cx, cz) = (stripMinDist &lt;= distance &lt;= stripMaxDist)</div>
         <table>
           <thead><tr><th>Event</th><th>Quand</th><th>Action</th></tr></thead>
           <tbody>
-            <tr><td><code>PopulateChunkEvent.Pre</code></td><td>Apres <code>generateChunk</code>, avant <code>populate</code></td><td>Si chunk border : appliquer le template (avant arbres/structures).</td></tr>
-            <tr><td><code>ChunkEvent.Load</code></td><td>Chargement disque ou generation</td><td>Si chunk border mais grass != bloc attendu : reparer (legacy/mise a jour de config).</td></tr>
+            <tr><td><code>PopulateChunkEvent.Post</code> (LOWEST)</td><td>Apres population complete (terrain + structures + arbres)</td><td>Si chunk border : appliquer le lissage progressif column-par-column.</td></tr>
+            <tr><td><code>ChunkEvent.Load</code></td><td>Chargement disque</td><td>No-op pour les chunks deja populates (le lissage est persistant). Sert de garde anti double-application.</td></tr>
             <tr><td><code>LivingSpawnEvent.CheckSpawn</code></td><td>Tentative de spawn naturel</td><td>Si <code>allowMobSpawn=false</code> et chunk border : DENY.</td></tr>
           </tbody>
         </table>
@@ -255,10 +293,9 @@ isBorderChunk(cx, cz) = (stripMinDist &lt;= distance &lt;= stripMaxDist)</div>
             <tr><td><code>pre_gen_pos1_z</code></td><td>int [-1 000 000, 1 000 000]</td><td><code>-500</code></td><td>Corner 1 Z de la bbox pre-gen, en BLOCS.</td></tr>
             <tr><td><code>pre_gen_pos2_x</code></td><td>int [-1 000 000, 1 000 000]</td><td><code>498</code></td><td>Corner 2 X de la bbox pre-gen, en BLOCS.</td></tr>
             <tr><td><code>pre_gen_pos2_z</code></td><td>int [-1 000 000, 1 000 000]</td><td><code>498</code></td><td>Corner 2 Z de la bbox pre-gen, en BLOCS.</td></tr>
-            <tr><td><code>strip_inner_chunks</code></td><td>int [1, 64]</td><td><code>1</code></td><td>Premier chunk hors bbox pre-gen ou commence la bande.</td></tr>
-            <tr><td><code>strip_outer_chunks</code></td><td>int [1, 64]</td><td><code>2</code></td><td>Dernier chunk de la bande. Doit etre &gt;= inner.</td></tr>
-            <tr><td><code>surface_y</code></td><td>int [4, 200]</td><td><code>63</code></td><td>Hauteur uniforme du grass top.</td></tr>
-            <tr><td><code>border_biome_id</code></td><td>string</td><td><code>minecraft:plains</code></td><td>ResourceLocation du biome utilise dans la bande.</td></tr>
+            <tr><td><code>smoothing_width_chunks</code></td><td>int [1, 64]</td><td><code>5</code></td><td>Largeur de la bande de lissage en chunks. La transition s'etale sur cette distance (Chebyshev 1..N).</td></tr>
+            <tr><td><code>surface_y</code></td><td>int [4, 200]</td><td><code>63</code></td><td>Baseline interieure : hauteur cible du grass top sur le premier chunk de la bande (Chebyshev=1). Les chunks plus exterieurs interpolent vers la heightmap naturelle.</td></tr>
+            <tr><td><code>border_biome_id</code></td><td>string</td><td><code>""</code> (vide)</td><td>Override optionnel du biome dans la bande. Vide = pas d'override (biome naturel preserve, recommande). Sinon ResourceLocation valide (ex: <code>minecraft:plains</code>).</td></tr>
             <tr><td><code>allow_mob_spawn</code></td><td>boolean</td><td><code>true</code></td><td>true = spawn normal (plaines), false = aucun spawn naturel.</td></tr>
             <tr><td><code>regen_cooldown_seconds</code></td><td>int [0, 3600]</td><td><code>30</code></td><td>Cooldown entre deux executions de <code>/eriniumborder regen</code>.</td></tr>
           </tbody>
@@ -289,21 +326,23 @@ isBorderChunk(cx, cz) = (stripMinDist &lt;= distance &lt;= stripMaxDist)</div>
       <h2><span class="s-num">08</span> Performance &amp; cas limites</h2>
       <h3>Cout par chunk</h3>
       <ul>
-        <li><strong>Chunks normaux (zone pre-gen ou hors bande)</strong> : un seul check Chebyshev en O(1) au <code>PopulateChunkEvent.Pre</code>. Cout negligeable (~1 us par chunk).</li>
-        <li><strong>Chunks border</strong> : ecriture complete de ~16 384 blocs (16x16x64). ~5-10 ms par chunk. Pour la bbox par defaut (64x64 chunks) avec une bande de 2 chunks d'epaisseur, ~272 chunks border au total. Regen complet = ~1.5-3 s.</li>
+        <li><strong>Chunks normaux (zone pre-gen ou hors bande)</strong> : un seul check Chebyshev en O(1) au <code>PopulateChunkEvent.Post</code>. Cout negligeable (~1 us par chunk).</li>
+        <li><strong>Chunks border</strong> : 256 colonnes scannees top-down (O(256)) + rewrite par colonne O(64). Cout total ~5-15 ms par chunk. Pour la bbox par defaut (62x62 chunks apres shrinkage) avec une bande de 5 chunks, ~700 chunks border au total. Regen complet = ~3-10 s (event ponctuel, non bloquant pour le tick principal).</li>
       </ul>
       <h3>Memoire</h3>
-      <p>Pre-remplissage des sections via <code>ExtendedBlockStorage.set()</code>. Pas d'allocation supplementaire (les sections etaient deja en RAM cote chunk). Les sections au-dessus de surfaceY sont laissees a <code>null</code> = air = 0 octet stocke.</p>
+      <p>Aucune allocation persistante. Les modifications sont des set in-place sur les <code>ExtendedBlockStorage</code> existants du chunk. Les sections vides restent <code>null</code> = air = 0 octet.</p>
       <h3>Cas limites couverts</h3>
       <ul>
-        <li><strong>pos1 == pos2</strong> : la bbox couvre un seul chunk (celui contenant la position). La bande forme un anneau autour de ce chunk.</li>
-        <li><strong>pos1 et pos2 inverses</strong> : la normalisation min/max gere le cas. L'admin peut entrer les coins dans n'importe quel ordre.</li>
-        <li><strong>bbox decentree</strong> : aucun probleme, la distance Chebyshev au rectangle est independante du centre.</li>
-        <li><strong>stripInner = stripOuter</strong> : bande d'un seul chunk d'epaisseur. OK.</li>
-        <li><strong>Biome ID invalide</strong> : fallback sur <code>minecraft:plains</code> (id 1).</li>
-        <li><strong>Chunk deja border</strong> rechargee : <code>ChunkEvent.Load</code> verifie la presence du grass a surfaceY ; si absent, repare ; sinon, ne refresh que le biomeArray.</li>
-        <li><strong>Mining World</strong> : exclu (dimension != 0). Le mining world conserve son propre terrain.</li>
-        <li><strong>Dimension Erina</strong> : exclu egalement (dimension != 0).</li>
+        <li><strong>pos1 == pos2</strong> : un seul bloc, donc bbox vide apres shrinkage =&gt; bbox invalide, systeme desactive avec erreur explicite.</li>
+        <li><strong>pos1 et pos2 inverses</strong> : la normalisation min/max gere le cas.</li>
+        <li><strong>bbox decentree</strong> : aucun probleme, la distance Chebyshev est independante du centre.</li>
+        <li><strong>bbox trop petite</strong> : si la zone est plus petite qu'un chunk plein apres edge shrinkage, le systeme se desactive automatiquement avec un log erreur clair (<code>isBboxValid() = false</code>).</li>
+        <li><strong>pos sur bord exact de chunk</strong> : si minBlockX % 16 == 0 (resp. maxBlockX % 16 == 15), le chunk est inclus dans le pre-gen (pas de shrinkage cote concerne).</li>
+        <li><strong>Biome ID vide</strong> : pas d'override, biomes naturels conserves (cas par defaut).</li>
+        <li><strong>Biome ID invalide</strong> : fallback silencieux, pas d'override applique.</li>
+        <li><strong>smoothing_width_chunks = 1</strong> : bande d'un chunk d'epaisseur a t=0 (terrain plat strict, comportement v1 sur ce chunk uniquement).</li>
+        <li><strong>Chunk deja populated rechargee</strong> : <code>ChunkEvent.Load</code> est no-op. Le lissage est persistant sur disque.</li>
+        <li><strong>Mining World / Dimension Erina</strong> : exclu (dimension != 0).</li>
       </ul>
     </section>
 
@@ -311,17 +350,21 @@ isBorderChunk(cx, cz) = (stripMinDist &lt;= distance &lt;= stripMaxDist)</div>
       <h2><span class="s-num">09</span> Plan de tests</h2>
       <ol style="color: var(--slate); margin-left: 24px;">
         <li><strong>Build</strong> : <code>gradlew build</code> doit reussir sans erreur. Aucune nouvelle classe Mixin.</li>
-        <li><strong>Generation</strong> : creer un nouveau monde, voler en creatif jusqu'au chunk 313 sur l'axe X. Verifier que le terrain devient plat, herbe a y=63, bedrock a y=0.</li>
-        <li><strong>Frontiere stricte</strong> : verifier que le chunk 312 (dernier chunk pre-gen) garde son terrain original.</li>
-        <li><strong>Hors bande</strong> : voler au-dela du chunk 314. Le terrain doit reprendre le comportement vanilla / custom Erinium.</li>
-        <li><strong>Biome</strong> : <code>/locatebiome plains</code> ou consultation F3 doit retourner <code>minecraft:plains</code> dans la bande.</li>
-        <li><strong>Mob spawn ON</strong> : passer 5 min en survie nocturne dans la bande, verifier que des zombies/squelettes apparaissent.</li>
-        <li><strong>Mob spawn OFF</strong> : changer la config a <code>allow_mob_spawn = false</code>, reload, verifier aucun spawn nocturne pendant 5 min.</li>
-        <li><strong>Regen sans confirm</strong> : <code>/eriniumborder regen</code> doit afficher l'avertissement et n'ecraser aucun chunk.</li>
-        <li><strong>Regen avec confirm</strong> : placer un coffre dans un chunk border, executer <code>/eriniumborder regen confirm</code>, verifier que le coffre est detruit et le terrain remis a plat.</li>
-        <li><strong>Cooldown</strong> : enchainer deux <code>/eriniumborder regen confirm</code> &lt; 30s, verifier le message de cooldown.</li>
-        <li><strong>Info</strong> : <code>/eriniumborder info</code> doit afficher les valeurs config courantes.</li>
-        <li><strong>Performance</strong> : mesurer ms/tick pendant un regen avec 1 200 chunks border charges. Cible : pas de spike au-dela de 100 ms/tick.</li>
+        <li><strong>Edge shrinkage</strong> : avec defaut pos1=(-500,-500) pos2=(498,498), <code>/eriniumborder info</code> doit afficher chunks pre-gen [-31,-31] -&gt; [30,30] (pas [-32,-32] -&gt; [31,31]).</li>
+        <li><strong>Pas de mur sur chunk de la pos</strong> : voler en creatif sur le chunk -32 (qui contient le bloc x=-500). Le terrain doit etre <em>lisse</em> (premier chunk de la bande, t=0), pas avoir un mur a la frontiere x=-500.</li>
+        <li><strong>Transition douce</strong> : voler depuis l'interieur de la zone pre-gen vers l'exterieur. La hauteur du sol doit augmenter/descendre progressivement sur 5 chunks (~80 blocs) jusqu'a rejoindre la heightmap naturelle. Aucun mur vertical visible.</li>
+        <li><strong>Biomes naturels preserves</strong> : F3 dans la bande doit afficher des biomes Erinium (forets, plaines, etc.), pas <code>minecraft:plains</code> (sauf si override force).</li>
+        <li><strong>Frontiere stricte</strong> : chunks au coeur de la zone pre-gen (loin du bord) intacts.</li>
+        <li><strong>Hors bande</strong> : voler au-dela du chunk 35. Le terrain doit etre 100% worldgen naturel (montagnes, arbres, biomes Erinium).</li>
+        <li><strong>Mob spawn ON</strong> : 5 min en survie nocturne dans la bande, verifier que des mobs apparaissent normalement selon le biome local.</li>
+        <li><strong>Mob spawn OFF</strong> : config <code>allow_mob_spawn = false</code>, reload, verifier aucun spawn pendant 5 min dans la bande.</li>
+        <li><strong>Override biome optionnel</strong> : mettre <code>border_biome_id = minecraft:plains</code>, regen, verifier que F3 affiche plains dans la bande.</li>
+        <li><strong>bbox invalide</strong> : mettre pos1=(0,0) pos2=(5,5), redemarrer. Le log doit montrer une erreur "bbox invalide", le systeme doit etre desactive a l'execution.</li>
+        <li><strong>Regen sans confirm</strong> : <code>/eriniumborder regen</code> doit afficher l'avertissement.</li>
+        <li><strong>Regen avec confirm</strong> : placer un bloc dans un chunk border, executer <code>/eriniumborder regen confirm</code>, verifier que le terrain est relisse.</li>
+        <li><strong>Cooldown</strong> : enchainer deux regen &lt; 30s, verifier le message de cooldown.</li>
+        <li><strong>Info</strong> : <code>/eriniumborder info</code> affiche width, surface_y, override biome, bbox valid.</li>
+        <li><strong>Performance</strong> : mesurer ms/tick pendant un regen avec ~700 chunks border charges. Cible : aucun spike &gt; 100 ms/tick.</li>
       </ol>
     </section>
   </main>

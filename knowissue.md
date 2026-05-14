@@ -1659,3 +1659,31 @@ at fr.eri.eriapi.network.PacketGuiOpen.fromBytes(PacketGuiOpen.java:42)
 3. Spec HTML (`docs/specs/erinium-border.html`) : reformule toute la geometrie (bbox, distance au rectangle), table de config a jour avec les 4 cles, diagramme ASCII adapte.
 
 **Regle generale** : Toujours respecter EXACTEMENT la formulation et les noms de champs/structures donnes par le user dans la specification initiale. Si le user dit "pos1 et pos2", c'est `pos1_x/pos1_z/pos2_x/pos2_z` — jamais une reformulation en `radius`, `center`, `size`, etc.
+
+
+---
+
+## 2026-05-15 — EriniumBorder v2 : Edge chunk shrinkage + lissage progressif
+
+**Systeme** : `world/border/` — EriniumBorderConfig, EriniumBorderManager.
+
+**Probleme 1 — chunk de la pos** : Avec la formule `minBlockX >> 4` et `maxBlockX >> 4`, le chunk contenant pos1/pos2 etait considere comme pre-gen meme si la pos etait au milieu du chunk. Exemple : pos2X=498 -> chunk 31 (blocs 496..511) etait pre-gen, mais les blocs 499-511 etaient hors bbox -> mur visible sur le chunk de la pos.
+
+**Probleme 2 — mur de biomes deplace** : Le template plat surfaceY=63 sur 2 chunks ne supprimait pas le mur, il le deplacait simplement 2 chunks plus loin (entre fin de la bande plate et debut du worldgen naturel avec ses montagnes/relief).
+
+**Solutions** :
+1. **Edge chunk shrinkage** dans `EriniumBorderConfig.minChunkX/Z/maxChunkX/Z` :
+   - minChunk : retrecit vers l'interieur si `minBlock & 15 != 0` (chunk de la pos devient premier chunk de la bande border)
+   - maxChunk : meme logique avec `maxBlock & 15 != 15`
+   - Ajout `isBboxValid()` : detecte si la bbox est trop petite apres shrinkage (minChunk > maxChunk) et desactive le systeme avec un log erreur au demarrage (`validateConfigAtStartup`).
+2. **Lissage progressif v2** dans `EriniumBorderManager.applySmoothingToChunk` :
+   - Hook deplace de `PopulateChunkEvent.Pre` vers `PopulateChunkEvent.Post` avec `EventPriority.LOWEST` (worldgen normal finit avant nous).
+   - Par colonne : scan top-down pour trouver `hNatural` (premier bloc solide en ignorant air/leaves/logs/fleurs/neige/champignons/vignes/cactus/canne/citrouilles/melons).
+   - Calcul `tChunk = (dist - 1) / (smoothing_width - 1)` puis `eased = easeInOutCubic(tChunk)`.
+   - `hTarget = round(lerp(surfaceY, hNatural, eased))`. Cas `hTarget < hNatural` (abaisser), `hTarget > hNatural` (rehausser stone+grass+dirt), `hTarget == hNatural` (colonne intacte, preserve arbres/structures).
+   - Nettoie aussi les decorations (arbres, neige, plantes) jusqu'a `hNatural+24` quand hTarget != hNatural pour eviter troncs flottants.
+3. **Biome naturel par defaut** : `border_biome_id` passe de `minecraft:plains` a `""` (vide). Le `EriniumBiomeProvider.getBiome` n'override le biome que si `borderBiomeId` contient `:`. Sinon, les biomes Erinium naturels sont preserves dans la bande -> continuite visuelle.
+4. **Config remplacee** : `strip_inner_chunks` + `strip_outer_chunks` -> unique `smoothing_width_chunks` (defaut 5). `stripMinDist()` retourne toujours 1, `stripMaxDist()` retourne `smoothing_width_chunks`.
+
+**Regle generale** : pour eviter les murs visuels en bord de zone pre-generee, NE PAS imposer un terrain plat sur quelques chunks (deplace le mur) — il faut un VRAI lissage qui interpole la heightmap entre la zone protegee et le worldgen naturel sur 5+ chunks, avec un easing cubique pour adoucir les extremites. Hook = `PopulateChunkEvent.Post` LOWEST priority pour laisser le worldgen finir avant.
+

@@ -1845,7 +1845,7 @@
       </div>
       <div class="card-progress-row">
         <span class="card-progress-label">Progression</span>
-        <span class="card-progress-count">11 / 11 taches</span>
+        <span class="card-progress-count">13 / 13 taches</span>
       </div>
       <div class="card-track">
         <div class="card-fill" style="width: 100%;"></div>
@@ -1854,7 +1854,7 @@
       <div class="task-list">
         <div class="task-item">
           <div class="task-check checked"></div>
-          <span class="task-name done">Config Forge @Config border.cfg (radius, strip inner/outer, surfaceY, biome ID, mob spawn, cooldown regen)</span>
+          <span class="task-name done">Config Forge @Config border.cfg (bbox pos1/pos2, smoothing width, surfaceY, biome override, mob spawn, cooldown)</span>
         </div>
         <div class="task-item">
           <div class="task-check checked"></div>
@@ -1862,23 +1862,31 @@
         </div>
         <div class="task-item">
           <div class="task-check checked"></div>
-          <span class="task-name done">Bande strictement exterieure : zone pre-gen jamais reecrite (Chebyshev &lt; stripMinChebyshev)</span>
+          <span class="task-name done">Bande strictement exterieure : zone pre-gen jamais reecrite (Chebyshev = 0)</span>
         </div>
         <div class="task-item">
           <div class="task-check checked"></div>
-          <span class="task-name done">Template terrain plat : bedrock y=0, stone y=1..58, dirt y=59..62, grass y=63, air au-dessus</span>
+          <span class="task-name done">Edge chunk shrinkage : la bbox retrecit vers l'interieur si pos pas alignee sur bord de chunk (evite murs sur le chunk de la pos)</span>
         </div>
         <div class="task-item">
           <div class="task-check checked"></div>
-          <span class="task-name done">Hook PopulateChunkEvent.Pre : reecriture du chunk avant population (pas d'arbres/structures)</span>
+          <span class="task-name done">Lissage progressif v2 : interpolation cubique ease-in-out de la heightmap (surfaceY -&gt; hauteur naturelle worldgen)</span>
         </div>
         <div class="task-item">
           <div class="task-check checked"></div>
-          <span class="task-name done">Hook ChunkEvent.Load fail-safe : repare les chunks border legacy</span>
+          <span class="task-name done">Hook PopulateChunkEvent.Post (LOWEST) : rewrite column-par-column apres population (terrain + structures)</span>
         </div>
         <div class="task-item">
           <div class="task-check checked"></div>
-          <span class="task-name done">Override EriniumBiomeProvider.getBiome() pour retourner le biome border dans la bande</span>
+          <span class="task-name done">Detection heightmap naturelle : scan top-down ignorant air/leaves/logs/fleurs/neige/champignons</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Validation startup : log erreur claire si bbox invalide apres shrinkage, desactivation auto</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Biome naturel preserve par defaut (override optionnel via border_biome_id non vide)</span>
         </div>
         <div class="task-item">
           <div class="task-check checked"></div>
@@ -1886,11 +1894,11 @@
         </div>
         <div class="task-item">
           <div class="task-check checked"></div>
-          <span class="task-name done">Commande /eriniumborder info : affiche config courante (radius, bornes, biome, spawn)</span>
+          <span class="task-name done">Commande /eriniumborder info : affiche width, surfaceY, biome override, bbox valid</span>
         </div>
         <div class="task-item">
           <div class="task-check checked"></div>
-          <span class="task-name done">Commande /eriniumborder regen [confirm] : reecrit les chunks charges, avec avertissement + cooldown</span>
+          <span class="task-name done">Commande /eriniumborder regen [confirm] : reapplique le lissage aux chunks charges, avec avertissement + cooldown</span>
         </div>
         <div class="task-item">
           <div class="task-check checked"></div>
