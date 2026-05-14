@@ -1642,3 +1642,20 @@ at fr.eri.eriapi.network.PacketGuiOpen.fromBytes(PacketGuiOpen.java:42)
 4. **27 slots** : `SLOTS_PER_PLAYER = 27` (3 lignes x 9 cols), `TOTAL_TRADE_SLOTS = 54`, GUI elargi a 350x290. Suppression de `TradeConfig.slotsPerPlayer` (inutilise et trop limite par `@Range(max=9)`).
 
 **Regle** : Pour tout container partage entre 2 joueurs (trade-like), TOUJOURS override `Container.slotClick` pour bloquer les modes non standard et passer un flag `isPlayerA` via le parametre `x` de `openGui` pour que le client connaisse son cote.
+
+---
+
+## 2026-05-15 — EriniumBorder : config rayon centre au lieu de pos1/pos2 bbox
+
+**Systeme** : `world/border/` — EriniumBorderConfig, EriniumBorderManager, EriniumBiomeProvider, EriniumBorderCommand.
+
+**Probleme** : La premiere version de la config border definissait la zone pre-generee comme un carre centre sur `(0,0)` avec un seul champ `pre_gen_radius_blocks` (demi-cote). Cela ne correspondait pas a la demande explicite du user qui voulait "une config appeler genre 'spawnandwarzonepos' avec pos 1 et 2 XZ" — donc 4 champs (pos1X, pos1Z, pos2X, pos2Z) pour une bbox arbitraire, pas forcement centree sur (0,0).
+
+**Cause racine** : Lecture incomplete de la specification initiale. L'agent a suppose une geometrie "rayon centre" alors que le user voulait une bbox WorldEdit-like avec deux coins.
+
+**Solution appliquee** :
+1. `EriniumBorderConfig` : remplacer `preGenRadiusBlocks` par 4 champs `preGenPos1X`, `preGenPos1Z`, `preGenPos2X`, `preGenPos2Z` (range `[-1_000_000, 1_000_000]`, defauts `-500/-500/498/498`). Ajouter helpers normalises `minBlockX/Z`, `maxBlockX/Z`, `minChunkX/Z`, `maxChunkX/Z` qui calculent `min(pos1, pos2)` et `max(pos1, pos2)` — l'admin peut saisir les coins dans n'importe quel ordre.
+2. `EriniumBorderManager` : nouvelle methode statique `chunkDistanceToBBox(cx, cz)` qui retourne la distance de Chebyshev en chunks au rectangle (et 0 si inside). `isBorderChunk` et `isPreGenChunk` utilisent maintenant cette distance au lieu de `max(|cx|,|cz|)` au centre.
+3. Spec HTML (`docs/specs/erinium-border.html`) : reformule toute la geometrie (bbox, distance au rectangle), table de config a jour avec les 4 cles, diagramme ASCII adapte.
+
+**Regle generale** : Toujours respecter EXACTEMENT la formulation et les noms de champs/structures donnes par le user dans la specification initiale. Si le user dit "pos1 et pos2", c'est `pos1_x/pos1_z/pos2_x/pos2_z` — jamais une reformulation en `radius`, `center`, `size`, etc.

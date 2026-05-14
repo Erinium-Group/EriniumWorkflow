@@ -125,7 +125,7 @@
 
     <section class="section-card" id="contexte">
       <h2><span class="s-num">01</span> Contexte &amp; objectif</h2>
-      <p>EriniumFaction pre-genere une portion finie de l'Overworld au demarrage du serveur (par defaut un carre centre sur (0,0) de demi-cote 5 000 blocs). Au-dela, la generation classique de Minecraft continue mais cree des biomes incoherents (chunks generes a la volee par les explorateurs determines, structures partielles, performance degradee).</p>
+      <p>EriniumFaction pre-genere une portion finie de l'Overworld au demarrage du serveur. Cette zone est definie par une <strong>bounding box arbitraire en blocs</strong> (pos1 et pos2, comme dans WorldEdit), par defaut <code>(-500, -500) -> (498, 498)</code> = zone spawn + warzone. Au-dela, la generation classique de Minecraft continue mais cree des biomes incoherents (chunks generes a la volee par les explorateurs determines, structures partielles, performance degradee).</p>
       <p><strong>EriniumBorder</strong> resout ce probleme avec une bande de chunks "neutres" placee <strong>strictement a l'exterieur</strong> de la zone pre-generee. Cette bande sert de frontiere naturelle : des plaines vertes plates, simples, sans mineraux ni structures, qui forment une limite visuelle propre avant que le joueur n'atteigne le World Border vanilla.</p>
       <ul>
         <li><strong>Plate</strong> : terrain uniforme y=63, pas de relief, pas de grottes, pas de minerais.</li>
@@ -137,28 +137,33 @@
 
     <section class="section-card" id="geometrie">
       <h2><span class="s-num">02</span> Geometrie de la bande</h2>
-      <p>La zone pre-generee est definie en <strong>blocs</strong> dans la config (<code>pre_gen_radius_blocks</code>). Conversion interne en chunks : <code>preGenRadiusBlocks &gt;&gt; 4</code>. Par exemple 5 000 blocs &rarr; 312 chunks.</p>
-      <p>La bande border occupe les chunks dont la <strong>distance de Chebyshev</strong> (en chunks) au centre (0,0) est comprise entre <code>stripMinChebyshev</code> et <code>stripMaxChebyshev</code> inclus :</p>
-      <div class="code-block">stripMinChebyshev = innerChunkRadius + stripInnerChunks  (par defaut innerChunkRadius + 1)
-stripMaxChebyshev = innerChunkRadius + stripOuterChunks  (par defaut innerChunkRadius + 2)
+      <p>La zone pre-generee est definie en <strong>blocs</strong> dans la config par quatre cles : <code>pre_gen_pos1_x</code>, <code>pre_gen_pos1_z</code>, <code>pre_gen_pos2_x</code>, <code>pre_gen_pos2_z</code>. Les coordonnees peuvent etre saisies dans n'importe quel ordre : elles sont normalisees en <code>(min, max)</code> a la lecture. Conversion interne en chunks via <code>blockCoord &gt;&gt; 4</code>.</p>
+      <p>La bande border occupe les chunks dont la <strong>distance de Chebyshev en chunks au rectangle pre-gen</strong> est comprise entre <code>stripMinDist</code> et <code>stripMaxDist</code> inclus. La distance vaut 0 si le chunk est <em>dans</em> la bbox.</p>
+      <div class="code-block">minCX = min(pos1X, pos2X) &gt;&gt; 4    maxCX = max(pos1X, pos2X) &gt;&gt; 4
+minCZ = min(pos1Z, pos2Z) &gt;&gt; 4    maxCZ = max(pos1Z, pos2Z) &gt;&gt; 4
 
-isBorderChunk(cx, cz) = stripMinChebyshev &lt;= max(|cx|, |cz|) &lt;= stripMaxChebyshev</div>
-      <p>Avec les defauts (5 000 blocs / 1 chunk inner / 2 chunks outer) : la bande commence au chunk 313 et finit au chunk 314, formant un anneau carre de 2 chunks d'epaisseur autour de la zone pre-gen.</p>
-      <div class="ascii-diagram">           cx = 314 (Chebyshev max)
+dx = max(minCX - cx, cx - maxCX, 0)
+dz = max(minCZ - cz, cz - maxCZ, 0)
+distance(cx, cz) = max(dx, dz)
+
+isPreGenChunk(cx, cz) = (distance == 0)
+isBorderChunk(cx, cz) = (stripMinDist &lt;= distance &lt;= stripMaxDist)</div>
+      <p>Avec les defauts (pos1=(-500,-500), pos2=(498,498), inner=1, outer=2) : la bbox couvre les chunks <code>[-32,-32] -> [31,31]</code> (64x64 chunks). La bande commence a 1 chunk hors bbox et finit a 2 chunks hors bbox, formant un anneau rectangulaire de 2 chunks d'epaisseur.</p>
+      <div class="ascii-diagram">              distance = 2 (strip max)
           +-------------------------+
           | border (outer)          |
           |  +---------------------+|
           |  | border (inner)      ||
           |  | +-----------------+ ||
-          |  | | pre-gen zone    | ||
+          |  | | pre-gen bbox    | ||
           |  | | (NEVER touched) | ||
-          |  | |    (0,0)        | ||
+          |  | | pos1 .. pos2    | ||
           |  | |                 | ||
           |  | +-----------------+ ||
           |  +---------------------+|
           +-------------------------+
-                cx = 313 (Chebyshev min)</div>
-      <div class="info-box note">Note : la zone pre-generee est strictement preservee. Tout chunk dont la Chebyshev est <code>&lt; stripMinChebyshev</code> n'est jamais reecrit, meme par <code>/eriniumborder regen</code>.</div>
+              distance = 1 (strip min)</div>
+      <div class="info-box note">Note : la zone pre-generee est strictement preservee. Tout chunk dont la distance Chebyshev a la bbox est <code>0</code> n'est jamais reecrit, meme par <code>/eriniumborder regen</code>. La bbox n'a pas besoin d'etre centree sur (0,0).</div>
     </section>
 
     <section class="section-card" id="template">
@@ -246,8 +251,11 @@ isBorderChunk(cx, cz) = stripMinChebyshev &lt;= max(|cx|, |cz|) &lt;= stripMaxCh
           <thead><tr><th>Cle</th><th>Type</th><th>Defaut</th><th>Description</th></tr></thead>
           <tbody>
             <tr><td><code>enabled</code></td><td>boolean</td><td><code>true</code></td><td>Active/desactive globalement la fonctionnalite.</td></tr>
-            <tr><td><code>pre_gen_radius_blocks</code></td><td>int [256, 1 000 000]</td><td><code>5000</code></td><td>Demi-cote de la zone pre-generee, en BLOCS.</td></tr>
-            <tr><td><code>strip_inner_chunks</code></td><td>int [1, 64]</td><td><code>1</code></td><td>Premier chunk hors zone pre-gen ou commence la bande.</td></tr>
+            <tr><td><code>pre_gen_pos1_x</code></td><td>int [-1 000 000, 1 000 000]</td><td><code>-500</code></td><td>Corner 1 X de la bbox pre-gen, en BLOCS. Normalise en (min, max) avec pos2X au chargement.</td></tr>
+            <tr><td><code>pre_gen_pos1_z</code></td><td>int [-1 000 000, 1 000 000]</td><td><code>-500</code></td><td>Corner 1 Z de la bbox pre-gen, en BLOCS.</td></tr>
+            <tr><td><code>pre_gen_pos2_x</code></td><td>int [-1 000 000, 1 000 000]</td><td><code>498</code></td><td>Corner 2 X de la bbox pre-gen, en BLOCS.</td></tr>
+            <tr><td><code>pre_gen_pos2_z</code></td><td>int [-1 000 000, 1 000 000]</td><td><code>498</code></td><td>Corner 2 Z de la bbox pre-gen, en BLOCS.</td></tr>
+            <tr><td><code>strip_inner_chunks</code></td><td>int [1, 64]</td><td><code>1</code></td><td>Premier chunk hors bbox pre-gen ou commence la bande.</td></tr>
             <tr><td><code>strip_outer_chunks</code></td><td>int [1, 64]</td><td><code>2</code></td><td>Dernier chunk de la bande. Doit etre &gt;= inner.</td></tr>
             <tr><td><code>surface_y</code></td><td>int [4, 200]</td><td><code>63</code></td><td>Hauteur uniforme du grass top.</td></tr>
             <tr><td><code>border_biome_id</code></td><td>string</td><td><code>minecraft:plains</code></td><td>ResourceLocation du biome utilise dans la bande.</td></tr>
@@ -264,7 +272,7 @@ isBorderChunk(cx, cz) = stripMinChebyshev &lt;= max(|cx|, |cz|) &lt;= stripMaxCh
       <p>Commande : <code>/eriniumborder &lt;info | regen [confirm]&gt;</code></p>
       <p>Permission level : 2 (op uniquement). Auto-completion via <code>getTabCompletions</code>.</p>
       <h3>/eriniumborder info</h3>
-      <p>Affiche l'etat actuel : statut on/off, rayon pre-gen (blocs et chunks), bornes Chebyshev de la bande, surfaceY, biome ID, allowMobSpawn.</p>
+      <p>Affiche l'etat actuel : statut on/off, bbox pre-gen (blocs et chunks normalises min/max), bornes de distance de la bande, surfaceY, biome ID, allowMobSpawn.</p>
       <h3>/eriniumborder regen</h3>
       <p>Premiere invocation sans <code>confirm</code> : affiche un avertissement explicite (operation destructrice qui ecrase tout bloc place par les joueurs dans la bande).</p>
       <p>Invocation avec <code>confirm</code> :</p>
@@ -282,13 +290,15 @@ isBorderChunk(cx, cz) = stripMinChebyshev &lt;= max(|cx|, |cz|) &lt;= stripMaxCh
       <h3>Cout par chunk</h3>
       <ul>
         <li><strong>Chunks normaux (zone pre-gen ou hors bande)</strong> : un seul check Chebyshev en O(1) au <code>PopulateChunkEvent.Pre</code>. Cout negligeable (~1 us par chunk).</li>
-        <li><strong>Chunks border</strong> : ecriture complete de ~16 384 blocs (16x16x64). ~5-10 ms par chunk. La bande totale = 4 * (2*innerR + 4) chunks ~ 1 256 chunks pour les defauts. Total cumule lors d'une regen = ~6-12 s.</li>
+        <li><strong>Chunks border</strong> : ecriture complete de ~16 384 blocs (16x16x64). ~5-10 ms par chunk. Pour la bbox par defaut (64x64 chunks) avec une bande de 2 chunks d'epaisseur, ~272 chunks border au total. Regen complet = ~1.5-3 s.</li>
       </ul>
       <h3>Memoire</h3>
       <p>Pre-remplissage des sections via <code>ExtendedBlockStorage.set()</code>. Pas d'allocation supplementaire (les sections etaient deja en RAM cote chunk). Les sections au-dessus de surfaceY sont laissees a <code>null</code> = air = 0 octet stocke.</p>
       <h3>Cas limites couverts</h3>
       <ul>
-        <li><strong>preGenRadiusBlocks = 0</strong> : la bande commence aux chunks 1 et 2. Comportement coherent (anneau autour du spawn).</li>
+        <li><strong>pos1 == pos2</strong> : la bbox couvre un seul chunk (celui contenant la position). La bande forme un anneau autour de ce chunk.</li>
+        <li><strong>pos1 et pos2 inverses</strong> : la normalisation min/max gere le cas. L'admin peut entrer les coins dans n'importe quel ordre.</li>
+        <li><strong>bbox decentree</strong> : aucun probleme, la distance Chebyshev au rectangle est independante du centre.</li>
         <li><strong>stripInner = stripOuter</strong> : bande d'un seul chunk d'epaisseur. OK.</li>
         <li><strong>Biome ID invalide</strong> : fallback sur <code>minecraft:plains</code> (id 1).</li>
         <li><strong>Chunk deja border</strong> rechargee : <code>ChunkEvent.Load</code> verifie la presence du grass a surfaceY ; si absent, repare ; sinon, ne refresh que le biomeArray.</li>
