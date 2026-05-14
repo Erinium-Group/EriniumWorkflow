@@ -436,6 +436,13 @@ Les factions utilisent un systeme de **roles** (Recruit, Member, Officer, Leader
 |----------|-----------|-------------|
 | `/locatebiome <biome>` | OP level 2 | Trouver le biome le plus proche |
 
+### EriniumBorder — Commandes (`/eriniumborder`)
+
+| Commande | Permission | Description |
+|----------|-----------|-------------|
+| `/eriniumborder info` | OP level 2 | Afficher la config courante de la bande border |
+| `/eriniumborder regen confirm` | OP level 2 | Reecrire tous les chunks border charges (destructif, soumis a un cooldown configurable) |
+
 ### Commandes Vanilla (`minecraft.command.*`)
 
 Les commandes vanilla de Minecraft sont normalement reservees aux joueurs OP. Grace au Mixin sur `EntityPlayerMP.canUseCommand`, il est possible d'accorder l'acces a des commandes vanilla specifiques via le systeme de grades RankManager, **sans donner le statut OP** au joueur.

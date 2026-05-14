@@ -1836,6 +1836,74 @@
       </div>
     </div>
 
+    <!-- ─── ERINIUM BORDER ─── -->
+    <div class="cat-card cat-card-done wide">
+      <div class="card-head">
+        <div class="card-title">EriniumBorder — Bande exterieure de plaines</div>
+        <div class="badge badge-done">Termine</div>
+        <span class="card-toggle-icon">&#9660;</span>
+      </div>
+      <div class="card-progress-row">
+        <span class="card-progress-label">Progression</span>
+        <span class="card-progress-count">11 / 11 taches</span>
+      </div>
+      <div class="card-track">
+        <div class="card-fill" style="width: 100%;"></div>
+      </div>
+      <div class="card-body">
+      <div class="task-list">
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Config Forge @Config border.cfg (radius, strip inner/outer, surfaceY, biome ID, mob spawn, cooldown regen)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">EriniumBorderManager singleton : predicate isBorderChunk(cx, cz) base Chebyshev en chunks</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Bande strictement exterieure : zone pre-gen jamais reecrite (Chebyshev &lt; stripMinChebyshev)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Template terrain plat : bedrock y=0, stone y=1..58, dirt y=59..62, grass y=63, air au-dessus</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Hook PopulateChunkEvent.Pre : reecriture du chunk avant population (pas d'arbres/structures)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Hook ChunkEvent.Load fail-safe : repare les chunks border legacy</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Override EriniumBiomeProvider.getBiome() pour retourner le biome border dans la bande</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Hook LivingSpawnEvent.CheckSpawn : DENY si allowMobSpawn=false dans un chunk border</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Commande /eriniumborder info : affiche config courante (radius, bornes, biome, spawn)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Commande /eriniumborder regen [confirm] : reecrit les chunks charges, avec avertissement + cooldown</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name done">Compatibilite CleanRoom : aucun Mixin, uniquement events Forge publics</span>
+        </div>
+      </div>
+      <a href="specs/erinium-border.html" class="spec-link">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6z"/><path d="M8 13h8v2H8zm0 4h5v2H8z"/></svg>
+        Voir le cahier des charges complet
+      </a>
+      </div>
+    </div>
+
     <!-- ─── 5d. COMMANDES SERVEUR ─── -->
     <div class="cat-card cat-card-done wide">
       <div class="card-head">
@@ -5079,6 +5147,7 @@
     { match: 'Biomes Custom',            tags: ['monde'] },
     { match: 'WorldEnhanced',            tags: ['monde'] },
     { match: 'Spatial Update',           tags: ['monde'] },
+    { match: 'EriniumBorder',            tags: ['monde'] },
     { match: 'Commandes Serveur',        tags: ['admin'] },
     { match: "Systeme d'Administration", tags: ['admin'] },
     { match: 'Report Chat',              tags: ['admin', 'social'] },
