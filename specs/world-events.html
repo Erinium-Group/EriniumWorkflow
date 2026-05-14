@@ -82,6 +82,8 @@
   .section-card:nth-child(12) { animation-delay: .60s; }
   .section-card:nth-child(13) { animation-delay: .65s; }
   .section-card:nth-child(14) { animation-delay: .70s; }
+  .section-card:nth-child(15) { animation-delay: .75s; }
+  .section-card:nth-child(16) { animation-delay: .80s; }
   .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
   .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
   .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
@@ -168,7 +170,9 @@
     <a class="nav-link" href="#s11"><span class="num">11</span> Commandes &amp; Permissions</a>
     <a class="nav-link" href="#s12"><span class="num">12</span> Cas Limites &amp; Performance</a>
     <a class="nav-link" href="#s13"><span class="num">13</span> Integration Autres Systemes</a>
-    <a class="nav-link" href="#s14"><span class="num">14</span> Plan de Tests</a>
+    <a class="nav-link" href="#s14"><span class="num">14</span> Assets &amp; Items/Blocs Dedies</a>
+    <a class="nav-link" href="#s15"><span class="num">15</span> Mecaniques Cross-Event</a>
+    <a class="nav-link" href="#s16"><span class="num">16</span> Plan de Tests</a>
   </nav>
 
   <!-- ========== MAIN ========== -->
@@ -1031,9 +1035,445 @@ bar.<span class="fn">setPercent</span>(<span class="nu">1.0f</span>); <span clas
       </ul>
     </section>
 
-    <!-- S14 — PLAN DE TESTS -->
+    <!-- S14 — ASSETS & ITEMS/BLOCS DEDIES -->
     <section class="section-card" id="s14">
-      <h2><span class="s-num gold-num">14</span> Plan de Tests</h2>
+      <h2><span class="s-num orange-num">14</span> Assets &amp; Items/Blocs Dedies</h2>
+
+      <p class="first">Chaque evenement mondial introduit ses propres <strong>items, blocs et entites custom</strong> dotes de mecaniques uniques. Cette section documente exhaustivement chaque asset a produire : identifiant, classe Java, comportement, drops, recettes/usages, et integration au reste du mod. Aucune mecanique ne doit etre devinee — tout est specifie ci-dessous.</p>
+
+      <div class="info-box info">
+        <span class="icon">i</span>
+        <div class="content"><strong>Workflow assets visuels (rappel CLAUDE.md).</strong> Toutes les textures suivent l'ordre obligatoire : <strong>1) texture-gen CLI</strong> en priorite (categories <code>ore</code>, <code>log</code>, <code>planks</code>, <code>crystal</code>, <code>ingot</code>, <code>sword</code>, etc.), <strong>2) presets Mcreator-Resources</strong> si aucune categorie ne correspond, <strong>3) SVG fallback</strong> en dernier recours avec creation d'un nouveau preset reutilisable. Les WIP sont places dans <code>assets_wip/world-events/</code> avant validation et copie dans <code>src/main/resources/assets/eriniumfaction/</code>. Cette section documente uniquement <em>quelles textures sont a produire</em> — la generation effective est faite plus tard.</div>
+      </div>
+
+      <h3>14.1 &mdash; Meteor Shower : entites, blocs &amp; items</h3>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">EntityMeteor (entite Forge custom)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>fr.eriniumgroup.eriniumfaction.event.meteor.EntityMeteor extends Entity</code> (PAS un EriItem — entite Forge native enregistree via <code>EntityRegistry.registerModEntity</code>).</li>
+        <li><strong>Modele 3D :</strong> rocher irregulier enflamme (Blockbench, environ 12&times;12&times;12 px en repere bloc). Texture base rocheuse <code>#3A2A1F</code> + veines incandescentes <code>#FF6B1A</code> / <code>#FFD700</code>. Rendu via <code>RenderMeteor extends Render&lt;EntityMeteor&gt;</code>.</li>
+        <li><strong>Particules de trainee :</strong> <code>EnumParticleTypes.FLAME</code> + <code>SMOKE_LARGE</code> + <code>LAVA</code> emises chaque tick le long de la trajectoire (3 a 6 particules/tick selon vitesse, declenchees cote client uniquement).</li>
+        <li><strong>Physique :</strong> velocite initiale <code>(dx, -2.0, dz)</code> avec leger angle aleatoire (+/- 30deg). Pas de gravite Minecraft standard : <code>motionY</code> applique manuellement (<code>-0.05</code> par tick, clamp a <code>-3.0</code>). Rotation visuelle continue (yaw +6deg/tick, pitch +3deg/tick).</li>
+        <li><strong>Son de chute :</strong> <code>SoundEvents.ENTITY_BLAZE_AMBIENT</code> en boucle a volume 0.3, pitch 0.6. Cesse a l'impact.</li>
+        <li><strong>Impact :</strong> au contact d'un bloc solide, declenche <code>world.createExplosion(this, x, y, z, power, true)</code> avec <code>power</code> configurable par niveau d'event (0=visuel seul, 1=light=2.0F, 2=heavy=4.0F). Place un <code>BlockMeteorCore</code> au centre du cratere si <code>power &gt;= 1</code>.</li>
+        <li><strong>Loot fallback :</strong> si l'entite est tuee en vol (fleche, projectile), drop direct de 1&times; <code>ItemMeteorShard</code> sans creer de BlockMeteorCore.</li>
+        <li><strong>NBT persiste :</strong> <code>spawnTick</code> (long), <code>eventId</code> (string), <code>powerLevel</code> (byte). Persistant pour reprise apres restart.</li>
+      </ul>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">BlockMeteorCore (bloc temporaire)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>BlockMeteorCore extends Block</code>, enregistre via EriBlock builder (categorie creative <code>EVENT_LOOT</code>).</li>
+        <li><strong>Texture :</strong> generee par <code>texture-gen</code> categorie <code>ore</code>, palette mix <code>#C0392B</code> (rouge magma) + <code>#FFD700</code> (Erinium). Sortie 5 variantes <code>meteor_core_1.png</code> ... <code>meteor_core_5.png</code> + overlay.</li>
+        <li><strong>Hitbox :</strong> 1 boite englobante 0.85 bloc centree (le core ne remplit pas le cube complet). Definie via <code>.hitbox(0.075, 0.0, 0.075, 0.925, 0.85, 0.925)</code>.</li>
+        <li><strong>Outil requis :</strong> pioche <strong>valterite ou superieur</strong> (verification via <code>ForgeHooks.canHarvestBlock</code> + Tier custom). Sans la bonne pioche : message d'erreur chat et bloc non casse.</li>
+        <li><strong>Durabilite (hardness) :</strong> 12.0F (long a miner, encourage le rush coordonne).</li>
+        <li><strong>Lumiere emise :</strong> 12 (visible de loin la nuit). Particules ambiantes <code>FLAME</code> rares (1 par 20 ticks).</li>
+        <li><strong>Auto-despawn :</strong> TileEntity <code>TileEntityMeteorCore</code> tracke le tick de spawn. A <code>tickCount &gt;= 6000</code> (5 min), le bloc est detruit silencieusement (sans drop) si non casse par un joueur.</li>
+        <li><strong>Loot table (drops aleatoires pondéres a la cassure) :</strong>
+          <div class="table-wrap" style="margin-top: 10px;">
+            <table>
+              <thead><tr><th>Item</th><th>Probabilite</th><th>Quantite</th></tr></thead>
+              <tbody>
+                <tr><td>ItemMeteorShard</td><td>70%</td><td>1 a 3</td></tr>
+                <tr><td>ItemMeteoricIron</td><td>20%</td><td>1</td></tr>
+                <tr><td>ItemStardust</td><td>10%</td><td>1</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </li>
+      </ul>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">Items Meteor Shower</h4>
+      <ul>
+        <li><strong>ItemMeteorShard</strong> &mdash; stack 64, categorie <code>EVENT_LOOT</code>, rarity <code>UNCOMMON</code>. Materiau de craft de base pour les armures stellaires (spec future). Vendable au HDV (pas blacklist), echangeable. Texture <code>texture-gen</code> categorie <code>crystal</code> couleur <code>#FF6B1A</code>.</li>
+        <li><strong>ItemMeteoricIron</strong> &mdash; stack 64, categorie <code>EVENT_LOOT</code>, rarity <code>RARE</code>. Lingot d'un materiau tier intermediaire <em>entre valterite et aetherite</em>. Mecanique custom : quand le joueur tient (main ou main offhand) un outil/arme contenant cet ingredient (NBT <code>meteoricIronInfused=true</code> applique par les recettes futures), il inflige <strong>+5% de degats vs mobs nocturnes</strong> (skeleton, zombie, creeper, witch, spider, enderman, phantom). Implementation : listener <code>LivingHurtEvent</code> phase HIGH qui multiplie <code>event.setAmount(amount * 1.05F)</code> si conditions remplies. Texture <code>texture-gen</code> categorie <code>ingot</code> couleur <code>#8B4513</code> + accents <code>#FFD700</code>.</li>
+        <li><strong>ItemStardust</strong> &mdash; stack 16, categorie <code>EVENT_LOOT</code>, rarity <code>EPIC</code>. Consommable, animation <code>EnumAction.DRINK</code>, 32 ticks d'utilisation. Right-click applique :
+          <ul style="margin-top: 4px;">
+            <li>&middot; <code>Effect.GLOWING</code> 60 secondes (amplifier 0)</li>
+            <li>&middot; <code>Effect.SPEED I</code> 30 secondes (amplifier 0)</li>
+            <li>&middot; Buff custom <strong>Stellar Insight</strong> 90 secondes : vision amelioree (rendu cote client : chunks charges autour du joueur affichent un overlay subtil cyan via shader / RenderWorldLastEvent) + emission de particules <code>END_ROD</code> autour du joueur (rayon 1.5 bloc, 4 particules/tick, cote client uniquement pour le perf).</li>
+          </ul>
+          Implementation buff : applique via <code>PlayerCapabilityBuff</code> EriAPI (capability dediee <code>StellarInsightCap</code>) avec timer tick down. Sync auto au client via <code>@Sync</code>. Texture <code>texture-gen</code> categorie <code>dust</code> couleur <code>#E0D0FF</code> (lavande) avec scintillement aleatoire.
+        </li>
+      </ul>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">Mecanique globale Meteor Shower</h4>
+      <ul>
+        <li>Pendant qu'un Meteor Shower est <strong>actif</strong> sur le serveur (<code>EventManager.isActive("meteor_shower")</code>), <strong>tous les coups critiques (PvP et PvE) infligent +10% de degats globalement</strong>.</li>
+        <li><strong>Implementation :</strong> singleton <code>EventBuffManager</code> (voir S15) ecoute <code>LivingHurtEvent</code>. Si <code>source.getTrueSource() instanceof EntityPlayer</code> et que le hit etait un crit (detecte via <code>CriticalHitEvent</code> en amont qui stocke un flag tick-local <code>WeakHashMap&lt;EntityPlayer, Long&gt;</code> lastCritTick), applique <code>amount *= 1.10F</code>.</li>
+        <li><strong>Communication :</strong> annonce overlay au demarrage de l'event ("Pluie de meteores ! +10% degats critiques pour tous"), rappel toutes les 5 minutes via <code>EriChat</code> en barre laterale discrete, et icone permanente dans l'overlay <code>EventAnnouncerOverlay</code> tant que l'event tourne.</li>
+      </ul>
+
+      <h3>14.2 &mdash; Rift Dimensionnel : blocs &amp; items</h3>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">BlockRiftPortal (portail event-only)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>BlockRiftPortal extends Block</code> + <code>TileEntityRiftPortal</code> pour le TESR.</li>
+        <li><strong>Rendu :</strong> TESR custom <code>TESRRiftPortal</code>. Animation portale : vortex violet/cyan tournant (rotation continue, 360deg en 80 ticks), couches de quads semi-transparents (alpha 0.6) avec gradient radial <code>#6B2FA0</code> &rarr; <code>#00E5FF</code>.</li>
+        <li><strong>Particules orbitales :</strong> <code>EnumParticleTypes.PORTAL</code> emis en orbite autour du portail (rayon 1.2 bloc, 8 particules/tick cote client). Particules supplementaires <code>SPELL_WITCH</code> verticales pour l'aspect "aspirant".</li>
+        <li><strong>Son d'ambiance :</strong> <code>SoundEvents.BLOCK_PORTAL_AMBIENT</code> joue en boucle a pitch 0.4, volume 0.5 (grave, hypnotique). Joue uniquement aux joueurs a moins de 16 blocs.</li>
+        <li><strong>Hitbox :</strong> plein bloc (collision normale, le joueur entre dedans pour declencher le teleport).</li>
+        <li><strong>Non breakable :</strong> <code>setBlockUnbreakable()</code> + <code>setResistance(6000000.0F)</code>. Override <code>onBlockExploded</code> pour resister aux explosions. Drop list vide.</li>
+        <li><strong>Aura d'attraction visuelle :</strong> les joueurs a moins de 32 blocs voient une lueur (beam) verticale via packet custom (cote client uniquement). Couleur <code>#9B4FCF</code>.</li>
+        <li><strong>Teleport :</strong> <code>onEntityCollidedWithBlock</code> &rarr; si <code>entity instanceof EntityPlayer</code> et que le rift est encore actif, teleport vers la dimension Rift aux coords du layout charge. Applique le buff <strong>RiftWalker</strong> (voir plus bas).</li>
+      </ul>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">BlockRiftChest (coffre instance)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>BlockRiftChest extends BlockChest</code> (variante Forge) avec TileEntity dedie <code>TileEntityRiftChest extends TileEntityChest</code>.</li>
+        <li><strong>Texture :</strong> coffre violet/cyan avec runes brillantes sur le couvercle. Generee via SVG fallback + nouveau preset <code>chest_runes</code> dans <code>texture-gen/assets/</code>. Palette : base <code>#1A0F2E</code> (violet sombre), runes <code>#00E5FF</code> (cyan), liserets <code>#9B4FCF</code>.</li>
+        <li><strong>Hitbox :</strong> identique au coffre vanilla (0.0625 a 0.9375 sur X et Z, 0 a 0.875 sur Y).</li>
+        <li><strong>Placement :</strong> pose uniquement par le systeme de generation du Rift (layouts JSON). Aucune recette de craft. Drop list vide (non recuperable).</li>
+        <li><strong>Loot table :</strong> ResourceLocation <code>eriniumfaction:rift/rift_chest_tier_X</code> (X = 1 a 3 selon profondeur du layout). Reroll a chaque ouverture par un joueur different (anti-farm), tracke via NBT <code>openedBy: List&lt;UUID&gt;</code>.</li>
+        <li><strong>Auto-nettoyage :</strong> a la fin de l'event Rift, tous les BlockRiftChest restants sont supprimes par le cleanup global.</li>
+      </ul>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">Items Rift</h4>
+      <ul>
+        <li><strong>ItemRiftKey</strong> &mdash; stack 16, categorie <code>EVENT_LOOT</code>, rarity <code>EPIC</code>. Drop tres rare (1.5%) dans les coffres Rift et sur le boss Rift Keeper. Mecanique <code>onItemRightClick</code> :
+          <ul style="margin-top: 4px;">
+            <li>&middot; Cible : bloc solide cliquy a la surface (raytrace 5 blocs).</li>
+            <li>&middot; Effet : spawn un <code>BlockRiftPortal</code> temporaire (TileEntity flag <code>playerSpawned=true</code>, duree 300 secondes / 6000 ticks).</li>
+            <li>&middot; Restriction : impossible si event Rift global deja actif (message d'erreur "Une faille existe deja"). Impossible en zone safezone/spawn.</li>
+            <li>&middot; Consume : 1 cle par utilisation. Cooldown personnel 60 minutes (NBT joueur).</li>
+            <li>&middot; Annonce broadcast : "[Joueur] a forge une faille temporaire !"</li>
+          </ul>
+          Texture <code>texture-gen</code> categorie <code>key</code> couleur <code>#9B4FCF</code>, ou SVG fallback avec creation preset <code>key</code>.
+        </li>
+        <li><strong>ItemRiftShard</strong> &mdash; stack 64, categorie <code>EVENT_LOOT</code>, rarity <code>RARE</code>. Monnaie specifique du Rift, drop des mobs de wave et du boss. Echangeable contre items premium chez un PNJ <code>EntityRiftMerchant</code> au hub central (non developpe dans cette spec, mentionne pour cross-reference). Texture <code>crystal</code> couleur <code>#00E5FF</code>.</li>
+        <li><strong>ItemRiftOrb</strong> &mdash; stack 1, categorie <code>EVENT_LOOT</code>, rarity <code>LEGENDARY</code>. Drop ultra-rare (0.5%) du boss Rift Keeper uniquement. Artefact equipable en slot <strong>accessoire</strong> via le systeme d'accessoires EriAPI (si dispo) ou via un slot Baubles-like custom. Effets passifs tant qu'equipe :
+          <ul style="margin-top: 4px;">
+            <li>&middot; <code>Effect.NIGHT_VISION</code> applique en boucle (refresh chaque 200 ticks pour eviter le flash de sortie).</li>
+            <li>&middot; <strong>+10% resistance aux degats magiques</strong> (DamageSource <code>MAGIC</code>, <code>WITHER</code>, <code>DRAGON_BREATH</code>) via <code>LivingHurtEvent</code> phase HIGH.</li>
+            <li>&middot; Particules <code>PORTAL</code> discretes autour du joueur (2 particules/tick rayon 0.5, cote client).</li>
+            <li>&middot; <strong>Durabilite 1000</strong> : <code>damageItem(1)</code> chaque fois que le porteur subit des degats. A 0, l'orbe se brise (sons + animation) et est detruite definitivement.</li>
+          </ul>
+          Texture sphere violet/cyan animee (frame-based, 8 frames), creee en SVG + animation .mcmeta ou modele 3D Blockbench dedicacie.
+        </li>
+      </ul>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">Buff RiftWalker (mecanique de zone)</h4>
+      <ul>
+        <li><strong>Application :</strong> au moment ou un joueur entre dans la dimension Rift via un <code>BlockRiftPortal</code>, capabilite <code>RiftWalkerCap</code> activee (<code>active=true</code>, <code>entryTick</code>).</li>
+        <li><strong>Effet :</strong> <strong>+50% XP gagnee</strong> tant que le joueur est dans la dimension Rift. Implementation : listener <code>PlayerEvent.XpChange</code> ou hook sur <code>EntityPlayer.addExperience</code> via Mixin, multiplie <code>amount</code> si <code>player.dimension == RIFT_DIM_ID</code> et capability active.</li>
+        <li><strong>Retrait :</strong> sortie du Rift (teleport, fin d'event, deconnexion) &rarr; capability <code>active=false</code>, plus de bonus.</li>
+        <li><strong>HUD :</strong> petite icone violette dans l'overlay buffs <code>EffectsOverlay</code> existant (TextureAtlas extra a ajouter dans <code>assets/eriniumfaction/textures/gui/buffs/rift_walker.png</code>).</li>
+      </ul>
+
+      <h3>14.3 &mdash; Marche Noir Ambulant : entite, items &amp; livre</h3>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">EntityBlackMarketDealer (PNJ marchand)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>EntityBlackMarketDealer extends EntityVillager</code> (heritage pour reutiliser l'IA de base) avec override complet du profession/career rendering.</li>
+        <li><strong>Skin custom :</strong> texture villager modifiee — cape noire avec bordure rouge, hood (capuchon) cachant le visage, <strong>yeux brillants rouges</strong> (overlay emissif <code>#FF1A1A</code> sur les yeux meme dans l'ombre via <code>ModelVillager</code> custom). Asset : <code>assets/eriniumfaction/textures/entity/black_market_dealer.png</code>, cree en repixelisant le skin villager vanilla (workflow SVG fallback + nouveau preset entity).</li>
+        <li><strong>Modele :</strong> reutilise <code>ModelVillager</code> de base avec cape attachee (extension <code>ModelBlackMarketDealer extends ModelVillager</code>, ajout d'un <code>ModelRenderer</code> cape).</li>
+        <li><strong>Nom flottant :</strong> "??? Marchand Noir" en gras rouge (<code>TextFormatting.RED + TextFormatting.BOLD</code>) avec animation pulse cote client : alpha oscille 0.7 a 1.0 en sinusoide (periode 40 ticks). Implementation : override <code>RenderLivingBase.renderLivingLabel</code> via Mixin ou subclass.</li>
+        <li><strong>Son ambient :</strong> ricanement discret <code>eriniumfaction:entity.dealer.chuckle</code> (custom sound, fichier <code>assets/eriniumfaction/sounds/dealer/chuckle.ogg</code>) joue toutes les 30 secondes (+/- 10s aleatoire), volume 0.6, audible a 12 blocs.</li>
+        <li><strong>IA :</strong> stationnaire (override <code>initEntityAI</code> pour retirer <code>EntityAIWander</code>). Conserve <code>EntityAILookAtPlayer</code> et <code>EntityAIWatchClosest</code>.</li>
+        <li><strong>Interaction :</strong> override <code>processInteract</code> &rarr; ouvre le GUI Marche Noir via <code>GuiNetworkHandler.openGui(player, GuiId.BLACK_MARKET, dealerId)</code>. PAS d'echanges villager vanilla (override <code>setCustomer(null)</code> systematique).</li>
+        <li><strong>Immortel :</strong> override <code>attackEntityFrom</code> &rarr; retourne <code>false</code>. Le PNJ est invulnerable jusqu'au timer de fin d'event.</li>
+        <li><strong>Despawn :</strong> a la fin de l'event (timer 1h, stock epuise, etc.), animation de teleport (particules <code>PORTAL</code> + son <code>ENTITY_ENDERMEN_TELEPORT</code>) puis <code>setDead()</code>.</li>
+      </ul>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">Items Marche Noir</h4>
+      <ul>
+        <li><strong>ItemBlackMarketToken</strong> &mdash; stack 64, categorie <code>EVENT_LOOT</code>, rarity <code>RARE</code>. Drop globalement rare (~0.1%) sur kills de mobs hostiles ET sur cassures de blocs minerais (valterite, aetherite, erinium). 5 tokens permettent un <strong>trade exclusif</strong> au Marchand Noir (3eme onglet du GUI : "Echange Tokens"), donnant acces a 1 item de tier superieur normalement non achetable. Texture <code>texture-gen</code> categorie <code>coin</code> couleur <code>#0A0A0A</code> base + <code>#C0392B</code> gravure.</li>
+
+        <li><strong>ItemDarkContract</strong> &mdash; stack 1, categorie <code>EVENT_LOOT</code>, rarity <code>EPIC</code>. Vendu chez le Marchand Noir (cout : 2500 Eris). Right-click ouvre un GUI <code>GuiDarkContract</code> proposant <strong>3 missions aleatoires</strong> tirees d'un pool, parmi :
+          <div class="table-wrap" style="margin-top: 10px;">
+            <table>
+              <thead><tr><th>Mission</th><th>Cible</th><th>Recompense</th></tr></thead>
+              <tbody>
+                <tr><td>Tuer X mobs</td><td>X = 50 a 200 (skeleton, zombie, creeper, witch, blaze, wither skeleton)</td><td>800 a 2500 Eris + 1 token</td></tr>
+                <tr><td>Miner Y blocs</td><td>Y = 32 a 128 valterite_ore</td><td>1200 a 3000 Eris + 1 token</td></tr>
+                <tr><td>Capturer Z claim</td><td>Z = 1 a 3 chunks faction adverse</td><td>2000 a 5000 Eris + 2 tokens</td></tr>
+                <tr><td>Tuer N joueurs</td><td>N = 5 a 15 PvP kills</td><td>1500 a 4000 Eris + 1 token</td></tr>
+                <tr><td>Looter coffres</td><td>10 a 30 coffres Rift / structure</td><td>1000 a 2500 Eris + 1 token</td></tr>
+              </tbody>
+            </table>
+          </div>
+          Le joueur choisit 1 mission &rarr; contrat actif (capability <code>DarkContractCap</code>, persistant). Progression trackee via listeners (LivingDeathEvent, BlockEvent.BreakEvent, PlayerInteractEvent, FactionClaimEvent, AuctionHouseChestOpenEvent custom). Validation a la fin : commande <code>/contract complete</code> ou auto-complete a l'objectif atteint. Recompenses livrees au mail ou inventaire. Le contrat est <strong>perdu</strong> a la mort du joueur (incentive risque). Texture : parchemin sombre avec sceau de cire rouge, SVG fallback &rarr; preset <code>scroll</code>.
+        </li>
+
+        <li><strong>ItemEncryptedMap</strong> &mdash; stack 16, categorie <code>EVENT_LOOT</code>, rarity <code>RARE</code>. Vendu chez le Marchand (cout : 1500 Eris) ou drop dans les Rift. Right-click :
+          <ul style="margin-top: 4px;">
+            <li>&middot; Genere coords aleatoires (<code>x = player.x + rand(-1000, 1000)</code>, <code>z = player.z + rand(-1000, 1000)</code>, clamp pour rester en zone monde non-claim).</li>
+            <li>&middot; Spawn un <strong>waypoint</strong> sur la carte client (compatibilite mini-map mod ou marker EriAPI map system) ET un message chat avec coords + bouton "Voir sur la carte web".</li>
+            <li>&middot; Genere un <code>BlockTreasureChest</code> (variante coffre dore, loot table <code>eriniumfaction:treasure/encrypted_map</code>) aux coords + spawn de 3-5 mobs gardiens autour (zombie pigman, vindicator).</li>
+            <li>&middot; Carte consommee apres usage (stack -1). <strong>Une seule decouverte par carte</strong> (autre joueur arrivant en premier au coffre = il loot, la carte de l'utilisateur reste valide pour generer une nouvelle).</li>
+          </ul>
+          Texture <code>texture-gen</code> categorie <code>map</code> ou variante du <code>filled_map</code> vanilla.
+        </li>
+
+        <li><strong>ItemForbiddenEnchantBook</strong> &mdash; stack 1 (unique), categorie <code>EVENT_LOOT</code>, rarity <code>LEGENDARY</code>. Vendu chez le Marchand (cout : 8000 Eris + 3 tokens) ou drop ultra-rare boss. Variantes possibles (selectionnees aleatoirement au moment du drop, stockees en NBT <code>forbiddenEnchant: string</code>) :
+          <div class="table-wrap" style="margin-top: 10px;">
+            <table>
+              <thead><tr><th>Enchantement</th><th>Niveau (au-dela du max vanilla)</th><th>Compatibilite</th></tr></thead>
+              <tbody>
+                <tr><td>Sharpness VII</td><td>Vanilla max V</td><td>Epees uniquement</td></tr>
+                <tr><td>Protection VI</td><td>Vanilla max IV</td><td>Toutes armures</td></tr>
+                <tr><td>Looting V</td><td>Vanilla max III</td><td>Epees uniquement</td></tr>
+                <tr><td>Power VII</td><td>Vanilla max V</td><td>Arcs uniquement</td></tr>
+                <tr><td>Efficiency VI</td><td>Vanilla max V</td><td>Outils miniers uniquement</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <strong>Application :</strong> uniquement via le systeme d'<strong>enclumes custom</strong> existant du mod (cross-reference : voir spec <code>anvils-custom</code>). L'enclume vanilla refuse explicitement le livre (override via Mixin sur <code>ContainerRepair.updateRepairOutput</code> ou listener <code>AnvilUpdateEvent</code> qui annule si NBT <code>forbidden=true</code>). Texture livre rouge sombre + sceau dore.
+        </li>
+      </ul>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">Mecaniques Marche Noir</h4>
+      <ul>
+        <li><strong>Cooldown achat par joueur :</strong> apres un achat au Marche Noir, le joueur a un cooldown de <strong>24 heures reelles</strong> avant de pouvoir acheter chez un autre Marchand (NBT joueur <code>blackMarketLastBuy: long</code> = timestamp ms). Affichage du cooldown dans le GUI quand applicable. Anti-abus contre les joueurs camp/multi-account.</li>
+        <li><strong>NBT bound :</strong> tout item achete au Marche Noir recoit <code>blackMarketBound=true</code> dans son NBT. Le HDV refuse les items avec ce flag (verification dans <code>AuctionListingHandler.canList</code>). Les items restent echangeables main-a-main et utilisables normalement.</li>
+        <li><strong>Skins/capes :</strong> les items cosmetiques exclusifs Marche Noir (skins, capes — couvert par <code>SoulBound</code> deja existant dans S13) sont <strong>non-tradeable</strong> en plus du <code>blackMarketBound</code>.</li>
+      </ul>
+
+      <h3>14.4 &mdash; Boss Mondial : entites, items &amp; trophees</h3>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">EntityWorldBoss (classe abstraite)</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>abstract class EntityWorldBoss extends EntityMob</code>. Definit le contrat commun : tracking de degats par joueur (<code>Map&lt;UUID, Float&gt; damageDealt</code>), phases (3 par defaut : 100% &rarr; 66%, 66% &rarr; 33%, 33% &rarr; 0%), damage cap par hit (clamp a 5% HP max), bossbar global serveur (via <code>BossInfoServer</code> Forge).</li>
+        <li><strong>HP de base :</strong> <code>setHealth(7500.0F)</code>, configurable par sous-classe.</li>
+        <li><strong>Persistance :</strong> NBT <code>damageDealt</code> serialise (Map UUID -&gt; float), <code>currentPhase</code> (byte), <code>spawnTick</code> (long), <code>bossType</code> (string identifiant la sous-classe).</li>
+        <li><strong>Death &rarr; distribution butin :</strong> override <code>onDeath</code> &rarr; appelle <code>WorldBossLootDistributor.distribute(this, damageDealt)</code> qui gere le Top 1, Top 2-10, et consolation (voir S9 deja redigee).</li>
+      </ul>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">3 boss en rotation</h4>
+      <ul>
+        <li><strong>EntityWorldBossGolem</strong> &mdash; Golem de cristal aetherite. HP 8000, armor 8. Modele 3D massif (6&times;6&times;8 bloc), texture <code>#9B59B6</code> dominante + veines <code>#FFD700</code>. Patterns :
+          <ul style="margin-top: 4px;">
+            <li>&middot; Phase 1 : melee lourde (degats 18, knockback +3) + AOE shockwave toutes les 15s (degats 12, rayon 6 blocs, knockup).</li>
+            <li>&middot; Phase 2 (HP &lt; 66%) : summon 4 <code>EntityCrystalShard</code> (mini-golems HP 200) toutes les 25s.</li>
+            <li>&middot; Phase 3 (HP &lt; 33%) : aura permanente "Crystal Storm" (degats magiques 3/sec dans 10 blocs).</li>
+          </ul>
+        </li>
+        <li><strong>EntityWorldBossWraith</strong> &mdash; Spectre tenebreux. HP 6500, armor 4 (faible armor compense par mobilite). Modele etheree (semi-transparent, particules <code>SPELL_WITCH</code>). Patterns :
+          <ul style="margin-top: 4px;">
+            <li>&middot; Phase 1 : projectiles homing <code>EntityShadowOrb</code> (homing leger, vitesse 1.2, degats 15), 1 tir toutes les 4s.</li>
+            <li>&middot; Phase 2 : teleport aleatoire dans un rayon 20 blocs toutes les 10s + drain HP au contact (vol HP 5/tick au joueur le plus proche pendant 3s).</li>
+            <li>&middot; Phase 3 : invocation de 2 wraiths mineurs HP 300 toutes les 20s.</li>
+          </ul>
+        </li>
+        <li><strong>EntityWorldBossDragon</strong> &mdash; Dragon corrompu. HP 10000, armor 6. Modele dragon vanilla modifie (texture noir+rouge sang), capable de vol. Patterns :
+          <ul style="margin-top: 4px;">
+            <li>&middot; Phase 1 : fire breath conique (degats 8/tick pendant 3s, AOE 15 blocs cone) toutes les 12s + melee dive bomb.</li>
+            <li>&middot; Phase 2 : decolle a 30 blocs d'altitude, lance 3-5 <code>EntityMeteor</code> mini (degats explosion 2.5) sur les joueurs cibles toutes les 18s.</li>
+            <li>&middot; Phase 3 : <strong>enrage</strong> &mdash; vitesse +50%, degats melee +30%, fire breath cooldown reduit a 6s.</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">Items et blocs Boss</h4>
+      <ul>
+        <li><strong>ItemBossSoul</strong> &mdash; stack 1, categorie <code>EVENT_LOOT</code>, rarity <code>LEGENDARY</code>. Drop garanti au Top 1 contributeur (unique par boss, 3 variantes : <code>boss_soul_golem</code>, <code>boss_soul_wraith</code>, <code>boss_soul_dragon</code>). <strong>Non-stackable</strong>, glow effect permanent (NBT <code>hasGlint=true</code> applique cote client via <code>hasEffect</code> override). Right-click au sol = pose un <code>BlockBossTrophy</code> a l'emplacement. Texture : sphere energetique colore selon le boss (violet golem, gris-noir wraith, rouge dragon), animation 4 frames.</li>
+
+        <li><strong>BlockBossTrophy</strong> &mdash; bloc decoratif TESR custom. Affiche la <code>ItemBossSoul</code> flottante en levitation au-dessus d'un socle de pierre (animation : levitation +/- 0.15 bloc sinusoide periode 80 ticks + rotation continue 4deg/tick). Particules ambiantes selon le boss (<code>END_ROD</code> golem, <code>SMOKE_NORMAL</code> wraith, <code>FLAME</code> dragon).
+          <ul style="margin-top: 4px;">
+            <li>&middot; <strong>Hitbox :</strong> 2 boites &mdash; socle (0.0 a 1.0 X/Z, 0.0 a 0.4 Y) + soul flottant (0.3 a 0.7 X/Z, 0.6 a 1.4 Y, depasse le bloc en hauteur). isFullCube=false, isOpaque=false automatique via EriAPI.</li>
+            <li>&middot; <strong>Pose :</strong> uniquement par right-click avec <code>ItemBossSoul</code>. Consomme l'item. Le bloc memorise le proprietaire (UUID dans la TileEntity) et la faction au moment de la pose.</li>
+            <li>&middot; <strong>Buff de zone (rayon 20 blocs, sphere) :</strong> applique passivement aux <strong>membres de la faction proprietaire</strong> uniquement (verification toutes les 40 ticks via <code>FactionManager</code>). Effets selon le boss :
+              <ul style="margin-top: 4px;">
+                <li>&nbsp;&nbsp;&middot; Golem &rarr; <code>Effect.RESISTANCE I</code></li>
+                <li>&nbsp;&nbsp;&middot; Wraith &rarr; <code>Effect.SPEED I</code></li>
+                <li>&nbsp;&nbsp;&middot; Dragon &rarr; <code>Effect.STRENGTH I</code></li>
+              </ul>
+            </li>
+            <li>&middot; <strong>Cassable :</strong> uniquement par le proprietaire (UUID) ou un admin avec perm <code>eriniumfaction.boss.trophy.bypass</code>. Drop le BossSoul a la cassure.</li>
+            <li>&middot; <strong>Limite :</strong> 1 trophee par faction par type de boss (anti-empilement de buffs). Pose d'un second &rarr; refus + message.</li>
+          </ul>
+        </li>
+
+        <li><strong>ItemLegendaryFragment</strong> &mdash; stack 64, categorie <code>EVENT_LOOT</code>, rarity <code>EPIC</code>. Drop dans le pool Top 2-10 (quantite 1 a 5 selon rang). 10 fragments craftables (recette shapeless dans une table speciale ou via commande GUI) en un <strong>artefact aleatoire</strong> du pool artefacts (cross-reference : spec <code>artefacts</code> a venir). Texture <code>texture-gen</code> categorie <code>crystal</code> couleur <code>#F1C40F</code>.</li>
+
+        <li><strong>ItemDragonEssence</strong> / <strong>ItemWraithEssence</strong> / <strong>ItemGolemEssence</strong> &mdash; stack 16, categorie <code>EVENT_LOOT</code>, rarity <code>LEGENDARY</code>. Drop garanti 1x au Top 1 (en plus du BossSoul), drop 50% chance Top 2-3. Ingredient ultime pour le craft des <strong>armures endgame correspondantes</strong> (Dragon Plate, Wraith Cloak, Golem Bulwark — a definir dans une spec armures-endgame separee). Texture : fiole de liquide colore selon le boss (rouge sang, violet ethere, cyan cristallin), SVG fallback + preset <code>essence_flask</code>.</li>
+      </ul>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">Titre temporaire Boss Slayer</h4>
+      <ul>
+        <li>Le <strong>Top 1 contributeur</strong> recoit en plus du loot un <strong>titre temporaire</strong> au format <code>"Boss Slayer &mdash; [BossName]"</code> (ex: "Boss Slayer &mdash; Dragon Corrompu").</li>
+        <li><strong>Duree :</strong> 1 mois reel (30 jours, timestamp d'expiration stocke dans <code>PlayerProfileData.titles : List&lt;ActiveTitle{id, expireAt}&gt;</code>).</li>
+        <li><strong>Affichage :</strong> dans le tab list (prefixe avant pseudo) et au-dessus du nameplate en jeu (couleur <code>#F1C40F</code>, italique). Override <code>ScoreboardTeam</code> ou nameplate render custom EriAPI.</li>
+        <li><strong>Tracking :</strong> via systeme de profil/stats existant (<code>PlayerProfileData</code>). Auto-expiration verifiee au login et chaque heure via <code>EriScheduler.repeat(...)</code>.</li>
+        <li><strong>Cumulable :</strong> un joueur peut porter plusieurs titres expires-staggered (1 par boss tue), il affiche le plus recent par defaut, peut switcher via <code>/title set &lt;id&gt;</code>.</li>
+      </ul>
+
+      <h3>14.5 &mdash; Overlay d'annonce &amp; icones (lie a S5/T6)</h3>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">EventAnnouncerOverlay</h4>
+      <ul>
+        <li><strong>Classe :</strong> <code>EventAnnouncerOverlay extends OverlayMod</code> (EriAPI &mdash; <strong>OBLIGATOIRE</strong> par CLAUDE.md, JAMAIS coder en RenderGameOverlayEvent brut).</li>
+        <li><strong>Position :</strong> haut centre de l'ecran (ancre <code>TOP_CENTER</code>, offset Y = +20 px). Design responsive ScaleManager EriAPI 1920x1080.</li>
+        <li><strong>Toast (apparition annonce) :</strong>
+          <ul style="margin-top: 4px;">
+            <li>&middot; Duree visible : 5 secondes (100 ticks), puis fadeOut 20 ticks.</li>
+            <li>&middot; Fond gradient horizontal selon couleur event (violet pour Meteor, cyan Rift, rouge Black Market, or Boss). Bordure 1px <code>rgba(255,255,255,0.08)</code>, radius 16 px, backdrop-blur effect.</li>
+            <li>&middot; Icone 32x32 a gauche (texture <code>assets/eriniumfaction/textures/gui/events/&lt;event_id&gt;.png</code>).</li>
+            <li>&middot; Texte avec animation <strong>typewriter</strong> : 1 caractere apparait par tick (2 ticks par char). Police bold 18 px.</li>
+            <li>&middot; Son d'apparition <code>eriniumfaction:ui.event_announce</code> (custom, fichier ogg dedie).</li>
+          </ul>
+        </li>
+        <li><strong>Persistant tant que event actif :</strong> apres le toast, l'icone reste affichee en petit (24x24) en haut-droite avec texte court ("Meteor Shower &middot; 18:42 restantes"). Pulse subtil sur l'icone (alpha 0.7 &rarr; 1.0, periode 60 ticks).</li>
+        <li><strong>Animations :</strong> via <code>AnimationManager</code> EriAPI &mdash; <code>fadeIn(20)</code>, <code>slideInTop(15)</code>, <code>fadeOut(20)</code>. Easings <code>EASE_OUT_CUBIC</code>.</li>
+      </ul>
+
+      <h4 style="margin: 18px 0 8px; font-size: 13px; color: var(--cyan); letter-spacing: 0.06em; text-transform: uppercase;">Icones d'events</h4>
+      <ul>
+        <li>Une <strong>texture icone 32x32</strong> par event utilisee dans : l'overlay, le bossbar (composition), le GUI <code>/event list</code>, l'embed Discord webhook (S13).</li>
+        <li><strong>Chemin :</strong> <code>assets/eriniumfaction/textures/gui/events/&lt;event_id&gt;.png</code> &mdash; ex <code>meteor_shower.png</code>, <code>rift_dimension.png</code>, <code>black_market.png</code>, <code>world_boss_golem.png</code>, <code>world_boss_wraith.png</code>, <code>world_boss_dragon.png</code>.</li>
+        <li><strong>Style :</strong> pictogramme stylise 32x32 avec contour 1 px, palette en accord avec la couleur event (defini dans la config JSON de chaque event). Source : SVG cree dans <code>assets_wip/world-events/icons/</code> puis converti via ImageMagick avec <code>-filter Point -resize 32x32</code>.</li>
+      </ul>
+
+      <h3>14.6 &mdash; Tableau recapitulatif exhaustif</h3>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID interne</th>
+              <th>Nom affiche</th>
+              <th>Type</th>
+              <th>Stack</th>
+              <th>Categorie</th>
+              <th>Source / Event</th>
+              <th>Mecanique principale</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>eriniumfaction:meteor</code></td><td>Meteor</td><td>Entity</td><td>&mdash;</td><td>&mdash;</td><td>Meteor Shower</td><td>Tombe du ciel, explose a l'impact, depose un BlockMeteorCore.</td></tr>
+            <tr><td><code>eriniumfaction:meteor_core</code></td><td>Coeur de Meteore</td><td>Block</td><td>64</td><td>EVENT_LOOT</td><td>Meteor Shower</td><td>Bloc 5 min, mining valterite+, drops loot table.</td></tr>
+            <tr><td><code>eriniumfaction:meteor_shard</code></td><td>Eclat de Meteore</td><td>Item</td><td>64</td><td>EVENT_LOOT</td><td>Meteor Shower</td><td>Materiau de craft armures stellaires.</td></tr>
+            <tr><td><code>eriniumfaction:meteoric_iron</code></td><td>Fer Meteorique</td><td>Item</td><td>64</td><td>EVENT_LOOT</td><td>Meteor Shower</td><td>Tier intermediaire, +5% degats vs mobs nocturnes.</td></tr>
+            <tr><td><code>eriniumfaction:stardust</code></td><td>Poussiere d'Etoile</td><td>Item</td><td>16</td><td>EVENT_LOOT</td><td>Meteor Shower</td><td>Consommable : Glowing 60s + Speed I 30s + Stellar Insight 90s.</td></tr>
+            <tr><td><code>eriniumfaction:rift_portal</code></td><td>Faille Dimensionnelle</td><td>Block</td><td>&mdash;</td><td>&mdash;</td><td>Rift Dimensionnel</td><td>Portail event-only, teleport vers la dim Rift, applique RiftWalker.</td></tr>
+            <tr><td><code>eriniumfaction:rift_chest</code></td><td>Coffre du Rift</td><td>Block</td><td>&mdash;</td><td>&mdash;</td><td>Rift Dimensionnel</td><td>Coffre instance, loot tier 1-3, anti-farm via openedBy.</td></tr>
+            <tr><td><code>eriniumfaction:rift_key</code></td><td>Cle du Rift</td><td>Item</td><td>16</td><td>EVENT_LOOT</td><td>Rift Dimensionnel</td><td>Right-click sol = portail temp 5 min, cooldown 60 min.</td></tr>
+            <tr><td><code>eriniumfaction:rift_shard</code></td><td>Eclat du Rift</td><td>Item</td><td>64</td><td>EVENT_LOOT</td><td>Rift Dimensionnel</td><td>Monnaie specifique, echange chez PNJ Rift Merchant.</td></tr>
+            <tr><td><code>eriniumfaction:rift_orb</code></td><td>Orbe du Rift</td><td>Item</td><td>1</td><td>EVENT_LOOT</td><td>Rift Dimensionnel</td><td>Accessoire : NightVision + 10% resist magique, durabilite 1000.</td></tr>
+            <tr><td><code>eriniumfaction:black_market_dealer</code></td><td>??? Marchand Noir</td><td>Entity</td><td>&mdash;</td><td>&mdash;</td><td>Marche Noir</td><td>PNJ marchand temporaire, GUI exclusif, immortel jusqu'a fin event.</td></tr>
+            <tr><td><code>eriniumfaction:black_market_token</code></td><td>Jeton du Marche Noir</td><td>Item</td><td>64</td><td>EVENT_LOOT</td><td>Drop global rare</td><td>5 tokens = trade exclusif (3eme onglet GUI).</td></tr>
+            <tr><td><code>eriniumfaction:dark_contract</code></td><td>Contrat Sombre</td><td>Item</td><td>1</td><td>EVENT_LOOT</td><td>Marche Noir</td><td>3 missions aleatoires, recompense Eris + tokens, perdu a la mort.</td></tr>
+            <tr><td><code>eriniumfaction:encrypted_map</code></td><td>Carte Chiffree</td><td>Item</td><td>16</td><td>EVENT_LOOT</td><td>Marche Noir</td><td>Waypoint coords aleatoires + spawn coffre tresor + gardiens.</td></tr>
+            <tr><td><code>eriniumfaction:forbidden_enchant_book</code></td><td>Livre Enchant Interdit</td><td>Item</td><td>1</td><td>EVENT_LOOT</td><td>Marche Noir</td><td>Enchants au-dela max vanilla, applicable enclume custom uniquement.</td></tr>
+            <tr><td><code>eriniumfaction:world_boss_golem</code></td><td>Golem de Cristal</td><td>Entity</td><td>&mdash;</td><td>&mdash;</td><td>Boss Mondial</td><td>HP 8000, AOE shockwave, summon Crystal Shards.</td></tr>
+            <tr><td><code>eriniumfaction:world_boss_wraith</code></td><td>Spectre Tenebreux</td><td>Entity</td><td>&mdash;</td><td>&mdash;</td><td>Boss Mondial</td><td>HP 6500, teleport, drain HP, projectiles homing.</td></tr>
+            <tr><td><code>eriniumfaction:world_boss_dragon</code></td><td>Dragon Corrompu</td><td>Entity</td><td>&mdash;</td><td>&mdash;</td><td>Boss Mondial</td><td>HP 10000, fire breath, dive bomb, mini-meteors, enrage phase 3.</td></tr>
+            <tr><td><code>eriniumfaction:boss_soul_golem</code></td><td>Ame du Golem</td><td>Item</td><td>1</td><td>EVENT_LOOT</td><td>Top 1 Golem</td><td>Posable comme BlockBossTrophy &rarr; aura Resistance I faction.</td></tr>
+            <tr><td><code>eriniumfaction:boss_soul_wraith</code></td><td>Ame du Spectre</td><td>Item</td><td>1</td><td>EVENT_LOOT</td><td>Top 1 Wraith</td><td>Posable comme BlockBossTrophy &rarr; aura Speed I faction.</td></tr>
+            <tr><td><code>eriniumfaction:boss_soul_dragon</code></td><td>Ame du Dragon</td><td>Item</td><td>1</td><td>EVENT_LOOT</td><td>Top 1 Dragon</td><td>Posable comme BlockBossTrophy &rarr; aura Strength I faction.</td></tr>
+            <tr><td><code>eriniumfaction:boss_trophy</code></td><td>Trophee de Boss</td><td>Block</td><td>&mdash;</td><td>&mdash;</td><td>Pose BossSoul</td><td>TESR levitation, buff zone 20 blocs membres faction.</td></tr>
+            <tr><td><code>eriniumfaction:legendary_fragment</code></td><td>Fragment Legendaire</td><td>Item</td><td>64</td><td>EVENT_LOOT</td><td>Top 2-10 Boss</td><td>10 fragments = 1 artefact aleatoire.</td></tr>
+            <tr><td><code>eriniumfaction:golem_essence</code></td><td>Essence de Golem</td><td>Item</td><td>16</td><td>EVENT_LOOT</td><td>Boss Golem</td><td>Ingredient armure endgame Golem Bulwark.</td></tr>
+            <tr><td><code>eriniumfaction:wraith_essence</code></td><td>Essence de Spectre</td><td>Item</td><td>16</td><td>EVENT_LOOT</td><td>Boss Wraith</td><td>Ingredient armure endgame Wraith Cloak.</td></tr>
+            <tr><td><code>eriniumfaction:dragon_essence</code></td><td>Essence de Dragon</td><td>Item</td><td>16</td><td>EVENT_LOOT</td><td>Boss Dragon</td><td>Ingredient armure endgame Dragon Plate.</td></tr>
+            <tr><td><code>eriniumfaction:event_beacon</code></td><td>Balise d'Invocation</td><td>Item</td><td>1</td><td>EVENT_LOOT</td><td>Cash shop / lootbox premium</td><td>Force le demarrage d'un event aleatoire dans 10 min.</td></tr>
+            <tr><td><code>eriniumfaction:treasure_chest</code></td><td>Coffre au Tresor</td><td>Block</td><td>&mdash;</td><td>&mdash;</td><td>Spawn via Encrypted Map</td><td>Coffre dore + 3-5 mobs gardiens, loot table dedicacee.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">v</span>
+        <div class="content"><strong>Validation completude :</strong> 28 nouveaux assets (4 entites, 6 blocs, 18 items) repartis sur les 4 events principaux. Chaque asset a un comportement specifie, une texture identifiee (categorie texture-gen ou fallback SVG), et une integration concrete au reste du mod (HDV, faction, profil, mail, enclumes custom). Aucun stub ne doit subsister a l'implementation.</div>
+      </div>
+    </section>
+
+    <!-- S15 — MECANIQUES CROSS-EVENT -->
+    <section class="section-card" id="s15">
+      <h2><span class="s-num red-num">15</span> Mecaniques Cross-Event</h2>
+
+      <p class="first">Certaines mecaniques traversent <strong>plusieurs events</strong> ou s'appliquent globalement au serveur pendant qu'un event est actif. Elles sont centralisees dans des singletons partages pour eviter la duplication et garantir la coherence des buffs/restrictions.</p>
+
+      <h3 class="first">15.1 &mdash; EventBuffManager (buff serveur-wide)</h3>
+      <ul>
+        <li><strong>Classe :</strong> <code>EventBuffManager</code> singleton (<code>getInstance()</code>) enregistre comme listener via <code>@Mod.EventBusSubscriber</code>.</li>
+        <li><strong>Role :</strong> applique des modificateurs globaux a tous les joueurs/mobs pendant qu'un event specifique est actif. Centralise toutes les regles "pendant event X, regle Y" plutot que de les disperser dans chaque event.</li>
+        <li><strong>Hooks Forge :</strong>
+          <ul style="margin-top: 4px;">
+            <li>&middot; <code>LivingHurtEvent</code> (phase HIGH) &mdash; multiplicateurs degats (ex: +10% crits Meteor Shower).</li>
+            <li>&middot; <code>CriticalHitEvent</code> &mdash; tag du tick comme "crit du joueur X", stocke en <code>WeakHashMap&lt;EntityPlayer, Long&gt; lastCritTick</code>.</li>
+            <li>&middot; <code>BlockEvent.BreakEvent</code> &mdash; bonus drops Meteor (drops tertiaires si Meteor actif).</li>
+            <li>&middot; <code>PlayerEvent.XpChange</code> &mdash; multiplicateur XP Rift (50% en dim Rift).</li>
+          </ul>
+        </li>
+        <li><strong>Performance :</strong> court-circuit immediat si aucun event n'est actif (verification <code>O(1)</code> via flag boolean cache). Aucune iteration globale par tick.</li>
+      </ul>
+
+      <h3>15.2 &mdash; NBT bound &amp; tracking d'origine</h3>
+      <ul>
+        <li>Tout item drop par un event recoit en NBT <code>eventOrigin: "&lt;event_id&gt;"</code> (ex: <code>"meteor_shower"</code>, <code>"world_boss_dragon"</code>) pour tracking statistique et restrictions futures.</li>
+        <li>Tout item achete au Marche Noir recoit en plus <code>blackMarketBound: true</code>. Le HDV refuse les items avec ce flag (<code>AuctionListingHandler.canList()</code> &rarr; <code>false</code>).</li>
+        <li>Les items cosmetiques exclusifs Marche Noir (skins, capes) ont en plus <code>SoulBound: true</code> (deja documente S13) &mdash; non-tradeable main-a-main.</li>
+        <li><strong>Implementation :</strong> centralisee dans <code>EventLootStamper.stamp(ItemStack, String eventId, boolean blackMarket)</code> appele par toutes les distributions de loot.</li>
+      </ul>
+
+      <h3>15.3 &mdash; Invocation manuelle &mdash; ItemEventBeacon</h3>
+      <ul>
+        <li><strong>ItemEventBeacon</strong> &mdash; stack 1, categorie <code>EVENT_LOOT</code>, rarity <code>LEGENDARY</code>. Item consommable <strong>ultra rare</strong>, obtenu uniquement via :
+          <ul style="margin-top: 4px;">
+            <li>&middot; <strong>Lootbox premium</strong> (probabilite 0.1% &mdash; tirage tres rare).</li>
+            <li>&middot; <strong>Cash shop</strong> (Eris achetes via paiement reel) au prix de <strong>10 000 Eris</strong> (limite 1 par joueur par mois).</li>
+          </ul>
+        </li>
+        <li><strong>Right-click :</strong> consume l'item, planifie le demarrage d'un <strong>event aleatoire</strong> (tirage pondere par <code>EventManager</code>) dans <strong>10 minutes</strong>. <strong>Pas un event specifique</strong> &mdash; le joueur n'a pas le choix du type, ce qui maintient le balance.</li>
+        <li><strong>Annonce serveur :</strong> diffuse sur tout le serveur via <code>EriChat</code> + son global : <em>"Le joueur &lt;Pseudo&gt; a invoque un evenement ! Il debutera dans 10 minutes..."</em>.</li>
+        <li><strong>Restrictions :</strong> impossible si un event est deja actif OU planifie dans la prochaine heure. Message d'erreur explicite, item non consomme.</li>
+        <li><strong>Anti-griefing :</strong> log admin systematique (<code>EVENT_BEACON_USE</code> dans le systeme d'audit log).</li>
+        <li>Texture : balise verticale dore avec faisceau de lumiere, modele 3D Blockbench (peut-etre reuse <code>ModelBeacon</code> vanilla coloree).</li>
+      </ul>
+
+      <h3>15.4 &mdash; Achievement chain &amp; cosmetiques</h3>
+      <ul>
+        <li>Le systeme de profil/stats (S13) tracke deja les compteurs <code>eventsParticipated</code>, <code>worldBossKills</code>, <code>riftCompleted</code>, etc. Sur cette base, les <strong>achievements chain</strong> suivants debloquent des <strong>badges</strong> et <strong>cosmetiques</strong> (slot cape/aura) :</li>
+        <li>
+          <div class="table-wrap" style="margin-top: 10px;">
+            <table>
+              <thead><tr><th>Achievement ID</th><th>Condition</th><th>Recompense</th></tr></thead>
+              <tbody>
+                <tr><td><code>event_participant_10</code></td><td>Participer a 10 events (contribution &gt;= 1%)</td><td>Badge "Festayer", titre temporaire 7 jours</td></tr>
+                <tr><td><code>event_participant_50</code></td><td>Participer a 50 events</td><td>Badge "Veteran", cape "Storm Walker"</td></tr>
+                <tr><td><code>boss_slayer_5</code></td><td>Top 10 sur 5 kills boss differents</td><td>Badge "Chasseur de Titans", aura particules dores</td></tr>
+                <tr><td><code>boss_slayer_top1</code></td><td>Top 1 sur un boss mondial</td><td>Titre permanent "Premier Tueur"</td></tr>
+                <tr><td><code>rift_master_20</code></td><td>Terminer 20 Rifts (boss Keeper tue)</td><td>Badge "Maitre des Failles", cape "Rift Walker"</td></tr>
+                <tr><td><code>meteor_collector_100</code></td><td>Recolter 100 drops Meteor</td><td>Badge "Glaneur d'Etoiles", aura particules <code>END_ROD</code></td></tr>
+                <tr><td><code>black_market_regular</code></td><td>Acheter 25 items au Marche Noir</td><td>Badge "Client VIP", reduction permanente -5% chez le Marchand</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </li>
+        <li><strong>Implementation :</strong> link avec le systeme cosmetique a venir (spec <code>cosmetics</code>). Les badges sont affiches dans le profil web et la GUI profil en jeu. Les capes/auras s'activent dans le menu cosmetiques.</li>
+        <li><strong>Notification de deblocage :</strong> annonce overlay (style achievement Minecraft amelioree) + message chat + son <code>UI_TOAST_CHALLENGE_COMPLETE</code>.</li>
+      </ul>
+
+      <h3>15.5 &mdash; Synthese cross-references</h3>
+      <div class="ascii-diagram">
+<span class="as">+-------------------+   +--------------------+   +-------------------+</span>
+<span class="as">|  EventManager     |-->|  EventBuffManager  |-->|  LivingHurtEvent  |</span>
+<span class="as">|  (active events)  |   |  (singleton)       |   |  +10% crits, etc. |</span>
+<span class="as">+-------------------+   +--------------------+   +-------------------+</span>
+<span class="as">         |                                                       </span>
+<span class="as">         v                                                       </span>
+<span class="as">+-------------------+   +--------------------+   +-------------------+</span>
+<span class="as">|  EventLootDistr.  |-->|  EventLootStamper  |-->|  NBT eventOrigin  |</span>
+<span class="as">|  (Top1/Top2-10)   |   |  (stamp ItemStack) |   |  + blackMarketBnd |</span>
+<span class="as">+-------------------+   +--------------------+   +-------------------+</span>
+<span class="as">         |                       |                                </span>
+<span class="as">         v                       v                                </span>
+<span class="as">+-------------------+   +--------------------+   +-------------------+</span>
+<span class="as">|  PlayerProfileData|-->|  AchievementChain  |-->|  Badges + Cosmet. |</span>
+<span class="as">|  (compteurs)      |   |  (deblocages)      |   |  (capes, auras)   |</span>
+<span class="as">+-------------------+   +--------------------+   +-------------------+</span>
+      </div>
+
+      <div class="info-box warn">
+        <span class="icon">!</span>
+        <div class="content"><strong>Performance critique.</strong> Tous les hooks transversaux (LivingHurtEvent, CriticalHitEvent, BlockBreakEvent, XpChange) sont dans des hot paths sur 500-1000 joueurs. <strong>Court-circuit O(1)</strong> obligatoire : <code>if (!EventManager.anyEventActive()) return;</code> en premier dans chaque handler. La structure <code>activeEvents</code> est un <code>EnumSet</code> ou un bitfield pour minimiser les acces.</div>
+      </div>
+    </section>
+
+    <!-- S16 — PLAN DE TESTS -->
+    <section class="section-card" id="s16">
+      <h2><span class="s-num gold-num">16</span> Plan de Tests</h2>
 
       <h3 class="first">Tests par event — Meteor Shower</h3>
       <ul class="checklist">
