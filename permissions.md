@@ -114,6 +114,15 @@ La verification des permissions suit cette chaine (dans l'ordre) :
 | `eriniumfaction.profile.set` | Definir une stat d'un joueur via `/profile set <joueur> <stat> <valeur>` |
 | `eriniumfaction.profile.*` | Wildcard couvrant toutes les permissions `eriniumfaction.profile.` |
 
+### Trade (`eriniumfaction.trade.*`)
+
+| Permission | Description |
+|------------|-------------|
+| `eriniumfaction.trade.admin.cancel` | Annuler le trade d'un joueur via `/tradeadmin cancel <joueur>` |
+| `eriniumfaction.trade.admin.list` | Lister les trades en cours via `/tradeadmin list` |
+| `eriniumfaction.trade.admin.spy` | Observer le contenu d'un trade via `/tradeadmin spy <joueur>` |
+| `eriniumfaction.trade.admin.*` | Wildcard couvrant toutes les permissions `eriniumfaction.trade.admin.` |
+
 ### Securite Auth (`eriniumfaction.security.*`)
 
 | Permission | Description |
