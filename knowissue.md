@@ -1620,3 +1620,25 @@ at fr.eri.eriapi.network.PacketGuiOpen.fromBytes(PacketGuiOpen.java:42)
 1. `MixinCompressedStreamTools.java` — `@Redirect` sur `PacketBuffer.readCompoundTag()` ciblant le `NEW NBTSizeTracker` pour passer 32 MB a la place (cible `PacketBuffer` car `CompressedStreamTools.read(DataInput)` n'existe pas — le constructeur 2MB est dans `PacketBuffer.readCompoundTag`).
 2. `ShopPriceData.MAX_HISTORY_SAMPLES` reduit de 288 -> 24 pour alleger le payload (24 * 30min = 12h de couverture).
 **Regle** : Si un GUI AdminShop/HDV crashe avec "NBT too big", verifier d'abord si `MixinCompressedStreamTools` est bien enregistre dans `mixins.eriniumfaction.json`. Pour tout nouveau GUI volumineux, envisager de paginer les donnees ou de charger lazily cote serveur via RPC plutot que de tout envoyer dans `PacketGuiOpen`.
+
+## 2026-05-14 — Trade GUI : slots adverses interactifs + mirroring incorrect
+
+**Systeme** : `trade/ContainerTrade.java`, `trade/client/GuiTrade.java`, `faction/chest/FactionChestGuiHandler.java`, `trade/TradeManager.java`
+
+**Problemes** :
+1. Les slots de l'autre joueur etaient toujours rendus a droite du GUI (positions x absolues). Resultat : quand B etait dans le GUI et que A deposait un item, B le voyait apparaitre dans la zone gauche (comme si c'etait ses propres slots).
+2. `TradeSlotLocked.isItemValid` et `canTakeStack` empechaient les depots/retraits classiques, mais le mode `ClickType.SWAP` (touches clavier 1-9), `THROW` et `PICKUP_ALL` court-circuitaient ces verifications — un joueur pouvait voler des items dans les slots adverses.
+3. Capacite trop faible : seulement 4 slots par joueur.
+
+**Cause racine** :
+- Positions x des slots fixees a la construction du container (cote serveur) sans tenir compte du viewer.
+- `Container.slotClick` non override : tous les modes non couverts par `isItemValid` passaient au handler par defaut.
+- `SLOTS_PER_PLAYER = 4` historique.
+
+**Solution** :
+1. **Mirroring** : dans `ContainerTrade`, les positions x des slots dependent de `isPlayerA`. Ordre d'ajout : "mes" slots toujours dans `inventorySlots[0..26]` (zone gauche), "leurs" slots dans `inventorySlots[27..53]` (zone droite). Les `Slot.slotIndex` pointent vers le bon index du `tradeInventory` partage (A: 0-26, B: 27-53) — invariant cote serveur.
+2. **Passage isA au client** : `openGui(world, 1, 0, 0)` pour A et `(world, 0, 0, 0)` pour B. `FactionChestGuiHandler.getClientGuiElement` lit `x != 0` pour reconstruire le container client avec le bon mirroring.
+3. **slotClick override** : refuse tout `slotId >= SLOTS_PER_PLAYER && slotId < TOTAL_TRADE_SLOTS` (couvre SWAP/THROW/PICKUP_ALL/etc.). `TradeSlotLocked` reste comme defense en profondeur.
+4. **27 slots** : `SLOTS_PER_PLAYER = 27` (3 lignes x 9 cols), `TOTAL_TRADE_SLOTS = 54`, GUI elargi a 350x290. Suppression de `TradeConfig.slotsPerPlayer` (inutilise et trop limite par `@Range(max=9)`).
+
+**Regle** : Pour tout container partage entre 2 joueurs (trade-like), TOUJOURS override `Container.slotClick` pour bloquer les modes non standard et passer un flag `isPlayerA` via le parametre `x` de `openGui` pour que le client connaisse son cote.
