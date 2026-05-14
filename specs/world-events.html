@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cahier des charges — Evenements Mondiaux | EriniumFaction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0F; --violet: #6B2FA0; --violet-l: #9B4FCF; --cyan: #00E5FF;
+    --green: #2ECC71; --red: #E74C3C; --gold: #F1C40F; --orange: #E67E22;
+    --text: #F0F2FF; --slate: #8892A4;
+    --card-bg: rgba(14,14,22,0.55); --card-bdr: rgba(255,255,255,0.06);
+    --radius: 18px; --radius-sm: 10px; --font: 'Inter', sans-serif;
+    --valterite: #4AE0E0; --aetherite: #9B59B6; --erinium: #FFD700;
+    --rare: #3498DB; --epic: #9B59B6; --legendary: #F1C40F;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); background-color: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 900px 600px at 10% 20%, rgba(107,47,160,0.18) 0%, transparent 70%),
+                radial-gradient(ellipse 700px 500px at 85% 75%, rgba(74,224,224,0.09) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 50% 90%, rgba(255,215,0,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.6;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+    overflow-y: auto; padding: 32px 20px;
+    background: rgba(10,10,15,0.70); backdrop-filter: blur(24px);
+    border-right: 1px solid var(--card-bdr);
+    display: flex; flex-direction: column; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: var(--violet) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 4px; }
+  .sidebar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 4px; padding-bottom: 16px; border-bottom: 1px solid var(--card-bdr); }
+  .sidebar-logo span { color: var(--cyan); }
+  .sidebar-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate); text-decoration: none; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); margin-bottom: 12px; transition: color .2s, border-color .2s, background .2s; }
+  .sidebar-back:hover { color: var(--cyan); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.04); }
+  .sidebar-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin: 16px 0 6px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--slate); text-decoration: none; transition: all .2s; border: 1px solid transparent; }
+  .nav-link .num { font-size: 10px; font-weight: 700; color: var(--violet-l); background: rgba(107,47,160,0.15); border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .nav-link:hover { color: var(--text); background: rgba(107,47,160,0.12); border-color: rgba(107,47,160,0.25); }
+  .nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.18); }
+  .main { flex: 1; padding: 48px 56px 80px 56px; max-width: 1100px; }
+  .page-header { margin-bottom: 56px; animation: fadeUp .6s ease both; }
+  .page-header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet-l); margin-bottom: 12px; }
+  .page-header h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--text) 0%, #4AE0E0 40%, #FFD700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--slate); font-size: 15px; max-width: 640px; }
+  .header-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 999px; border: 1px solid; }
+  .badge-violet   { color: var(--violet-l); border-color: rgba(107,47,160,0.4); background: rgba(107,47,160,0.1); }
+  .badge-cyan     { color: var(--cyan);     border-color: rgba(0,229,255,0.3);   background: rgba(0,229,255,0.07); }
+  .badge-green    { color: var(--green);    border-color: rgba(46,204,113,0.3);  background: rgba(46,204,113,0.07); }
+  .badge-gold     { color: var(--gold);     border-color: rgba(241,196,15,0.3);  background: rgba(241,196,15,0.07); }
+  .badge-slate    { color: var(--slate);    border-color: rgba(136,146,164,0.3); background: rgba(136,146,164,0.07); }
+  .badge-red      { color: var(--red);      border-color: rgba(231,76,60,0.3);   background: rgba(231,76,60,0.07); }
+  .badge-orange   { color: var(--orange);   border-color: rgba(230,126,34,0.3);  background: rgba(230,126,34,0.07); }
+  .section-card { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-bdr); border-radius: var(--radius); padding: 40px; margin-bottom: 32px; animation: fadeUp .5s ease both; }
+  .section-card:nth-child(1)  { animation-delay: .05s; }
+  .section-card:nth-child(2)  { animation-delay: .10s; }
+  .section-card:nth-child(3)  { animation-delay: .15s; }
+  .section-card:nth-child(4)  { animation-delay: .20s; }
+  .section-card:nth-child(5)  { animation-delay: .25s; }
+  .section-card:nth-child(6)  { animation-delay: .30s; }
+  .section-card:nth-child(7)  { animation-delay: .35s; }
+  .section-card:nth-child(8)  { animation-delay: .40s; }
+  .section-card:nth-child(9)  { animation-delay: .45s; }
+  .section-card:nth-child(10) { animation-delay: .50s; }
+  .section-card:nth-child(11) { animation-delay: .55s; }
+  .section-card:nth-child(12) { animation-delay: .60s; }
+  .section-card:nth-child(13) { animation-delay: .65s; }
+  .section-card:nth-child(14) { animation-delay: .70s; }
+  .section-card h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .section-card h2 .s-num { font-size: 11px; font-weight: 700; color: var(--bg); background: linear-gradient(135deg, var(--violet) 0%, var(--violet-l) 100%); border-radius: 6px; padding: 3px 9px; letter-spacing: 0.06em; }
+  .section-card h2 .s-num.cyan-num   { background: linear-gradient(135deg, #0097a7 0%, var(--cyan) 100%); }
+  .section-card h2 .s-num.green-num  { background: linear-gradient(135deg, #1a8a48 0%, var(--green) 100%); }
+  .section-card h2 .s-num.gold-num   { background: linear-gradient(135deg, #b8860b 0%, var(--gold) 100%); }
+  .section-card h2 .s-num.orange-num { background: linear-gradient(135deg, #a0531a 0%, var(--orange) 100%); }
+  .section-card h2 .s-num.red-num    { background: linear-gradient(135deg, #8b1a1a 0%, var(--red) 100%); }
+  .section-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--card-bdr); }
+  .section-card h3.first { margin-top: 0; }
+  .section-card p { color: var(--slate); font-size: 14px; margin-bottom: 12px; }
+  .section-card p:last-child { margin-bottom: 0; }
+  .section-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .section-card ul li { font-size: 14px; color: var(--slate); padding-left: 16px; position: relative; }
+  .section-card ul li::before { content: '>'; position: absolute; left: 0; color: var(--violet-l); font-weight: 700; }
+  .section-card ul li strong { color: var(--text); }
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--card-bdr); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: rgba(107,47,160,0.18); }
+  thead th { padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(107,47,160,0.3); }
+  tbody tr { border-bottom: 1px solid var(--card-bdr); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.016); }
+  tbody tr:hover { background: rgba(107,47,160,0.08); }
+  tbody td { padding: 9px 16px; color: var(--slate); vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .tag-yes { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.3); letter-spacing: 0.05em; }
+  .tag-no  { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(231,76,60,0.10); color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); letter-spacing: 0.05em; }
+  .code-block { background: rgba(5,5,10,0.80); border: 1px solid rgba(107,47,160,0.2); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; scrollbar-width: thin; scrollbar-color: rgba(107,47,160,0.4) transparent; }
+  .code-block::-webkit-scrollbar { height: 4px; }
+  .code-block::-webkit-scrollbar-track { background: transparent; }
+  .code-block::-webkit-scrollbar-thumb { background: rgba(107,47,160,0.4); border-radius: 4px; }
+  .kw { color: #C792EA; } .ty { color: #FFCB6B; } .fn { color: #82AAFF; } .st { color: #C3E88D; } .cm { color: #546E7A; font-style: italic; } .an { color: #F78C6C; } .nu { color: #F78C6C; } .op { color: #89DDFF; } .cl { color: #FFCB6B; }
+  .ascii-diagram { background: rgba(5,5,10,0.75); border: 1px solid rgba(0,229,255,0.12); border-radius: var(--radius-sm); padding: 20px 24px; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; line-height: 1.65; overflow-x: auto; margin: 14px 0; color: #B8C0D0; white-space: pre; }
+  .ascii-diagram .ac { color: var(--cyan); }
+  .ascii-diagram .av { color: var(--violet-l); }
+  .ascii-diagram .ag { color: var(--green); }
+  .ascii-diagram .ar { color: #E74C3C; }
+  .ascii-diagram .ay { color: var(--gold); }
+  .ascii-diagram .as { color: var(--slate); }
+  .info-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box .content { color: var(--slate); line-height: 1.6; }
+  .info-box .content strong { color: var(--text); }
+  .info-box.info   { background: rgba(0,229,255,0.06);  border: 1px solid rgba(0,229,255,0.15); }
+  .info-box.warn   { background: rgba(241,196,15,0.06); border: 1px solid rgba(241,196,15,0.2); }
+  .info-box.tip    { background: rgba(46,204,113,0.06); border: 1px solid rgba(46,204,113,0.2); }
+  .info-box.danger { background: rgba(231,76,60,0.06);  border: 1px solid rgba(231,76,60,0.2); }
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 14px 0; }
+  .checklist li { font-size: 13.5px; color: var(--slate); padding-left: 26px; position: relative; }
+  .checklist li::before { content: ''; position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
+  .checklist li strong { color: var(--text); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-bdr), transparent); margin: 24px 0; }
+  .mobile-nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 100; background: var(--violet); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 20px rgba(107,47,160,0.4); transition: transform .2s; }
+  .mobile-nav-toggle:hover { transform: scale(1.08); }
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); transition: transform .3s ease; z-index: 50; width: 260px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 32px 20px 60px; }
+    .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+  }
+  @media (max-width: 600px) { .section-card { padding: 24px 18px; } .page-header h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">Erinium<span>Faction</span></div>
+    <a class="sidebar-back" href="../roadmap.html">&#8592; Roadmap</a>
+    <span class="sidebar-title">Sommaire</span>
+    <a class="nav-link" href="#s1"><span class="num">01</span> Contexte &amp; Objectifs</a>
+    <a class="nav-link" href="#s2"><span class="num">02</span> Architecture Technique</a>
+    <a class="nav-link" href="#s3"><span class="num">03</span> Structures de Donnees</a>
+    <a class="nav-link" href="#s4"><span class="num">04</span> EventManager &amp; Scheduler</a>
+    <a class="nav-link" href="#s5"><span class="num">05</span> Annonce &amp; Countdown</a>
+    <a class="nav-link" href="#s6"><span class="num">06</span> Meteor Shower</a>
+    <a class="nav-link" href="#s7"><span class="num">07</span> Rift Dimensionnel</a>
+    <a class="nav-link" href="#s8"><span class="num">08</span> Marche Noir Ambulant</a>
+    <a class="nav-link" href="#s9"><span class="num">09</span> Boss Mondial</a>
+    <a class="nav-link" href="#s10"><span class="num">10</span> Configuration</a>
+    <a class="nav-link" href="#s11"><span class="num">11</span> Commandes &amp; Permissions</a>
+    <a class="nav-link" href="#s12"><span class="num">12</span> Cas Limites &amp; Performance</a>
+    <a class="nav-link" href="#s13"><span class="num">13</span> Integration Autres Systemes</a>
+    <a class="nav-link" href="#s14"><span class="num">14</span> Plan de Tests</a>
+  </nav>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="eyebrow">Cahier des charges &middot; EriniumFaction</div>
+      <h1>Evenements Mondiaux</h1>
+      <p>Systeme global d'evenements declenches automatiquement par un scheduler central — meteor shower, rifts dimensionnels, marchand noir ambulant, boss mondial — concu pour animer un serveur de 500 a 1000 joueurs sans intervention staff.</p>
+      <div class="header-badges">
+        <span class="badge badge-slate">Planifie</span>
+        <span class="badge badge-violet">Scheduler global</span>
+        <span class="badge badge-cyan">PvX emergent</span>
+        <span class="badge badge-gold">Butin progressif</span>
+        <span class="badge badge-orange">Anti-camp</span>
+        <span class="badge badge-green">Persistant</span>
+        <span class="badge badge-red">Boss Mondial</span>
+      </div>
+    </div>
+
+    <!-- S1 — CONTEXTE & OBJECTIFS -->
+    <section class="section-card" id="s1">
+      <h2><span class="s-num">01</span> Contexte &amp; Objectifs</h2>
+
+      <h3 class="first">Vision du systeme</h3>
+      <p>Les <strong>Evenements Mondiaux</strong> sont des animations recurrentes du serveur : un meteor shower nocturne, un rift dimensionnel qui s'ouvre quelque part dans le monde, un marchand noir qui apparait sans prevenir, un boss mondial qui ravage le centre de la carte. Ces evenements creent du <strong>contenu emergent</strong> : la course au butin, la confrontation entre factions, le rush coordonne.</p>
+      <p>Sur un serveur de 500 a 1000 joueurs simultanes, ces evenements remplacent les events organises manuellement par le staff. Le scheduler tourne en continu, choisit les events selon une rotation ponderee, les annonce, les execute, et nettoie derriere lui. Aucune intervention humaine n'est requise.</p>
+
+      <h3>Objectifs de design</h3>
+      <ul>
+        <li><strong>Rythme constant :</strong> au moins un evenement actif par tranche de 2 a 4 heures. Le joueur qui se connecte sait qu'il aura "toujours quelque chose a faire".</li>
+        <li><strong>Equite d'acces :</strong> les evenements sont publics, multi-factions. Pas de favoritisme. Le butin est distribue selon la contribution reelle (degats, kills, recolte).</li>
+        <li><strong>Anti-camp :</strong> les coordonnees exactes ne sont jamais dans l'annonce. Le joueur doit chercher (zone approximative, indices, particules visibles a distance).</li>
+        <li><strong>Pas de staff requis :</strong> tout est automatique. Le staff peut juste <code>cancel</code>, <code>start</code>, <code>schedule</code> via commandes admin pour les cas particuliers (event communautaire, evenement special).</li>
+        <li><strong>Performance :</strong> sur 500-1000 joueurs, chaque event doit etre dimensionne (entites cap, AI ticking optimise, packets batch). Aucun event ne doit faire chuter le TPS sous 18.</li>
+        <li><strong>Equilibre du butin :</strong> les recompenses sont progressives. Meteor Shower = ressources moyennes courantes. Rift = items rares. Marchand Noir = items premium achetables. Boss Mondial = legendaires + Eris.</li>
+      </ul>
+
+      <h3>Ce que le systeme ne fait pas</h3>
+      <ul>
+        <li><strong>Pas d'event en boucle infinie :</strong> chaque event a une duree fixe et une fin propre. Pas d'event "permanent".</li>
+        <li><strong>Pas de matchmaking :</strong> pas d'inscription, pas de file d'attente. L'event est ouvert a tous, dans le monde, en meme temps.</li>
+        <li><strong>Pas de zones safe pendant l'event :</strong> les claims faction protegent toujours. Les events ne forcent pas le PvP sur les zones de spawn.</li>
+        <li><strong>Pas d'event hors monde principal :</strong> tous les events se deroulent dans la dimension overworld custom Erinium (sauf Rift qui cree une instance dimension dediee).</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Charge cible :</strong> 500 a 1000 joueurs simultanes. Le systeme doit fonctionner avec 1 a 50 joueurs reellement presents sur l'evenement (les autres etant occupes ailleurs). Aucun evenement ne suppose une participation minimale au-dela d'un <code>minPlayersOnline</code> global.</div>
+      </div>
+    </section>
+
+    <!-- S2 — ARCHITECTURE TECHNIQUE -->
+    <section class="section-card" id="s2">
+      <h2><span class="s-num cyan-num">02</span> Architecture Technique</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <div class="ascii-diagram"><span class="av">EriScheduler tick (toutes les 20 ticks = 1 sec)</span>
+         <span class="as">|</span>
+         <span class="as">v</span>
+<span class="ac">+----------------------------+</span>
+<span class="ac">| EventManager (Singleton)   |</span>  <span class="as">Coeur du systeme, server-side</span>
+<span class="ac">| - registry: IWorldEvent[]  |</span>  <span class="as">Tous les events declares</span>
+<span class="ac">| - activeInstances: Map     |</span>  <span class="as">Map&lt;String, EventInstance&gt; (id -&gt; instance)</span>
+<span class="ac">| - scheduled: PriorityQueue |</span>  <span class="as">File des prochains declenchements</span>
+<span class="ac">| - config: EventConfig      |</span>  <span class="as">Charge depuis events.cfg</span>
+<span class="ac">+--------+---------+---------+</span>
+         <span class="as">|</span>         <span class="as">|</span>
+         <span class="as">v</span>         <span class="as">v</span>
+<span class="ay">+---------------+</span>  <span class="ag">+-----------------+</span>
+<span class="ay">| EventAnnouncer|</span>  <span class="ag">| EventSavedData  |</span>  <span class="as">WorldSavedData : reprise apres restart</span>
+<span class="ay">| - BossBar     |</span>  <span class="ag">| - activeEvents  |</span>
+<span class="ay">| - Chat        |</span>  <span class="ag">| - lastEventTime |</span>
+<span class="ay">| - Son         |</span>  <span class="ag">| - cooldowns     |</span>
+<span class="ay">| - Overlay     |</span>  <span class="ag">+-----------------+</span>
+<span class="ay">+---------------+</span>
+         <span class="as">|</span>
+         <span class="as">v</span>
+<span class="ar">+----------------------------------------------+</span>
+<span class="ar">| IWorldEvent (interface)                      |</span>
+<span class="ar">|   MeteorShowerEvent, RiftEvent,              |</span>
+<span class="ar">|   BlackMarketEvent, WorldBossEvent           |</span>
+<span class="ar">+----------------------------------------------+</span>
+         <span class="as">|</span>
+         <span class="as">v</span>
+<span class="ac">EventInstance (1 par event actif)</span>
+  <span class="as">- state (EventState enum)</span>
+  <span class="as">- startTick / endTick</span>
+  <span class="as">- contributors: Map&lt;UUID, Long&gt;</span>
+  <span class="as">- entities/blocks/NPC spawnes</span></div>
+
+      <h3>Package</h3>
+      <p>Toutes les classes dans <code>fr.eriniumgroup.eriniumfaction.events</code> avec des sous-packages par event :</p>
+      <ul>
+        <li><code>events</code> &mdash; classes communes (EventManager, IWorldEvent, AbstractWorldEvent, EventInstance, EventState, EventAnnouncer, EventConfig, EventSavedData, EventCommand, EventAdminCommand).</li>
+        <li><code>events.meteor</code> &mdash; MeteorShowerEvent, EntityMeteor, MeteorImpactHandler.</li>
+        <li><code>events.rift</code> &mdash; RiftEvent, BlockRiftPortal, TileEntityRiftPortal, RiftDungeonLayouts, RiftInstanceManager.</li>
+        <li><code>events.blackmarket</code> &mdash; BlackMarketEvent, EntityBlackMarketMerchant, ContainerBlackMarket, GuiBlackMarket.</li>
+        <li><code>events.worldboss</code> &mdash; WorldBossEvent, EntityWorldBoss, WorldBossAI, WorldBossLootDistributor.</li>
+      </ul>
+
+      <h3>Classes principales</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Classe</th><th>Type</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td>EventManager</td><td>Singleton serveur</td><td>Tick global, decision de declenchement, lifecycle. Accroche au <code>ServerTickEvent</code> via EriEvents.</td></tr>
+            <tr><td>IWorldEvent</td><td>Interface</td><td>Contrat de tout evenement : <code>onAnnounce</code>, <code>onStart</code>, <code>onTick</code>, <code>onEnd</code>, <code>serializeNBT</code>.</td></tr>
+            <tr><td>AbstractWorldEvent</td><td>Classe abstraite</td><td>Base commune : ID, duree, etat, contributors, methodes utilitaires (broadcast, son, particules).</td></tr>
+            <tr><td>EventInstance</td><td>POJO d'etat</td><td>Etat runtime d'un event actif (state, ticks, joueurs contributeurs, entites spawnees).</td></tr>
+            <tr><td>EventState</td><td>Enum</td><td>SCHEDULED, ANNOUNCING, STARTING, ACTIVE, ENDING, COMPLETED, CANCELLED.</td></tr>
+            <tr><td>EventAnnouncer</td><td>Utilitaire</td><td>BossBar Forge, chat EriChat, son broadcast, overlay client. Trois stades : T-10min, T-1min, T-0.</td></tr>
+            <tr><td>EventConfig</td><td>Loader Forge Config</td><td>Charge <code>events.cfg</code> (globals) + JSON par event dans <code>config/eriniumfaction/events/</code>.</td></tr>
+            <tr><td>EventSavedData</td><td>WorldSavedData</td><td>Persistance des events actifs et cooldowns. Survit aux restarts serveur.</td></tr>
+            <tr><td>MeteorShowerEvent</td><td>IWorldEvent</td><td>Pluie de meteores nocturnes.</td></tr>
+            <tr><td>RiftEvent</td><td>IWorldEvent</td><td>Portails dimensionnels temporaires.</td></tr>
+            <tr><td>BlackMarketEvent</td><td>IWorldEvent</td><td>Marchand noir ambulant.</td></tr>
+            <tr><td>WorldBossEvent</td><td>IWorldEvent</td><td>Boss mondial geant au centre de la map.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Server-side only :</strong> Toute la logique (decision de declenchement, etat, distribution de butin) est strictement cote serveur. Le client ne fait que recevoir des packets d'annonce, des bossbars, et le rendu des entites. Aucune decision ne peut etre prise cote client.</div>
+      </div>
+    </section>
+
+    <!-- S3 — STRUCTURES DE DONNEES -->
+    <section class="section-card" id="s3">
+      <h2><span class="s-num green-num">03</span> Structures de Donnees</h2>
+
+      <h3 class="first">EventState (enum)</h3>
+      <div class="code-block"><span class="kw">public enum</span> <span class="cl">EventState</span> {
+    <span class="an">SCHEDULED</span>,   <span class="cm">// Planifie mais pas encore commence (dans la queue)</span>
+    <span class="an">ANNOUNCING</span>,  <span class="cm">// Phase d'annonce T-10min / T-1min / T-0 en cours</span>
+    <span class="an">STARTING</span>,    <span class="cm">// Mise en place : spawn d'entites, generation, etc.</span>
+    <span class="an">ACTIVE</span>,      <span class="cm">// Event en cours, les joueurs peuvent participer</span>
+    <span class="an">ENDING</span>,      <span class="cm">// Phase de fin : distribution butin, nettoyage</span>
+    <span class="an">COMPLETED</span>,   <span class="cm">// Termine avec succes, archive dans les stats</span>
+    <span class="an">CANCELLED</span>    <span class="cm">// Annule (admin, crash, conditions non remplies)</span>
+}</div>
+
+      <h3>IWorldEvent (interface)</h3>
+      <div class="code-block"><span class="kw">public interface</span> <span class="cl">IWorldEvent</span> {
+    <span class="ty">String</span>  <span class="fn">getId</span>();                       <span class="cm">// "meteor_shower", "rift", ...</span>
+    <span class="ty">String</span>  <span class="fn">getDisplayNameKey</span>();            <span class="cm">// Cle lang : event.meteor_shower.name</span>
+    <span class="ty">int</span>     <span class="fn">getDurationTicks</span>();             <span class="cm">// Duree totale en ticks (20 = 1 sec)</span>
+    <span class="ty">int</span>     <span class="fn">getWeight</span>();                    <span class="cm">// Poids dans la rotation aleatoire (1-100)</span>
+    <span class="ty">int</span>     <span class="fn">getCooldownTicks</span>();             <span class="cm">// Cooldown avant repetition du meme event</span>
+    <span class="ty">boolean</span> <span class="fn">requiresNight</span>();                <span class="cm">// true = ne se declenche que la nuit</span>
+    <span class="ty">int</span>     <span class="fn">getMinPlayers</span>();                <span class="cm">// Min joueurs en ligne pour declencher</span>
+    <span class="ty">boolean</span> <span class="fn">canRunConcurrently</span>(<span class="ty">IWorldEvent</span> o); <span class="cm">// Compatibilite avec autre event actif</span>
+
+    <span class="kw">void</span> <span class="fn">onAnnounce</span>(<span class="ty">EventInstance</span> inst, <span class="ty">int</span> stage);  <span class="cm">// stage 0=T-10, 1=T-1, 2=T-0</span>
+    <span class="kw">void</span> <span class="fn">onStart</span>(<span class="ty">EventInstance</span> inst);                  <span class="cm">// Setup : spawn, generation</span>
+    <span class="kw">void</span> <span class="fn">onTick</span>(<span class="ty">EventInstance</span> inst);                   <span class="cm">// Tick toutes les 20 ticks (1 sec)</span>
+    <span class="kw">void</span> <span class="fn">onEnd</span>(<span class="ty">EventInstance</span> inst);                    <span class="cm">// Distribution butin + cleanup</span>
+    <span class="kw">void</span> <span class="fn">onPlayerJoin</span>(<span class="ty">EventInstance</span> inst, <span class="ty">EntityPlayerMP</span> p); <span class="cm">// Quand un joueur entre dans la zone</span>
+
+    <span class="ty">NBTTagCompound</span> <span class="fn">serializeNBT</span>(<span class="ty">EventInstance</span> inst);
+    <span class="kw">void</span>           <span class="fn">deserializeNBT</span>(<span class="ty">EventInstance</span> inst, <span class="ty">NBTTagCompound</span> tag);
+}</div>
+
+      <h3>EventInstance (POJO d'etat runtime)</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">EventInstance</span> {
+    <span class="kw">private final</span> <span class="ty">UUID</span>           instanceId;     <span class="cm">// ID unique de cette occurence</span>
+    <span class="kw">private final</span> <span class="ty">String</span>         eventId;        <span class="cm">// "meteor_shower" etc.</span>
+    <span class="kw">private</span> <span class="ty">EventState</span>           state;
+    <span class="kw">private</span> <span class="ty">long</span>                 scheduledTick;  <span class="cm">// Tick prevu de demarrage</span>
+    <span class="kw">private</span> <span class="ty">long</span>                 startTick;
+    <span class="kw">private</span> <span class="ty">long</span>                 endTick;
+    <span class="kw">private</span> <span class="ty">BlockPos</span>             center;         <span class="cm">// Position centrale de l'event</span>
+    <span class="kw">private</span> <span class="ty">int</span>                  radius;         <span class="cm">// Rayon de la zone</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">UUID</span>, <span class="ty">Long</span>&gt; damageDealt;    <span class="cm">// Degats infliges (boss)</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">UUID</span>, <span class="ty">Integer</span>&gt; killsBy;     <span class="cm">// Mobs tues (rift)</span>
+    <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">UUID</span>, <span class="ty">Integer</span>&gt; pickups;     <span class="cm">// Butin recupere (meteor)</span>
+    <span class="kw">private final</span> <span class="ty">List</span>&lt;<span class="ty">UUID</span>&gt;       spawnedEntities;<span class="cm">// Entites a nettoyer a la fin</span>
+    <span class="kw">private final</span> <span class="ty">List</span>&lt;<span class="ty">BlockPos</span>&gt;   placedBlocks;   <span class="cm">// Blocs poses a nettoyer (portails)</span>
+    <span class="kw">private final</span> <span class="ty">NBTTagCompound</span>  eventData;      <span class="cm">// Donnees specifiques a l'event</span>
+}</div>
+
+      <h3>EventRequirement (preconditions)</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">EventRequirement</span> {
+    <span class="ty">int</span>     minPlayersOnline;     <span class="cm">// Defaut : 10</span>
+    <span class="ty">boolean</span> nightOnly;            <span class="cm">// time % 24000 in [13000, 23000]</span>
+    <span class="ty">boolean</span> dayOnly;
+    <span class="ty">int</span>     minTpsAvg;            <span class="cm">// Bloque si TPS &lt; X (anti-overload)</span>
+    <span class="ty">long</span>    globalCooldownTicks;  <span class="cm">// Cooldown entre 2 events QUELS QU'ILS SOIENT</span>
+}</div>
+
+      <h3>Distribution du butin (boss mondial)</h3>
+      <p>La <code>Map&lt;UUID, Long&gt; damageDealt</code> est utilisee pour distribuer le butin de fin. Apres tri par valeur decroissante :</p>
+      <ul>
+        <li><strong>Top 1 (killer) :</strong> 25 % du loot pool + bonus "first blood".</li>
+        <li><strong>Top 2-10 :</strong> repartition ponderee selon le pourcentage de degats du total.</li>
+        <li><strong>Tous les autres (damage &gt; 1% du total) :</strong> butin de consolation (1 lootbox basique + 100 Eris).</li>
+        <li><strong>Damage &lt; 1% :</strong> rien (anti-leech).</li>
+      </ul>
+    </section>
+
+    <!-- S4 — EVENTMANAGER & SCHEDULER -->
+    <section class="section-card" id="s4">
+      <h2><span class="s-num gold-num">04</span> EventManager &amp; Scheduler</h2>
+
+      <h3 class="first">Cycle de vie complet</h3>
+      <div class="ascii-diagram"><span class="av">[Server boot]</span>
+   <span class="as">|</span>
+   <span class="as">v</span>
+<span class="ac">EventManager.init()</span>
+   <span class="as">- Charge events.cfg + JSON par event</span>
+   <span class="as">- Charge EventSavedData (WorldSavedData)</span>
+   <span class="as">- Reprend les events actifs (state = ACTIVE) si reboot pendant un event</span>
+   <span class="as">- Calcule le prochain declenchement (random ponderee)</span>
+   <span class="as">|</span>
+   <span class="as">v</span>
+<span class="ay">EriEvents.on(ServerTickEvent).phase(END)</span>
+   <span class="as">|</span>
+   <span class="as">v</span>
+<span class="ag">[Toutes les 20 ticks (1 sec)]</span>
+   <span class="as">- evaluate scheduled queue : si head.scheduledTick &lt;= now -&gt; ANNOUNCING</span>
+   <span class="as">- tick chaque EventInstance ACTIVE -&gt; event.onTick(inst)</span>
+   <span class="as">- check end : si now &gt;= inst.endTick -&gt; ENDING -&gt; onEnd</span>
+   <span class="as">- check cleanup : si state == COMPLETED depuis 5 min -&gt; supprime</span>
+   <span class="as">- save markDirty() WorldSavedData toutes les minutes</span>
+   <span class="as">|</span>
+   <span class="as">v</span>
+<span class="ar">[Selection du prochain event]</span>
+   <span class="as">- Filtre les events disponibles (cooldown OK, nuit/jour, players OK)</span>
+   <span class="as">- Tirage aleatoire pondere par event.getWeight()</span>
+   <span class="as">- nextScheduledTick = now + random(minInterval, maxInterval)</span>
+   <span class="as">- ajoute a la PriorityQueue scheduled</span></div>
+
+      <h3>Integration EriScheduler</h3>
+      <p>Le tick principal utilise <code>EriEvents.on(TickEvent.ServerTickEvent.class).phase(Phase.END).handle(...)</code>. Une optimisation : ne pas evaluer chaque tick mais toutes les <strong>20 ticks</strong> (1 sec). Compteur <code>tickCounter % 20 == 0</code>.</p>
+      <p>Pour les actions a effectuer plus tard (annonces T-10min, T-1min) : <code>EriScheduler.delay(ticks, () -&gt; ...)</code>. Le scheduler EriAPI gere la dispatch sur le thread serveur.</p>
+
+      <h3>Calendrier des evenements</h3>
+      <ul>
+        <li><strong>Rotation aleatoire ponderee :</strong> chaque event a un <code>weight</code> (1-100). Plus le poids est eleve, plus l'event est probable.</li>
+        <li><strong>Cooldown anti-repetition :</strong> chaque event a son propre <code>cooldownTicks</code>. Apres execution, il est marque indisponible pendant ce cooldown.</li>
+        <li><strong>Global cooldown :</strong> entre la fin d'un event et le debut du suivant : 30-60 min (configurable).</li>
+        <li><strong>Anti-collision :</strong> max 2 events simultanes par defaut. <code>canRunConcurrently()</code> permet a un event de refuser de tourner avec un autre (ex : Boss Mondial bloque Meteor Shower).</li>
+      </ul>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Event</th><th>Weight defaut</th><th>Cooldown</th><th>Nuit only</th><th>Compat. concurrente</th></tr></thead>
+          <tbody>
+            <tr><td>Meteor Shower</td><td>40</td><td>4h</td><td><span class="tag-yes">OUI</span></td><td>Pas avec Boss</td></tr>
+            <tr><td>Rift Dimensionnel</td><td>30</td><td>3h</td><td><span class="tag-no">NON</span></td><td>OK avec tout</td></tr>
+            <tr><td>Marche Noir</td><td>50</td><td>6h</td><td><span class="tag-no">NON</span></td><td>OK avec tout</td></tr>
+            <tr><td>Boss Mondial</td><td>10</td><td>24h</td><td><span class="tag-no">NON</span></td><td>Exclusif (bloque autres)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Cycle jour / nuit</h3>
+      <p>Le serveur tourne sur le monde Erinium custom (overworld remplacant). La nuit est definie par <code>world.getWorldTime() % 24000</code> dans l'intervalle <code>[13000, 23000]</code>.</p>
+      <ul>
+        <li><strong>Events nuit-only :</strong> Meteor Shower. Si la fenetre nuit se ferme avant la fin de l'event, l'event continue mais aucun nouveau meteor n'est spawne (decroissance naturelle).</li>
+        <li><strong>Spawn time-shift :</strong> si un event nuit-only est tire mais qu'on est en plein jour, son <code>scheduledTick</code> est repousse au prochain debut de nuit + petit delay aleatoire (anti-predictibilite).</li>
+      </ul>
+
+      <h3>Persistance WorldSavedData</h3>
+      <p><code>EventSavedData</code> etend <code>WorldSavedData</code>. Stocke :</p>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">EventSavedData</span> <span class="kw">extends</span> <span class="ty">WorldSavedData</span> {
+    <span class="kw">private static final</span> <span class="ty">String</span> DATA_NAME = <span class="st">"eriniumfaction_events"</span>;
+
+    <span class="ty">List</span>&lt;<span class="ty">EventInstance</span>&gt;        activeEvents;   <span class="cm">// Events en cours</span>
+    <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">Long</span>&gt;          eventCooldowns; <span class="cm">// eventId -&gt; tick de fin de cooldown</span>
+    <span class="ty">long</span>                          lastEventStart; <span class="cm">// Global cooldown</span>
+    <span class="ty">long</span>                          nextScheduled;  <span class="cm">// Prochain event prevu</span>
+    <span class="ty">String</span>                        nextEventId;
+    <span class="ty">Map</span>&lt;<span class="ty">UUID</span>, <span class="ty">Integer</span>&gt;          playerStats;    <span class="cm">// "events participated" totaux</span>
+}</div>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Reprise apres restart :</strong> Si le serveur crash pendant un event ACTIVE, le <code>EventSavedData</code> est rechargee au boot. Les events sont re-instancies, leurs entites re-localisees par UUID, et le tick courant ajuste pour que <code>endTick</code> soit relatif au moment du crash + temps restant. Si une entite essentielle a disparu (boss, marchand), l'event est annule proprement avec compensation aux contributeurs.</div>
+      </div>
+
+      <h3>Configuration JSON par event</h3>
+      <p>Chaque event a son fichier dans <code>config/eriniumfaction/events/&lt;event_id&gt;.json</code>. Charge par <code>EventConfig.loadEventConfig(eventId)</code> au boot. Si le fichier n'existe pas, valeurs defaut + fichier ecrit.</p>
+      <div class="code-block"><span class="cm">// config/eriniumfaction/events/meteor_shower.json</span>
+{
+  <span class="st">"enabled"</span>: <span class="kw">true</span>,
+  <span class="st">"weight"</span>: <span class="nu">40</span>,
+  <span class="st">"durationMinutes"</span>: <span class="nu">20</span>,
+  <span class="st">"cooldownHours"</span>: <span class="nu">4</span>,
+  <span class="st">"meteorCount"</span>: { <span class="st">"min"</span>: <span class="nu">100</span>, <span class="st">"max"</span>: <span class="nu">300</span> },
+  <span class="st">"spawnRadius"</span>: <span class="nu">500</span>,
+  <span class="st">"spawnHeight"</span>: <span class="nu">200</span>,
+  <span class="st">"impactExplosionLevel"</span>: <span class="nu">1</span>,
+  <span class="st">"loot"</span>: <span class="st">"eriniumfaction:events/meteor_shower"</span>,
+  <span class="st">"announce"</span>: [<span class="nu">600</span>, <span class="nu">60</span>, <span class="nu">0</span>]
+}</div>
+    </section>
+
+    <!-- S5 — ANNONCE & COUNTDOWN -->
+    <section class="section-card" id="s5">
+      <h2><span class="s-num orange-num">05</span> Systeme d'Annonce &amp; Countdown</h2>
+
+      <h3 class="first">Trois stades d'annonce</h3>
+      <p>Chaque event annonce sa venue en trois etapes pour donner au joueurs le temps de se preparer :</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Stade</th><th>Quand</th><th>Canaux</th><th>Contenu</th></tr></thead>
+          <tbody>
+            <tr><td>T-10min</td><td>10 minutes avant</td><td>Chat large + son discret</td><td>"Un evenement se prepare... [nom] dans 10 minutes."</td></tr>
+            <tr><td>T-1min</td><td>1 minute avant</td><td>Chat + BossBar + son d'alerte</td><td>"[nom] commence dans 1 minute !" + bossbar visible 60 sec.</td></tr>
+            <tr><td>T-0</td><td>Demarrage</td><td>Chat large + son cinematique + overlay client</td><td>"[nom] vient de commencer !" + indices de localisation + zone approximative.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>BossBar Forge</h3>
+      <p>Utilisation de <code>BossInfoServer</code> Forge :</p>
+      <div class="code-block"><span class="ty">BossInfoServer</span> bar = <span class="kw">new</span> <span class="ty">BossInfoServer</span>(
+    <span class="kw">new</span> <span class="ty">TextComponentTranslation</span>(<span class="st">"event.meteor_shower.bossbar"</span>),
+    <span class="ty">BossInfo</span>.<span class="ty">Color</span>.<span class="an">PURPLE</span>,
+    <span class="ty">BossInfo</span>.<span class="ty">Overlay</span>.<span class="an">PROGRESS</span>
+);
+bar.<span class="fn">setPercent</span>(<span class="nu">1.0f</span>); <span class="cm">// Decroit pendant la duree de l'event</span>
+<span class="cm">// Ajout incremental des joueurs visibles (proches de la zone)</span>
+<span class="kw">for</span> (<span class="ty">EntityPlayerMP</span> p : nearby) bar.<span class="fn">addPlayer</span>(p);</div>
+
+      <ul>
+        <li><strong>Couleur :</strong> selon l'event (Meteor=violet, Rift=cyan, Marche Noir=gold, Boss=red).</li>
+        <li><strong>Joueurs cibles :</strong> tous les joueurs en ligne (annonces) ou seulement ceux proches du centre (bossbar persistante pendant l'event).</li>
+        <li><strong>Update :</strong> chaque seconde, <code>setPercent((float)(endTick - now) / duration)</code>.</li>
+      </ul>
+
+      <h3>Chat formate (EriChat)</h3>
+      <div class="code-block"><span class="ty">EriChat</span>.<span class="fn">create</span>()
+    .<span class="fn">prefix</span>(<span class="st">"&#167;5&#167;l[Event] "</span>)
+    .<span class="fn">gradient</span>(<span class="st">"&#167;d"</span>, <span class="st">"&#167;5"</span>)
+    .<span class="fn">text</span>(<span class="ty">I18n</span>.<span class="fn">format</span>(<span class="st">"event.meteor_shower.announce.t10"</span>))
+    .<span class="fn">hover</span>(<span class="ty">I18n</span>.<span class="fn">format</span>(<span class="st">"event.meteor_shower.tooltip"</span>))
+    .<span class="fn">click</span>(<span class="st">"/event tp meteor_shower"</span>)
+    .<span class="fn">broadcast</span>();</div>
+
+      <h3>Son d'annonce</h3>
+      <ul>
+        <li><strong>T-10min :</strong> son discret type <code>BLOCK_NOTE_BELL</code> (volume 0.3, pitch 1.0). Joue uniquement au joueur en ligne (pas en bossbar zone).</li>
+        <li><strong>T-1min :</strong> son d'alerte <code>ENTITY_LIGHTNING_THUNDER</code> distant (volume 0.5).</li>
+        <li><strong>T-0 :</strong> son cinematique <code>ENTITY_ENDERDRAGON_GROWL</code> (Boss) ou <code>BLOCK_PORTAL_TRIGGER</code> (Rift) ou son custom (Meteor). Volume 1.0.</li>
+        <li><strong>Custom sounds :</strong> ajoutables dans <code>assets/eriniumfaction/sounds.json</code> via la cle <code>event.&lt;id&gt;.start</code>.</li>
+      </ul>
+
+      <h3>Overlay client (OverlayMod EriAPI)</h3>
+      <p>Toast d'annonce affiche en haut de l'ecran pendant 5 secondes au T-0. Implementation :</p>
+      <ul>
+        <li>Classe <code>EventToastOverlay extends OverlayMod</code> enregistree dans <code>ClientProxy.init()</code> via <code>OverlayModManager.register(...)</code>.</li>
+        <li>Recoit un packet <code>S2C_EventToast</code> contenant : <code>String eventId, String titleKey, String subtitleKey, int color, int durationTicks</code>.</li>
+        <li>Animation : slide-in depuis le haut (300ms, easing EASE_OUT_CUBIC), pulse couleur, slide-out (300ms, EASE_IN_CUBIC).</li>
+        <li>Visuel : panneau translucide style Liquid Glass (background <code>rgba(10,10,15,0.7)</code> + blur), icone event a gauche, titre + sous-titre a droite, barre de progression couleur event en bas.</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Anti-camp :</strong> Les annonces donnent une <strong>zone approximative</strong> (ex : "secteur nord-est" ou "rayon de 500 blocs autour de [x ~1000, z ~-500]") mais JAMAIS les coordonnees exactes. Le joueur doit chercher visuellement (particules de portail, lueur du boss visible a 200 blocs, traces de meteores).</div>
+      </div>
+    </section>
+
+    <!-- S6 — METEOR SHOWER -->
+    <section class="section-card" id="s6">
+      <h2><span class="s-num red-num">06</span> Meteor Shower</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <p>Pluie de meteores nocturne. Pendant 15 a 30 minutes, des <code>EntityMeteor</code> tombent du ciel dans une zone circulaire autour d'un point central. Chaque impact cree une petite explosion et drop du butin (ressources rares brutes, fragments d'artefact).</p>
+
+      <div class="ascii-diagram"><span class="ay">Ciel (Y=200)</span>
+  <span class="ay">. . . . *.. . . . . .*. . . . . . . .* . . .</span>
+  <span class="as">      \      \         \</span>
+  <span class="as">       \      \         \  trail de particules de feu</span>
+  <span class="as">        \      \         \</span>
+  <span class="ay">         *     *         *</span>      <span class="as">impact AOE 8 blocs</span>
+  <span class="ag">_____________________________________</span>
+  <span class="as">terrain Erinium</span>
+  <span class="ag">Zone circulaire spawn : rayon 500 blocs autour du spawn ou point random</span></div>
+
+      <h3>Deroulement</h3>
+      <ol>
+        <li><strong>Setup (onStart) :</strong> choisit un <code>center = BlockPos</code> aleatoire dans le monde (en evitant les claims premium et les zones safe). Charge la loot table.</li>
+        <li><strong>Phase active :</strong> toutes les <code>spawnIntervalTicks</code> (defaut 20 = 1 sec), spawn 1 a 5 meteors a des positions aleatoires dans le rayon de spawn. Hauteur Y=200, velocite verticale -0.8 par tick, particules <code>FLAME</code> + <code>SMOKE_LARGE</code> en trail.</li>
+        <li><strong>Impact :</strong> au contact du sol ou d'un bloc, l'entite genere une explosion (level 0=visuelle uniquement, 1=light 1.0F, 2=heavy 3.0F). Drop la loot table dans un rayon de 4 blocs au sol.</li>
+        <li><strong>Decroissance :</strong> les 2 dernieres minutes, le taux de spawn est divise par 2 puis 4 puis 0.</li>
+        <li><strong>Fin :</strong> nettoyage des entites meteor restantes, des items au sol non ramasses (apres 5 min de grace).</li>
+      </ol>
+
+      <h3>EntityMeteor</h3>
+      <div class="code-block"><span class="kw">public class</span> <span class="cl">EntityMeteor</span> <span class="kw">extends</span> <span class="ty">Entity</span> {
+    <span class="ty">int</span> impactLevel;        <span class="cm">// 0=visuel, 1=light, 2=heavy</span>
+    <span class="ty">ResourceLocation</span> lootTable;
+    <span class="ty">UUID</span> eventInstanceId;   <span class="cm">// Lien vers EventInstance parente</span>
+
+    @<span class="an">Override</span>
+    <span class="kw">public</span> <span class="kw">void</span> <span class="fn">onUpdate</span>() {
+        motionY -= <span class="nu">0.08</span>;
+        <span class="cm">// Trail particles client-side</span>
+        <span class="cm">// Collision check</span>
+        <span class="kw">if</span> (collided) impact();
+    }
+
+    <span class="kw">private</span> <span class="kw">void</span> <span class="fn">impact</span>() {
+        <span class="cm">// Explosion configurable</span>
+        <span class="kw">if</span> (impactLevel &gt;= <span class="nu">1</span>)
+            world.<span class="fn">createExplosion</span>(<span class="kw">null</span>, posX, posY, posZ,
+                impactLevel == <span class="nu">2</span> ? <span class="nu">3.0F</span> : <span class="nu">1.0F</span>,
+                <span class="kw">false</span>);
+        <span class="cm">// Drop loot</span>
+        <span class="ty">LootTable</span> table = world.<span class="fn">getLootTableManager</span>().<span class="fn">getLootTableFromLocation</span>(lootTable);
+        <span class="ty">List</span>&lt;<span class="ty">ItemStack</span>&gt; drops = table.<span class="fn">generateLootForPools</span>(...);
+        <span class="kw">for</span> (<span class="ty">ItemStack</span> st : drops) <span class="ty">InventoryHelper</span>.<span class="fn">spawnItemStack</span>(world, posX, posY, posZ, st);
+        setDead();
+    }
+}</div>
+
+      <h3>Loot table</h3>
+      <p>Definie en JSON dans <code>assets/eriniumfaction/loot_tables/events/meteor_shower.json</code>. Pools :</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Pool</th><th>Items</th><th>Probabilite</th><th>Quantite</th></tr></thead>
+          <tbody>
+            <tr><td>Commun (50%)</td><td>Pierre, charbon, fer brut</td><td>1.0</td><td>4-12</td></tr>
+            <tr><td>Rare (30%)</td><td>Diamant, lapis, redstone</td><td>0.6</td><td>1-4</td></tr>
+            <tr><td>Mineraux Erinium (15%)</td><td>Valterite brut, Aetherite brut, Erinium brut</td><td>0.4</td><td>1-3</td></tr>
+            <tr><td>Tres rare (5%)</td><td>Fragment d'artefact, livre enchante (random ench. niveau 3-4), parchemin de sort</td><td>0.1</td><td>1</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Butin a recuperer vite</h3>
+      <ul>
+        <li><strong>Despawn naturel :</strong> les <code>EntityItem</code> drop au sol respectent le despawn vanilla (5 min) — incite a ramasser vite.</li>
+        <li><strong>Compteur pickups :</strong> chaque ItemStack ramasse est compte dans <code>EventInstance.pickups.merge(uuid, 1, Integer::sum)</code>. Sert aux stats joueur.</li>
+        <li><strong>PvX :</strong> rien n'empeche les factions de se battre pour les zones d'impact. C'est tout l'interet de l'event.</li>
+      </ul>
+
+      <h3>Conditions</h3>
+      <ul>
+        <li><strong>Nuit only :</strong> <code>requiresNight() = true</code>. Le spawn ne commence qu'en nuit. Si la nuit se termine, l'event continue mais ne spawn plus rien.</li>
+        <li><strong>Min players :</strong> 15 joueurs en ligne par defaut.</li>
+        <li><strong>Pas pendant Boss Mondial :</strong> <code>canRunConcurrently(WorldBossEvent) = false</code>.</li>
+      </ul>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Performance :</strong> 100-300 entites Meteor simultanees impactent le TPS. Optimisations obligatoires : pas d'AI ticking (override <code>onUpdate</code> minimal), pas de tracking par tous les joueurs (custom <code>getEntityTrackingRange = 128</code>), batch des particules client en envoyant des packets <code>SPacketParticles</code> groupes. Le spawn rate doit s'auto-reduire si TPS &lt; 18.</div>
+      </div>
+    </section>
+
+    <!-- S7 — RIFT DIMENSIONNEL -->
+    <section class="section-card" id="s7">
+      <h2><span class="s-num green-num">07</span> Rift Dimensionnel</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <p>Pendant 30 minutes, 1 a 3 <strong>portails dimensionnels</strong> apparaissent a des positions aleatoires dans le monde. Chaque portail est un bloc custom avec un TESR (particules portales). Entrer dans un portail teleporte le joueur dans une <strong>instance mini-donjon</strong> generee dans une dimension dediee. Survivre aux waves de mobs et tuer le boss du donjon donne acces a un butin rare.</p>
+
+      <div class="ascii-diagram"><span class="ag">Monde Erinium</span>                       <span class="ay">Dimension Rift (custom)</span>
+<span class="ag">+--------------------+</span>              <span class="ay">+---------------------+</span>
+<span class="ag">|  ~~ ~~ * ~~ ~~     |</span>              <span class="ay">| Layout pre-genere   |</span>
+<span class="ag">|     ~ * portail    |</span> <span class="ac">--teleport--&gt;</span> <span class="ay">| (3-5 templates JSON)|</span>
+<span class="ag">|       ~~~          |</span>              <span class="ay">| Waves mobs custom   |</span>
+<span class="ag">|                    |</span>              <span class="ay">| Boss de fin         |</span>
+<span class="ag">+--------------------+</span>              <span class="ay">+---------------------+</span>
+<span class="as">Apres 30 min : portails se ferment, joueurs encore dedans = ejectes.</span></div>
+
+      <h3>Spawn des portails</h3>
+      <ul>
+        <li><strong>Nombre :</strong> 1 a 3 portails par event (random configurable).</li>
+        <li><strong>Position :</strong> choisie aleatoirement dans un rayon de 2000 blocs autour du spawn, surface (hauteur du terrain + 1), hors claims faction, hors safe zones, hors ocean.</li>
+        <li><strong>Distance min entre portails :</strong> 500 blocs.</li>
+        <li><strong>Bloc <code>BlockRiftPortal</code> :</strong> bloc place dans le monde, hitbox personnalisee (1x2x1), opacite 0 (lumiere passe), particules portales emises chaque tick cote client.</li>
+        <li><strong>TileEntity :</strong> <code>TileEntityRiftPortal</code> stocke l'UUID de l'instance d'event parente et la liste des joueurs ayant deja utilise ce portail.</li>
+        <li><strong>Interaction :</strong> <code>onEntityCollidedWithBlock</code> teleporte le joueur dans la dimension Rift. Cooldown 5 sec par joueur pour eviter le ping-pong.</li>
+      </ul>
+
+      <h3>Dimension Rift</h3>
+      <p>Dimension custom dediee aux donjons Rift. ID configurable (defaut <code>50</code>). Provider custom <code>WorldProviderRift</code> : ciel noir, brouillard violet, pas de meteo, no spawn naturel.</p>
+      <ul>
+        <li><strong>Instance par event :</strong> chaque event Rift cree son instance dans la meme dimension. Les instances sont separees par leurs coordonnees (x = instanceIndex * 10000, evite les collisions).</li>
+        <li><strong>Generation :</strong> au <code>onStart</code> de l'event Rift, charge un layout JSON aleatoire parmi 3-5 templates dans <code>config/eriniumfaction/events/rift/layouts/</code>. Format : grille de blocs + positions de spawn de mobs + position de boss + zone de loot.</li>
+        <li><strong>Layouts :</strong> ruine ancienne, temple inverse, labyrinthe cristallin, void platform, eclats Aetherite. Chaque layout est une structure de 50x30x50 blocs prepenchee.</li>
+      </ul>
+
+      <h3>Waves de mobs</h3>
+      <ul>
+        <li><strong>3 waves :</strong> faibles (8-15 mobs), moyennes (15-25 mobs avec elites), finale (10 mobs forts).</li>
+        <li><strong>Trigger :</strong> chaque wave demarre quand la precedente est vide ou apres un timeout (3 min).</li>
+        <li><strong>Mobs custom :</strong> Rift Shade (squelette violet rapide), Rift Brute (zombie tank), Rift Wisp (vex aerien), Rift Elite (boss mini avec abilites).</li>
+        <li><strong>Boss de fin :</strong> spawn apres la wave 3. <code>EntityRiftKeeper</code>, HP 500-1500, 2 phases. Drop le butin rare.</li>
+      </ul>
+
+      <h3>Butin</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Source</th><th>Items possibles</th></tr></thead>
+          <tbody>
+            <tr><td>Mobs waves</td><td>Eris (5-25), fragments d'artefact, gemmes rares (rarete cosmetics)</td></tr>
+            <tr><td>Boss Rift Keeper</td><td>Cle HDV premium, lootbox tier 2 (1-2), parchemin de sort niveau 3-4, item exclusif Rift (skin/cape cosmetique)</td></tr>
+            <tr><td>Coffre de fin (apparait apres kill boss)</td><td>1 item legendaire random + 500-2000 Eris + 1 fragment d'artefact garanti</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Fin de l'event</h3>
+      <ul>
+        <li><strong>Apres 30 min :</strong> tous les portails se ferment (bloc remplace par air). Tous les joueurs encore dans la dimension Rift sont ejectes vers leur point de mort dans Erinium (ou spawn point si invalide).</li>
+        <li><strong>Cleanup :</strong> les structures de donjon sont supprimees (set blocks to air dans la chunk box) puis les chunks Rift sont unloaded.</li>
+        <li><strong>Players hors ligne :</strong> si un joueur etait dans le Rift et s'est deconnecte, il est teleporte a son spawn au login. Items conserves.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Anti-griefing intra-Rift :</strong> les claims faction ne sont pas actifs dans la dimension Rift. Cela permet le PvP libre, mais empeche aussi la pose de blocs (anti-rage-quit "je bloque le portail"). Le placement de blocs est interdit cote serveur dans la dimension Rift via un <code>PlayerInteractEvent</code> annule sur la dim.</div>
+      </div>
+    </section>
+
+    <!-- S8 — MARCHE NOIR AMBULANT -->
+    <section class="section-card" id="s8">
+      <h2><span class="s-num cyan-num">08</span> Marche Noir Ambulant</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <p>Un PNJ marchand mysterieux spawn quelque part dans le monde et reste actif pendant <strong>1 heure</strong> ou jusqu'a epuisement de son stock. Il vend des items rares ou interdits ailleurs, en Dollars et en Eris. Les joueurs doivent le trouver et acheter rapidement avant qu'il ne disparaisse ou que le stock soit pris par d'autres.</p>
+
+      <h3>EntityBlackMarketMerchant</h3>
+      <ul>
+        <li><strong>Base :</strong> <code>EntityCreature</code> custom (extends EntityVillager pour reutiliser l'IA wandering, mais override le metier et le rendu).</li>
+        <li><strong>Skin :</strong> texture custom sombre (cape noire, capuche, yeux rouges). ResourceLocation custom.</li>
+        <li><strong>Nom :</strong> <code>setCustomNameTag("&#167;c&#167;l??? Marchand Noir")</code>, visible toujours.</li>
+        <li><strong>Invulnerable :</strong> <code>setEntityInvulnerable(true)</code> — impossible de le tuer.</li>
+        <li><strong>Persistant :</strong> <code>enablePersistence()</code> — pas de despawn vanilla.</li>
+        <li><strong>AI :</strong> tres limitee. <code>EntityAILookIdle</code>, <code>EntityAIWatchClosest</code>. Pas de wander.</li>
+        <li><strong>Interaction :</strong> override <code>processInteract</code> pour ouvrir <code>GuiBlackMarket</code> via <code>IGuiHandler</code>.</li>
+      </ul>
+
+      <h3>Position de spawn</h3>
+      <ul>
+        <li><strong>Aleatoire dans rayon :</strong> 1500 blocs autour du spawn principal.</li>
+        <li><strong>Contraintes :</strong> chunk loaded ou loadable, surface (terrain + 1 a 3 blocs au-dessus du sol), hors claims faction, hors safe zones, biome navigable (pas en plein milieu d'un ocean).</li>
+        <li><strong>Indices d'annonce :</strong> "Le marchand est apparu dans le secteur [N/S/E/W]" + biome dominant ("a proximite d'une foret"). Pas de coordonnees exactes.</li>
+        <li><strong>Particules ambiantes :</strong> particules <code>SMOKE_NORMAL</code> + <code>ENCHANTMENT_TABLE</code> autour, visibles a 50 blocs.</li>
+      </ul>
+
+      <h3>Stocks et inventaire</h3>
+      <ul>
+        <li><strong>5 a 10 items distincts</strong> rotation aleatoire definie par config.</li>
+        <li><strong>Stock global limite :</strong> chaque item a un nombre d'unites disponibles pour tout le serveur (ex : "Cle HDV premium x10"). Si 10 joueurs achetent 1, l'item est epuise.</li>
+        <li><strong>Prix mixtes :</strong> certains items en Dollars (premium normal), d'autres en Eris (premium rare), d'autres en mix (1000$ + 50 Eris).</li>
+        <li><strong>Update temps reel :</strong> chaque achat broadcast un packet de mise a jour aux clients ayant le GUI ouvert.</li>
+      </ul>
+
+      <h3>GUI</h3>
+      <p><code>GuiBlackMarket extends EriGuiScreen</code>, style sombre. Layout :</p>
+      <div class="ascii-diagram"><span class="ar">+======================================================+</span>
+<span class="ar">|</span>   <span class="ay">MARCHAND NOIR</span>            <span class="as">[Temps restant : 42:31]</span>   <span class="ar">|</span>
+<span class="ar">|======================================================|</span>
+<span class="ar">|</span>                                                      <span class="ar">|</span>
+<span class="ar">|</span>  <span class="ag">[Item 1]</span> <span class="as">Cle HDV premium</span>  <span class="ay">1000$ + 50 E</span>  <span class="ag">[3/10]</span>  <span class="ar">|</span>
+<span class="ar">|</span>  <span class="ag">[Item 2]</span> <span class="as">Lootbox Tier 3</span>   <span class="ay">5000 E</span>        <span class="ag">[1/5]</span>   <span class="ar">|</span>
+<span class="ar">|</span>  <span class="ag">[Item 3]</span> <span class="as">Parchemin sort 5</span> <span class="ay">2500$</span>         <span class="ar">[0/3 epuise]</span> <span class="ar">|</span>
+<span class="ar">|</span>  <span class="ag">[Item 4]</span> <span class="as">Skin cosmetique</span>  <span class="ay">10000 E</span>       <span class="ag">[2/2]</span>   <span class="ar">|</span>
+<span class="ar">|</span>  <span class="as">...</span>                                                 <span class="ar">|</span>
+<span class="ar">|</span>                                                      <span class="ar">|</span>
+<span class="ar">|</span>  <span class="as">Solde : $124,500    Eris : 8,200</span>                    <span class="ar">|</span>
+<span class="ar">+======================================================+</span></div>
+
+      <h3>Achat</h3>
+      <ul>
+        <li><strong>Clic sur un item :</strong> ouvre une confirmation "Acheter [item] pour [prix] ? [Oui][Non]".</li>
+        <li><strong>Validation serveur :</strong> verifie solde joueur, stock restant, debit, credit item dans l'inventaire (fallback mail si plein).</li>
+        <li><strong>Log :</strong> chaque transaction logguee dans <code>logs/events/blackmarket.log</code> (qui, quoi, prix, timestamp).</li>
+        <li><strong>Pas de refund :</strong> achat ferme. Le marchand n'achete rien aux joueurs.</li>
+      </ul>
+
+      <h3>Disparition</h3>
+      <ul>
+        <li><strong>Timer 1h :</strong> au <code>endTick</code>, le marchand fait un effet de teleportation (particules <code>PORTAL</code> intenses, son <code>ENTITY_ENDERMEN_TELEPORT</code>), puis disparait.</li>
+        <li><strong>Stock epuise :</strong> si tous les items sont a 0, le marchand part au prochain tick (annonce broadcast : "Le marchand noir vient de disparaitre, son stock est epuise.").</li>
+        <li><strong>Cleanup :</strong> entite retiree, <code>EventInstance</code> passe a COMPLETED.</li>
+      </ul>
+
+      <div class="info-box info">
+        <span class="icon">&#9432;</span>
+        <div class="content"><strong>Items exclusifs :</strong> certains items vendus au Marche Noir ne sont AVAILABLE NULLE PART AILLEURS (pas au HDV, pas via /shop, pas en drop). C'est ce qui motive les joueurs a se precipiter. Ex : skin cosmetique "Marchand Noir", bandeau "VIP de la nuit", parchemin de sort rare.</div>
+      </div>
+    </section>
+
+    <!-- S9 — BOSS MONDIAL -->
+    <section class="section-card" id="s9">
+      <h2><span class="s-num red-num">09</span> Boss Mondial</h2>
+
+      <h3 class="first">Vue d'ensemble</h3>
+      <p>Le boss ultime du systeme d'evenements. Un <strong>monstre geant</strong> spawn au centre de la map ou a un point fixe configure. Toutes les factions du serveur peuvent l'attaquer ensemble. Les recompenses sont distribuees en fonction des <strong>degats infliges</strong> par chaque joueur. Cooldown 24-48h.</p>
+
+      <h3>EntityWorldBoss</h3>
+      <ul>
+        <li><strong>Base :</strong> <code>EntityMob</code> custom, scale 3x-4x, HP 1,000,000 a 10,000,000 (configurable).</li>
+        <li><strong>Modele :</strong> modele 3D Blockbench custom dans <code>assets/eriniumfaction/models/entity/world_boss.json</code>. Texture custom. TESR dedie pour rendu et animations.</li>
+        <li><strong>Hitbox :</strong> 6x8x6 environ. <code>getRenderBoundingBox()</code> override (10x12x10) pour eviter frustum culling.</li>
+        <li><strong>Knockback resistance :</strong> 1.0 (immune au knockback).</li>
+        <li><strong>Pas de despawn naturel.</strong></li>
+        <li><strong>Damage cap :</strong> aucun degat unique &gt; 5% de l'HP max (anti-onesho via items glitch).</li>
+      </ul>
+
+      <h3>Phases</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Phase</th><th>Declenchement</th><th>Patterns</th></tr></thead>
+          <tbody>
+            <tr><td>1 (Eveil)</td><td>HP &gt; 66%</td><td>Attaques au sol (sweep AOE), invocation de petits mobs (Rift Shades x6 toutes les 30 sec)</td></tr>
+            <tr><td>2 (Furie)</td><td>HP 66% - 33%</td><td>Projectiles a tete chercheuse (3 par seconde), zones empoisonnees au sol (rayon 4), regen lent (1k HP/sec)</td></tr>
+            <tr><td>3 (Desespoir)</td><td>HP &lt; 33%</td><td>Charge frontale (knockback massif), explosion AOE periodique (rayon 12, 20 sec cooldown), invocation d'elites</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>WorldBossAI</h3>
+      <ul>
+        <li><strong>Ciblage :</strong> selectionne le joueur le plus proche dans un rayon de 32 blocs comme cible principale, change toutes les 10 sec.</li>
+        <li><strong>Patterns :</strong> chaque pattern est une <code>BossAttackPattern</code> avec <code>cooldown</code>, <code>cast time</code>, <code>execute()</code>. Pool different par phase.</li>
+        <li><strong>Selection pattern :</strong> chaque cooldown, choisit aleatoirement un pattern dispo dans la phase courante.</li>
+      </ul>
+
+      <h3>Tracking des degats</h3>
+      <p>Hook sur <code>LivingHurtEvent</code> filtre sur l'entite boss. Chaque hit incremente <code>EventInstance.damageDealt.merge(uuid, damage, Long::sum)</code>. La <code>BossBar</code> du boss est visible par <em>tous</em> les joueurs en ligne (pas seulement proches), HP affichee globalement.</p>
+
+      <h3>Distribution du butin</h3>
+      <p>Au <code>onEnd</code> (kill du boss) :</p>
+      <ol>
+        <li>Trier <code>damageDealt</code> par valeur decroissante.</li>
+        <li><strong>Killer (Top 1) :</strong> 25% du loot pool + bonus "Premier Sang" : 1 artefact legendaire garanti.</li>
+        <li><strong>Top 2 a 10 :</strong> repartition ponderee selon le % de degats de chaque joueur dans le total. Items : artefacts rares/epiques, lootbox tier 3, Eris (1000-5000 par joueur).</li>
+        <li><strong>Damagers &gt; 1% du total :</strong> butin de consolation. 1 lootbox tier 1 + 100 Eris.</li>
+        <li><strong>Damage &lt; 1% :</strong> 50 Eris (anti-leech : participation symbolique).</li>
+      </ol>
+      <p>Livraison : tous les joueurs (en ligne ou non) recoivent le butin via le systeme Mail (<code>MailSenderType.EVENT_REWARD</code>) avec un message detaillant les degats infliges et leur rang.</p>
+
+      <h3>Spawn</h3>
+      <ul>
+        <li><strong>Position :</strong> centre de la map (par defaut <code>(0, surface, 0)</code>) ou <code>worldBoss.spawnPoint</code> configurable.</li>
+        <li><strong>Annonce :</strong> les annonces T-10/T-1/T-0 incluent une mention "Le boss mondial s'eveille au coeur du monde !" + coordonnees exactes (pas de mystere ici, l'event est public).</li>
+        <li><strong>Effet visuel :</strong> au spawn, vortex de nuages sombres visible a 500 blocs, eclairs <code>EntityLightningBolt</code> repetes pendant 10 secondes.</li>
+      </ul>
+
+      <h3>Mort / Fin</h3>
+      <ul>
+        <li><strong>Kill :</strong> distribution butin, message "Le boss mondial a ete vaincu par [killer] avec l'aide de [N] joueurs !".</li>
+        <li><strong>Timeout :</strong> si le boss n'est pas tue dans la duree maximale (defaut 90 min), il "fuit". Distribution partielle du butin (50% des recompenses Top 10, rien pour les autres). Message "Le boss s'echappe..."</li>
+        <li><strong>Despawn :</strong> entite retiree, EventInstance COMPLETED. Cooldown 24-48h avant le prochain.</li>
+      </ul>
+
+      <div class="info-box danger">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Anti-exploit :</strong> les degats venant de creatures controlees par d'autres mods (pets, mobs), d'effets sources (fall damage, dot non sourcees), ou de joueurs en mode Spectateur sont ignores dans <code>damageDealt</code>. Seuls les degats source direct par <code>EntityPlayerMP</code> en mode Survival/Adventure sont comptes. Anti-AFK : si un joueur tape 1 fois puis reste AFK 10 min, ses degats sont retenus mais il ne peut pas faire partie du Top 10 (flag <code>activelyEngaging</code>).</div>
+      </div>
+    </section>
+
+    <!-- S10 — CONFIGURATION -->
+    <section class="section-card" id="s10">
+      <h2><span class="s-num gold-num">10</span> Configuration</h2>
+
+      <h3 class="first">Fichier global : config/eriniumfaction/events.cfg</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Parametre</th><th>Type</th><th>Defaut</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>events.enabled</td><td>boolean</td><td>true</td><td>Active/desactive completement le systeme d'evenements.</td></tr>
+            <tr><td>events.minPlayersOnline</td><td>int</td><td>10</td><td>Min joueurs en ligne pour qu'un event puisse se declencher.</td></tr>
+            <tr><td>events.minTpsAvg</td><td>double</td><td>17.0</td><td>Si TPS moyen sur 1 min &lt; cette valeur, aucun nouvel event ne se declenche.</td></tr>
+            <tr><td>events.maxConcurrent</td><td>int</td><td>2</td><td>Nombre max d'events simultanes (hors boss exclusif).</td></tr>
+            <tr><td>events.minIntervalMinutes</td><td>int</td><td>30</td><td>Intervalle minimum entre deux declenchements.</td></tr>
+            <tr><td>events.maxIntervalMinutes</td><td>int</td><td>120</td><td>Intervalle maximum entre deux declenchements.</td></tr>
+            <tr><td>events.announceT10MinTicks</td><td>int</td><td>12000</td><td>Annonce T-10min (12000 ticks = 10 min).</td></tr>
+            <tr><td>events.announceT1MinTicks</td><td>int</td><td>1200</td><td>Annonce T-1min.</td></tr>
+            <tr><td>events.persistAcrossRestart</td><td>boolean</td><td>true</td><td>Reprend les events actifs apres restart serveur.</td></tr>
+            <tr><td>events.discordWebhookUrl</td><td>String</td><td>""</td><td>Webhook Discord pour broadcast des annonces. Vide = desactive.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Fichiers par event</h3>
+      <ul>
+        <li><code>config/eriniumfaction/events/meteor_shower.json</code></li>
+        <li><code>config/eriniumfaction/events/rift.json</code></li>
+        <li><code>config/eriniumfaction/events/black_market.json</code></li>
+        <li><code>config/eriniumfaction/events/world_boss.json</code></li>
+      </ul>
+
+      <h3>Exemple : world_boss.json</h3>
+      <div class="code-block">{
+  <span class="st">"enabled"</span>: <span class="kw">true</span>,
+  <span class="st">"weight"</span>: <span class="nu">10</span>,
+  <span class="st">"cooldownHours"</span>: <span class="nu">24</span>,
+  <span class="st">"durationMaxMinutes"</span>: <span class="nu">90</span>,
+  <span class="st">"hpMax"</span>: <span class="nu">5000000</span>,
+  <span class="st">"spawnPoint"</span>: { <span class="st">"x"</span>: <span class="nu">0</span>, <span class="st">"y"</span>: <span class="nu">-1</span>, <span class="st">"z"</span>: <span class="nu">0</span>, <span class="st">"yMode"</span>: <span class="st">"surface"</span> },
+  <span class="st">"phaseThresholds"</span>: [<span class="nu">0.66</span>, <span class="nu">0.33</span>],
+  <span class="st">"damageCapPercent"</span>: <span class="nu">5.0</span>,
+  <span class="st">"loot"</span>: {
+    <span class="st">"killerBonus"</span>: <span class="st">"eriniumfaction:events/world_boss/killer"</span>,
+    <span class="st">"top10"</span>: <span class="st">"eriniumfaction:events/world_boss/top10"</span>,
+    <span class="st">"participation"</span>: <span class="st">"eriniumfaction:events/world_boss/participation"</span>
+  }
+}</div>
+    </section>
+
+    <!-- S11 — COMMANDES & PERMISSIONS -->
+    <section class="section-card" id="s11">
+      <h2><span class="s-num">11</span> Commandes &amp; Permissions</h2>
+
+      <h3 class="first">Commandes joueur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Description</th><th>Permission</th></tr></thead>
+          <tbody>
+            <tr><td>/event list</td><td>Liste les events actifs avec leur etat et ETA + prochain event prevu.</td><td>Aucune</td></tr>
+            <tr><td>/event info &lt;eventId&gt;</td><td>Affiche les details d'un event (duree, butin, conditions).</td><td>Aucune</td></tr>
+            <tr><td>/event tp &lt;eventId&gt;</td><td>Teleporte le joueur a la zone de l'event si l'event est ouvert au TP. Cooldown 5 min anti-spam.</td><td>Aucune (si event tp-able)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Commandes administrateur</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Commande</th><th>Description</th><th>Permission</th></tr></thead>
+          <tbody>
+            <tr><td>/eventadmin list</td><td>Liste tous les events actifs avec leurs UUID, etat, joueurs participants.</td><td>eriniumfaction.event.admin.list</td></tr>
+            <tr><td>/eventadmin start &lt;eventId&gt; [args]</td><td>Force le demarrage d'un event. Args optionnels : position, duree.</td><td>eriniumfaction.event.admin.start</td></tr>
+            <tr><td>/eventadmin cancel &lt;instanceUUID&gt;</td><td>Annule un event en cours. Joueurs ejectes, butin partiel distribue.</td><td>eriniumfaction.event.admin.cancel</td></tr>
+            <tr><td>/eventadmin schedule &lt;eventId&gt; &lt;delayMinutes&gt;</td><td>Planifie un event a un delai precis.</td><td>eriniumfaction.event.admin.schedule</td></tr>
+            <tr><td>/eventadmin reload</td><td>Recharge les fichiers de config sans restart.</td><td>eriniumfaction.event.admin.reload</td></tr>
+            <tr><td>/eventadmin reset-cooldowns</td><td>Reset tous les cooldowns d'events.</td><td>eriniumfaction.event.admin.reset</td></tr>
+            <tr><td>/eventadmin contributors &lt;instanceUUID&gt;</td><td>Affiche la liste des contributeurs d'un event en cours (degats/kills/pickups).</td><td>eriniumfaction.event.admin.list</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Auto-completion</h3>
+      <ul>
+        <li><strong>&lt;eventId&gt; :</strong> suggestions dynamiques via <code>suggestsDynamic(EVENT_ID_SUPPLIER)</code> qui retourne les IDs enregistres dans <code>EventManager.getRegistry()</code>.</li>
+        <li><strong>&lt;instanceUUID&gt; :</strong> suggestions dynamiques des UUIDs d'events actifs.</li>
+        <li><strong>&lt;delayMinutes&gt; :</strong> suggestions <code>"5", "10", "30", "60"</code>.</li>
+      </ul>
+
+      <h3>Documentation des permissions</h3>
+      <p>Toutes les permissions doivent etre ajoutees dans <code>docs/permissions.md</code> sous une section "Evenements Mondiaux" avec leur description et le grade ayant la permission par defaut.</p>
+    </section>
+
+    <!-- S12 — CAS LIMITES & PERFORMANCE -->
+    <section class="section-card" id="s12">
+      <h2><span class="s-num red-num">12</span> Cas Limites &amp; Performance</h2>
+
+      <h3 class="first">Crash serveur pendant un event</h3>
+      <ul>
+        <li><strong>WorldSavedData :</strong> <code>EventSavedData.markDirty()</code> appele toutes les minutes pendant un event actif. Au crash, on perd au pire 60 secondes d'etat.</li>
+        <li><strong>Reprise au boot :</strong> <code>EventManager.init()</code> lit les events ACTIVE depuis la WSD et les reinstancie. Le <code>endTick</code> est recalcule : <code>endTick = currentTick + (originalEndTick - savedTick)</code>.</li>
+        <li><strong>Entites disparues :</strong> si une entite critique (boss, marchand) a disparu au reboot, l'event est annule avec compensation (Eris) aux joueurs ayant deja contribue.</li>
+      </ul>
+
+      <h3>Serveur vide ou en sous-effectif</h3>
+      <ul>
+        <li><strong>Min players :</strong> si &lt; <code>events.minPlayersOnline</code> en ligne, aucun nouvel event ne se declenche. Les events deja actifs continuent.</li>
+        <li><strong>Reprise au retour des joueurs :</strong> le scheduler reprend des que la condition est remplie.</li>
+      </ul>
+
+      <h3>Events simultanes</h3>
+      <ul>
+        <li><strong>Max 2 par defaut :</strong> <code>events.maxConcurrent</code>. Si 2 events tournent, aucun autre ne peut commencer.</li>
+        <li><strong>Boss exclusif :</strong> <code>WorldBossEvent.canRunConcurrently()</code> retourne <code>false</code> pour tout. Si un Boss est actif, aucun autre event ne peut tourner. Si un autre event est actif, le Boss attend qu'il se termine.</li>
+        <li><strong>Compatibilite :</strong> Meteor + Rift OK, Marche + Rift OK, Marche + Meteor OK, Boss + rien (sauf Marche Noir qui est passif et peut coexister).</li>
+      </ul>
+
+      <h3>Performance et TPS</h3>
+      <ul>
+        <li><strong>Entites custom cap :</strong> chaque event a une limite stricte d'entites (Meteor: 50 simultanees max, Rift: 30 mobs par instance, Boss: 1 + 10 minions).</li>
+        <li><strong>AI ticking optimise :</strong> les EntityMeteor n'ont aucune AI. Le boss a une AI custom executee tous les 5 ticks (pas chaque tick).</li>
+        <li><strong>Chunk loading :</strong> les chunks d'event sont force-loaded uniquement pendant l'event actif et sont unloaded au <code>onEnd</code>. Utilisation de <code>ForgeChunkManager.Ticket</code> via ticket persistant.</li>
+        <li><strong>Auto-degradation TPS :</strong> si TPS &lt; 18 pendant &gt; 30 sec pendant un event Meteor : taux de spawn divise par 2. Si &lt; 16 : divise par 4. Si &lt; 14 : spawn arrete completement.</li>
+        <li><strong>Batch packets :</strong> les annonces, bossbar updates, et particules sont batchees a 4 Hz max (5 ticks d'intervalle).</li>
+        <li><strong>Cout cible :</strong> tout event ne doit jamais depasser 2 ms/tick mesure sur Spark/Timings (hors pic ponctuels d'explosion).</li>
+      </ul>
+
+      <h3>Conflits avec claims faction</h3>
+      <ul>
+        <li><strong>Spawn :</strong> les events Meteor, Rift, Marche Noir refusent de spawn dans un claim faction. Recherche d'un nouveau point jusqu'a 10 tentatives, sinon abort de l'event.</li>
+        <li><strong>Boss Mondial :</strong> exception. Spawn force au point configure (centre), meme si claim. Le proprietaire du claim ne peut pas empecher le boss de spawn. Le PvP/dmg dans le claim pendant le boss n'est pas active (claims restent actifs sauf pour le boss lui-meme).</li>
+        <li><strong>Loot drop :</strong> les items drops par les events ne respectent pas les claims (anyone can pick up).</li>
+      </ul>
+
+      <h3>Joueurs hors ligne</h3>
+      <ul>
+        <li><strong>Joueur deconnecte pendant un event :</strong> ses contributions restent comptees. Au end, son butin est envoye par mail.</li>
+        <li><strong>Player dans Rift au logout :</strong> au login, le joueur est teleporte a son point de spawn dans Erinium.</li>
+      </ul>
+
+      <h3>Trade / interactions pendant event</h3>
+      <ul>
+        <li>Pas de restriction speciale. Les joueurs peuvent commercer, ouvrir le HDV, etc. pendant un event.</li>
+      </ul>
+
+      <div class="info-box warn">
+        <span class="icon">&#9888;</span>
+        <div class="content"><strong>Risque PvP-fest :</strong> les zones d'event sont des hot-spots de PvP. Anti-camping requis : si une faction "claim" le centre d'un event (ex : barricades autour d'un portail Rift), le serveur n'empeche pas le PvP — c'est l'esprit du systeme. Mais le placement de blocs autour des spawns Rift est detecte et nettoye apres la fin de l'event.</div>
+      </div>
+    </section>
+
+    <!-- S13 — INTEGRATION AUTRES SYSTEMES -->
+    <section class="section-card" id="s13">
+      <h2><span class="s-num green-num">13</span> Integration Autres Systemes</h2>
+
+      <h3 class="first">Mail (livraison butin hors ligne)</h3>
+      <ul>
+        <li><strong>API :</strong> <code>MailManager.getInstance().sendMail(UUID, ...)</code> avec <code>MailSenderType.EVENT_REWARD</code>.</li>
+        <li><strong>Butin Boss :</strong> tous les contributeurs recoivent un mail, en ligne ou non.</li>
+        <li><strong>Inventaire plein :</strong> achat Marche Noir avec inventaire plein -&gt; item livre par mail.</li>
+        <li><strong>Compensation event annule :</strong> Eris envoyes par mail aux contributeurs.</li>
+      </ul>
+
+      <h3>Faction (visibilite GUI faction)</h3>
+      <ul>
+        <li><strong>Onglet "Evenements" :</strong> dans la GUI faction, ajout d'un onglet listant les events actifs et l'historique des participations de la faction.</li>
+        <li><strong>Stats faction :</strong> nombre de boss tues par la faction (somme des contributions de ses membres &gt; 5%).</li>
+      </ul>
+
+      <h3>Profil / Stats joueur</h3>
+      <ul>
+        <li>Ajouter dans <code>PlayerProfileData</code> les compteurs :</li>
+        <li><strong>eventsParticipated :</strong> total events ou le joueur a contribue.</li>
+        <li><strong>worldBossKills :</strong> nombre de fois ou il faisait partie du Top 10 d'un kill boss.</li>
+        <li><strong>meteorsCollected :</strong> total drops Meteor ramasses.</li>
+        <li><strong>riftCompleted :</strong> nombre de Rift termines (boss Rift Keeper tue).</li>
+        <li><strong>blackMarketBought :</strong> nombre d'items achetes au Marche Noir.</li>
+        <li>Affichage : page Stats du profil sur le site web + commande <code>/profile stats</code>.</li>
+      </ul>
+
+      <h3>Discord (webhook)</h3>
+      <ul>
+        <li><strong>events.discordWebhookUrl :</strong> si configure, l'EventAnnouncer envoie un POST JSON au webhook lors des annonces T-10 et T-0.</li>
+        <li><strong>Format embed :</strong> titre = nom event, couleur = couleur event, description = "Demarre dans 10 min !", thumbnail = icone event.</li>
+        <li><strong>Async :</strong> appels HTTP via un thread pool dedie pour ne pas bloquer le tick serveur. Echec silencieux logge.</li>
+      </ul>
+
+      <h3>HDV (revente du butin)</h3>
+      <ul>
+        <li>Les items legendaires/artefacts dropes par les events peuvent etre revendus au HDV (pas blacklisted).</li>
+        <li><strong>Exception :</strong> les items "Marche Noir exclusifs" (skins, capes) sont liés au joueur (NBT <code>SoulBound</code>) et non revendables au HDV.</li>
+      </ul>
+
+      <h3>EriAPI (modules utilises)</h3>
+      <ul>
+        <li><strong>EriScheduler :</strong> ticks recurrents du EventManager, delays pour annonces.</li>
+        <li><strong>EriEvents :</strong> hook <code>ServerTickEvent</code>, <code>LivingHurtEvent</code> (boss dmg tracking), <code>EntityJoinWorldEvent</code> (cleanup), <code>PlayerEvent.PlayerLoggedInEvent</code> (reprise Rift).</li>
+        <li><strong>EriChat :</strong> messages d'annonce formates avec gradients, hovers, clicks.</li>
+        <li><strong>OverlayMod :</strong> toast d'annonce client-side (S5).</li>
+        <li><strong>GuiNetworkHandler :</strong> ouverture du GUI Marche Noir, packets de stock.</li>
+      </ul>
+    </section>
+
+    <!-- S14 — PLAN DE TESTS -->
+    <section class="section-card" id="s14">
+      <h2><span class="s-num gold-num">14</span> Plan de Tests</h2>
+
+      <h3 class="first">Tests par event — Meteor Shower</h3>
+      <ul class="checklist">
+        <li><strong>Declenchement nuit :</strong> attendre la nuit avec 15+ joueurs en ligne. Verifier l'annonce T-10/T-1/T-0 et le spawn des meteors.</li>
+        <li><strong>Refus jour :</strong> forcer le spawn de jour. Verifier que l'event repousse au prochain debut de nuit.</li>
+        <li><strong>Impact explosion :</strong> verifier les 3 niveaux (0=visuel, 1=light, 2=heavy). Verifier les degats au terrain.</li>
+        <li><strong>Loot drop :</strong> tuer 10 meteors. Verifier que les items dropent selon la loot table.</li>
+        <li><strong>Decroissance :</strong> attendre les 2 dernieres minutes. Verifier la baisse du spawn rate puis l'arret.</li>
+        <li><strong>Cleanup :</strong> a la fin, verifier qu'aucune entite Meteor ne reste, que les items au sol despawnent normalement.</li>
+      </ul>
+
+      <h3>Tests par event — Rift Dimensionnel</h3>
+      <ul class="checklist">
+        <li><strong>Spawn portails :</strong> 1 a 3 portails apparaissent a positions valides (surface, hors claim).</li>
+        <li><strong>Teleport :</strong> entrer dans un portail teleporte dans la dimension Rift.</li>
+        <li><strong>Layouts :</strong> verifier que les 3-5 layouts JSON se chargent correctement.</li>
+        <li><strong>Waves :</strong> kill wave 1 -&gt; wave 2 spawn. Kill wave 2 -&gt; wave 3 spawn. Kill wave 3 -&gt; boss Rift Keeper spawn.</li>
+        <li><strong>Coffre de fin :</strong> apres kill du Rift Keeper, le coffre apparait avec le butin.</li>
+        <li><strong>Fin event :</strong> apres 30 min, tous les joueurs dans le Rift sont ejectes vers Erinium.</li>
+        <li><strong>Anti-build :</strong> tenter de poser un bloc dans la dim Rift. Verifier le refus.</li>
+        <li><strong>Multi-instance :</strong> 2 Rift simultanes. Verifier qu'ils ont des coordonnees disjointes et ne se voient pas.</li>
+      </ul>
+
+      <h3>Tests par event — Marche Noir</h3>
+      <ul class="checklist">
+        <li><strong>Spawn marchand :</strong> verifier l'apparition dans une zone valide, particules visibles.</li>
+        <li><strong>Annonce zone :</strong> verifier que le secteur (N/S/E/W) est annonce mais pas les coordonnees exactes.</li>
+        <li><strong>GUI :</strong> ouvrir le GUI. Verifier les items, prix, stocks affiches.</li>
+        <li><strong>Achat dollar :</strong> acheter un item en Dollars. Verifier le debit et le credit dans l'inventaire.</li>
+        <li><strong>Achat mix :</strong> acheter un item en $+Eris. Verifier les deux debits.</li>
+        <li><strong>Stock epuise :</strong> faire acheter 10 fois le meme item par 10 joueurs. Verifier que l'item passe a 0 et est non achetable.</li>
+        <li><strong>Mail fallback :</strong> acheter avec inventaire plein. Verifier la livraison par mail.</li>
+        <li><strong>Disparition timer :</strong> attendre 1h. Verifier la teleport disparition + annonce.</li>
+        <li><strong>Disparition stock :</strong> epuiser tous les stocks. Verifier la disparition immediate.</li>
+      </ul>
+
+      <h3>Tests par event — Boss Mondial</h3>
+      <ul class="checklist">
+        <li><strong>Spawn :</strong> verifier l'apparition au point central avec effets visuels.</li>
+        <li><strong>Phases :</strong> reduire l'HP a &lt; 66% / &lt; 33%. Verifier le changement de patterns.</li>
+        <li><strong>Tracking dmg :</strong> 5 joueurs infligent des degats varies. Verifier <code>damageDealt</code> correct.</li>
+        <li><strong>Damage cap :</strong> tenter un hit &gt; 5% HP max. Verifier le clamp.</li>
+        <li><strong>Kill :</strong> tuer le boss. Verifier l'animation de mort et la distribution butin.</li>
+        <li><strong>Butin Top 1 :</strong> verifier que le killer recoit l'artefact legendaire bonus.</li>
+        <li><strong>Butin Top 2-10 :</strong> verifier la repartition ponderee.</li>
+        <li><strong>Butin consolation :</strong> joueur avec 2% des degats recoit la lootbox tier 1.</li>
+        <li><strong>Mail hors ligne :</strong> un contributeur deconnecte recoit son butin par mail.</li>
+        <li><strong>Timeout :</strong> 90 min sans kill -&gt; boss fuit, butin partiel.</li>
+      </ul>
+
+      <h3>Tests systeme — EventManager</h3>
+      <ul class="checklist">
+        <li><strong>Selection ponderee :</strong> lancer 100 events. Verifier la distribution conforme aux poids.</li>
+        <li><strong>Cooldown event :</strong> meme event ne se declenche pas avant son cooldown.</li>
+        <li><strong>Cooldown global :</strong> 30 min entre 2 events (defaut).</li>
+        <li><strong>Conflit boss :</strong> tenter Meteor pendant Boss actif. Verifier le refus.</li>
+        <li><strong>Min players :</strong> 5 joueurs en ligne (&lt; min 10). Verifier qu'aucun event ne demarre.</li>
+        <li><strong>Auto-cancel TPS :</strong> simuler TPS &lt; 14 pendant Meteor. Verifier l'arret du spawn.</li>
+      </ul>
+
+      <h3>Tests persistance</h3>
+      <ul class="checklist">
+        <li><strong>Save WSD :</strong> demarrer un event, verifier que <code>EventSavedData</code> contient l'instance.</li>
+        <li><strong>Restart :</strong> kill serveur pendant un Meteor Shower. Redemarrer. Verifier la reprise (annonce "L'evenement reprend", spawn continue).</li>
+        <li><strong>Restart pendant Boss :</strong> kill serveur a 50% HP boss. Redemarrer. Verifier reprise avec damageDealt conserve.</li>
+        <li><strong>Entite disparue :</strong> kill serveur, supprimer l'entite boss dans le worldfile. Redemarrer. Verifier l'annulation propre + compensation aux contributeurs.</li>
+      </ul>
+
+      <h3>Tests performance</h3>
+      <ul class="checklist">
+        <li><strong>500 joueurs spectateurs + Meteor :</strong> Meteor avec 300 entites simultanees. Mesurer TPS et ms/tick. Cible : &gt; 18 TPS.</li>
+        <li><strong>Boss + 100 joueurs en combat :</strong> 100 joueurs infligent des degats simultanes. Verifier le tracking dmg correct et le TPS.</li>
+        <li><strong>3 Rift simultanes + 50 joueurs par Rift :</strong> mesurer impact.</li>
+        <li><strong>Spam clic GUI Marche Noir :</strong> 50 joueurs ouvrent/ferment le GUI en boucle. Verifier pas de leak memoire ni TPS impact.</li>
+        <li><strong>Discord webhook :</strong> verifier que les calls async ne bloquent pas le tick serveur (pic &lt; 0.5 ms).</li>
+      </ul>
+
+      <h3>Tests commandes</h3>
+      <ul class="checklist">
+        <li><strong>/event list :</strong> liste correcte des events actifs et de l'ETA.</li>
+        <li><strong>/event tp :</strong> teleporte sur l'event si ouvert au TP. Cooldown 5 min applique.</li>
+        <li><strong>/eventadmin start :</strong> force le demarrage. Verifier auto-completion eventId.</li>
+        <li><strong>/eventadmin cancel :</strong> annule un event. Verifier le cleanup et la compensation.</li>
+        <li><strong>/eventadmin schedule :</strong> planifie a +5 min. Attendre. Verifier le demarrage.</li>
+        <li><strong>/eventadmin reload :</strong> modifier un fichier de config, reload. Verifier prise en compte.</li>
+        <li><strong>Permissions :</strong> joueur non-admin tente <code>/eventadmin</code>. Verifier le refus.</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<button class="mobile-nav-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+<script>
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', () => document.getElementById('sidebar').classList.remove('open'));
+});
+window.addEventListener('scroll', () => {
+  const sections = document.querySelectorAll('.section-card[id]');
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  document.querySelectorAll('.nav-link').forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+</body>
+</html>
