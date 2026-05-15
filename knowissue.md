@@ -5,6 +5,55 @@
 
 ---
 
+## 2026-05-15 — WorldGen : biome volcan adjacent a une plage (climatologie absurde)
+
+**Systeme** : `EriniumGenLayerShore` — shore layer applique apres l'assignation des biomes.
+
+**Probleme** : Un joueur a rapporte qu'un biome Volcan (HOT, temp 2.0) se generait
+directement a cote d'une plage (EXTENDED_BEACH, temp 0.95). Visuellement choquant
+et climatologiquement absurde : un volcan ne devrait jamais toucher la cote sans
+zone tampon. Le meme probleme touchait d'autres biomes "extremes" : EnhancedMesa,
+RedDesert, Wasteland, SaltFlats, Glacier, SteepMountains.
+
+**Cause racine** : Le `EriniumGenLayerShore` ne faisait QUE convertir les cellules
+terrestres adjacentes a l'ocean en biomes plage/cote selon la temperature du biome.
+Il ne deplacait jamais les biomes extremes plus profondement dans les terres.
+Resultat : si la generation placait un Volcano a 1 cellule de l'ocean, sa cellule
+de bord devenait beach (puisque Volcano temp >= 1.0), mais la cellule interieure
+restait Volcano -> adjacence Beach -> Volcano sans transition.
+
+Le `EriniumGenLayerClimate` etablit bien des zones HOT/WARM/COOL/ICY coherentes
+via du noise multi-octave, mais cela n'empeche pas un biome HOT extreme d'etre
+choisi a 1 cellule de l'ocean.
+
+**Solution** : Etendre `EriniumGenLayerShore` pour qu'il agisse comme tampon
+climatique en plus de la conversion plage :
+
+1. Liste d'IDs "extremes" : VOLCANO, VOLCANIC_PLAINS, ENHANCED_MESA, RED_DESERT,
+   WASTELAND, SALT_FLATS, GLACIER, STEEP_MOUNTAINS (sortee, binary search).
+   VOLCANIC_ISLAND_CHAIN exclu volontairement (biome cotier dessine pour l'ocean).
+2. Margin de parent porte de 1 a 2 cellules.
+3. Pour chaque cellule terrestre :
+   - Si voisin cardinal = ocean -> beach/coast (logique existante). Si centre
+     est extreme, on route via le buffer pour ne jamais calculer une plage
+     depuis la temperature d'un volcan.
+   - Sinon, si centre est extreme ET un cell dans rayon 2 = ocean -> remplace
+     par biome "tame" de la meme zone climatique :
+     - HOT (temp >= 1.0)  -> ERINIUM_DESERT
+     - WARM (0.5 <= t<1)  -> ERINIUM_PLAINS
+     - COOL (0.15<=t<0.5) -> ANCIENT_TAIGA
+     - ICY  (t < 0.15)    -> SNOW_TUNDRA
+4. Resultat : Ocean -> Beach -> TameBiome -> ... -> Volcano (zone tampon de 2 cellules
+   minimum apres le 6x zoom du chain).
+
+Hot path optimise : check ocean ring distance-2 deroule manuellement (16 offsets,
+aucune allocation, pas de Math.abs).
+
+**Fichiers modifies** :
+- `src/main/java/fr/eriniumgroup/eriniumfaction/world/gen/EriniumGenLayerShore.java`
+
+---
+
 ## 2026-05-15 — EriniumBorder : mur en escalier sur la bande de smoothing (paliers de 16 blocs)
 
 **Systeme** : `EriniumBorder` — `EriniumBorderManager.applySmoothingToChunk`
