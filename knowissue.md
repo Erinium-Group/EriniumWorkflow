@@ -1873,3 +1873,32 @@ at fr.eri.eriapi.network.PacketGuiOpen.fromBytes(PacketGuiOpen.java:42)
 
 **Regle generale** : pour toute operation qui doit s'appliquer a une zone fixe de chunks (border, regen, repair de structures), TOUJOURS enumerer la zone et force-loader les chunks via `ChunkProviderServer.loadChunk(cx, cz)`, JAMAIS se contenter d'iterer `getLoadedChunks()`. Etaler le travail sur plusieurs ticks via `TickEvent.ServerTickEvent` pour eviter les freezes (batch size configurable).
 
+
+---
+
+## 2026-05-15 — WorldGen : axe humidite, transition d'altitude, lissage des frontieres
+
+**Systeme** : `world/gen/` (EriniumGenLayer chain + post-pop smoothing)
+
+### Probleme 1 — biomes humides/secs colles sans coherence
+Dans la zone HOT, des biomes arides (Salt Flats, Volcanic Plains, Red Desert) etaient genere a cote de biomes humides (Oasis, Thermal Springs) sans transition. Le climat etait quantifie sur un seul axe (temperature), donc humidite = pile aleatoire chunk par chunk.
+
+**Cause racine** : `EriniumGenLayerClimate` produit une seule noise (HOT/WARM/COOL/ICY). `EriniumGenLayerBiome` picke aleatoirement dans le pool de la zone, sans filtre humidite.
+
+**Solution** : ajout d'un layer `EriniumGenLayerHumidity` independant (noise differente, scale 96 large / 24 small) entre Climate et Biome. Output encode (zone << 4) | humidite. Pool entries ajoute un 3e champ (DRY/MEDIUM/WET/ANY). Le pick filtre par humidite — fallback DEFAULT du tier si rien ne matche.
+
+### Probleme 2 — falaises nettes MOUNT -> FLAT
+Une cellule MOUNT pouvait toucher directement une cellule FLAT, produisant des murs verticaux apres le terrain gen.
+
+**Cause racine** : aucun layer ne forcait l'insertion d'un HILLS entre les deux. `EriniumGenLayerHeightSmooth` lissait deja sur la hauteur (baseHeight), mais ne tenait pas compte du tier explicite des biomes.
+
+**Solution** : ajout d'un layer `EriniumGenLayerAltitudeTransition` apres Biome. Utilise un lookup `biomeId -> tier` construit dans `initPools()`. Pour chaque cellule FLAT touchant un MOUNT, la convertit en HILLS de la meme zone climatique (sniff via `Biome.getDefaultTemperature`).
+
+### Probleme 3 — mini-murs visuels aux frontieres de biomes
+Quand deux biomes adjacents ont des hauteurs proches mais des blocks de surface differents (sable vs herbe), il restait des bordures 1-2 blocks nettes visuellement disgracieuses.
+
+**Cause racine** : la generation de terrain interpole les hauteurs mais pas les blocks de surface — le top block change brutalement a la frontiere biome.
+
+**Solution** : `BiomeBorderSmoother` (event handler sur `PopulateChunkEvent.Post`, LOWEST priority). Pour chaque colonne du chunk, detecte le biome courant + le biome voisin a distance 1-3. Avec une probabilite degressive (50%/25%/10%), remplace le top block + 1-2 filler blocks par ceux du biome voisin. Ne touche jamais la hauteur. Skip les chunks de la border-strip (`EriniumBorderManager.isBorderChunk`) car le border manager fait son propre lissage. Reutilise un `BlockPos.MutableBlockPos` pour eviter les allocations.
+
+**Build flag UTF-8** : encoding Cp1252 par defaut sur Windows fait planter `compileJava` sur les commentaires accentues de `ShopConfigLoader.java`. Ajouter `-Dfile.encoding=UTF-8` au gradlew lance la compile sans soucis. A long terme : poser `compileJava.options.encoding = 'UTF-8'` dans `build.gradle`.
