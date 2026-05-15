@@ -5,6 +5,43 @@
 
 ---
 
+## 2026-05-15 — EriniumBorder : mur en escalier sur la bande de smoothing (paliers de 16 blocs)
+
+**Systeme** : `EriniumBorder` — `EriniumBorderManager.applySmoothingToChunk`
+
+**Probleme** : Apres le fix v3 (sample hNatural hors bande), la bande border n'etait plus
+un mur vertical brutal MAIS un mur EN ESCALIER : chaque chunk de la ramp = un plateau plat
+a un Y different, et la transition entre deux chunks adjacents = une marche de 10-15 blocs.
+Sur 5 chunks de ramp, on voyait visuellement 5 marches geantes au lieu d'une pente continue.
+
+**Cause racine** : `applySmoothingToChunk` calculait UN seul `hTargetChunk` par chunk (a partir
+de la distance Chebyshev EN CHUNKS), puis l'appliquait aux 256 colonnes du chunk. Donc chunk
+a dCheb=2 -> hTarget=75 partout, chunk a dCheb=3 -> hTarget=90 partout. Marche de 15 blocs
+a la frontiere entre les deux. La granularite chunk-level (16 blocs) etait trop grossiere
+pour produire un slope visuel.
+
+**Solution** : Calculer `t` (et donc `hTarget`) PER COLONNE a partir de la distance Chebyshev
+EN BLOCS de la colonne a la bbox pre-gen. Formule :
+```
+flatBlocks = flat_buffer_chunks * 16
+rampBlocks = smoothing_width_chunks * 16
+distBlocks = chebyshev(xWorld, zWorld, bbox)  // en blocs
+if distBlocks <= flatBlocks       -> hTarget = surfaceY
+elif distBlocks <= total          -> t = (distBlocks - flatBlocks) / rampBlocks ; lerp
+else                              -> skip (worldgen pur)
+```
+La cible `hNaturalChunk` reste UN sample par chunk (perf, evite 256 force-loads) — seule
+la VITESSE d'approche vers cette cible varie en continu colonne par colonne, ce qui donne
+un slope bloc par bloc au lieu d'un plateau par chunk.
+
+**Regle generale** : Pour tout systeme d'interpolation visible visuellement entre une zone
+modifiee et un terrain naturel, le facteur `t` DOIT etre calcule a la granularite du bloc
+(pas du chunk). Une interpolation chunk-level produit toujours des paliers visibles a 16
+blocs, meme avec un ease cubique. La seule chose qu'on peut garder chunk-level pour des
+raisons de perf est la CIBLE de l'interpolation (ici `hNaturalChunk`), pas le facteur lui-meme.
+
+---
+
 ## 2026-05-15 — EriniumBorder : bande plate + mur vertical malgre le smoothing v2
 
 **Systeme** : `EriniumBorder` — `EriniumBorderManager.applySmoothingToChunk`
