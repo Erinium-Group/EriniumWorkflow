@@ -5,6 +5,28 @@
 
 ---
 
+## 2026-05-15 — WorldGen : disparition des biomes extremes/montagnes (Volcano, Mesa, Glacier, SteepMountains)
+
+**Systeme** : `EriniumGenLayerBiome` (pools + humidite) + `EriniumGenLayerShore` (buffer climatique).
+
+**Probleme** : Apres l'ajout des 3 features du commit `2a19282f` (axe humidite, transition d'altitude, smoothing), les biomes signatures extremes/hauts (Volcano, Enhanced Mesa, Steep Mountains, Glacier) avaient quasiment disparu du monde. Le monde etait domine par des biomes plats (Extended Beach, Flower Prairie, Erinium Plains).
+
+**Cause racine** : Cumul de 3 effets multiplicatifs eliminant ~95% des biomes MOUNT.
+
+1. **Filtre humidite trop strict sur les tiers MOUNT/HILLS rares** : `POOL_HOT_MOUNT` = {Volcano DRY, EnhancedMesa DRY} et tous les entries `POOL_HOT_HILLS` etaient DRY-only. Avec une humidite repartie ~33% DRY / 33% MEDIUM / 34% WET, ~67% des cellules HOT MOUNT tombaient au DEFAULT a chaque fois. Pareil pour ICY HILLS (Glacier weight 3 ANY, melange avec biomes DRY/MEDIUM dominants).
+2. **Shore buffer Chebyshev distance 2 trop large** : le buffer remplacait les 8 biomes "extremes" (Volcano, VolcanicPlains, EnhancedMesa, RedDesert, Wasteland, SaltFlats, Glacier, SteepMountains) dans un rayon de 2 cellules autour de tout ocean. Avec ~50% de couverture oceanique a basse resolution, ~50% des biomes extremes inland etaient avales.
+3. **Tier weights MOUNT trop faibles** : HOT MOUNT = 15%, ICY MOUNT = 5%. Combine avec les filtres precedents : Volcano effectif ~0.25 × 0.15 × 0.33 × (3/8) × 0.5 ≈ 0.2% des cellules terrestres = invisible.
+
+**Solution** :
+
+1. **Pools MOUNT/HILLS rares passes en `ANY`** dans `EriniumGenLayerBiome.initPools()` : Volcano, EnhancedMesa, Glacier, HighSavanna, VolcanicPlains, RedDesert, SnowTundra, EriniumColdTaiga. La rarete du tier MOUNT (1/4 du roll) compense deja — pas besoin d'un 2e filtre humidite dessus. Bumpe aussi Glacier weight 3 -> 5 et EnhancedMesa HOT HILLS weight 3 -> 5. `DEFAULT_HOT_MOUNT` = `VOLCANO` (au lieu d'EnhancedMesa) pour garantir sa visibilite.
+2. **Tier weights MOUNT augmentes** : HOT 15->25%, WARM 10->20%, COOL 25->30%, ICY 5->20%.
+3. **Shore buffer reduit a 1 cellule (diagonales seulement)** : remplace `hasOceanWithin2` (16 cellules Chebyshev-2) par `hasOceanDiagonal` (4 cellules diagonales). Les cardinaux sont deja geres par direct-shore. GLACIER et STEEP_MOUNTAINS retires de la liste EXTREME (fjords/glaciers cotiers = iconique IRL).
+
+**Verification** : Build OK. Les biomes extremes devraient apparaitre ~5-10x plus souvent qu'avant le fix, tout en restant proteges des adjacences Beach-Volcano absurdes (corrigees par le buffer 1-cellule + climate buffer du fix precedent).
+
+---
+
 ## 2026-05-15 — WorldGen : biome volcan adjacent a une plage (climatologie absurde)
 
 **Systeme** : `EriniumGenLayerShore` — shore layer applique apres l'assignation des biomes.
