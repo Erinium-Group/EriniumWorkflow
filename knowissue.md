@@ -5,6 +5,40 @@
 
 ---
 
+## 2026-05-15 — EriniumBorder : bande plate + mur vertical malgre le smoothing v2
+
+**Systeme** : `EriniumBorder` — `EriniumBorderManager.applySmoothingToChunk`
+
+**Probleme** : Apres `/eriniumborder regen confirm`, toute la bande border etait correctement
+modifiee (toute l'anneau traite) MAIS visuellement l'utilisateur voyait une bande totalement
+plate a y=63 sur les 5 chunks de la bande, suivie d'un mur vertical massif a la frontiere
+bande / worldgen naturel (montagne a y=120+).
+
+**Cause racine** : Le smoothing v2 echantillonnait `hNatural` (la hauteur naturelle vers laquelle
+lerper) en scannant top-down dans le chunk en cours. Or les chunks de la bande appartiennent
+tous au meme biome quasi-plat impose par le worldgen pre-gen, donc `hNatural` valait toujours
+~surfaceY. Resultat : `lerp(surfaceY, surfaceY, t) = surfaceY` pour TOUTES les valeurs de t,
+bande totalement plate. Puis a la frontiere, le worldgen naturel reprenait brutalement sa
+heightmap reelle (montagne) -> mur.
+
+**Solution** : Echantillonner `hNatural` depuis le PREMIER chunk strictement au-dela de la bande
+de lissage (Chebyshev distance = smoothing_width + 1), qui appartient au worldgen pur (donc
+exhibe la vraie hauteur de terrain). Methode `sampleNaturalHeightBeyondStrip(world, cx, cz)` :
+calcule la direction outward (dx, dz dans {-1, 0, +1}), determine le chunk source au-dela de
+la bande via `steps = smoothing_width + 1 - d`, force-load via `ChunkProviderServer.loadChunk`,
+scan top-down en (8, 8) du chunk source. Une seule valeur `hNaturalChunk` par chunk (pas par
+colonne) — approximation acceptable et evite 256x les force-loads cascade.
+
+Tracker les chunks samples chargees dans `RegenJob.sampleChunksToUnload` (Set<Long>) pour les
+`queueUnload()` a la fin du regen et borner la RAM.
+
+**Regle** : Pour tout smoothing/lerp entre une zone modifiee et une zone naturelle, l'echantillon
+de la zone naturelle DOIT venir d'un chunk strictement hors de la zone modifiee. Echantillonner
+localement dans la zone modifiee donne une boucle de retroaction (lerp degenere en constante)
+qui produit un mur a la frontiere.
+
+---
+
 ## 2026-05-15 — EriniumWorld /region flag <flag> <TAB> ne suggerait aucune valeur
 
 **Systeme** : `EriniumWorld` — `worldguard/WorldGuardCommands.java`

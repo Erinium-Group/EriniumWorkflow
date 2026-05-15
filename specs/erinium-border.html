@@ -118,7 +118,7 @@
       <div class="header-badges">
         <span class="badge badge-green">Statut: implemente</span>
         <span class="badge badge-cyan">Categorie: Monde</span>
-        <span class="badge badge-violet">Version: 2.0 (smoothing)</span>
+        <span class="badge badge-violet">Version: 3.0 (smoothing — external sample)</span>
         <span class="badge badge-gold">Dimension: Overworld uniquement</span>
       </div>
     </div>
@@ -190,21 +190,30 @@ isBorderChunk(cx, cz) = (1 &lt;= distance &lt;= smoothing_width_chunks)</div>
     </section>
 
     <section class="section-card" id="template">
-      <h2><span class="s-num">03</span> Lissage progressif (smoothing v2)</h2>
-      <p>Le worldgen genere le chunk normalement (terrain + structures + decorations). Apres population, EriniumBorder intervient pour <strong>blender la heightmap</strong> de chaque colonne entre une baseline plate cote interieur et la hauteur naturelle cote exterieur.</p>
+      <h2><span class="s-num">03</span> Lissage progressif (smoothing v3 — external sample)</h2>
+      <p>Le worldgen genere le chunk normalement (terrain + structures + decorations). Apres population, EriniumBorder intervient pour <strong>blender la heightmap</strong> du chunk entre une baseline plate cote interieur et la hauteur naturelle <strong>echantillonnee au-dela de la bande de lissage</strong> cote exterieur.</p>
+      <div class="info-box note"><strong>Fix v3 (2026-05-15)</strong> : la v2 echantillonnait <code>hNatural</code> dans le chunk en cours, mais comme tous les chunks de la bande appartiennent au meme biome quasi-plat impose par le worldgen, le scan local renvoyait toujours ~surfaceY. Resultat : bande plate suivie d'un mur vertical brutal a la frontiere bande/worldgen pur. La v3 echantillonne <code>hNatural</code> dans le <em>premier chunk strictement hors bande</em> (Chebyshev = smoothing_width + 1) qui appartient au worldgen pur (montagne, foret, etc.), donnant un gradient reel qui rejoint la hauteur naturelle.</div>
       <h3>Facteur d'interpolation</h3>
       <p>Pour un chunk a la distance Chebyshev <code>d</code> de la bbox (1 &lt;= d &lt;= smoothing_width_chunks) :</p>
       <div class="code-block">tChunk = (d - 1) / (smoothing_width_chunks - 1)   // [0, 1]
 eased  = easeInOutCubic(tChunk)
 
-// Pour chaque colonne (lx, lz) du chunk :
-hNatural = scan top-down [255..1] -&gt; premier bloc solide (ignore air, leaves, logs, fleurs, neige...)
-hTarget  = round(lerp(surfaceY, hNatural, eased))</div>
+// v3: 1 sample par chunk depuis un chunk au-dela de la bande.
+dx, dz   = direction outward (Chebyshev) du chunk vs bbox  // {-1, 0, +1}
+steps    = smoothing_width + 1 - d
+sampleCx = cx + dx * steps
+sampleCz = cz + dz * steps
+force-load(sampleCx, sampleCz)   // genere via worldgen pur si absent
+hNaturalChunk = scan top-down @ (sampleCx*16 + 8, sampleCz*16 + 8)
+hTargetChunk  = round(lerp(surfaceY, hNaturalChunk, eased))</div>
       <ul>
-        <li><code>d=1</code> : <code>t=0</code> -&gt; <code>hTarget=surfaceY</code> (terrain plat au niveau baseline)</li>
-        <li><code>d=smoothing_width_chunks</code> : <code>t=1</code> -&gt; <code>hTarget=hNatural</code> (terrain naturel preserve)</li>
+        <li><code>d=1</code> : <code>t=0</code> -&gt; <code>hTargetChunk=surfaceY</code> (terrain plat au niveau baseline cote interieur)</li>
+        <li><code>d=smoothing_width_chunks</code> : <code>t=1</code> -&gt; <code>hTargetChunk=hNaturalBeyondStrip</code> (rejoint exactement la hauteur du worldgen externe, pas de mur)</li>
         <li>Entre les deux : transition cubique douce (ease-in-out)</li>
+        <li><strong>1 sample par chunk</strong> (a 8,8 du chunk source) et non par colonne : approximation acceptable, evite 256x les force-loads par chunk border et tient le budget TPS pour 500-1000 joueurs.</li>
       </ul>
+      <h3>Unload des chunks echantillonnes</h3>
+      <p>Pendant un <code>/eriniumborder regen confirm</code>, les chunks externes (au-dela de la bande) force-loades uniquement pour echantillonner <code>hNatural</code> sont traques dans <code>RegenJob.sampleChunksToUnload</code> (uniquement s'ils n'etaient pas charges avant le debut du job). A la fin du job, ils sont passes a <code>queueUnload()</code> pour liberer la RAM. La generation a froid du chunk source reste en cache disque pour les regen suivants.</p>
       <h3>Application par colonne</h3>
       <p>Trois cas selon la comparaison <code>hTarget</code> vs <code>hNatural</code> :</p>
       <div class="table-wrap">
@@ -213,7 +222,7 @@ hTarget  = round(lerp(surfaceY, hNatural, eased))</div>
           <tbody>
             <tr><td><code>hTarget &lt; hNatural</code> (abaisser)</td><td>Air de <code>hTarget+1</code> a <code>hNatural</code>. Grass a <code>hTarget</code>. 3 dirt sous. Nettoie aussi les decorations (arbres, neige, plantes) jusqu'a <code>hNatural+24</code>.</td></tr>
             <tr><td><code>hTarget &gt; hNatural</code> (rehausser)</td><td>Stone de <code>hNatural+1</code> a <code>hTarget-1</code>. Grass a <code>hTarget</code>. 3 dirt sous (uniquement la ou c'etait stone). Nettoie les decorations au-dessus de <code>hNatural</code>.</td></tr>
-            <tr><td><code>hTarget == hNatural</code></td><td>Colonne laissee intacte. Garde tout : top blocks naturels, arbres, fleurs, structures. C'est le cas du bord exterieur de la bande (t ~ 1).</td></tr>
+            <tr><td><code>hTarget == hNatural</code></td><td>Colonne laissee intacte. Garde tout : top blocks naturels, arbres, fleurs, structures. Note v3 : <code>hTarget</code> est constant par chunk (issu du sample externe), donc cette egalite est rare ; en pratique chaque colonne est legerement abaissee ou rehaussee selon la heightmap locale du chunk vs la cible chunk-wide.</td></tr>
           </tbody>
         </table>
       </div>
