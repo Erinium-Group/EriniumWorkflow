@@ -5,6 +5,28 @@
 
 ---
 
+## 2026-05-15 — EriniumBorder : rampe de smoothing trop geometrique (pas naturelle)
+
+**Systeme** : `EriniumBorderManager.applySmoothingToChunk` (transition entre la zone pre-gen flat y=63 et le terrain naturel).
+
+**Probleme** : Meme avec un lerp `easeInOutCubic` par colonne (v3.2), la transition entre le flat buffer (y=63) et le terrain naturel restait visiblement une rampe lissee : une pente reguliere qui suit grossierement une isolinge autour de la bbox pre-gen. Un joueur disait "c'est pas du tout naturel une rampe". Le terrain reel a des collines, des creux, des irregularites locales — pas une pente uniforme.
+
+**Cause racine** : 3 limitations du v3.2 :
+1. **Un seul `hNatural` par chunk** : tous les blocs d'un chunk lerpent vers la meme cible -> la rampe etait orientee uniformement.
+2. **Aucun bruit organique** : la hauteur etait une fonction continue lisse de la distance a la bbox -> pente parfaitement reguliere.
+3. **Largeur uniforme** : la ring faisait exactement `smoothing_width_chunks` partout -> aspect anneau parfait.
+
+**Solution v3.3** :
+- **A. Multi-sample 4 directions** : sample 4 hauteurs naturelles aux 4 coins outward du chunk (NW/NE/SW/SE), puis interpolation bilineaire par colonne selon `(ux, uz)` dans le chunk. Le `hSampled` varie en continu sur le chunk.
+- **B. Noise organique additionne** : `valueNoise` int-only (adaptee de `EriniumGenLayerClimate`), combinaison 70% basse frequence (scale=32 blocs, grandes ondulations) + 30% haute frequence (scale=9, micro-rugosite). Amplitude = `bell(t) * min(0.40 * |gap|, 24)` ou `bell(t) = 1 - (2t-1)²` (zero aux extremites, max au milieu de la ring). Garantit zero noise dans le flat buffer (t=0) et zero noise au raccord avec le terrain naturel (t=1).
+- **C. Largeur effective modulee** : noise grande echelle (scale=96) qui multiplie `smoothingWidthBlocks` par un facteur dans [0.7..1.3] selon la position -> certaines zones ont une transition de 4 chunks, d'autres de 7. Casse l'aspect anneau geometrique.
+- Seed du noise derivee de `world.getSeed()` -> coherent entre runs sur le meme monde.
+- Tout int-only, zero allocation dans le hot path 16x16.
+
+**Action utilisateur requise** : Le nouveau rendu n'apparait QUE sur les chunks regeneres par `/eriniumborder regen confirm`. Les chunks deja smoothes avec v3.2 ne changeront pas tant que la commande regen n'est pas relancee.
+
+---
+
 ## 2026-05-15 — EriniumBorder : plateau plat + smoothing applique automatiquement au worldgen
 
 **Systeme** : `EriniumBorderManager` (border ring autour de la zone pre-gen).
