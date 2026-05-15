@@ -5,6 +5,39 @@
 
 ---
 
+## 2026-05-15 v4 — WorldGen : 23/53 biomes encore manquants apres v3 (sous-pools humidite trop fins)
+
+**Systeme** : `EriniumGenLayerBiome.weightedPickFiltered` + instrumentation permanente dans `CommandDebugLocateBiome`.
+
+### Probleme
+Apres v3 (MOUNT-tier 8%, scan tiled, suppression pass 2), 30/53 biomes generes. 23 toujours manquants malgre des pools complets. Pattern : tous les biomes des sous-pools `(zone, tier, humidity)` faiblement peuples disparaissent.
+
+Exemple : `POOL_COOL_FLAT` avec humidite DRY filtre 0 entree (aucune entree DRY). `total=0` → retourne `fallback = DEFAULT_COOL_FLAT = ANCIENT_TAIGA`. Resultat : toutes les cellules COOL_FLAT DRY → ANCIENT_TAIGA. Aspen_Grove, Misty_Forest, Dark_Moor ne s'emettent jamais sur ces cellules.
+
+Idem pour : `POOL_WARM_HILLS` filtre WET (1 entree TWISTED_OAK_FOREST), `POOL_HOT_MOUNT` filtre MEDIUM/WET (0 entree → defaut VOLCANO), etc.
+
+### Cause racine
+`weightedPickFiltered` filtre strictement par humidite et retourne le DEFAULT du tier quand `total == 0` ou quand un seul biome match. Resultat : les sous-pools (zone, tier, humidity) trop fins (<3 entrees ou poids total <10) monopolisent les cellules par 1-2 biomes seulement, et tous les autres biomes du tier ne sortent jamais.
+
+### Solution v4
+1. **Fallback "sous-pool fin"** dans `weightedPickFiltered` : si `filteredCount < 3` OU `filteredTotal < 10`, abandonner le filtre humidite et tirer ponderement sur le POOL COMPLET du tier. Garantit qu'un pool avec 5+ entrees ne se reduit jamais a 1-2 picks.
+2. **Instrumentation permanente** dans `CommandDebugLocateBiome` :
+   - `logFullDistribution` : a chaque appel, dump complet (par count decroissant) dans `LOGGER.info("[BiomeStats] ...")` avec tag `*MISSING*` pour les biomes a count=0.
+   - `scanPreZoom` : reconstruit un chain layer raccourci (Island → Climate → Humidity → Biome, sans zooms/shore/smooth) et echantillonne 1M cellules autour de (0,0). Dump dans le log avec tag `*NEVER EMITTED BY POOL LAYER*`. Permet de distinguer "biome jamais emis par le pool layer" vs "biome emis mais mange par downstream layers".
+
+### Comment diagnostiquer la prochaine fois
+1. Lancer `/debuglocatebiome 20000`
+2. Ouvrir `logs/latest.log`
+3. Grep `[BiomeStats]`
+4. Pour chaque biome a 0% dans le scan principal, regarder son count dans le pre-zoom :
+   - count=0 en pre-zoom : bug dans le pool layer (humidite/poids/zone), corriger `EriniumGenLayerBiome.initPools`
+   - count>0 en pre-zoom mais 0 en scan principal : downstream layers mangent (Shore, Zoom, Smooth, AltitudeTransition, HeightSmooth). Revoir les filtres / extreme list / tier lookup.
+
+### Regle generale a retenir
+Pour tout systeme de pool weighted + filtre multi-axes (climat × tier × humidite), TOUJOURS prevoir un fallback "sous-pool fin" qui relache le filtre le plus restrictif si le sous-pool resultant est trop petit. Sinon les axes orthogonaux se multiplient et chaque combo finit a 0-1 entree, supprimant la diversite.
+
+---
+
 ## 2026-05-15 v3 — WorldGen : 26/53 biomes manquants apres v2 (MOUNT-tier trop eleve + scan biaise)
 
 **Systeme** : `EriniumGenLayerBiome` (tier weights), `EriniumGenLayerHeightSmooth` (pass 2), `CommandDebugLocateBiome` (cap qWidth/qHeight).
