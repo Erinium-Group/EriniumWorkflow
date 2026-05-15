@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-05-15 — EriniumBorder : plateau plat + smoothing applique automatiquement au worldgen
+
+**Systeme** : `EriniumBorderManager` (border ring autour de la zone pre-gen).
+
+**Probleme** : Sur un monde completement neuf (jamais lance `/eriniumborder regen confirm`, region files vierges), l'utilisateur observe pres du spawn un grand plateau plat a y=63 entoure d'un smoothing stepped vers le terrain naturel (volcan/montagnes). L'effet apparait UNIQUEMENT sur les chunks proches du joueur (ceux qui viennent d'etre generes) et donne un aspect tres peu naturel : terrain plat coupe net par des falaises vers les biomes alentour.
+
+**Cause racine** : `EriniumBorderManager` enregistrait un `@SubscribeEvent(priority = EventPriority.LOWEST)` sur `PopulateChunkEvent.Post`. A chaque chunk genere par worldgen dont la distance Chebyshev a la pre-gen bbox tombait dans `[1, flatBufferChunks + smoothingWidthChunks]` (= ring de 6 chunks autour de -500/-500 -> 498/498), le smoothing etait applique **automatiquement** sans attendre la commande regen. Avec `enabled=true` par defaut + valeurs pos1/pos2 par defaut, n'importe quel chunk genere en jeu pres du spawn etait flat-plate.
+
+Le comportement attendu (selon la doc) : le smoothing ne doit s'appliquer QUE sur les chunks que l'admin demande explicitement de reecrire via `/eriniumborder regen confirm`. Le worldgen ne doit JAMAIS etre modifie automatiquement.
+
+**Solution** : Suppression du handler `onPopulatePost(PopulateChunkEvent.Post)` et du handler `onChunkLoad(ChunkEvent.Load)` (qui etait un stub no-op de toute facon). La border ring est maintenant strictement une operation admin declenchee par la commande regen. Le handler `onCheckSpawn` (suppression mob spawning) et `onServerTick` (regen batche) restent — ils n'alterent pas le terrain.
+
+**Recommandation** : Les chunks deja generes en jeu avec l'ancien comportement contiennent du terrain flat persistant. Pour les "reparer", deux options :
+1. Supprimer les region files concernes (`world/region/r.*.mca` autour du spawn) -> le worldgen regenere du terrain naturel propre lors de la prochaine exploration.
+2. Lancer `/eriniumborder regen confirm` -> les chunks deja a plat resteront a plat (le smoothing n'a rien a changer), mais au moins la transition vers l'exterieur sera coherente.
+
+L'option 1 est recommandee si l'utilisateur veut un monde sans aucune trace du bug.
+
+---
+
 ## 2026-05-15 — Crash init serveur : `ChunkNibbleArrays should be 2048 bytes not: 0`
 
 **Systeme** : Chargement de chunks au demarrage du serveur (`AnvilChunkLoader.readChunkFromNBT`).
