@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-05-15 — EriniumBorder v3.4 : murs lateraux entre chunks adjacents + regen partielle
+
+**Systeme** : `EriniumBorderManager.applySmoothingToChunk` + `RegenJob` (lissage du ring + regen complete).
+
+**Probleme** :
+1. **Bug 2** : Sur les bords lateraux de la rampe smoothee, des falaises nettes apparaissaient entre chunks adjacents — l'aspect "stair-step wall" qu'on avait deja corrige verticalement (v3.2) revenait en horizontal.
+2. **Bug 1** : `/eriniumborder regen confirm` ne semblait smoother que les chunks proches du joueur, le reste du ring (a l'oppose) restait avec le terrain naturel intact.
+
+**Cause racine** :
+1. **Bug 2** : Le v3.3 sample 4 coins NW/NE/SW/SE par chunk via `sampleNaturalHeightDir(cx, cz, cornerDX, cornerDZ)`. La direction outward `dx/dz` est calculee par chunk : chunk A (au nord de la bbox) a `dx=0, dz=-1`, chunk B adjacent (au nord-est) a `dx=+1, dz=-1`. Le coin NE de A et le coin NW de B ont la MEME coordonnee mondiale mais le sample chunk projete differe (axe outward different + offset corner ignore si `cornerDX==dx`) -> deux `hNatural` differents au coin partage -> bilinear chunk-local produit une falaise au joint.
+2. **Bug 1** : Le `cps.queueUnload(chunk)` etait appele IMMEDIATEMENT apres `applySmoothingToChunk` et `chunk.markDirty()`, AVANT `saveAllChunks` (qui ne s'execute qu'a la fin du job). Selon le state de ChunkProviderServer et la pression RAM, le chunk pouvait etre droppe avant d'etre persiste -> les modifications n'arrivaient jamais au disque pour les chunks loin du joueur (les chunks proches, eux, etaient packet-resync immediatement via SPacketChunkData et restaient en RAM cote client). Resultat visuel : le ring "marche" pres du joueur, "marche pas" loin de lui.
+
+**Solution v3.4** :
+- **Bug 2** : Nouveau `sampleCornerHeight(world, gx, gz, fallbackY)` keye sur les coordonnees mondiales des COINS de chunk (gx, gz en unites chunk-grid). Adjacent border chunks partagent leurs coins (`chunk A.NE = chunk B.NW`) -> meme `hNatural` -> bilinear C0-continue across chunk boundaries -> zero falaise. Cache global dans `RegenJob.cornerCache: Map<Long, Integer>` -> chaque coin unique echantillonne UNE SEULE fois par job (gain perf : ~1 sample/chunk au lieu de 4).
+- **Bug 1** : Sequence end-of-job inversee : `saveAllChunks(true, null)` AVANT le `queueUnload` des chunks force-load. Les modifications sont persistees a coup sur. Le `queueUnload` immediate apres chaque chunk regen est SUPPRIME (remplace par enregistrement dans `sampleChunksToUnload` qui est vide en fin de job).
+- Ajout compteurs `chunksOK` / `chunksFailed` + `cornerCache.size()` dans le log final pour diagnostic facile.
+
+**Action utilisateur requise** : Relancer `/eriniumborder regen confirm` pour appliquer le nouveau lissage continue. Le log final affichera "X smoothed OK, Y failed, Z unique corners sampled" -> Y doit etre 0, Z ~= total chunks +N.
+
+---
+
 ## 2026-05-15 — EriniumBorder : rampe de smoothing trop geometrique (pas naturelle)
 
 **Systeme** : `EriniumBorderManager.applySmoothingToChunk` (transition entre la zone pre-gen flat y=63 et le terrain naturel).
