@@ -5,6 +5,25 @@
 
 ---
 
+## 2026-05-15 — EriniumBorder v3.5 : surface herbe uniforme malgre biomes desert/sand/mesa/etc.
+
+**Systeme** : `EriniumBorderManager.applySmoothingToChunk` (peinture de surface apres calcul de hauteur).
+
+**Probleme** : Le smoothing remplacait le top/filler par `Blocks.GRASS` + `Blocks.DIRT` hardcodes partout. Resultat : la ring smoothing apparaissait comme un plateau d'herbe meme quand la colonne traversait un desert, une plage, une mesa, etc. -> rupture visuelle nette entre la rampe verte et le biome environnant.
+
+**Cause racine** : Constantes `grass`/`dirt` posees inconditionnellement dans les deux branches (`hTarget < hNatural` et `hTarget > hNatural`). Le code ne consultait jamais `world.getBiome(...)`.
+
+**Solution v3.5** :
+- Resolution du biome local UNE fois par colonne (256 lookups / chunk, pas par block).
+- Utilisation de `colBiome.topBlock` pour la surface et `colBiome.fillerBlock` pour les 3 blocs en dessous. Acces direct au champ public (Forge 1.12.2 expose `topBlock`/`fillerBlock` en `public`).
+- Fallback `Blocks.GRASS` / `Blocks.DIRT` si le biome retourne null (rare, biomes custom mal configures).
+- `BlockPos.MutableBlockPos` reutilisable pour eviter l'allocation par colonne.
+- Biomes aquatiques (`BiomeOcean`, `BiomeRiver`) : on applique quand meme top/filler du biome (gravel/sand vanilla) — pas de skip, sinon la hauteur reste correcte mais la surface garderait l'herbe precedente.
+
+**Action utilisateur requise** : Relancer `/eriniumborder regen confirm` pour repeindre la ring avec les bonnes textures.
+
+---
+
 ## 2026-05-15 — EriniumBorder v3.4 : murs lateraux entre chunks adjacents + regen partielle
 
 **Systeme** : `EriniumBorderManager.applySmoothingToChunk` + `RegenJob` (lissage du ring + regen complete).
