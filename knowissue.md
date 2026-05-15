@@ -5,6 +5,33 @@
 
 ---
 
+## 2026-05-15 — EriniumWorld /region flag <flag> <TAB> ne suggerait aucune valeur
+
+**Systeme** : `EriniumWorld` — `worldguard/WorldGuardCommands.java`
+
+**Probleme** : Quand l'utilisateur tapait `/region flag <region> <flag> <TAB>`, aucune suggestion
+de valeur n'apparaissait pour le 4e argument. L'utilisateur ne savait donc pas ce qu'il fallait
+mettre (allow/deny pour STATE, survival/creative/... pour GAMEMODE, etc.).
+
+**Cause racine** : Un `SuggestionProvider` existait deja (`FLAG_VALUE_SUGGESTIONS`) et appelait
+`StringArgumentType.getString(context, "flag")` pour recuperer le nom du flag deja parse, mais
+selon le chemin de tab-completion emprunte par Forge 1.12.2 (qui passe par
+`BrigadierCommandWrapper.getTabCompletions` puis `dispatcher.getCompletionSuggestions`), cette
+recuperation pouvait echouer silencieusement, retournant une liste de suggestions vide.
+
+**Solution** : Ajouter un fallback dans `FLAG_VALUE_SUGGESTIONS` qui, si
+`StringArgumentType.getString(context, "flag")` echoue ou rend une valeur vide, parse le nom du
+flag directement depuis `builder.getInput()` (split sur whitespace, prendre l'index 3 :
+`[0]=region/rg, [1]=flag, [2]=<region>, [3]=<flag>`). Ajouter aussi un filtrage par prefix
+via `builder.getRemaining()` pour ne suggerer que les valeurs pertinentes.
+
+**Regle** : Dans tout `SuggestionProvider` Brigadier sous Forge 1.12.2, ne pas dependre
+exclusivement de `StringArgumentType.getString(context, ...)` pour les arguments precedents.
+Toujours prevoir un fallback qui parse `builder.getInput()` car le wrapper d'integration peut
+ne pas exposer le contexte parse complet selon la phase (suggestion vs execution).
+
+---
+
 ## 2026-05-08 — Nom de channel SimpleNetworkWrapper > 20 caracteres (deconnexion)
 
 **Systeme** : `profile/network/ProfileNetwork.java`
@@ -1686,4 +1713,43 @@ at fr.eri.eriapi.network.PacketGuiOpen.fromBytes(PacketGuiOpen.java:42)
 4. **Config remplacee** : `strip_inner_chunks` + `strip_outer_chunks` -> unique `smoothing_width_chunks` (defaut 5). `stripMinDist()` retourne toujours 1, `stripMaxDist()` retourne `smoothing_width_chunks`.
 
 **Regle generale** : pour eviter les murs visuels en bord de zone pre-generee, NE PAS imposer un terrain plat sur quelques chunks (deplace le mur) — il faut un VRAI lissage qui interpole la heightmap entre la zone protegee et le worldgen naturel sur 5+ chunks, avec un easing cubique pour adoucir les extremites. Hook = `PopulateChunkEvent.Post` LOWEST priority pour laisser le worldgen finir avant.
+
+
+---
+
+## 2026-05-15 — EriniumBorder regen ne touchait que les chunks loaded + lissage invisible sur montagnes
+
+**Systeme** : `world/border/` — EriniumBorderManager, EriniumBorderCommand, EriniumBorderConfig.
+
+**Probleme 1** : `/eriniumborder regen confirm` ne reecrivait que 145 chunks sur les ~1340 attendus dans la bande border. Cause : la commande iterait `WorldServer.getChunkProvider().getLoadedChunks()`, donc seuls les chunks deja charges par le mouvement du joueur etaient traites. Les chunks border eloignes (notamment ceux contenant des montagnes) restaient intacts.
+
+**Probleme 2** : Visuellement, les murs verticaux de montagnes en bord de zone pre-gen ne disparaissaient pas. Le user disait "le smoothing n'a rien fait du tout". Cause directe : meme bug — les chunks de montagne n'etaient pas loaded, donc jamais reecrits par le regen, donc le lissage ne pouvait pas s'appliquer dessus.
+
+**Cause racine** : confusion entre "chunks loaded en RAM" et "chunks de la bande border". Le regen doit force-loader tous les chunks de la bande, peu importe leur statut RAM.
+
+**Solution appliquee** :
+
+1. **Regen batche force-load** dans `EriniumBorderManager` :
+   - Nouvelle methode `startFullRegen(WorldServer, ICommandSender)` qui enumere TOUS les chunks (cx, cz) avec Chebyshev distance dans `[1, smoothing_width_chunks]` autour de la bbox.
+   - Snapshot des chunks deja loaded au demarrage (pour ne pas les unloader apres).
+   - Classe interne `RegenJob` qui detient queue + sender + counters.
+   - Champ `activeJob` volatile (un seul regen a la fois).
+
+2. **Tick handler batche** : `@SubscribeEvent onServerTick(TickEvent.ServerTickEvent)` phase END :
+   - Polle jusqu'a `regen_chunks_per_tick` (defaut 20) chunks de la queue par tick.
+   - Pour chaque : `ChunkProviderServer.loadChunk(cx, cz)` (force-load ou genere), `applySmoothingToChunk(...)`, `chunk.markDirty()`, puis `cps.queueUnload(chunk)` si le chunk n'etait pas loaded au debut.
+   - Messages de progression a 10%, 20%, ..., 100% au sender + console.
+   - A la fin de la queue : `world.saveAllChunks(true, null)` pour flush.
+   - Estimation : ~1340 chunks @ 20/tick = ~67 ticks = ~3.5s, sans freeze (charge etalee).
+
+3. **Nouvelles configs** :
+   - `regen_chunks_per_tick` (1..500, defaut 20) : taille du batch par tick.
+   - `regen_on_startup` (bool, defaut false) : lance un regen complet apres `FMLServerStartingEvent` (utile pour repair apres deploiement d'une nouvelle version du smoothing).
+   - `debug_smoothing` (bool, defaut false) : log verbose par chunk lisse (cx, cz, distance, hNatural@8,8, hTarget@8,8, colonnes lowered/raised/untouched). Sert a diagnostiquer les bugs visuels sans devoir attacher un debugger.
+
+4. **Renforcement lighting** dans `applySmoothingToChunk` : ajout de `chunk.resetRelightChecks()` apres `generateSkylightMap()` pour forcer un recalcul complet de la lumiere des colonnes modifiees (sinon les zones abaissees gardaient les valeurs de skylight d'avant).
+
+5. **Commande refactoree** : `/eriniumborder regen confirm` n'attend plus une duree mais affiche immediatement "Regen lance: N chunks (~Xs)". Si un regen est deja en cours, refuse avec un message clair.
+
+**Regle generale** : pour toute operation qui doit s'appliquer a une zone fixe de chunks (border, regen, repair de structures), TOUJOURS enumerer la zone et force-loader les chunks via `ChunkProviderServer.loadChunk(cx, cz)`, JAMAIS se contenter d'iterer `getLoadedChunks()`. Etaler le travail sur plusieurs ticks via `TickEvent.ServerTickEvent` pour eviter les freezes (batch size configurable).
 

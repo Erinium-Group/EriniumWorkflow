@@ -298,6 +298,9 @@ hTarget  = round(lerp(surfaceY, hNatural, eased))</div>
             <tr><td><code>border_biome_id</code></td><td>string</td><td><code>""</code> (vide)</td><td>Override optionnel du biome dans la bande. Vide = pas d'override (biome naturel preserve, recommande). Sinon ResourceLocation valide (ex: <code>minecraft:plains</code>).</td></tr>
             <tr><td><code>allow_mob_spawn</code></td><td>boolean</td><td><code>true</code></td><td>true = spawn normal (plaines), false = aucun spawn naturel.</td></tr>
             <tr><td><code>regen_cooldown_seconds</code></td><td>int [0, 3600]</td><td><code>30</code></td><td>Cooldown entre deux executions de <code>/eriniumborder regen</code>.</td></tr>
+            <tr><td><code>regen_chunks_per_tick</code></td><td>int [1, 500]</td><td><code>20</code></td><td>Nombre maximum de chunks reecrits par tick serveur pendant un regen batch. Permet d'etaler la charge (TPS-safe).</td></tr>
+            <tr><td><code>regen_on_startup</code></td><td>boolean</td><td><code>false</code></td><td>Si <code>true</code>, lance automatiquement un regen complet de la bande border apres le chargement de l'Overworld au demarrage du serveur. <strong>Couteux</strong> (1000+ chunks force-load).</td></tr>
+            <tr><td><code>debug_smoothing</code></td><td>boolean</td><td><code>false</code></td><td>Log verbose par chunk lisse (hNatural, hTarget, colonnes modifiees) pour diagnostiquer les bugs visuels.</td></tr>
           </tbody>
         </table>
       </div>
@@ -310,15 +313,25 @@ hTarget  = round(lerp(surfaceY, hNatural, eased))</div>
       <p>Permission level : 2 (op uniquement). Auto-completion via <code>getTabCompletions</code>.</p>
       <h3>/eriniumborder info</h3>
       <p>Affiche l'etat actuel : statut on/off, bbox pre-gen (blocs et chunks normalises min/max), bornes de distance de la bande, surfaceY, biome ID, allowMobSpawn.</p>
-      <h3>/eriniumborder regen</h3>
+      <h3>/eriniumborder regen (force-load batche)</h3>
       <p>Premiere invocation sans <code>confirm</code> : affiche un avertissement explicite (operation destructrice qui ecrase tout bloc place par les joueurs dans la bande).</p>
       <p>Invocation avec <code>confirm</code> :</p>
       <ol style="color: var(--slate); margin-left: 24px;">
-        <li>Verifier le cooldown global (<code>regen_cooldown_seconds</code>). Si actif : message d'erreur et abandon.</li>
-        <li>Iterer <code>WorldServer.getChunkProvider().getLoadedChunks()</code>.</li>
-        <li>Pour chaque chunk dont <code>isBorderChunk(cx, cz) == true</code> : appliquer le template.</li>
-        <li>Afficher le nombre de chunks reecrits + le temps d'execution (ms).</li>
+        <li>Verifier le cooldown global (<code>regen_cooldown_seconds</code>) et qu'aucun regen n'est deja en cours. Si actif : message d'erreur et abandon.</li>
+        <li>Enumerer <strong>tous</strong> les chunks de la bande (Chebyshev 1..<code>smoothing_width_chunks</code>), pas seulement les chunks deja charges.</li>
+        <li>Snapshot des chunks deja charges (pour les preserver loaded apres regen).</li>
+        <li>Hook <code>TickEvent.ServerTickEvent</code> phase END : a chaque tick, traiter jusqu'a <code>regen_chunks_per_tick</code> chunks :
+          <ul>
+            <li><code>ChunkProviderServer.loadChunk(cx, cz)</code> = force-load depuis disque ou genere si manquant.</li>
+            <li>Appliquer le lissage column-par-column.</li>
+            <li><code>chunk.markDirty()</code>.</li>
+            <li>Si le chunk n'etait pas loaded au debut du regen : <code>cps.queueUnload(chunk)</code> pour eviter une explosion RAM.</li>
+          </ul>
+        </li>
+        <li>Messages de progression (10%, 20%, ..., 100%) en console et au sender de la commande.</li>
+        <li>A la fin de la queue : <code>world.saveAllChunks(true, null)</code> pour flush sur disque, message recap.</li>
       </ol>
+      <div class="info-box note"><strong>Performance</strong> : avec <code>regen_chunks_per_tick=20</code>, une bande de 5 chunks autour de la bbox par defaut (~1340 chunks) prend ~67 ticks soit ~3.5s. Le pic TPS est borne (~20 chunks de smoothing par tick = ~100-300 ms total etale).</div>
       <div class="info-box danger"><strong>Avertissement</strong> : <code>/eriniumborder regen confirm</code> ECRASE tous les blocs places par les joueurs dans la bande (constructions, coffres, etc.). Reserver a une situation de reconfiguration majeure.</div>
     </section>
 
