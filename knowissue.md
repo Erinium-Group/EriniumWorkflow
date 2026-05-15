@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-05-15 — EriniumBorder v3.6 : regression critique 1554/1932 chunks failed sur regen
+
+**Systeme** : `EriniumBorderManager.applySmoothingToChunk` (lookup biome ajoute en v3.5).
+
+**Probleme** : Apres deploiement de v3.5 (peinture biome-aware), `/eriniumborder regen confirm` produisait `378 smoothed OK, 1554 failed` sur un ring de 1932 chunks. Seuls ~20% des chunks (ceux proches du joueur) etaient effectivement smoothes.
+
+**Cause racine** : v3.5 a introduit `world.getBiome(biomePos)` par colonne (256 lookups/chunk). En 1.12.2, `World.getBiome(BlockPos)` :
+1. Verifie `isBlockLoaded(pos)` -> true (le chunk courant est loaded).
+2. Recupere `chunk.getBiome(pos, biomeProvider)` qui lit dans `chunk.getBiomeArray()`.
+3. Si l'octet biome dans le tableau pointe vers une ID non-enregistree ou si `Biome.getBiome(id)` retourne null pour un biome custom mal-resolu sur chunks lointains (cas frequent avec 36 biomes custom + edge cases worldgen), la methode throw via `CrashReport`/`ReportedException` -> propagation jusqu'au try/catch externe dans `onServerTick` -> `chunksFailed++` et le chunk reste non smoothe.
+4. De plus, l'exception interne dans `applySmoothingToChunk` n'etait pas catchee localement -> aucune stack trace lisible pour diagnostic.
+
+**Solution v3.6** :
+- Remplacer `world.getBiome(biomePos)` par `world.getBiomeProvider().getBiome(biomePos, Biomes.PLAINS)`. Le BiomeProvider recalcule depuis GenLayer, ne touche pas au chunk biome array, et retourne TOUJOURS un biome valide (fallback Plains si edge case). Plus rapide aussi (pas de lookup chunk).
+- Wrap supplementaire try/catch autour de l'appel biome lui-meme avec fallback `Biomes.PLAINS` (ceinture + bretelles).
+- Ajouter try/catch dans `applySmoothingToChunk` qui log les 3 premieres exceptions avec stack trace complete via `LOGGER.warn("...", cx, cz, t.toString(), t)` (le 4eme parametre throwable declenche le print de stack trace dans Log4j2). Suppression silencieuse au-dela pour eviter le spam si systemic.
+
+**Action utilisateur requise** : Relancer `/eriniumborder regen confirm`. Le log final doit afficher `1932 chunks scheduled, 1932 smoothed OK, 0 failed`. Si encore des fails, les 3 premiers auront leur stack trace dans le log pour diagnostic.
+
+---
+
 ## 2026-05-15 — EriniumBorder v3.5 : surface herbe uniforme malgre biomes desert/sand/mesa/etc.
 
 **Systeme** : `EriniumBorderManager.applySmoothingToChunk` (peinture de surface apres calcul de hauteur).
