@@ -5,6 +5,30 @@
 
 ---
 
+## 2026-05-15 v3 — WorldGen : 26/53 biomes manquants apres v2 (MOUNT-tier trop eleve + scan biaise)
+
+**Systeme** : `EriniumGenLayerBiome` (tier weights), `EriniumGenLayerHeightSmooth` (pass 2), `CommandDebugLocateBiome` (cap qWidth/qHeight).
+
+**Probleme** : Apres le fix v1 (pickRandomHillsForZone), `/debuglocatebiome 20000` montait de 23/53 a 27/53 — toujours 26 biomes "manquants". TOUS les DEFAULT_*_FLAT/HILLS du tier HOT (ERINIUM_DESERT, HIGH_SAVANNA) absents, plus la quasi-totalite des FLAT-pool biomes (ERINIUM_PLAINS, FLOWER_PRAIRIE, ASPEN_GROVE, ERINIUM_COLD_TAIGA, REDWOOD_VALLEY, MUSHROOM_GLADE, THERMAL_SPRINGS, VOLCANIC_ISLAND_CHAIN...) et plusieurs HILLS-pool (DENSE_FOREST, CHERRY_FOREST, AUTUMN_FOREST, GIANT_BIRCH, SEQUOIA, ROLLING_HILLS, PETRIFIED_FOREST, ANCIENT_RUINS, ENHANCED_MESA, WINDY_PLATEAU).
+
+**Causes racine** (3 bugs combines) :
+
+1. **Scan biaise (`CommandDebugLocateBiome.scan`)** : `if (qWidth > 2500) qWidth = 2500` cappait la largeur SANS reduire qMinX. Resultat : pour radius=20000 (qWidth requested ~10000), seul un coin (-20000..-10000 sur X et Z) etait scanne — 1/4 de la zone demandee. Beaucoup de biomes presents mais sous-echantillonnes etaient reportes "manquants".
+
+2. **MOUNT-tier trop eleve** : weights `{45, 30, 25}` / `{45, 35, 20}` / `{25, 45, 30}` / `{50, 30, 20}` donnaient MOUNT a 20-30% des cellules du grid biome (basse resolution). Avec MOUNT a ~25%, presque toute cellule FLAT avait un voisin MOUNT (1 cellule = 8 voisins, P(au moins 1 MOUNT) ~90%+). `AltitudeTransition` + `HeightSmooth` convertissaient donc systematiquement les FLAT-pool en HILLS-pick. Les FLAT-pool biomes etaient effaces du monde a ~80%.
+
+3. **HeightSmooth 2 passes** : Pass 1 remplacait FLAT-touching-MOUNT par HILLS. Pass 2 elargissait le ring d'une cellule supplementaire (FLAT-touching-new-HILLS). Cumule avec MOUNT-tier=25%, ca consommait presque tout l'espace FLAT.
+
+**Solution** :
+1. **Scan unbiased** (`CommandDebugLocateBiome`) : decoupage en tiles 2500x2500 couvrant TOUTE la zone, plus argument `verbose` qui affiche le nombre de samples par biome (permet de distinguer "rare mais present" de "absent").
+2. **Tier weights rebalance** (`EriniumGenLayerBiome.TIER_*`) : MOUNT descend de 20-30% a 8-10%. FLAT monte a 60-65%. Les biomes signature MOUNT (Volcano, EnhancedMesa, Glacier, SteepMountains) restent visibles grace au RNG du seed mais ne dominent plus le grid.
+3. **HeightSmooth 1 pass au lieu de 2** : suppression de `smoothPassDirect`. Avec MOUNT-tier reduit a 8%, un seul ring de transition suffit pour eviter les murs verticaux.
+4. **WARM_MOUNT enrichi** : pool passe de 1 entree (WINDY_PLATEAU) a 3 (+ STEEP_MOUNTAINS, DEEP_CANYON) pour augmenter la diversite quand un MOUNT WARM tombe.
+
+**Action utilisateur requise** : `/eriniumborder regen confirm` (ou nouveau monde) puis `/debuglocatebiome 20000 verbose`. Cible : 45+/53. Les MOUNT-only rares (Volcano, EnhancedMesa, Glacier, SteepMountains, WindyPlateau) peuvent rester sous-echantillonnes mais doivent apparaitre au moins quelques fois.
+
+---
+
 ## 2026-05-15 — WorldGen : 30/53 biomes manquants (HeightSmooth + AltitudeTransition mangeaient la diversite)
 
 **Systeme** : `EriniumGenLayerHeightSmooth` + `EriniumGenLayerAltitudeTransition` (chaine biome -> ring HILLS autour des MOUNT).
