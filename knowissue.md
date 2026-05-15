@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-05-15 — EriniumBorder v3.7 : 1554/1932 chunks failed -> loadChunk vs provideChunk
+
+**Systeme** : `EriniumBorderManager.onServerTick` (boucle de regen) + `sampleCornerHeight` / `sampleNaturalHeightBeyondStrip` / `sampleNaturalHeightDir`.
+
+**Probleme** : Apres v3.6 (qui pensait fix le 1554/1932 via BiomeProvider direct), le bug persistait avec exactement le meme score : `378 smoothed OK, 1554 failed`. Le log montrait 1554 lignes `[EriniumBorder] regen: failed to load chunk (X,Y)` — l'echec etait DANS la boucle de force-load, AVANT meme l'appel a applySmoothingToChunk. Donc le fix biome de v3.6 ne pouvait pas avoir d'effet.
+
+**Cause racine** : Les 4 appels `cps.loadChunk(cx, cz)` (1 dans `onServerTick`, 3 dans les samples) utilisaient `ChunkProviderServer.loadChunk(int, int)`. En 1.12.2 cette methode charge UNIQUEMENT depuis le disque et retourne `null` si le chunk n'a jamais ete genere. Les chunks de la border ring loin de toute zone visitee (typiquement les coins de l'anneau a 1900+ chunks du spawn pour un ring complet) n'avaient jamais ete touches -> `loadChunk` retournait null -> warning + skip. Seuls les chunks deja visites au moins une fois (proches du joueur) etaient smoothes -> rendu coherent du bug "smoothing visible uniquement autour du spawn".
+
+**Solution v3.7** :
+- Remplacer les 4 appels `cps.loadChunk(...)` par `cps.provideChunk(...)`. `provideChunk` charge depuis le disque OU genere le chunk via worldgen s'il est absent — garantit qu'un Chunk valide est retourne. Synchronisation : les chunks gen sont generes sync (compatible avec le throttle `regen_chunks_per_tick = 20` qui limite la charge a ~20 chunks gen/tick).
+- Mettre a jour les messages de log et commentaires pour refleter `provideChunk` (suppression du "failed to load" trompeur).
+- Le systeme d'unload en fin de job (`saveAllChunks` puis `queueUnload` des chunks force-load) reste inchange et libere correctement la RAM apres la regen.
+
+**Action utilisateur requise** : Relancer `/eriniumborder regen confirm`. Le log final doit afficher `1932 chunks scheduled, 1932 smoothed OK, 0 failed`. Charge attendue : ~5-10s pour 1932 chunks avec generation worldgen complete (depend du nombre de chunks deja generes vs a generer).
+
+---
+
 ## 2026-05-15 — EriniumBorder v3.6 : regression critique 1554/1932 chunks failed sur regen
 
 **Systeme** : `EriniumBorderManager.applySmoothingToChunk` (lookup biome ajoute en v3.5).
