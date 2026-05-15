@@ -5,6 +5,25 @@
 
 ---
 
+## 2026-05-15 — Crash init serveur : `ChunkNibbleArrays should be 2048 bytes not: 0`
+
+**Systeme** : Chargement de chunks au demarrage du serveur (`AnvilChunkLoader.readChunkFromNBT`).
+
+**Probleme** : Crash hard a `MinecraftServer.initialWorldChunkLoad`. Stack :
+```
+java.lang.IllegalArgumentException: ChunkNibbleArrays should be 2048 bytes not: 0
+    at net.minecraft.world.chunk.NibbleArray.<init>(SourceFile:16)
+    at AnvilChunkLoader.readChunkFromNBT(AnvilChunkLoader.java:470)
+```
+
+**Cause racine** : Un region file contient au moins un chunk avec un tag `Add` / `BlockLight` / `SkyLight` / `Data` corrompu (taille 0 au lieu de 2048). Origine probable : crash precedent pendant un save de chunk (regen `/eriniumborder`, kill -9, etc.). Aucun code mod n'ecrit dans le NBT raw — `BiomeBorderSmoother` utilise `chunk.setBlockState()` (safe), et `EriniumBorderManager` ecrit via `ExtendedBlockStorage.set()` puis `generateSkylightMap()` qui reconstruit la lumiere proprement. La corruption pre-existe sur disque.
+
+**Solution** : Ajout de `MixinAnvilChunkLoaderSafe` qui `@Redirect` les appels a `NBTTagCompound.getByteArray(String)` dans `readChunkFromNBT`. Si la cle est `Add`, `BlockLight`, `SkyLight` ou `Data` et que la taille n'est pas 2048, retourne un `new byte[2048]` (NibbleArray vide rempli de zeros) avec un warning. Pour `Blocks`, retourne un `new byte[4096]` si != 4096. Le chunk est ainsi charge en l'etat et la lumiere se recalcule au prochain `generateSkylightMap()`.
+
+**Recommandation supplementaire** : Si le crash persiste, supprimer le region file fautif (voir log warning pour identifier les coords) ou regenerer le bord via `/eriniumborder regen confirm`.
+
+---
+
 ## 2026-05-15 — WorldGen : disparition des biomes extremes/montagnes (Volcano, Mesa, Glacier, SteepMountains)
 
 **Systeme** : `EriniumGenLayerBiome` (pools + humidite) + `EriniumGenLayerShore` (buffer climatique).
