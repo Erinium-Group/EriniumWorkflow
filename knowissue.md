@@ -5,6 +5,52 @@
 
 ---
 
+## 2026-05-15 — WorldGen : 30/53 biomes manquants (HeightSmooth + AltitudeTransition mangeaient la diversite)
+
+**Systeme** : `EriniumGenLayerHeightSmooth` + `EriniumGenLayerAltitudeTransition` (chaine biome -> ring HILLS autour des MOUNT).
+
+**Probleme** : `/debuglocatebiome 20000` retournait 23/53 biomes trouves seulement. Les biomes manquants etaient massivement les FLAT-tier (ERINIUM_PLAINS, ERINIUM_DESERT, FLOWER_PRAIRIE, THICK_JUNGLE, HIGH_SAVANNA, ...) ET la plupart des HILLS-tier (DENSE_FOREST, CHERRY_FOREST, AUTUMN_FOREST, GIANT_BIRCH, SEQUOIA, ROLLING_HILLS, PETRIFIED_FOREST, ERINIUM_ROOFED_FOREST, ANCIENT_RUINS, WINDY_PLATEAU) malgre des weights raisonnables dans les pools.
+
+**Cause racine** : Deux bugs combines dans la chaine post-biome :
+1. `HeightSmooth` utilisait `baseHeight <= 0.25` (FLAT_THRESHOLD) pour decider quelles cellules etaient "FLAT" et eligibles a la conversion en HILLS. Or la grande majorite des biomes custom ont `baseHeight` entre 0.05 et 0.2 — y compris les biomes HILLS-tier (DenseForest 0.1, CherryForest 0.1, etc.). Tout etait donc classe "FLAT" et eligible.
+2. `HeightSmooth` et `AltitudeTransition` remplacaient toujours la cellule par `DEFAULT_*_HILLS` — UNE seule valeur par climat (4 biomes au total : HIGH_SAVANNA, ERINIUM_FOREST, ANCIENT_TAIGA, SNOW_TUNDRA). Resultat : toute zone touchant un MOUNT dans un rayon de 2 cellules etait reduite a 4 biomes, mangeant la quasi-totalite de la diversite.
+
+Les passes 1+2 de HeightSmooth elargissaient le rayon a 3 cellules autour des MOUNT. Avec MOUNT-tier a ~25% des cellules, presque tout le monde land etait dans le rayon -> ~80% des biomes effaces.
+
+**Solution** :
+1. **`EriniumGenLayerBiome.pickRandomHillsForZone(zone, roll)`** : nouvelle methode publique qui tire un biome HILLS aleatoire dans le pool du climat (pondere par les weights existants). Ignore l'humidite (deja bakee par la layer humidity en amont).
+2. **`EriniumGenLayerHeightSmooth`** : remplace le check `baseHeight <= 0.25` par `getTierForBiome(id) == TIER_FLAT`. Seules les cellules FLAT-tier sont eligibles a la conversion -> les HILLS-tier (DenseForest, RollingHills, ...) sont preservees.
+3. **`HeightSmooth` + `AltitudeTransition`** : appellent `pickRandomHillsForZone` au lieu de retourner toujours le DEFAULT. Chaque conversion tire un HILLS biome different parmi le pool complet.
+
+**Action utilisateur requise** : Regenerer une zone (ex via `/eriniumborder regen confirm` ou nouveau monde) puis relancer `/debuglocatebiome 20000`. Resultat attendu : ~50+/53 biomes trouves.
+
+---
+
+## 2026-05-15 — EriniumBorder : eclairage casse apres regen (dark patches jusqu'au place block)
+
+**Systeme** : `EriniumBorderManager.applySmoothingToChunk` (fin de methode, post-mods).
+
+**Probleme** : Apres une regen border, certaines zones smoothees apparaissaient sombres en jeu — necessite de poser un block pour declencher un update light et eclairer la zone. Le sky-light fonctionnait correctement mais le block-light etait stale.
+
+**Cause racine** : Le code modifiait les blocs via `ExtendedBlockStorage.set(...)` (bypass de `Chunk.setBlockState` qui gere le light normalement) puis appelait :
+```
+chunk.generateSkylightMap();
+chunk.resetRelightChecks();
+chunk.setLightPopulated(true);  // <-- bug : marque le chunk "deja eclaire" alors qu'il ne l'est pas
+chunk.setTerrainPopulated(true);
+chunk.markDirty();
+```
+`setLightPopulated(true)` ment au moteur : il pense que le chunk est lit, donc ne planifie aucun relight. Le seul declencheur restant etait un block update (pose/casse) qui propage la lumiere localement.
+
+**Solution** :
+- `setLightPopulated(false)` au lieu de `true` -> le moteur sait que le chunk doit etre relit.
+- Ajout de `chunk.checkLight()` apres -> declenche immediatement le recalcul complet du sky + block light du chunk via le LightingEngine (synchrone, deja gere par Forge).
+- `generateSkylightMap()` est conserve (il pre-calcule la heightmap du sky-light avant checkLight) ainsi que `resetRelightChecks()`.
+
+**Action utilisateur requise** : Relancer `/eriniumborder regen confirm`. Les zones smoothees doivent maintenant etre correctement eclairees des leur generation, sans necessiter de poser un block.
+
+---
+
 ## 2026-05-15 — EriniumBorder v3.7 : 1554/1932 chunks failed -> loadChunk vs provideChunk
 
 **Systeme** : `EriniumBorderManager.onServerTick` (boucle de regen) + `sampleCornerHeight` / `sampleNaturalHeightBeyondStrip` / `sampleNaturalHeightDir`.
