@@ -5,6 +5,56 @@
 
 ---
 
+## 2026-05-15 v5 — WorldGen : 12 biomes jamais emis par la couche pool (IDs -1 baked dans les pools)
+
+**Systeme** : `EriniumGenLayerBiome.initPools()` — construction des pools `int[][] {biomeId, weight, humidityFlag}`.
+
+### Probleme
+Apres les fix v3/v4, 12 biomes restaient INVISIBLES au scan pre-zoom (1M cellules echantillonnees) :
+`DENSE_FOREST`, `GIANT_BIRCH`, `ANCIENT_TAIGA`, `CHERRY_FOREST`, `AUTUMN_FOREST`, `SEQUOIA`,
+`MISTY_FOREST`, `FLOWER_PRAIRIE`, `ROLLING_HILLS`, `HIGH_SAVANNA`, `WINDY_PLATEAU`,
+`VOLCANIC_PLAINS`. Pattern : ce sont EXACTEMENT les 12 premiers biomes enregistres dans
+`EriniumBiomes.registerBiomes()`. Tous les biomes enregistres apres etaient correctement emis.
+
+### Cause racine
+`initPools()` (anciennement) appelait `Biome.getIdForBiome(biome)` inline pendant la construction
+des `int[][]`. Pour les 12 premiers biomes enregistres, cet appel pouvait retourner -1 au moment
+ou les pools etaient construits (probablement timing de la registry Forge — `RegistryEvent.Register`
+qui ne finalisait pas l'association registry interne pour les premiers biomes au moment de
+postInit, ou collision avec des slots vanilla deprecates). Le -1 etait silencieusement bake dans
+les pools, et `pickBiome` retournait -1 — masque par le guard `if (id >= 0 && id < 256)` du
+counter et par les chunks frais qui ne loggent pas les ids hors range. Resultat : ces biomes ne
+sortaient JAMAIS du picker, peu importe leur poids.
+
+### Solution v5
+1. **Pools source-of-truth en `Object[][]`** (entries `{Biome ref, weight, humidity}`) au lieu de
+   resoudre les IDs en avance. `buildSources()` est purement lexicale et ne touche pas a la
+   registry Forge.
+2. **Resolution `Biome` → `int` differee** dans `initPools()` qui :
+   - Logge chaque biome avec son id resolu via `dumpResolution()` (tag `[BiomeStats][initPools]`).
+   - Logge un WARN explicite pour chaque id == -1.
+   - **DROPPE** les entries non resolues du `int[][]` produit (au lieu de les laisser polluer le
+     picker). Une entree id=-1 ne peut donc plus jamais etre selectionnee.
+3. **Re-resolution paresseuse** : si au moins une entree etait non resolue lors de l'init,
+   `poolsReady` reste a `false`. La premiere invocation de `getInts()` (au tout debut du worldgen,
+   apres que TOUTES les phases d'init Forge sont terminees) declenche `ensureResolved()` qui rappelle
+   `initPools()`. Garantit la resolution au dernier moment possible.
+4. **Suppression de `id(Biome)`** : la helper a usage unique qui retournait `Biome.getIdForBiome()`
+   sans verification est retiree. Toutes les resolutions passent par `safeId()` qui retourne -1 si
+   le biome est null.
+
+### Comment verifier
+Au demarrage du monde, chercher dans le log :
+- `[BiomeStats][initPools] HOT_FLAT -> eriniumfaction:erinium_desert id=N` pour CHAQUE biome dans
+  CHAQUE pool. Aucune ligne ne doit avoir `id=-1`.
+- `[BiomeStats][initPools] All biome IDs resolved successfully.` confirme que les 12 biomes
+  problematiques sont bien resolus.
+
+Si une ligne `id=-1` apparait : la registry Forge n'a toujours pas le biome au moment de
+`getInts()` (improbable, mais le log le revelera).
+
+---
+
 ## 2026-05-15 v4 — WorldGen : 23/53 biomes encore manquants apres v3 (sous-pools humidite trop fins)
 
 **Systeme** : `EriniumGenLayerBiome.weightedPickFiltered` + instrumentation permanente dans `CommandDebugLocateBiome`.
