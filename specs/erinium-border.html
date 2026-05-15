@@ -118,7 +118,7 @@
       <div class="header-badges">
         <span class="badge badge-green">Statut: implemente</span>
         <span class="badge badge-cyan">Categorie: Monde</span>
-        <span class="badge badge-violet">Version: 3.0 (smoothing — external sample)</span>
+        <span class="badge badge-violet">Version: 3.1 (flat buffer + smoothing ramp)</span>
         <span class="badge badge-gold">Dimension: Overworld uniquement</span>
       </div>
     </div>
@@ -157,60 +157,92 @@ isBboxValid = (minChunkX &lt;= maxChunkX) AND (minChunkZ &lt;= maxChunkZ)</div>
       </ul>
       <div class="info-box warn">Si la bbox est trop petite et que le shrinkage la rend invalide (minChunk &gt; maxChunk), le systeme se desactive a l'execution avec une erreur claire au demarrage. La bbox doit couvrir au moins 1 chunk plein (16 blocs alignes sur la grille des chunks).</div>
       <h3>Distance &amp; bande</h3>
-      <p>La bande border occupe les chunks dont la <strong>distance de Chebyshev en chunks au rectangle pre-gen</strong> est comprise entre 1 et <code>smoothing_width_chunks</code> inclus. La distance vaut 0 si le chunk est <em>dans</em> la bbox (jamais touche).</p>
+      <p>La bande border total occupe les chunks dont la <strong>distance de Chebyshev en chunks au rectangle pre-gen</strong> est comprise entre 1 et <code>flat_buffer_chunks + smoothing_width_chunks</code> inclus. La distance vaut 0 si le chunk est <em>dans</em> la bbox (jamais touche).</p>
+      <p>La bande se decoupe en deux sous-bandes :</p>
+      <ul>
+        <li><strong>Flat buffer</strong> (Chebyshev 1.. <code>flat_buffer_chunks</code>) : chunks <em>strictement plats</em> a <code>surface_y</code>. Aucun lerp, aucun sample externe. Usage : poser des AP / spawn points / portes au bord de la warzone et garantir un sol plat derriere la frontiere pre-gen.</li>
+        <li><strong>Smoothing ramp</strong> (Chebyshev <code>flat_buffer_chunks+1</code>.. <code>flat_buffer_chunks + smoothing_width_chunks</code>) : chunks de transition douce qui interpolent entre <code>surface_y</code> et la hauteur naturelle echantillonnee au-dela.</li>
+      </ul>
       <div class="code-block">dx = max(minCX - cx, cx - maxCX, 0)
 dz = max(minCZ - cz, cz - maxCZ, 0)
 distance(cx, cz) = max(dx, dz)
 
-isPreGenChunk(cx, cz) = (distance == 0)
-isBorderChunk(cx, cz) = (1 &lt;= distance &lt;= smoothing_width_chunks)</div>
-      <div class="ascii-diagram">              distance = 5 (smoothing_width_chunks)
-          +-----------------------------+
-          | border d=5 (t=1.0, naturel) |
-          |  +-------------------------+|
-          |  | border d=4 (t~0.75)     ||
-          |  |  +---------------------+||
-          |  |  | border d=3 (t~0.5)  |||
-          |  |  |  +-----------------+|||
-          |  |  |  | border d=2 (t~0.25)|
-          |  |  |  |  +-------------+ |||
-          |  |  |  |  |border d=1   | |||
-          |  |  |  |  |(t=0, plat)  | |||
-          |  |  |  |  | +---------+ | |||
-          |  |  |  |  | |pre-gen  | | |||
-          |  |  |  |  | |(jamais  | | |||
-          |  |  |  |  | |touche)  | | |||
-          |  |  |  |  | +---------+ | |||
-          |  |  |  |  +-------------+ |||
-          |  |  |  +-----------------+|||
-          |  |  +---------------------+||
-          |  +-------------------------+|
-          +-----------------------------+</div>
+flat   = flat_buffer_chunks
+ramp   = smoothing_width_chunks
+total  = flat + ramp
+
+isPreGenChunk(cx, cz)   = (distance == 0)
+isFlatBuffer(cx, cz)    = (1 &lt;= distance &lt;= flat)
+isSmoothingRamp(cx, cz) = (flat + 1 &lt;= distance &lt;= total)
+isBorderChunk(cx, cz)   = (1 &lt;= distance &lt;= total)</div>
+      <div class="ascii-diagram">       flat_buffer=2, smoothing_width=5, total=7
+          +-----------------------------------+
+          | smoothing d=7 (t=1.0, naturel)    |
+          |  +-------------------------------+|
+          |  | smoothing d=6 (t~0.75)        ||
+          |  |  +---------------------------+||
+          |  |  | smoothing d=5 (t~0.5)     |||
+          |  |  |  +-----------------------+|||
+          |  |  |  | smoothing d=4 (t~0.25)||||
+          |  |  |  |  +-------------------+||||
+          |  |  |  |  |smoothing d=3 (t=0)|||||
+          |  |  |  |  | +---------------+ |||||
+          |  |  |  |  | |flat d=2 (plat)| |||||
+          |  |  |  |  | | +-----------+ | |||||
+          |  |  |  |  | | |flat d=1   | | |||||
+          |  |  |  |  | | |(plat)     | | |||||
+          |  |  |  |  | | | +-------+ | | |||||
+          |  |  |  |  | | | |pre-gen| | | |||||
+          |  |  |  |  | | | |(jamais| | | |||||
+          |  |  |  |  | | | |touche)| | | |||||
+          |  |  |  |  | | | +-------+ | | |||||
+          |  |  |  |  | | +-----------+ | |||||
+          |  |  |  |  | +---------------+ |||||
+          |  |  |  |  +-------------------+||||
+          |  |  |  +-----------------------+|||
+          |  |  +---------------------------+||
+          |  +-------------------------------+|
+          +-----------------------------------+</div>
       <div class="info-box note">Note : la zone pre-generee est strictement preservee. Tout chunk dont la distance Chebyshev a la bbox est <code>0</code> n'est jamais reecrit, meme par <code>/eriniumborder regen</code>. La bbox n'a pas besoin d'etre centree sur (0,0).</div>
     </section>
 
     <section class="section-card" id="template">
-      <h2><span class="s-num">03</span> Lissage progressif (smoothing v3 — external sample)</h2>
+      <h2><span class="s-num">03</span> Lissage progressif (smoothing v3.1 — flat buffer + ramp)</h2>
       <p>Le worldgen genere le chunk normalement (terrain + structures + decorations). Apres population, EriniumBorder intervient pour <strong>blender la heightmap</strong> du chunk entre une baseline plate cote interieur et la hauteur naturelle <strong>echantillonnee au-dela de la bande de lissage</strong> cote exterieur.</p>
       <div class="info-box note"><strong>Fix v3 (2026-05-15)</strong> : la v2 echantillonnait <code>hNatural</code> dans le chunk en cours, mais comme tous les chunks de la bande appartiennent au meme biome quasi-plat impose par le worldgen, le scan local renvoyait toujours ~surfaceY. Resultat : bande plate suivie d'un mur vertical brutal a la frontiere bande/worldgen pur. La v3 echantillonne <code>hNatural</code> dans le <em>premier chunk strictement hors bande</em> (Chebyshev = smoothing_width + 1) qui appartient au worldgen pur (montagne, foret, etc.), donnant un gradient reel qui rejoint la hauteur naturelle.</div>
-      <h3>Facteur d'interpolation</h3>
-      <p>Pour un chunk a la distance Chebyshev <code>d</code> de la bbox (1 &lt;= d &lt;= smoothing_width_chunks) :</p>
-      <div class="code-block">tChunk = (d - 1) / (smoothing_width_chunks - 1)   // [0, 1]
-eased  = easeInOutCubic(tChunk)
+      <h3>Facteur d'interpolation (renormalise sur la ramp)</h3>
+      <p>Soit <code>d</code> la distance Chebyshev du chunk a la bbox (1 &lt;= d &lt;= flat + ramp) et <code>flat = flat_buffer_chunks</code>, <code>ramp = smoothing_width_chunks</code> :</p>
+      <div class="code-block">if (d &lt;= flat) {
+    // Flat buffer band : sol strictement plat, pas de sample, pas de lerp.
+    hTargetChunk = surfaceY
+} else {
+    // Smoothing ramp band : t renormalise sur la sous-bande [flat+1, flat+ramp]
+    tChunk = (d - flat - 1) / (ramp - 1)   // [0, 1]
+    eased  = easeInOutCubic(tChunk)
 
-// v3: 1 sample par chunk depuis un chunk au-dela de la bande.
-dx, dz   = direction outward (Chebyshev) du chunk vs bbox  // {-1, 0, +1}
-steps    = smoothing_width + 1 - d
-sampleCx = cx + dx * steps
-sampleCz = cz + dz * steps
-force-load(sampleCx, sampleCz)   // genere via worldgen pur si absent
-hNaturalChunk = scan top-down @ (sampleCx*16 + 8, sampleCz*16 + 8)
-hTargetChunk  = round(lerp(surfaceY, hNaturalChunk, eased))</div>
+    // 1 sample par chunk depuis un chunk au-dela du ring total.
+    dx, dz   = direction outward (Chebyshev) du chunk vs bbox  // {-1, 0, +1}
+    steps    = (flat + ramp + 1) - d
+    sampleCx = cx + dx * steps
+    sampleCz = cz + dz * steps
+    force-load(sampleCx, sampleCz)   // genere via worldgen pur si absent
+    hNaturalChunk = scan top-down @ (sampleCx*16 + 8, sampleCz*16 + 8)
+    hTargetChunk  = round(lerp(surfaceY, hNaturalChunk, eased))
+}</div>
       <ul>
-        <li><code>d=1</code> : <code>t=0</code> -&gt; <code>hTargetChunk=surfaceY</code> (terrain plat au niveau baseline cote interieur)</li>
-        <li><code>d=smoothing_width_chunks</code> : <code>t=1</code> -&gt; <code>hTargetChunk=hNaturalBeyondStrip</code> (rejoint exactement la hauteur du worldgen externe, pas de mur)</li>
+        <li><code>d in [1, flat]</code> : <code>hTargetChunk=surfaceY</code> (sol strictement plat, ideal pour poser AP / spawn points au bord de la warzone)</li>
+        <li><code>d = flat+1</code> : <code>t=0</code> -&gt; <code>hTargetChunk=surfaceY</code> (continuite parfaite avec la fin du flat buffer)</li>
+        <li><code>d = flat+ramp</code> : <code>t=1</code> -&gt; <code>hTargetChunk=hNaturalBeyondStrip</code> (rejoint la hauteur du worldgen externe, pas de mur)</li>
         <li>Entre les deux : transition cubique douce (ease-in-out)</li>
+        <li>Avec <code>flat=0</code> : comportement equivalent a la v3 originale (smoothing direct depuis d=1).</li>
         <li><strong>1 sample par chunk</strong> (a 8,8 du chunk source) et non par colonne : approximation acceptable, evite 256x les force-loads par chunk border et tient le budget TPS pour 500-1000 joueurs.</li>
+      </ul>
+      <h3>Test mental — flat=3, ramp=5 (ring total = 8 chunks)</h3>
+      <ul>
+        <li><code>d = 1, 2, 3</code> -&gt; flat band, hTarget = 63 (surfaceY)</li>
+        <li><code>d = 4</code> -&gt; t = (4 - 3 - 1) / (5 - 1) = 0/4 = 0 -&gt; lerp(63, 120, 0) = 63 (continuite avec le flat)</li>
+        <li><code>d = 8</code> -&gt; t = (8 - 3 - 1) / (5 - 1) = 4/4 = 1 -&gt; lerp(63, 120, 1) = 120 (match worldgen)</li>
+        <li><code>d = 9</code> -&gt; worldgen pur, 120 (continuite parfaite avec d=8)</li>
       </ul>
       <h3>Unload des chunks echantillonnes</h3>
       <p>Pendant un <code>/eriniumborder regen confirm</code>, les chunks externes (au-dela de la bande) force-loades uniquement pour echantillonner <code>hNatural</code> sont traques dans <code>RegenJob.sampleChunksToUnload</code> (uniquement s'ils n'etaient pas charges avant le debut du job). A la fin du job, ils sont passes a <code>queueUnload()</code> pour liberer la RAM. La generation a froid du chunk source reste en cache disque pour les regen suivants.</p>
@@ -302,8 +334,9 @@ hTargetChunk  = round(lerp(surfaceY, hNaturalChunk, eased))</div>
             <tr><td><code>pre_gen_pos1_z</code></td><td>int [-1 000 000, 1 000 000]</td><td><code>-500</code></td><td>Corner 1 Z de la bbox pre-gen, en BLOCS.</td></tr>
             <tr><td><code>pre_gen_pos2_x</code></td><td>int [-1 000 000, 1 000 000]</td><td><code>498</code></td><td>Corner 2 X de la bbox pre-gen, en BLOCS.</td></tr>
             <tr><td><code>pre_gen_pos2_z</code></td><td>int [-1 000 000, 1 000 000]</td><td><code>498</code></td><td>Corner 2 Z de la bbox pre-gen, en BLOCS.</td></tr>
-            <tr><td><code>smoothing_width_chunks</code></td><td>int [1, 64]</td><td><code>5</code></td><td>Largeur de la bande de lissage en chunks. La transition s'etale sur cette distance (Chebyshev 1..N).</td></tr>
-            <tr><td><code>surface_y</code></td><td>int [4, 200]</td><td><code>63</code></td><td>Baseline interieure : hauteur cible du grass top sur le premier chunk de la bande (Chebyshev=1). Les chunks plus exterieurs interpolent vers la heightmap naturelle.</td></tr>
+            <tr><td><code>flat_buffer_chunks</code></td><td>int [0, 32]</td><td><code>1</code></td><td>Nombre de chunks strictement plats (a <code>surface_y</code>) entre la zone pre-gen et le debut de la rampe de smoothing. Permet de poser des AP / spawn points au bord de la warzone avec un sol plat derriere la frontiere. <code>0</code> = comportement v3 (smoothing direct).</td></tr>
+            <tr><td><code>smoothing_width_chunks</code></td><td>int [1, 64]</td><td><code>5</code></td><td>Largeur de la rampe de lissage en chunks (apres le flat buffer). La transition cubique s'etale sur cette distance (Chebyshev <code>flat_buffer_chunks+1</code> .. <code>flat_buffer_chunks + smoothing_width_chunks</code>).</td></tr>
+            <tr><td><code>surface_y</code></td><td>int [4, 200]</td><td><code>63</code></td><td>Baseline interieure : hauteur cible du grass top sur la bande flat ET au debut de la rampe (continuite). Les chunks plus exterieurs interpolent vers la heightmap naturelle.</td></tr>
             <tr><td><code>border_biome_id</code></td><td>string</td><td><code>""</code> (vide)</td><td>Override optionnel du biome dans la bande. Vide = pas d'override (biome naturel preserve, recommande). Sinon ResourceLocation valide (ex: <code>minecraft:plains</code>).</td></tr>
             <tr><td><code>allow_mob_spawn</code></td><td>boolean</td><td><code>true</code></td><td>true = spawn normal (plaines), false = aucun spawn naturel.</td></tr>
             <tr><td><code>regen_cooldown_seconds</code></td><td>int [0, 3600]</td><td><code>30</code></td><td>Cooldown entre deux executions de <code>/eriniumborder regen</code>.</td></tr>
@@ -362,7 +395,9 @@ hTargetChunk  = round(lerp(surfaceY, hNaturalChunk, eased))</div>
         <li><strong>pos sur bord exact de chunk</strong> : si minBlockX % 16 == 0 (resp. maxBlockX % 16 == 15), le chunk est inclus dans le pre-gen (pas de shrinkage cote concerne).</li>
         <li><strong>Biome ID vide</strong> : pas d'override, biomes naturels conserves (cas par defaut).</li>
         <li><strong>Biome ID invalide</strong> : fallback silencieux, pas d'override applique.</li>
-        <li><strong>smoothing_width_chunks = 1</strong> : bande d'un chunk d'epaisseur a t=0 (terrain plat strict, comportement v1 sur ce chunk uniquement).</li>
+        <li><strong>smoothing_width_chunks = 1</strong> : rampe d'un chunk d'epaisseur a t=0 (terrain plat strict, comportement v1 sur ce chunk uniquement).</li>
+        <li><strong>flat_buffer_chunks = 0</strong> : pas de bande plate, le smoothing demarre directement a Chebyshev=1 (mode legacy, equivalent v3).</li>
+        <li><strong>flat_buffer_chunks &gt; 0</strong> : bande strictement plate a <code>surface_y</code> entre la zone pre-gen et le smoothing. Usage : poser des AP / spawn points / structures au bord de la warzone avec un sol plat garanti derriere la frontiere.</li>
         <li><strong>Chunk deja populated rechargee</strong> : <code>ChunkEvent.Load</code> est no-op. Le lissage est persistant sur disque.</li>
         <li><strong>Mining World / Dimension Erina</strong> : exclu (dimension != 0).</li>
       </ul>
