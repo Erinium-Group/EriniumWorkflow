@@ -321,6 +321,10 @@ Les factions utilisent un systeme de **roles** (Recruit, Member, Officer, Leader
 | `/f admin unclaim` | OP level 4 | Unclaim un chunk admin |
 | `/f admin unclaimall safezone` | OP level 4 | Unclaim tous les chunks Safezone |
 | `/f admin unclaimall warzone` | OP level 4 | Unclaim tous les chunks Warzone |
+| `/f admin autoclaim safezone` | OP level 4 | Toggle auto-claim Safezone a chaque changement de chunk |
+| `/f admin autoclaim warzone` | OP level 4 | Toggle auto-claim Warzone a chaque changement de chunk |
+| `/f admin claimradius safezone <radius> [replace]` | OP level 4 | Claim un carre (cote 2r+1) de Safezone autour de l'admin |
+| `/f admin claimradius warzone <radius> [replace]` | OP level 4 | Claim un carre (cote 2r+1) de Warzone autour de l'admin |
 
 ### `/minage` — Monde Minage
 
