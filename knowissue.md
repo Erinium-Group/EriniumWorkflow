@@ -5,6 +5,37 @@
 
 ---
 
+## 2026-05-16 v6 — WorldGen : drift d'IDs Forge entre postInit et world load (12 biomes pointant vers les mauvais biomes)
+
+**Systeme** : `EriniumGenLayerBiome.initPools()` + `EriniumGenLayerShore.initIds()` + `EriniumGenLayerHeightSmooth.initCache()` + `EriniumGenLayerAltitudeTransition.initCache()`.
+
+### Probleme
+Apres le fix v5, 12 biomes restaient invisibles. Diagnostic ajoute (`dumpPoolDiagnostic`) qui logge pour chaque entree de pool : ID stocke vs biome resolu via `Biome.getBiomeForId(id)` au moment du scan. Resultat ahurissant :
+- `HOT_FLAT id=61 -> archipelago` (devrait etre HIGH_SAVANNA)
+- `HOT_FLAT id=63 -> deep_swamp` (devrait etre VOLCANIC_PLAINS)
+- `HOT_MOUNT id=66 -> oasis` (devrait etre VOLCANO)
+- `COOL_FLAT id=54 -> volcano` (devrait etre ANCIENT_TAIGA)
+- etc — drift MASSIF sur tous les pools.
+
+### Cause racine
+`CommonProxy.postInit()` appelait `initPools()` qui faisait `Biome.getIdForBiome(biome)` pour resoudre les IDs et les bake-ait dans des `int[][]` statiques. PROBLEME : Forge 1.12.2 fait un `RegistryManager.injectSnapshot()` au chargement du monde (apres postInit, avant le world gen) qui REMAPE les IDs de biomes pour matcher les IDs sauvegardes dans level.dat OU pour reorganiser la registry. Resultat : les IDs bakes au postInit pointaient vers DES BIOMES TOTALEMENT DIFFERENTS au moment du world gen.
+
+Le fix v5 (lazy resolution avec `Biome[][]` puis re-resolve sur premier getInts) avait empire la situation (24 missing au lieu de 12) — probablement parce qu'il droppait les entries id=-1 ce qui creait des trous dans les pools. Revert immediat.
+
+### Solution v6 (definitive)
+1. **Supprimer les 4 appels `init*()` depuis `CommonProxy.postInit()`** — laisser uniquement les guards lazy `if (!ready) init()` au top de chaque `getInts()`.
+2. Le premier `getInts()` de chaque layer s'execute pendant le world gen, donc APRES `injectSnapshot`, donc avec des IDs stables.
+3. Garder `dumpPoolDiagnostic()` permanent pour detection future de drifts similaires.
+
+**Fichiers modifies** : `CommonProxy.java` (suppression des 4 calls postInit), `EriniumGenLayerBiome.java` (diagnostic permanent).
+
+### Lecons
+- En Forge 1.12.2, NE JAMAIS bake `Biome.getIdForBiome()` dans une structure statique au postInit. Les IDs ne sont stables qu'apres `injectSnapshot` (= apres world load).
+- Pattern correct : caches d'IDs en lazy init via `if (!ready) init()` au top de `getInts()`, JAMAIS appele en avance.
+- Pour debugger un drift d'ID : comparer `id stocke` vs `Biome.getBiomeForId(id)` au moment du scan. Si mismatch -> drift confirme.
+
+---
+
 ## 2026-05-15 v5 — WorldGen : 12 biomes jamais emis par la couche pool (IDs -1 baked dans les pools)
 
 **Systeme** : `EriniumGenLayerBiome.initPools()` — construction des pools `int[][] {biomeId, weight, humidityFlag}`.
