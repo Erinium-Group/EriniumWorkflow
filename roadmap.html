@@ -4806,6 +4806,90 @@
       </div>
     </div>
 
+    <!-- ─── WORK PANEL STAFF ─── -->
+    <div class="cat-card cat-card-wip wide">
+      <div class="card-head">
+        <div class="card-title">Work Panel Staff</div>
+        <div class="badge badge-wip">En cours</div>
+        <span class="card-toggle-icon">&#9660;</span>
+      </div>
+      <div class="card-progress-row">
+        <span class="card-progress-label">Progression</span>
+        <span class="card-progress-count">1 / 15 taches</span>
+      </div>
+      <div class="card-track">
+        <div class="card-fill" style="width: 6.67%;"></div>
+      </div>
+      <div class="card-body">
+      <div class="task-list">
+        <div class="task-item">
+          <div class="task-check checked"></div>
+          <span class="task-name">Schema Neon Postgres (33 nouvelles tables : staff_roles, role_permissions, user_roles, boards, board_members, lists, cards, card_members, card_labels, card_attachments, card_comments, card_todos, card_polls, card_time_logs, events, event_attendees, event_categories, absences, holidays, tickets, ticket_messages, kb_articles, kb_categories, onboarding_checklists, onboarding_steps, announcements, announcement_reads, audit_log, notifications, webhooks, webhook_logs, card_templates, saved_filters) integrees dans initDb() + ALTER idempotentes sur users (perms_version, google_calendar_tokens chiffres AES-256-GCM, work_panel_settings JSONB) + pg_trgm + 5 tsvector GIN (cards/events/articles/tickets/announcements) + crons Vercel declares + deps installees + env Vercel provisionnees + stubs cron routes 401-gated + stub permissions.ts</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Systeme RBAC multi-roles cumulables (union ensembliste) + matrice 48 permissions CRUD granulaires (12 features x 4 actions) + cache permissions in-memory invalide par users.perms_version bump + helpers serveur resolvePermissions/has/requireStaff + seed 7 roles (owner, admin, moderator, builder, event_team, support, default_staff)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Workspaces creables a la demande + boards Kanban + colonnes drag-drop + cartes avec DnD (@dnd-kit/core + sortable) + permissions par board + archivage + favoris</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Modules attachables aux cartes : description WYSIWYG TipTap (sanitize DOMPurify), todolist progression, commentaires threades, attachments liens, labels colores, due date + rappels, priorite (Low/Med/High/Critical), sub-tasks, sondages, time tracking, mentions @user, reactions emoji (emoji-mart)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Calendrier FullCalendar 6 (vues mois/semaine/jour/agenda) + categories colorees + evenements + absences + jours feries + vue disponibilites collective + recurrences RRULE iCal (rrule.js, RFC 5545)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Sync Google Calendar OAuth par staff (googleapis, scope calendar.events + readonly, tokens chiffres AES-256-GCM avec GOOGLE_ENC_KEY env Vercel, refresh auto, sync bi-directionnel via Vercel Cron Job 15min declenchant /api/work/v1/cron/google-sync-pull, mapping event_id ↔ google_event_id)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Dashboard staff personnel (widgets : mes taches du jour, prochains evenements, annonces non lues, tickets en attente, stats activite 7j, raccourcis perso)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Vue Mes Taches focus mode (cross-board, swimlanes Aujourd'hui / Cette semaine / En retard, filtres avances par label/priorite/board, tri par due date)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Annonces internes epinglees (CRUD restreint, lu par X staff avec ack, niveaux info/warn/critical, expiration auto)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Tickets / Reports joueurs (lifecycle ouvert/in-progress/resolu/ferme, assignation staff, lien MC UUID, integration sanctions API, messages threades, SLA reponse)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Knowledge Base interne (articles markdown TipTap, categories, recherche Postgres tsvector, versioning, permissions lecture/edition, table des matieres auto)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Onboarding nouveau staff (checklist auto generee par role, etapes seedees, progression visible par Lead, tutoriels interactifs)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Audit log (toutes actions sensibles tracees) + Notifications in-app cloche temps reel + parsing mentions TipTap @user/@role + email opt-in via Resend</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Recherche globale (FlexSearch index client + Postgres tsvector + index GIN sur cards/events/articles/tickets/announcements, fuzzy via pg_trgm) + Command Palette Ctrl+K (cmdk : actions, navigation, recherche unifiee)</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-name">Webhook Discord (events configurables : carte creee, ticket urgent, annonce critique) + Templates de carte (board-level + perso) + Filtres sauvegardes partages + Integration API MC port 8081 (PlayerCard, PlayerLookupInput, CommandExecutor) + UX Liquid Glass coherente</span>
+        </div>
+      </div>
+      <a href="specs/work-panel.html" class="spec-link">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6z"/><path d="M8 13h8v2H8zm0 4h5v2H8z"/></svg>
+        Voir le cahier des charges complet
+      </a>
+      </div>
+    </div>
+
     <!-- ─── LAUNCHER ELECTRONJS ─── -->
     <div class="cat-card cat-card-done wide">
       <div class="card-head">
@@ -5174,6 +5258,7 @@
     { match: 'HUD',                      tags: ['ui'] },
     { match: 'Evenements',               tags: ['evenements'] },
     { match: 'Site Web',                 tags: ['infra'] },
+    { match: 'Work Panel',               tags: ['infra', 'admin'] },
     { match: 'Launcher',                 tags: ['infra'] },
     { match: 'Telechargement',           tags: ['infra'] },
   ];
