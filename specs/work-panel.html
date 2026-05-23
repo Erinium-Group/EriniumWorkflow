@@ -1844,23 +1844,20 @@ FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR;COUNT=30</div>
         <li>Validation des bodies par <code>zod</code> systematique (existant deja dans le projet via TipTap usage).</li>
       </ul>
 
-      <h3>Cron jobs Vercel</h3>
-      <p>Definis dans <code>vercel.json</code> &gt; <code>crons</code>. Plan Vercel Pro requis pour intervalles &lt; 1h (sinon 1 cron / 24h max sur Hobby).</p>
-      <div class="code-block"><span class="cm">// vercel.json (extrait)</span>
+      <h3>Cron jobs (architecture Hobby plan)</h3>
+      <p>Vercel Hobby gratuit = <strong>2 crons max, granularite daily uniquement</strong>. Strategie : 1 cron Vercel quotidien qui s'auto-chaine pour le mensuel + 2 crons externalises pour les fines granularites (5min / 15min).</p>
+      <div class="code-block"><span class="cm">// vercel.json (configuration reelle Hobby)</span>
 {
   <span class="st">"crons"</span>: [
-    { <span class="st">"path"</span>: <span class="st">"/api/work/v1/cron/notifications-tick"</span>, <span class="st">"schedule"</span>: <span class="st">"*/5 * * * *"</span> },
-    { <span class="st">"path"</span>: <span class="st">"/api/work/v1/cron/google-sync-pull"</span>,  <span class="st">"schedule"</span>: <span class="st">"*/15 * * * *"</span> },
-    { <span class="st">"path"</span>: <span class="st">"/api/work/v1/cron/daily-compaction"</span>,  <span class="st">"schedule"</span>: <span class="st">"0 3 * * *"</span> },
-    { <span class="st">"path"</span>: <span class="st">"/api/work/v1/cron/monthly-purge"</span>,    <span class="st">"schedule"</span>: <span class="st">"0 4 1 * *"</span> }
+    { <span class="st">"path"</span>: <span class="st">"/api/work/v1/cron/daily-compaction"</span>, <span class="st">"schedule"</span>: <span class="st">"0 3 * * *"</span> }
   ]
 }</div>
       <ul>
-        <li><strong>Toutes les 5 min</strong> (<code>notifications-tick</code>) : rappels <code>due_soon</code> sur cartes, <code>event_reminder</code> 15min avant evenement.</li>
-        <li><strong>Toutes les 15 min</strong> (<code>google-sync-pull</code>) : pull Google Calendar pour chaque user lie (batch, max 30s execution serverless).</li>
-        <li><strong>Quotidien 3h UTC</strong> (<code>daily-compaction</code>) : compactage <code>sort_order</code> des colonnes / cartes, purge soft des cartes archivees &gt; 90 jours.</li>
-        <li><strong>Mensuel 1er a 4h</strong> (<code>monthly-purge</code>) : purge <code>audit_log</code> &gt; 1 an, expiration annonces.</li>
-        <li><strong>Securite cron :</strong> Vercel envoie un header <code>Authorization: Bearer ${'$'}{CRON_SECRET}</code> — chaque route cron verifie ce header et retourne 401 sinon.</li>
+        <li><strong>Vercel Cron — Quotidien 3h UTC</strong> (<code>daily-compaction</code>) : compactage <code>sort_order</code> des colonnes / cartes, purge soft des cartes archivees &gt; 90 jours. Si <code>new Date().getUTCDate() === 1</code>, chaine en interne vers <code>/api/work/v1/cron/monthly-purge</code> (fetch self avec le Bearer) pour la purge <code>audit_log</code> &gt; 1 an et expiration annonces — workaround a la limite "1 cron daily Hobby".</li>
+        <li><strong>Externe (cron-job.org ou equivalent) — Toutes les 5 min</strong> (<code>notifications-tick</code>) : rappels <code>due_soon</code> sur cartes, <code>event_reminder</code> 15min avant evenement. Configure dans le dashboard cron-job.org avec URL <code>https://&lt;domain&gt;/api/work/v1/cron/notifications-tick</code> + header <code>Authorization: Bearer ${'$'}{CRON_SECRET}</code>.</li>
+        <li><strong>Externe (cron-job.org ou equivalent) — Toutes les 15 min</strong> (<code>google-sync-pull</code>) : pull Google Calendar pour chaque user lie (batch, max 30s execution serverless). Meme principe que ci-dessus.</li>
+        <li><strong>Securite cron :</strong> Toutes les routes <code>/api/work/v1/cron/*</code> verifient <code>request.headers.get("authorization") === "Bearer " + process.env.CRON_SECRET</code> et retournent 401 sinon. Vercel envoie ce header automatiquement quand il declenche un cron declare dans <code>vercel.json</code> ; pour les sources externes, configurer manuellement.</li>
+        <li><strong>Migration Pro :</strong> si on upgrade un jour vers Vercel Pro (40 crons, granularite minute), il suffit d'ajouter les 3 entries manquantes (<code>notifications-tick</code> <code>*/5</code>, <code>google-sync-pull</code> <code>*/15</code>, <code>monthly-purge</code> <code>0 4 1 * *</code>) dans <code>vercel.json</code> et de retirer le chainage interne dans <code>daily-compaction</code>. Aucune autre modif requise.</li>
       </ul>
     </section>
 
@@ -1992,7 +1989,7 @@ FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR;COUNT=30</div>
         <li>Ajouter les colonnes <code>tsv tsvector GENERATED ...</code> + index GIN sur <code>cards</code>, <code>tickets</code>, <code>kb_articles</code>, <code>announcements</code>, <code>events</code> (utilisables Phase 10 mais on cree les colonnes maintenant pour ne pas avoir a re-toucher le schema plus tard)</li>
         <li>Activer extension Postgres <code>pg_trgm</code> via <code>CREATE EXTENSION IF NOT EXISTS pg_trgm</code> dans <code>initDb()</code></li>
         <li>Provisionner les variables d'env Vercel : <code>GOOGLE_CLIENT_ID</code>, <code>GOOGLE_CLIENT_SECRET</code>, <code>GOOGLE_ENC_KEY</code> (32 bytes hex), <code>CRON_SECRET</code>, <code>RESEND_API_KEY</code>, <code>DISCORD_WEBHOOK_URL_DEFAULT</code>. Note : pour l'API MC on reutilise <code>JWT_SECRET</code> deja en place (pas de variable dediee).</li>
-        <li>Creer <code>vercel.json</code> avec les 4 crons declares (executes mais routes vides V0 — retourne 200 ok)</li>
+        <li>Creer <code>vercel.json</code> avec <strong>1 seul cron</strong> declare (<code>daily-compaction</code> a 03h UTC) — contrainte Hobby plan. Les 4 routes <code>/api/work/v1/cron/*</code> existent en stub 401-gated. <code>daily-compaction</code> chaine vers <code>monthly-purge</code> via fetch interne quand le jour du mois est 1. <code>notifications-tick</code> et <code>google-sync-pull</code> seront declenches par un service externe (cron-job.org : URL + Bearer header) — voir section 24.</li>
         <li>Creer la structure de dossiers : <code>src/app/(admin)/admin/work/</code>, <code>src/app/api/work/v1/</code>, <code>src/lib/work/</code>, <code>src/components/work/</code>, <code>src/hooks/work/</code>, <code>src/types/work.ts</code></li>
         <li>Stub <code>src/lib/work/permissions.ts</code> avec signatures vides (retourne <code>new Set(["*"])</code> temporairement pour debloquer le dev — sera implemente Phase 1)</li>
       </ul>
