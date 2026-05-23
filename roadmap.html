@@ -4815,10 +4815,10 @@
       </div>
       <div class="card-progress-row">
         <span class="card-progress-label">Progression</span>
-        <span class="card-progress-count">1 / 15 taches</span>
+        <span class="card-progress-count">2 / 15 taches</span>
       </div>
       <div class="card-track">
-        <div class="card-fill" style="width: 6.67%;"></div>
+        <div class="card-fill" style="width: 13.33%;"></div>
       </div>
       <div class="card-body">
       <div class="task-list">
@@ -4827,8 +4827,8 @@
           <span class="task-name">Schema Neon Postgres (33 nouvelles tables : staff_roles, role_permissions, user_roles, boards, board_members, lists, cards, card_members, card_labels, card_attachments, card_comments, card_todos, card_polls, card_time_logs, events, event_attendees, event_categories, absences, holidays, tickets, ticket_messages, kb_articles, kb_categories, onboarding_checklists, onboarding_steps, announcements, announcement_reads, audit_log, notifications, webhooks, webhook_logs, card_templates, saved_filters) integrees dans initDb() + ALTER idempotentes sur users (perms_version, google_calendar_tokens chiffres AES-256-GCM, work_panel_settings JSONB) + pg_trgm + 5 tsvector GIN (cards/events/articles/tickets/announcements) + crons Vercel declares + deps installees + env Vercel provisionnees + stubs cron routes 401-gated + stub permissions.ts</span>
         </div>
         <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-name">Systeme RBAC multi-roles cumulables (union ensembliste) + matrice 48 permissions CRUD granulaires (12 features x 4 actions) + cache permissions in-memory invalide par users.perms_version bump + helpers serveur resolvePermissions/has/requireStaff + seed 7 roles (owner, admin, moderator, builder, event_team, support, default_staff)</span>
+          <div class="task-check checked"></div>
+          <span class="task-name">Systeme RBAC multi-roles cumulables (union ensembliste) + matrice 48 permissions CRUD granulaires (12 features x 4 actions) + cache permissions in-memory invalide par users.perms_version bump + helpers serveur resolvePermissions/has/requireStaff + seed 7 roles (owner, admin, moderator, builder, event_team, support, default_staff) + backfill staff legacy + owner Discord ID short-circuit + audit_log + routes /api/work/v1/{me,roles,staff,users} + pages admin /admin/work/{roles,staff}</span>
         </div>
         <div class="task-item">
           <div class="task-check"></div>
