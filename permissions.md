@@ -520,6 +520,171 @@ Les commandes vanilla de Minecraft sont normalement reservees aux joueurs OP. Gr
 
 ---
 
+## Work Panel (Web Staff) — Permissions backend
+
+> **Scope** : ces permissions controlent l'acces au panel staff web (Next.js + Neon Postgres) accessible depuis `/admin/work/*`.
+> **Distinct du jeu** : aucune de ces permissions n'est verifiee in-game. Elles sont attribuees via le panel `/admin/work/roles` (table Postgres `staff_role_permissions`).
+> **Reference code** : `EriniumFactionWeb/src/lib/work/permissions.ts` (resolution + cache `perms_version`), `EriniumFactionWeb/src/lib/db/index.ts` (seed des 7 roles systeme).
+
+### Syntaxe wildcard (identique aux grades in-game)
+
+| Syntaxe | Effet |
+|---------|-------|
+| `feature.action` | Permission exacte (ex: `cards.update`) |
+| `feature.*` | Toutes les actions de la feature (ex: `cards.*` = create + read + update + delete) |
+| `*` | Bypass total (reserve a l'**Owner** Discord `909862540945793094`) |
+
+L'Owner court-circuite la resolution DB et obtient toujours `*` sans entree en base.
+
+### Catalogue (Phase 1-4 livrees + 5-7 reservees)
+
+#### `workspaces.*` — espaces de travail (Phase 3)
+
+| Permission | Description |
+|------------|-------------|
+| `workspaces.create` | Creer un nouveau workspace (regroupement de boards) |
+| `workspaces.read` | Voir la liste des workspaces visibles (filtre par visibility + roles) |
+| `workspaces.update` | Renommer / changer la couleur / visibility d'un workspace |
+| `workspaces.delete` | Archiver puis purger definitivement un workspace |
+
+#### `boards.*` — tableaux Kanban (Phase 3)
+
+| Permission | Description |
+|------------|-------------|
+| `boards.create` | Creer un board dans un workspace visible |
+| `boards.read` | Voir la liste des boards d'un workspace |
+| `boards.update` | Renommer / changer la couleur / reorder un board |
+| `boards.delete` | Archiver puis purger un board (purge les colonnes + cartes en cascade) |
+
+#### `cards.*` — cartes Kanban (Phase 3-4)
+
+| Permission | Description |
+|------------|-------------|
+| `cards.create` | Creer une carte dans une colonne |
+| `cards.read` | Lire les cartes (vue Kanban + detail) |
+| `cards.update` | Editer title, description, priority, due_at, completed_at, labels, assignees, checklists, polls, time-entries, attachments, deplacer dans une autre colonne |
+| `cards.delete` | Archiver une carte (soft delete via `archived = true`) puis purge definitive |
+
+#### `comments.*` — commentaires sur cartes (Phase 4 batch 3)
+
+| Permission | Description |
+|------------|-------------|
+| `comments.create` | Poster un commentaire sur une carte (avec mentions) |
+| `comments.read` | Lire les commentaires d'une carte |
+| `comments.update` | Editer son propre commentaire (les Mods peuvent editer tous) |
+| `comments.delete` | Supprimer un commentaire |
+
+#### `events.*` — calendrier interne (Phase 5, **a venir**)
+
+| Permission | Description |
+|------------|-------------|
+| `events.create` | Creer un evenement staff / release / incident / event MC recurrent |
+| `events.read` | Voir le calendrier `/admin/work/calendar` |
+| `events.update` | Modifier un evenement existant |
+| `events.delete` | Supprimer un evenement |
+
+#### `tickets.*` — tickets joueurs (Phase 7, **a venir**)
+
+| Permission | Description |
+|------------|-------------|
+| `tickets.create` | Creer un ticket manuel (cote staff) |
+| `tickets.read` | Voir la file des tickets |
+| `tickets.update` | Assigner / changer statut / repondre |
+| `tickets.delete` | Supprimer un ticket (apres resolution) |
+
+#### `announcements.*` — annonces internes (Phase 6, **a venir**)
+
+| Permission | Description |
+|------------|-------------|
+| `announcements.create` | Publier une annonce staff (epinglee / par audience) |
+| `announcements.read` | Lire les annonces |
+| `announcements.update` | Modifier une annonce |
+| `announcements.delete` | Supprimer une annonce |
+
+#### `kb_articles.*` — Knowledge Base interne (Phase 6, **a venir**)
+
+| Permission | Description |
+|------------|-------------|
+| `kb_articles.create` | Creer un article (procedure, runbook, FAQ) |
+| `kb_articles.read` | Consulter la KB |
+| `kb_articles.update` | Editer un article (avec versions) |
+| `kb_articles.delete` | Supprimer un article |
+
+#### `roles.*` — gestion des roles staff (Phase 2)
+
+| Permission | Description |
+|------------|-------------|
+| `roles.create` | Creer un role custom (nom, couleur, icone, priorite) |
+| `roles.read` | Voir la matrice roles x permissions |
+| `roles.update` | Editer un role, attribuer/retirer des permissions |
+| `roles.delete` | **Reserve a l'Owner** — supprimer un role (impossible pour les Admins) |
+
+#### `staff.*` — gestion des membres staff (Phase 2)
+
+| Permission | Description |
+|------------|-------------|
+| `staff.create` | Ajouter un membre staff (par recherche Discord ID) |
+| `staff.read` | Voir la liste des staff (avec leurs roles) |
+| `staff.update` | Assigner / retirer des roles a un staff |
+| `staff.delete` | Retirer le statut staff d'un user |
+
+#### `webhooks.*` — configuration webhooks Discord (Phase 4 batch 4)
+
+| Permission | Description |
+|------------|-------------|
+| `webhooks.create` | Configurer un webhook Discord par workspace (channel + events) |
+| `webhooks.read` | Voir la config webhook d'un workspace |
+| `webhooks.update` | Modifier l'URL / les events ecoutes |
+| `webhooks.delete` | Supprimer le webhook |
+
+#### `audit_log.read` — consultation du journal d'audit (Phase 2)
+
+| Permission | Description |
+|------------|-------------|
+| `audit_log.read` | Consulter le journal complet (actor, action, diff before/after, IP, user-agent) |
+
+> **Note** : `audit_log.delete` n'existe pas. Le journal est immuable. Seul l'Owner peut purger via `*`.
+
+#### `mc.*` — actions cote serveur Minecraft (reservees, **a venir**)
+
+| Permission | Description |
+|------------|-------------|
+| `mc.player.view` | Consulter les infos in-game d'un joueur (faction, balance, niveau, etc.) |
+| `mc.player.kick` | Kick un joueur du serveur depuis le panel |
+| `mc.player.mute` | Mute un joueur depuis le panel |
+| `mc.command.exec` | Executer une commande arbitraire sur le serveur MC depuis le panel |
+
+### Roles systeme (seed automatique)
+
+7 roles sont crees automatiquement au premier boot via `initDb()`. Ils peuvent etre edites par un Admin (sauf le role `owner` qui est immuable).
+
+| Slug | Nom affiche | Couleur | Priorite | Wildcards / perms cles |
+|------|-------------|---------|----------|------------------------|
+| `owner` | Owner | `#FFD700` | 1 | `*` — bypass total |
+| `admin` | Administrateur | `#9B4FCF` | 10 | Toutes les perms **sauf** `roles.delete` (reserve Owner) |
+| `moderator` | Moderateur | `#3498DB` | 20 | `cards.*`, `comments.*`, `tickets.*`, lectures (boards/workspaces/events/announcements/kb), `audit_log.read`, `staff.read`, `mc.player.view/kick/mute` |
+| `builder` | Builder | `#2ECC71` | 30 | Read workspaces/boards/events/kb + CRUD `cards.*` + CRUD `comments.*` |
+| `event_team` | Event Team | `#E67E22` | 40 | Read workspaces/boards/kb + CRUD `cards.*` + CRUD `events.*` + `announcements.create/update` + `mc.command.exec` |
+| `support` | Support | `#00E5FF` | 50 | CRUD `tickets.*` + `cards.read` + `kb_articles.read` + `mc.player.view` + `announcements.read` |
+| `default_staff` | Staff (defaut) | `#8892A4` | 100 | Lectures seulement (workspaces/boards/cards/comments/events/announcements/kb) + `comments.create` |
+
+> **Migration legacy** : tous les utilisateurs ayant un grade in-game `staff`/`mod`/`admin` au premier boot recoivent automatiquement le role `default_staff` (cf. `EriniumFactionWeb/src/lib/auth/ensure-owner-role.ts`).
+
+### Verrous d'invariance
+
+Certaines operations sont **interdites** meme aux Admins, pour eviter qu'un compromis d'Admin ne puisse couper la chaine de securite :
+
+- L'Owner ne peut etre **degrade**, **supprime** ou voir son role `owner` retire.
+- Le role `owner` lui-meme est **non editable** (seul Owner peut modifier via API directe).
+- `roles.delete` n'est dans **aucun** preset, meme `admin`. Seul `*` (Owner) le possede.
+- Les boards/workspaces archives par un staff peuvent etre restaures par tout user avec la perm `*.update` correspondante, mais pas par un user sans cette perm meme s'il est l'auteur de l'archive.
+
+### Cache et invalidation
+
+La resolution des permissions est cachee en RAM par instance serverless avec une cle `(user_id, perms_version)`. Toute modification de roles/permissions doit appeler `invalidateUserPerms(userId)` qui bump `users.perms_version` — la prochaine resolution force un refresh DB.
+
+---
+
 ## Fichiers de stockage
 
 | Fichier | Contenu |
@@ -527,6 +692,7 @@ Les commandes vanilla de Minecraft sont normalement reservees aux joueurs OP. Gr
 | `config/EriniumFaction/ranks/*.json` | Definition des grades (permissions, prefix, suffix, heritage) |
 | `config/EriniumFaction/player-ranks.json` | Assignation UUID → grade |
 | `config/EriniumFaction/player-permissions.json` | Permissions custom par joueur (UUID → liste) |
+| **Postgres** `staff_roles`, `staff_role_permissions`, `staff_user_roles` | Roles + permissions du Work Panel web (Neon) |
 
 ---
 
