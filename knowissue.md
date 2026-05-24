@@ -5,6 +5,92 @@
 
 ---
 
+## 2026-05-24 — Web : Auth + chargement DB 2 minutes au premier acces (cold-start serverless)
+
+**Systeme** : `EriniumFactionWeb/src/lib/db/index.ts` (`initDb`) + `src/lib/providers.tsx` (react-query) + pages Work Panel.
+
+### Probleme
+A l'ouverture du Work Panel apres une periode d'inactivite (cold-start Vercel), l'authentification met **jusqu'a 2 minutes** a se faire. Une fois connecte, naviguer entre les pages (retour arriere, ouverture/fermeture de carte, etc.) est lent : chaque mount declenche un refetch des donnees, meme si elles sont encore fraiches en cache.
+
+### Cause racine
+
+**Cause #1 — `initDb()` blocant et non-singleton.**
+La fonction `initDb()` execute **~86 requetes DDL sequentielles** (CREATE TABLE IF NOT EXISTS, ALTER TABLE ADD COLUMN, INSERT seeds…) a chaque cold-start. Sur Neon serverless avec round-trip ~50-200ms par query, cela donne **4 a 17 secondes** rien que pour init.
+
+Pire : le flag `_initialized` etait un **boolean**, pas une Promise. Quand plusieurs requetes arrivent en parallele au cold-start (auth `/api/auth/me`, page `/api/work/v1/...`, etc.), chacune voit `_initialized = false` et **declenche sa propre initDb()** en parallele. 5 requetes simultanees = 5 x 86 DDL = 430 round-trips concurrents, certains finissant en `42P07` (relation exists) et retry.
+
+**Cause #2 — `/api/auth/me` faisait 3 queries sequentielles.**
+`findUserById` -> `isStaff` -> `getStaffRole` : chaque appel ajoutait un round-trip alors que les 3 sont independants logiquement.
+
+**Cause #3 — react-query refetchait sur chaque mount.**
+Par defaut `refetchOnMount: true`. Sur le retour arriere d'une page deja visitee, react-query refetche tout, malgre des donnees encore valides. Aucun `staleTime`/`gcTime` configures = comportement par defaut "tout est stale immediatement".
+
+**Cause #4 — Double fetch imperatif des workspaces dans la page board.**
+La page `boards/[boardId]/page.tsx` avait un `useEffect` qui faisait DEUX `fetch()` sequentiels (workspaces actifs + archives) en bypassant react-query, donc pas de cache cross-page, refetch a chaque navigation.
+
+### Solution
+
+**Fix #1 — Promise singleton + skip env var dans `src/lib/db/index.ts`.**
+```typescript
+const SKIP_INIT = process.env.DB_SKIP_INIT === "1";
+let _initPromise: Promise<void> | null = null;
+
+export async function initDb(): Promise<void> {
+  if (SKIP_INIT) return;
+  if (_initPromise) return _initPromise;
+  _initPromise = _initDbInternal().catch((err) => {
+    _initPromise = null;
+    throw err;
+  });
+  return _initPromise;
+}
+```
+- Les requetes concurrentes au cold-start attendent **la meme promesse** -> init se fait **1 fois**.
+- En prod, apres le 1er deploy reussi, on peut definir `DB_SKIP_INIT=1` dans Vercel pour skipper completement initDb (les tables existent deja). Cela elimine **100%** du cout d'init au cold-start.
+
+**Fix #2 — `Promise.all` dans `src/app/api/auth/me/route.ts`.**
+```typescript
+const [user, staff, staffRole] = await Promise.all([
+  findUserById(session.userId),
+  isStaff(session.userId),
+  getStaffRole(session.userId),
+]);
+```
+3 round-trips -> 1 round-trip parallele (le plus lent gagne).
+
+**Fix #3 — Config react-query navigation-friendly dans `src/lib/providers.tsx`.**
+```typescript
+defaultOptions: {
+  queries: {
+    staleTime: 30 * 1000,        // donnees valides 30s
+    gcTime: 5 * 60 * 1000,       // cache memoire 5min apres unmount
+    refetchOnMount: false,       // pas de refetch sur remount/back-nav
+    refetchOnWindowFocus: false, // deja le cas
+    retry: 1,                    // au lieu de 3 (evite 90s d'attente)
+  },
+  mutations: { retry: 0 },
+},
+```
+Les mutations invalident explicitement, on n'a pas besoin de re-fetch a chaque mount.
+
+**Fix #4 — Hook react-query partage dans la page board.**
+Remplacement du `useEffect` + double `fetch` par `useWorkspaces(false)` + `useWorkspaces(true)` (hooks deja existants, caches via react-query). Quand l'utilisateur revient sur le board apres avoir vu la page workspaces, le cache est instantane.
+
+### Mesures attendues
+- Cold-start init : 4-17s -> **0s avec `DB_SKIP_INIT=1`**, ou stable et non-redondant sans.
+- Auth `/api/auth/me` : 3 round-trips -> 1 round-trip parallele.
+- Retour arriere sur une page deja visitee : refetch -> **0 query** (cache hit react-query).
+- Workspaces lookup dans la page board : 2 fetch redondants -> 0 fetch (cache hit).
+
+### Lecons
+- **`initDb()` doit etre une Promise singleton sur serverless**. Un boolean ne protege pas du cold-start parallele.
+- **Toujours `Promise.all` les helpers DB independants** dans une route handler. Un round-trip Neon = ~50-200ms, gagner un round-trip est tres rentable.
+- **react-query defaults sont agressifs pour le refetch**. Sur une app avec navigation interne frequente, configurer `refetchOnMount: false` + `gcTime: 5min` est presque toujours souhaitable.
+- **Ne JAMAIS faire de `useEffect` + `fetch` pour des donnees deja exposees par un hook react-query**. Cela bypass le cache et force des refetch a chaque mount.
+- **Prevoir une option de skip d'init en prod**. Une fois les tables creees, executer 86 DDL "IF NOT EXISTS" est du gaspillage. Un flag env permet de couper net.
+
+---
+
 ## 2026-05-24 — Web : Neon DB "operator is not unique: - unknown" sur createBoard/createBoardColumn/createCard (Phase 3)
 
 **Systeme** : `EriniumFactionWeb/src/lib/db/index.ts` — helpers Phase 3 qui calculent un `sort_order` auto-increment.
