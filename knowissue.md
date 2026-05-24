@@ -5,6 +5,94 @@
 
 ---
 
+## 2026-05-24 — Web : Neon DB "operator is not unique: - unknown" sur createBoard/createBoardColumn/createCard (Phase 3)
+
+**Systeme** : `EriniumFactionWeb/src/lib/db/index.ts` — helpers Phase 3 qui calculent un `sort_order` auto-increment.
+
+### Probleme
+`POST /api/work/v1/workspaces/[id]/boards` (et helpers analogues colonnes/cartes) renvoyait **500** avec :
+```
+NeonDbError: operator is not unique: - unknown
+  code: '42725'
+  hint: 'Could not choose a best candidate operator. You might need to add explicit type casts.'
+  position: '34'
+  routine: 'op_error'
+```
+Toute la Phase 3 (boards, colonnes, cartes) etait inutilisable en prod.
+
+### Cause racine
+Les 3 helpers utilisaient le pattern SQL :
+```sql
+SELECT COALESCE(MAX(sort_order), -$1) + $1 AS next FROM ...
+```
+ou `$1` etait `BOARD_SORT_STEP = 1024` (TS number). Le `-$1` (operateur unaire `-` applique sur un parametre `unknown`) est ambigu cote Postgres : il existe un `-` pour `int`, un pour `bigint`, un pour `numeric`, un pour `float`. Comme le driver `@neondatabase/serverless` ne type pas les parametres explicitement (mode extended query), le planner ne pouvait pas choisir et levait `42725`.
+
+Le bug existait depuis la Phase 3.2 (createBoard, createBoardColumn) et Phase 3.3 (createCard), mais n'avait jamais ete teste en runtime sur Neon (driver moins permissif que `pg`).
+
+### Solution
+Reecriture du pattern sans literal/parametre negatif, avec cast explicite ceinture+bretelles :
+```sql
+SELECT COALESCE(MAX(sort_order) + $1::int, 0) AS next FROM ...
+```
+Semantique strictement preservee :
+- Table vide (MAX=NULL) : `COALESCE(NULL + 1024, 0) = COALESCE(NULL, 0) = 0`
+- Une entree (MAX=0)    : `COALESCE(0 + 1024, 0) = 1024`
+- N entrees (MAX=X)     : `COALESCE(X + 1024, 0) = X + 1024`
+
+Applique aux 3 occurrences (lignes 2601, 2760, 3020 de `src/lib/db/index.ts`).
+
+`midSortOrder()` (Phase 3.4 — move) n'est PAS concerne : il calcule cote JS et passe une valeur numerique typee comme parametre normal, sans expression arithmetique cote SQL.
+
+### Lecons
+- **JAMAIS d'unaire `-` sur un parametre `$N`** dans une requete Neon — Postgres ne peut pas inferer le type. Si besoin d'une valeur negative, soit calculer cote JS et passer la valeur deja negative, soit utiliser `(-$N::int)` avec cast explicite.
+- **Pattern d'auto-increment positionnel safe** : `COALESCE(MAX(col) + $1::int, 0)` plutot que `COALESCE(MAX(col), -$1) + $1`. Plus court, plus lisible, sans piege de typage.
+- **Tester les helpers DB avec Neon avant prod** : les drivers `pg` (local) et `@neondatabase/serverless` (prod) ont des comportements differents sur les literals typeless. Ce qui marche en dev local peut casser en prod.
+- **Reflexe diagnostic erreur `42725`** : chercher tout operateur (`-`, `+`, `*`, etc.) applique directement sur un parametre `$N` sans cast.
+
+---
+
+## 2026-05-16 v7 — WorldGen : 2 biomes rares (GLACIER, FROZEN_RIVER_DELTA) effaces par GenLayerSmooth vanilla
+
+**Systeme** : `EriniumGenLayer` (chain) + `EriniumGenLayerProtectedSmooth` (nouveau) + `EriniumGenLayerShore`.
+
+### Probleme
+Apres les fix v3-v6, 51/53 biomes apparaissaient au scan. **2 biomes restaient INVISIBLES** :
+- `GLACIER` (id=55)
+- `FROZEN_RIVER_DELTA` (id=83)
+
+Diagnostic ajoute `logStage` au pre-zoom : GLACIER=2616 cells / FROZEN=3271 cells **existent reellement** dans le chain au stade pre-zoom. Mais final scan radius=20000 sur 100M echantillons : `glacier=0 frozen=0`. Quelque chose les effaçait entre le pre-zoom et le final scan, alors que les 51 autres biomes survivaient.
+
+Boost des weights ANY (glacier 5->14, frozen 4->12) tente plus tot : **AUCUN effet**. Le probleme n'etait pas la generation, c'etait la destruction en aval.
+
+### Cause racine
+**`net.minecraft.world.gen.layer.GenLayerSmooth` vanilla applique deux passes dans notre chain** (post-zoom-batch-2 ligne 82, post-river-mix ligne 93). Sa regle deterministe :
+```
+si (west == east) center = west;
+si (north == south) center = north;
+si (west == east ET north == south) center = (random ? west : north);
+```
+
+Resultat : un singleton isole entoure d'un biome dominant est **systematiquement** remplace. GLACIER (baseHeight=0.6 < TALL_THRESHOLD=0.7) et FROZEN_RIVER_DELTA (baseHeight=0.0) ne recevaient AUCUN halo HILLS de `EriniumGenLayerHeightSmooth` (qui ne s'active que pour baseHeight>=0.7) — contrairement a VOLCANO/ENHANCED_MESA (height=1.8) qui se reservent un halo protecteur. Sans halo, glacier et frozen apparaissaient comme singletons, et les deux passes de Smooth les eliminaient cell par cell.
+
+SNOW_TUNDRA survivait artificiellement parce que `EriniumGenLayerShore.selectShoreBiome` le **creait** depuis cold_taiga (temp=-0.5 < 0.15 -> branche ICY). Glacier/frozen n'avaient aucune source equivalente.
+
+### Solution v7
+1. **`EriniumGenLayerProtectedSmooth.java` (nouveau)** — drop-in replacement de `GenLayerSmooth` qui maintient une whitelist de 33 biomes rares (tries en `int[]`, lookup en O(log n) via `Arrays.binarySearch`). Si le cell central est protege, il passe inchange. Sinon, logique Smooth vanilla verbatim. Lazy init des IDs via `if (!idsReady) initIds()` au top de `getInts()` (pattern v6).
+2. **`EriniumGenLayer.java`** — les deux `new GenLayerSmooth(1000L, biomeLayer)` du chain biome remplaces par `new EriniumGenLayerProtectedSmooth(1000L, biomeLayer)`. Le Smooth du chain river reste vanilla (les rivieres n'ont pas besoin de protection).
+3. **`EriniumGenLayerShore.selectShoreBiome`** — branche ICY (temp<0.15) repartit maintenant 60% SNOW_TUNDRA / 20% GLACIER / 20% FROZEN_RIVER_DELTA via `initChunkSeed(cellX, cellZ); nextInt(10)`. Signature changee de `(int biomeId)` a `(int biomeId, int cellX, int cellZ)` pour avoir une variete par cellule. Donne une source garantie de glacier/frozen sur les cotes ICY independamment de la distribution native.
+4. **`CommandDebugLocateBiome.scanByStage`** — offsets etendus de `{-28000, -12000, 4000, 20000}` (16 patches) a `{-28000, -12000, 0, 4000, 20000}` (25 patches). L'origine etait loupee par le grid precedent, donc le diagnostic faisait des faux-negatifs sur la zone que le joueur explorait.
+
+**Resultat** : `/debuglocatebiome (radius=20000)` apres rebuild : **53/53 biomes presents** sur 100M echantillons. Glacier et frozen apparaissent dans les nouveaux chunks explores, sans nouvelle map.
+
+### Lecons
+- **Vanilla `GenLayerSmooth` est destructeur sur les singletons** : si un biome rare ne peut pas former de cluster d'au moins 3 cellules en X ou Z, il sera erode par chaque passe Smooth. Reflexe : si un biome a un poids faible (<10) et un baseHeight qui n'active pas le halo HILLS de HeightSmooth, **prevoir une protection explicite**.
+- **`HeightSmooth.TALL_THRESHOLD = 0.7` est un cliff edge** : tous les biomes a baseHeight=0.6-0.69 sont vulnerables car ils ne sont ni TALL (pas de halo) ni FLAT (pas remplaces par HILLS). Cette zone grise doit etre dans la whitelist ProtectedSmooth.
+- **Shore peut etre une source ou un destructeur** : `selectShoreBiome` convertit massivement des cellules cotieres. Si un biome convoite n'apparait que dans des pools rares, ajouter une branche Shore qui le cree est plus efficace que booster son weight (qui sera de toute façon erode plus loin).
+- **Pour diagnostiquer une disparition** : ajouter un `logStage` au pre-zoom ET au final scan. Si pre-zoom > 0 et final = 0, le probleme est dans le chain en aval (Shore, Smooth, RiverMix, Voronoi). Ne pas tatonner sur les weights avant d'avoir compare les deux mesures.
+- **`scanByStage` doit toujours couvrir l'origine** : le grid d'offsets `{-28k, -12k, +4k, +20k}` loupait completement (0,0). Tout nouveau diagnostic spatial doit inclure (0,0) explicitement, sinon le joueur qui spawn-explore voit des faux-negatifs.
+
+---
+
 ## 2026-05-16 v6 — WorldGen : drift d'IDs Forge entre postInit et world load (12 biomes pointant vers les mauvais biomes)
 
 **Systeme** : `EriniumGenLayerBiome.initPools()` + `EriniumGenLayerShore.initIds()` + `EriniumGenLayerHeightSmooth.initCache()` + `EriniumGenLayerAltitudeTransition.initCache()`.
