@@ -610,6 +610,16 @@ L'Owner court-circuite la resolution DB et obtient toujours `*` sans entree en b
 | `kb_articles.update` | Editer un article (avec versions) |
 | `kb_articles.delete` | Supprimer un article |
 
+#### `work.roadmap.*` — Roadmap & specs (Phase 6 — Erisclave migration)
+
+| Permission | Description |
+|------------|-------------|
+| `work.roadmap.view` | Lire la roadmap (`/admin/work/roadmap`) et voir les specs (`/admin/work/specs/<slug>`). |
+| `work.roadmap.edit` | Toggle tasks done, editer status/tags, creer & editer specs, editer projects. (P2) |
+| `work.roadmap.delete` | Supprimer specs / projects / tasks. (P2) |
+
+> **Seed** : ces 3 perms sont attribuees aux roles `admin` et `lead` au boot via `_initDbInternal()`. Les autres roles staff (incluant `default_staff`, `moderator`, `builder`, `event_team`, `support`) n'ont pas acces a la roadmap par defaut — un Admin doit les attribuer manuellement via `/admin/work/roles`.
+
 #### `roles.*` — gestion des roles staff (Phase 2)
 
 | Permission | Description |
