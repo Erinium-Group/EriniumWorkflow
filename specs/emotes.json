@@ -1,0 +1,592 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-05-25T15:17:33.881Z",
+  "project": {
+    "title": "Interractions sociales",
+    "category": "social",
+    "status": "wip"
+  },
+  "feature": {
+    "title": "Emotes",
+    "type": "Autre",
+    "slugFinal": "emotes",
+    "status": "wip",
+    "values": {
+      "summary": "Un système un peu comme une roue qui permet l'utilisation d'emotes qui elles même peuvent être achetée avec des eris ou obtenue en accomplissant des exploits",
+      "problem": "Elle comble le manque d'interactions sociales",
+      "objective": "Interagir avec ses amis, narguer des ennemis (provocation) et permettre aux gens de dépenser leurs eris",
+      "links": "système d'eris et celui de quêtes si existant",
+      "audience": [
+        "Tous les joueurs"
+      ],
+      "feeling": "Satisfaction et amusement",
+      "scenario": "Un joueur arrive au spawn, il fait coucou à des gens puis enchaîne avec une emote collective. Juste après, il voit des ennemis attaquer sa base, il décide donc de les narguer car ils sont bien nul et après il va voir les membres de sa faction et font une session d'aura farming.",
+      "mechanic": "le joueur peut gagner ses emotes grâce aux quêtes et peut aussi en acheter sur le shop avec des eris. Il peut les sélectionner dans le menu d'edit du gui d'erinium. Il appuie sur une touche choisie au préalable et une roue apparaît; avec son curseur, il sélectionne une emote et en relachant, il la fait. Dans le menu des emotes, il peut choisir sa seconde roue, sa troisième roue etc...",
+      "actions": [
+        {
+          "action": "faire une emote",
+          "how": "en pressant une touche",
+          "condition": "avoir des emotes "
+        },
+        {
+          "action": "faire une emote de groupe",
+          "how": "en pressant la touche d'emote",
+          "condition": "avoir des emotes de groupe"
+        },
+        {
+          "action": "rejoindre une emote de groupe",
+          "how": "en pressant le touche d'emote à côté d'une emote de groupe",
+          "condition": "avoir des joueurs faisant une emote de groupe à côté"
+        }
+      ],
+      "automatic": "aucun ",
+      "visuals": "les emotes des joueurs et ses propres emotes",
+      "audio": "les emotes et des sons dans l'interface",
+      "menus": "une roue avec des emotes et une flèche pour passer à la prochaine emote",
+      "balancing": [
+        {
+          "param": "prix des emotes ",
+          "value": "150 eris",
+          "justification": "un prix asser bas pour pouvoir les vendre"
+        },
+        {
+          "param": "gain d'emotes",
+          "value": "des quêtes du style des énigmes ou des exploits ",
+          "justification": "une emote, ça se mérite"
+        }
+      ],
+      "playerEditable": "ses emotes dans la roue",
+      "playerNotEditable": "aucune tout n'est pas encore sûr",
+      "always": [
+        "être amusant",
+        "être intuitif"
+      ],
+      "never": [
+        "être lourd / inutile",
+        "être pay to win "
+      ],
+      "edgeCases": [
+        "si des joueurs arrivent à causer du lag grâce aux emotes"
+      ],
+      "obtention": "achat avec des eris ou gain en faisant des exploits et énigmes",
+      "outOfScope": [
+        ""
+      ],
+      "risks": [
+        {
+          "risk": "lag",
+          "impact": "tout le serveur",
+          "mitigation": "faire de nombreux tests"
+        }
+      ],
+      "openQuestions": [
+        "le prix des emotes",
+        "si les emotes produisent du son"
+      ],
+      "inspirations": [
+        "fortnite avec les emotes de groupe",
+        "essential et emote craft pour la roue",
+        "l'emote gang name style avec le son sur emote craft"
+      ],
+      "notes": "rien du tout"
+    },
+    "assets": [],
+    "questionnaire": {
+      "featureType": "autre",
+      "featureTypeLabel": "Autre",
+      "sections": [
+        {
+          "id": "s1",
+          "num": "01",
+          "color": "violet",
+          "title": "Resume en une phrase",
+          "hint": "Decris la feature en une seule phrase, comme si tu l'expliquais a quelqu'un qui n'a jamais entendu parler du jeu.",
+          "required": true,
+          "fields": [
+            {
+              "id": "summary",
+              "type": "text",
+              "label": "Resume",
+              "placeholder": "Ex : Les Tourelles permettent aux factions de defendre leur base automatiquement.",
+              "maxLength": 220,
+              "required": true
+            }
+          ],
+          "variantHint": null
+        },
+        {
+          "id": "s2",
+          "num": "02",
+          "color": "violet",
+          "title": "Contexte & Pourquoi cette feature",
+          "required": true,
+          "fields": [
+            {
+              "id": "problem",
+              "type": "longtext",
+              "label": "Probleme ou besoin identifie",
+              "placeholder": "Quel manque cette feature comble ?",
+              "required": true
+            },
+            {
+              "id": "objective",
+              "type": "longtext",
+              "label": "Objectif principal",
+              "placeholder": "Que pourra faire le joueur grace a ca ?",
+              "required": true
+            },
+            {
+              "id": "links",
+              "type": "longtext",
+              "label": "Lien avec d'autres features",
+              "placeholder": "Dependances avec d'autres systemes"
+            }
+          ],
+          "variantHint": null
+        },
+        {
+          "id": "s3",
+          "num": "03",
+          "color": "violet",
+          "title": "Experience joueur cible",
+          "fields": [
+            {
+              "id": "audience",
+              "type": "checklist",
+              "label": "Qui est le joueur concerne ?",
+              "multi": true,
+              "options": [
+                "Tous les joueurs",
+                "Joueurs en faction",
+                "Joueurs sans faction",
+                "Chefs / officiers de faction",
+                "Joueurs PvP agressifs",
+                "Joueurs defensifs / constructeurs",
+                "Joueurs PvE",
+                "Nouveaux joueurs",
+                "Joueurs endgame"
+              ]
+            },
+            {
+              "id": "feeling",
+              "type": "longtext",
+              "label": "Que doit RESSENTIR le joueur ?",
+              "placeholder": "Puissance, tension, satisfaction, surprise..."
+            },
+            {
+              "id": "scenario",
+              "type": "longtext",
+              "label": "Scenario de jeu typique",
+              "placeholder": "Raconte comment un joueur decouvre et utilise la feature, comme une petite histoire."
+            }
+          ],
+          "variantHint": null
+        },
+        {
+          "id": "s4",
+          "num": "04",
+          "color": "cyan",
+          "title": "Mecanique de jeu",
+          "required": true,
+          "fields": [
+            {
+              "id": "mechanic",
+              "type": "longtext",
+              "label": "Description detaillee",
+              "placeholder": "Comment la feature fonctionne, etape par etape.",
+              "required": true
+            },
+            {
+              "id": "actions",
+              "type": "table",
+              "label": "Actions disponibles pour le joueur",
+              "columns": [
+                {
+                  "id": "action",
+                  "label": "Action",
+                  "type": "text"
+                },
+                {
+                  "id": "how",
+                  "label": "Comment ?",
+                  "type": "text"
+                },
+                {
+                  "id": "condition",
+                  "label": "Condition requise",
+                  "type": "text"
+                }
+              ]
+            },
+            {
+              "id": "automatic",
+              "type": "longtext",
+              "label": "Comportements automatiques",
+              "placeholder": "Timers, effets passifs, cooldowns..."
+            }
+          ],
+          "variantHint": null
+        },
+        {
+          "id": "s5",
+          "num": "05",
+          "color": "cyan",
+          "title": "Interface & Retours visuels",
+          "fields": [
+            {
+              "id": "visuals",
+              "type": "longtext",
+              "label": "Ce que le joueur VOIT",
+              "placeholder": "Animations, particules, couleurs, textes..."
+            },
+            {
+              "id": "audio",
+              "type": "longtext",
+              "label": "Ce que le joueur ENTEND",
+              "placeholder": "Sons declencheurs : clic, explosion, notification..."
+            },
+            {
+              "id": "menus",
+              "type": "longtext",
+              "label": "Menus ou interfaces",
+              "placeholder": "Decris le contenu de chaque ecran."
+            }
+          ],
+          "variantHint": null
+        },
+        {
+          "id": "s6",
+          "num": "06",
+          "color": "cyan",
+          "title": "Equilibrage & Valeurs",
+          "fields": [
+            {
+              "id": "balancing",
+              "type": "table",
+              "label": "Parametres d'equilibrage",
+              "columns": [
+                {
+                  "id": "param",
+                  "label": "Parametre",
+                  "type": "text"
+                },
+                {
+                  "id": "value",
+                  "label": "Valeur proposee",
+                  "type": "text"
+                },
+                {
+                  "id": "justification",
+                  "label": "Justification",
+                  "type": "text"
+                }
+              ]
+            },
+            {
+              "id": "playerEditable",
+              "type": "longtext",
+              "label": "Modifiable par le joueur",
+              "placeholder": "Quels reglages le joueur peut-il changer ?"
+            },
+            {
+              "id": "playerNotEditable",
+              "type": "longtext",
+              "label": "Fixe pour des raisons d'equilibre",
+              "placeholder": "Quelles valeurs ne changent jamais ?"
+            }
+          ],
+          "variantHint": null
+        },
+        {
+          "id": "s7",
+          "num": "07",
+          "color": "green",
+          "title": "Conditions & Regles metier",
+          "fields": [
+            {
+              "id": "always",
+              "type": "list",
+              "label": "Doit toujours",
+              "placeholder": "Une regle par ligne",
+              "itemLabel": "Regle"
+            },
+            {
+              "id": "never",
+              "type": "list",
+              "label": "Ne doit jamais",
+              "placeholder": "Une regle par ligne",
+              "itemLabel": "Regle"
+            },
+            {
+              "id": "edgeCases",
+              "type": "list",
+              "label": "Cas particuliers a gerer",
+              "placeholder": "Que se passe-t-il si...",
+              "itemLabel": "Cas"
+            }
+          ],
+          "variantHint": null
+        },
+        {
+          "id": "s8",
+          "num": "08",
+          "color": "green",
+          "title": "Ressources & Progression",
+          "fields": [
+            {
+              "id": "obtention",
+              "type": "longtext",
+              "label": "Comment le joueur obtient cette feature",
+              "placeholder": "Craft ? Achat ? Quete ? Tier ?"
+            },
+            {
+              "id": "cost",
+              "type": "table",
+              "label": "Cout ou prerequis",
+              "columns": [
+                {
+                  "id": "element",
+                  "label": "Element",
+                  "type": "text"
+                },
+                {
+                  "id": "amount",
+                  "label": "Quantite",
+                  "type": "text"
+                },
+                {
+                  "id": "obtained",
+                  "label": "Obtenu comment",
+                  "type": "text"
+                }
+              ]
+            },
+            {
+              "id": "progression",
+              "type": "longtext",
+              "label": "Progression possible",
+              "placeholder": "Niveaux, ameliorations, variantes..."
+            }
+          ],
+          "variantHint": null
+        },
+        {
+          "id": "s9",
+          "num": "09",
+          "color": "green",
+          "title": "Interactions avec d'autres systemes",
+          "fields": [
+            {
+              "id": "interactions",
+              "type": "checklist",
+              "label": "Systemes en interaction",
+              "multi": true,
+              "options": [
+                "Factions",
+                "Territoire / Claims",
+                "PvP",
+                "Economie / Shop",
+                "Crafting",
+                "Permissions / Grades",
+                "Evenements / Raids",
+                "Interface / HUD",
+                "WorldGen",
+                "Magie",
+                "Anti-cheat"
+              ]
+            },
+            {
+              "id": "interactionsDetail",
+              "type": "longtext",
+              "label": "Detail des interactions",
+              "placeholder": "Pour chaque systeme coche, explique comment."
+            }
+          ],
+          "variantHint": null
+        },
+        {
+          "id": "s10",
+          "num": "10",
+          "color": "gold",
+          "title": "Hors perimetre",
+          "hint": "Tres important : note explicitement ce qui n'est PAS inclus dans cette version.",
+          "fields": [
+            {
+              "id": "outOfScope",
+              "type": "list",
+              "label": "Ce que cette feature ne fait PAS",
+              "itemLabel": "Hors perimetre"
+            }
+          ],
+          "variantHint": null
+        },
+        {
+          "id": "s11",
+          "num": "11",
+          "color": "orange",
+          "title": "Risques & Points d'attention",
+          "fields": [
+            {
+              "id": "risks",
+              "type": "table",
+              "label": "Risques identifies",
+              "columns": [
+                {
+                  "id": "risk",
+                  "label": "Risque",
+                  "type": "text"
+                },
+                {
+                  "id": "impact",
+                  "label": "Impact",
+                  "type": "text"
+                },
+                {
+                  "id": "mitigation",
+                  "label": "Suggestion",
+                  "type": "text"
+                }
+              ]
+            }
+          ],
+          "variantHint": null
+        },
+        {
+          "id": "s12",
+          "num": "12",
+          "color": "red",
+          "title": "Questions ouvertes",
+          "fields": [
+            {
+              "id": "openQuestions",
+              "type": "list",
+              "label": "Ce qui n'est pas encore decide",
+              "itemLabel": "Question"
+            }
+          ],
+          "variantHint": null
+        },
+        {
+          "id": "s13",
+          "num": "13",
+          "color": "violet",
+          "title": "Inspirations & References",
+          "fields": [
+            {
+              "id": "inspirations",
+              "type": "list",
+              "label": "Inspirations",
+              "itemLabel": "Reference"
+            },
+            {
+              "id": "assets",
+              "type": "image",
+              "label": "Images de reference",
+              "multi": true
+            }
+          ],
+          "variantHint": null
+        },
+        {
+          "id": "s14",
+          "num": "14",
+          "color": "violet",
+          "title": "Notes supplementaires",
+          "fields": [
+            {
+              "id": "notes",
+              "type": "longtext",
+              "label": "Tout ce qui ne rentre pas ailleurs"
+            }
+          ],
+          "variantHint": null
+        }
+      ]
+    }
+  },
+  "draft": {
+    "titleProvisoire": "Emotes",
+    "featureType": "autre",
+    "slugFinal": "emotes",
+    "answers": {
+      "summary": "Un système un peu comme une roue qui permet l'utilisation d'emotes qui elles même peuvent être achetée avec des eris ou obtenue en accomplissant des exploits",
+      "problem": "Elle comble le manque d'interactions sociales",
+      "objective": "Interagir avec ses amis, narguer des ennemis (provocation) et permettre aux gens de dépenser leurs eris",
+      "links": "système d'eris et celui de quêtes si existant",
+      "audience": [
+        "Tous les joueurs"
+      ],
+      "feeling": "Satisfaction et amusement",
+      "scenario": "Un joueur arrive au spawn, il fait coucou à des gens puis enchaîne avec une emote collective. Juste après, il voit des ennemis attaquer sa base, il décide donc de les narguer car ils sont bien nul et après il va voir les membres de sa faction et font une session d'aura farming.",
+      "mechanic": "le joueur peut gagner ses emotes grâce aux quêtes et peut aussi en acheter sur le shop avec des eris. Il peut les sélectionner dans le menu d'edit du gui d'erinium. Il appuie sur une touche choisie au préalable et une roue apparaît; avec son curseur, il sélectionne une emote et en relachant, il la fait. Dans le menu des emotes, il peut choisir sa seconde roue, sa troisième roue etc...",
+      "actions": [
+        {
+          "action": "faire une emote",
+          "how": "en pressant une touche",
+          "condition": "avoir des emotes "
+        },
+        {
+          "action": "faire une emote de groupe",
+          "how": "en pressant la touche d'emote",
+          "condition": "avoir des emotes de groupe"
+        },
+        {
+          "action": "rejoindre une emote de groupe",
+          "how": "en pressant le touche d'emote à côté d'une emote de groupe",
+          "condition": "avoir des joueurs faisant une emote de groupe à côté"
+        }
+      ],
+      "automatic": "aucun ",
+      "visuals": "les emotes des joueurs et ses propres emotes",
+      "audio": "les emotes et des sons dans l'interface",
+      "menus": "une roue avec des emotes et une flèche pour passer à la prochaine emote",
+      "balancing": [
+        {
+          "param": "prix des emotes ",
+          "value": "150 eris",
+          "justification": "un prix asser bas pour pouvoir les vendre"
+        },
+        {
+          "param": "gain d'emotes",
+          "value": "des quêtes du style des énigmes ou des exploits ",
+          "justification": "une emote, ça se mérite"
+        }
+      ],
+      "playerEditable": "ses emotes dans la roue",
+      "playerNotEditable": "aucune tout n'est pas encore sûr",
+      "always": [
+        "être amusant",
+        "être intuitif"
+      ],
+      "never": [
+        "être lourd / inutile",
+        "être pay to win "
+      ],
+      "edgeCases": [
+        "si des joueurs arrivent à causer du lag grâce aux emotes"
+      ],
+      "obtention": "achat avec des eris ou gain en faisant des exploits et énigmes",
+      "outOfScope": [
+        ""
+      ],
+      "risks": [
+        {
+          "risk": "lag",
+          "impact": "tout le serveur",
+          "mitigation": "faire de nombreux tests"
+        }
+      ],
+      "openQuestions": [
+        "le prix des emotes",
+        "si les emotes produisent du son"
+      ],
+      "inspirations": [
+        "fortnite avec les emotes de groupe",
+        "essential et emote craft pour la roue",
+        "l'emote gang name style avec le son sur emote craft"
+      ],
+      "notes": "rien du tout"
+    },
+    "assets": []
+  }
+}
