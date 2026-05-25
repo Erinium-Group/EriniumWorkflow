@@ -1,1 +1,23 @@
-applications/erisclave/node_modules/electron/dist/electron.exe
+# --- Erisclave (Electron app) -----------------------------------------------
+# Dependances installees localement
+applications/erisclave/node_modules/
+
+# Build / cache Electron
+applications/erisclave/dist/
+applications/erisclave/out/
+applications/erisclave/build/
+applications/erisclave/.cache/
+
+# Runtime data : brouillons, backups roadmap, logs
+applications/erisclave/data/drafts/
+applications/erisclave/data/backups/
+applications/erisclave/recap/backups/
+applications/erisclave/*.log
+
+# Fichiers OS / IDE
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
