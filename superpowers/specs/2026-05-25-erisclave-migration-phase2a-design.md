@@ -36,12 +36,14 @@ La Phase 1 a migré la roadmap statique (`docs/roadmap.html`) et 54 specs HTML l
 
 ### 3.1. Projects
 
-- ✅ **Créer** un project via modal (titre, description, status, tags, ordre auto)
+- ✅ **Créer** un project via modal (titre, status, tags, category, ordre auto)
 - ✅ **Éditer inline** le titre depuis la card (double-clic → input → blur/Enter pour save)
-- ✅ **Éditer** le reste (description, status, tags) via modal "Éditer le project"
+- ✅ **Éditer** le reste (status, tags, category) via modal "Éditer le project"
 - ✅ **Supprimer** un project (avec dialog de confirmation) — cascade DB supprime aussi ses tasks
 - ✅ **Réordonner** par drag and drop (poignée à gauche de la card)
-- ✅ **Changer le status** depuis le StatusBadge (clic → dropdown : planned / in_progress / blocked / done)
+- ✅ **Changer le status** depuis le StatusBadge (clic → dropdown : todo / wip / test / done / blocked)
+
+> **Note schéma DB réel** (P1) : la table `work_roadmap_projects` n'a **pas** de colonne `description`. Les 5 statuts sont `todo | wip | test | done | blocked` (CHECK constraint). Le P2a ne change pas le schéma — pour ajouter `description`, ce serait une migration P2b si besoin.
 
 ### 3.2. Tasks
 
@@ -124,17 +126,16 @@ Toutes les routes sont sous `/api/work/v1/roadmap/`. Toutes vérifient `requireS
 ```json
 {
   "title": "string (1-200)",
-  "description": "string | null",
-  "status": "planned | in_progress | blocked | done",
+  "status": "todo | wip | test | done | blocked",
   "tags": ["string"],
   "category": "string | null"
 }
 ```
 
 **Server :**
-- Génère `id` auto (BIGSERIAL)
-- `order_index = MAX(order_index) + 1` (placé en fin)
-- `created_at = updated_at = now()`
+- Génère `id` auto (SERIAL)
+- `order_idx = COALESCE(MAX(order_idx), -1) + 1` (placé en fin)
+- `created_at = updated_at = CURRENT_TIMESTAMP`
 - Retourne 201 + `{ project: RoadmapProject }`
 
 **Erreurs :** 400 si titre vide, 403 si pas la perm
@@ -143,9 +144,9 @@ Toutes les routes sont sous `/api/work/v1/roadmap/`. Toutes vérifient `requireS
 
 **Perm :** `work.roadmap.edit`
 
-**Body :** champs partiels parmi `title`, `description`, `status`, `tags`, `category`
+**Body :** champs partiels parmi `title`, `status`, `tags`, `category`
 
-**Server :** UPDATE + `updated_at = now()`. Retourne 200 + `{ project }`
+**Server :** UPDATE + `updated_at = CURRENT_TIMESTAMP`. Retourne 200 + `{ project }`
 
 **Erreurs :** 400 validation, 403 perm, 404 not found
 
@@ -168,15 +169,15 @@ Toutes les routes sont sous `/api/work/v1/roadmap/`. Toutes vérifient `requireS
 ```json
 {
   "order": [
-    { "id": 1, "order_index": 0 },
-    { "id": 4, "order_index": 1 },
-    { "id": 2, "order_index": 2 }
+    { "id": 1, "orderIdx": 0 },
+    { "id": 4, "orderIdx": 1 },
+    { "id": 2, "orderIdx": 2 }
   ]
 }
 ```
 
 **Server :**
-- Validation : tous les ids existent, pas de doublons, order_index = 0..N-1
+- Validation : tous les ids existent, pas de doublons, `orderIdx = 0..N-1`
 - UPDATE en transaction (1 requête `UPDATE ... CASE WHEN id = ?` ou N UPDATEs en transaction)
 - Retourne 200 + `{ ok: true }`
 
@@ -195,7 +196,7 @@ Toutes les routes sont sous `/api/work/v1/roadmap/`. Toutes vérifient `requireS
 ```
 
 **Server :**
-- `order_index = MAX(order_index) + 1 WHERE project_id = ?`
+- `order_idx = COALESCE(MAX(order_idx), -1) + 1 WHERE project_id = ?`
 - Retourne 201 + `{ task: RoadmapTask }`
 
 ### 6.6. `PATCH /tasks/[id]` — Éditer task
@@ -204,7 +205,9 @@ Toutes les routes sont sous `/api/work/v1/roadmap/`. Toutes vérifient `requireS
 
 **Body :** partiels parmi `title`, `status` (todo | done)
 
-**Server :** UPDATE + `updated_at = now()`. Si transition vers `done`, set `done_at = now()`. Sinon `done_at = null`. Retourne 200 + `{ task }`
+**Server :** UPDATE + `updated_at = CURRENT_TIMESTAMP`. Retourne 200 + `{ task }`
+
+> Note : la table tasks n'a pas de colonne `done_at` ; pour suivre la date de complétion, on s'appuie sur `updated_at` quand `status = 'done'`. P2b pourra ajouter `done_at` si besoin de tracking historique.
 
 ### 6.7. `DELETE /tasks/[id]` — Supprimer task
 
@@ -306,10 +309,9 @@ interface Props {
 
 **Champs :**
 - Title (input text, required, maxLength 200)
-- Description (textarea, optional, maxLength 5000)
-- Status (select : planned / in_progress / blocked / done)
+- Status (select : todo / wip / test / done / blocked)
 - Tags (input avec comma-separated, ou tag picker — démarrer simple : input split par virgule)
-- Category (input text optional)
+- Category (input text optional, maxLength 50)
 
 **Comportement :**
 - Submit → appelle `useCreateProject` ou `useUpdateProject`
@@ -317,6 +319,8 @@ interface Props {
 - Erreur affichée inline (rouge en bas du modal)
 
 **Style :** Liquid Glass cream — backdrop blur, rounded-2xl, padding généreux
+
+**Modal edit :** mêmes champs que create + pré-remplis depuis `project`. Le `description` n'existe pas en P2a (pas de colonne en DB).
 
 ### 8.2. `TaskItem.tsx`
 
@@ -383,7 +387,7 @@ Petite icône `≡` qui apparaît au hover de la card / task. `cursor-grab` au h
 
 ### 8.7. `StatusDropdown.tsx`
 
-Petit popup au clic du `StatusBadge`. Liste des 4 statuts. Sélection → `useUpdateProject({ status })`. Fermeture sur outside-click.
+Petit popup au clic du `StatusBadge`. Liste des 5 statuts (todo / wip / test / done / blocked). Sélection → `useUpdateProject({ status })`. Fermeture sur outside-click.
 
 **Visible :** uniquement si `hasPerm("work.roadmap.edit")`.
 
@@ -553,14 +557,12 @@ interface Props {
 ## 14. Migration DB
 
 **Aucune migration nécessaire en P2a.** Les 4 tables P1 (`work_roadmap_projects`, `work_roadmap_tasks`, `work_roadmap_specs`, `work_roadmap_spec_assets`) ont déjà les colonnes nécessaires :
-- `order_index INT NOT NULL DEFAULT 0`
-- `updated_at TIMESTAMPTZ NOT NULL DEFAULT now()`
-- `done_at TIMESTAMPTZ NULL` sur tasks
+- `order_idx INTEGER NOT NULL DEFAULT 0`
+- `updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP`
 
-**Vérifier seulement** que les indexes suivants existent (sinon ajouter en migration P2a si performance dégrade) :
+**Indexes** : `idx_work_roadmap_tasks_project` existe déjà. Pour le reorder projects, l'`ORDER BY order_idx` actuel s'appuie sur scan séquentiel (55 lignes → négligeable). Si performance dégrade en P3+ on ajoutera :
 ```sql
-CREATE INDEX IF NOT EXISTS idx_work_roadmap_projects_order ON work_roadmap_projects(order_index);
-CREATE INDEX IF NOT EXISTS idx_work_roadmap_tasks_project_order ON work_roadmap_tasks(project_id, order_index);
+CREATE INDEX IF NOT EXISTS idx_work_roadmap_projects_order ON work_roadmap_projects(order_idx);
 ```
 
 ---
@@ -599,51 +601,65 @@ CREATE INDEX IF NOT EXISTS idx_work_roadmap_tasks_project_order ON work_roadmap_
 
 ## 18. Référence : tables DB existantes (P1)
 
+Schéma réel d'après `EriniumFactionWeb/migrations/phase6-roadmap.sql` :
+
 ```sql
--- Pour rappel, déjà créé en P1
 CREATE TABLE work_roadmap_projects (
-  id BIGSERIAL PRIMARY KEY,
-  title TEXT NOT NULL,
-  description TEXT,
-  status TEXT NOT NULL DEFAULT 'planned',
-  tags TEXT[] NOT NULL DEFAULT '{}',
-  category TEXT,
-  order_index INT NOT NULL DEFAULT 0,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  id              SERIAL PRIMARY KEY,
+  title           TEXT NOT NULL,
+  status          TEXT NOT NULL CHECK (status IN ('todo','wip','test','done','blocked')),
+  tags            TEXT[] NOT NULL DEFAULT '{}',
+  category        TEXT,
+  order_idx       INTEGER NOT NULL DEFAULT 0,
+  created_by      INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE work_roadmap_tasks (
-  id BIGSERIAL PRIMARY KEY,
-  project_id BIGINT NOT NULL REFERENCES work_roadmap_projects(id) ON DELETE CASCADE,
-  title TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'todo',
-  order_index INT NOT NULL DEFAULT 0,
-  done_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  id              SERIAL PRIMARY KEY,
+  project_id      INTEGER NOT NULL REFERENCES work_roadmap_projects(id) ON DELETE CASCADE,
+  title           TEXT NOT NULL,
+  status          TEXT NOT NULL CHECK (status IN ('todo','done')) DEFAULT 'todo',
+  order_idx       INTEGER NOT NULL DEFAULT 0,
+  created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_work_roadmap_tasks_project ON work_roadmap_tasks(project_id);
 
 CREATE TABLE work_roadmap_specs (
-  id BIGSERIAL PRIMARY KEY,
-  slug TEXT UNIQUE NOT NULL,
-  project_id BIGINT REFERENCES work_roadmap_projects(id) ON DELETE SET NULL,
-  title TEXT NOT NULL,
-  kind TEXT NOT NULL DEFAULT 'legacy', -- 'legacy' | 'structured'
-  raw_html TEXT, -- nullable, set si kind='legacy'
-  answers JSONB, -- nullable, set si kind='structured' (P2b)
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  id              SERIAL PRIMARY KEY,
+  project_id      INTEGER REFERENCES work_roadmap_projects(id) ON DELETE SET NULL,
+  slug            TEXT NOT NULL UNIQUE,
+  title           TEXT NOT NULL,
+  kind            TEXT NOT NULL CHECK (kind IN ('legacy','structured')),
+  feature_type    TEXT,
+  answers         JSONB,
+  raw_html        TEXT,
+  status          TEXT,
+  created_by      INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CHECK (
+    (kind = 'legacy'     AND raw_html IS NOT NULL AND answers IS NULL) OR
+    (kind = 'structured' AND answers  IS NOT NULL AND raw_html IS NULL)
+  )
 );
 
 CREATE TABLE work_roadmap_spec_assets (
-  id BIGSERIAL PRIMARY KEY,
-  spec_id BIGINT NOT NULL REFERENCES work_roadmap_specs(id) ON DELETE CASCADE,
-  url TEXT NOT NULL,
-  kind TEXT NOT NULL, -- 'image' | 'video' | 'doc'
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  id              SERIAL PRIMARY KEY,
+  spec_id         INTEGER NOT NULL REFERENCES work_roadmap_specs(id) ON DELETE CASCADE,
+  filename        TEXT NOT NULL,
+  blob_url        TEXT NOT NULL,
+  uploaded_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 ```
+
+**Différences P2a vs schéma actuel** :
+- Aucune migration nécessaire (les colonnes utilisées existent toutes).
+- `order_idx` est déjà là sur projects et tasks.
+- Pas de `description` sur projects (volontaire, on garde simple).
+- Pas de `done_at` sur tasks (on s'appuie sur `updated_at + status='done'`).
 
 ---
 
