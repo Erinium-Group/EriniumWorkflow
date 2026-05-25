@@ -5,6 +5,83 @@
 
 ---
 
+## 2026-05-25 — Web : CSS leak des specs legacy via `dangerouslySetInnerHTML` (sidebar/body casses)
+
+**Systeme** : `EriniumFactionWeb/src/components/work/roadmap/SpecLegacyRenderer.tsx` (Phase 6 Erisclave migration — viewer roadmap read-only).
+
+### Probleme
+Apres deploiement de la Phase 6, ouvrir un spec legacy depuis `/admin/work/roadmap` (route `/admin/work/specs/<slug>`) cassait visuellement le site entier :
+- Le sidebar disparaissait ou changeait de couleur.
+- Le `<body>` prenait un background blanc/different.
+- La typographie globale (h1, h2, p) etait remplacee par celle du spec legacy.
+- Les classes Tailwind du layout admin restaient mais etaient overridees par les selecteurs globaux des specs.
+
+### Cause racine
+`SpecLegacyRenderer` injectait le HTML brut (sanitize cote serveur via `sanitizeSpecHtml()`, qui strippe scripts/iframes/event handlers mais **garde les balises `<style>`** car elles sont legitimes dans le contexte d'un spec auto-suffisant) via `dangerouslySetInnerHTML={{ __html: rawHtml }}` dans une `<div>` du DOM principal.
+
+Les HTML legacy importes depuis `docs/specs/*.html` (et plus tot des Quill exports) contiennent des `<style>` avec des selecteurs **globaux non-scopes** :
+```html
+<style>
+  body { font-family: ...; background: #fff; }
+  :root { --color: ...; }
+  h1, h2 { color: ...; }
+  .container { max-width: ...; }
+</style>
+```
+Le browser parse ces `<style>` et les applique au document entier, peu importe ou la balise est dans le DOM. Resultat : le CSS du spec ecrase celui du layout admin (sidebar, header, body bg, classes generiques comme `.container`/`.card`).
+
+`sanitizeSpecHtml()` ne pouvait pas resoudre ca cote serveur sans reecrire tous les selecteurs CSS (rajouter `.erisclave-legacy-spec` devant chaque selecteur = parser CSS complet a embarquer, fragile).
+
+### Solution
+Remplacement de `dangerouslySetInnerHTML` par un **`<iframe srcDoc={rawHtml}>`** avec `sandbox="allow-same-origin"` :
+- `srcDoc` : passe le HTML directement a l'iframe sans avoir besoin d'une URL externe — l'iframe construit son propre document isole.
+- `sandbox="allow-same-origin"` (sans `allow-scripts`) : isole le DOM/CSS de l'iframe (le CSS de l'iframe ne peut PAS leak sur le parent), mais permet de lire `iframe.contentDocument` depuis le parent pour mesurer la hauteur du contenu (besoin du same-origin pour ne pas tomber sur une SecurityException).
+- Hauteur dynamique : `useEffect` + listener `load` qui lit `iframe.contentDocument.documentElement.scrollHeight + 16px padding` et le pousse dans un state. Initial 800px pour eviter un flash trop court avant le load.
+- Pas besoin de `allow-scripts` : les scripts ont deja ete strippes par le sanitizer cote serveur, donc le HTML embarque ne contient que du markup statique + CSS + `<style>`.
+
+`erisclave-legacy-spec` classname (CSS scope-by-prefix tente) retire : inutile maintenant que l'iframe garantit l'isolation.
+
+### Lecons
+- **JAMAIS `dangerouslySetInnerHTML` pour du HTML user-generated/imported qui peut contenir `<style>`**. Meme apres sanitization scripts/iframes, les balises `<style>` avec selecteurs globaux (body, html, :root, h1, p, .container) leakent sur le DOM parent et cassent le site entier.
+- **Pour isoler du CSS importe** : `<iframe srcDoc>` avec `sandbox="allow-same-origin"` (sans `allow-scripts`) — c'est l'equivalent web standard d'un Shadow DOM "etanche", supporte partout, sans dependance.
+- **Hauteur dynamique iframe** : mesure via `contentDocument.documentElement.scrollHeight` au `load`. `allow-same-origin` est obligatoire sinon `contentDocument` est `null`. Sans `allow-scripts`, pas de risque XSS via le contenu.
+- **Alternative non-retenue** : reecrire le CSS pour prefixer chaque selecteur avec `.erisclave-legacy-spec` cote serveur. Demande un parser CSS robuste (postcss), fragile sur des specs avec syntaxe edge case (`@media`, `@keyframes`, pseudo-elements). L'iframe est plus simple et bulletproof.
+
+---
+
+## 2026-05-25 — Web : Card roadmap trop aggressive — click ouvre direct le spec au lieu d'expand les tasks
+
+**Systeme** : `EriniumFactionWeb/src/components/work/roadmap/RoadmapCard.tsx` (Phase 6 Erisclave migration — viewer roadmap read-only).
+
+### Probleme
+Sur `/admin/work/roadmap`, cliquer N'IMPORTE OU sur une card de projet ouvrait directement le spec legacy (`/admin/work/specs/<slug>`). Comportement attendu par l'utilisateur : voir d'abord la liste des taches du projet (status cochees/non cochees) en mode expand, et avoir un lien separe vers le spec pour les utilisateurs qui veulent le cahier des charges complet.
+
+Sur mobile (taps target 44px), c'etait encore plus penible : impossible de voir la progression detaillee sans subir un chargement complet de la page spec (qui contient parfois 200+ Ko de HTML).
+
+### Cause racine
+`RoadmapCard` wrappait toute la `<article>` dans un `<Link href="/admin/work/specs/...">` quand `firstSpecSlug` etait defini. Aucun systeme d'expand des taches n'existait, alors meme que :
+- Le hook `useRoadmapProject(id)` existait deja et retourne `{ project, tasks, specSlugs }`.
+- L'endpoint `/api/work/v1/roadmap/projects/[id]` etait deja implemente.
+- L'UX habituelle d'une roadmap publique est : "preview les taches in-place, drill-down vers le spec sur demande explicite".
+
+### Solution
+Refacto complet du composant en pattern expand :
+1. **State local** : `const [expanded, setExpanded] = useState(false)`.
+2. **L'`<article>` devient cliquable** : `role="button"`, `tabIndex={0}`, `aria-expanded={expanded}`, `onClick={toggle}`, `onKeyDown` qui toggle sur Enter/Space (accessibility).
+3. **Lazy fetch des taches** : `useRoadmapProject(expanded ? project.id : null)`. Le hook supporte deja `id: null` via `enabled: id != null` -> aucune query reseau tant que la card n'est pas expand. Cache react-query reutilise pour les expand/collapse rapides.
+4. **Liste des taches en mode expand** : `<ul>` + `<li>` avec `<input type="checkbox" disabled checked={task.status === "done"} />` + label barre si done. Etats : "Chargement des taches…" pendant fetch, "Aucune tache pour ce projet" si liste vide.
+5. **Lien spec en `<Link>` separe** avec `onClick={(e) => e.stopPropagation()}` -> click sur le lien n'expand pas la card et inversement.
+6. **Indicateur visuel** : caret `▶` qui rotate 90deg quand expanded (`transition-transform duration-200`).
+7. **Focus ring** : `focus:ring-2 focus:ring-erisclave-pink` directement sur l'`<article>` (l'ancien wrapping `<Link>` portait le ring, on le restitue sur l'article).
+
+### Lecons
+- **Sur une grid de cards : eviter de wrap toute la card dans un `<Link>` quand l'action principale est "preview/expand"**. Pattern preferable : la card est un button (`role="button"` + `onKeyDown` Enter/Space) qui toggle un detail in-place, avec des liens secondaires (vers les details complets) en `<Link>` separe + `stopPropagation` sur leur onClick.
+- **Lazy fetch via hook react-query** : passer `null` quand la donnee n'est pas necessaire et laisser le hook gerer `enabled: id != null`. Pas de prefetch agressif, pas de fetch au mount inutile. Le cache react-query (`staleTime: 30s` configure globalement) garde les taches en RAM pendant la session, donc re-expand est instantane.
+- **Accessibility checklist pour un toggle pattern** : `role="button"`, `tabIndex={0}`, `aria-expanded`, `onKeyDown` (Enter + Space avec `preventDefault` sur Space pour eviter le scroll). Sinon les utilisateurs clavier ne peuvent pas expand.
+- **`e.stopPropagation()` sur les Links enfants d'une card cliquable** : sinon click sur le lien declenche AUSSI le toggle parent. Pattern systematique pour toute card avec action primaire + actions secondaires.
+
+---
+
 ## 2026-05-24 — Web : Auth + chargement DB 2 minutes au premier acces (cold-start serverless)
 
 **Systeme** : `EriniumFactionWeb/src/lib/db/index.ts` (`initDb`) + `src/lib/providers.tsx` (react-query) + pages Work Panel.
