@@ -1,0 +1,16 @@
+{
+  "sections": {
+    "s4": {
+      "bonusFields": [
+        { "id": "moduleEriapi", "type": "checklist", "label": "Module EriAPI concerne", "options": ["GUI", "Data", "Events", "Keys", "Chat", "Scheduler", "Capability", "Content", "Network", "Animation", "Autre"] },
+        { "id": "publicApi",    "type": "longtext", "label": "API publique exposee",   "placeholder": "Builder, methodes, callbacks..." },
+        { "id": "breaking",     "type": "checklist","label": "Breaking change ?",      "options": ["Non (additif)", "Oui (incrementer minor)", "Oui (incrementer major)"] }
+      ]
+    },
+    "s12": {
+      "bonusFields": [
+        { "id": "docPlan",      "type": "longtext", "label": "Plan de documentation", "placeholder": "Page documentation/fr/, README, patchnote..." }
+      ]
+    }
+  }
+}

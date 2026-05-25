@@ -1,4 +1,7 @@
 # --- Erisclave (Electron app) -----------------------------------------------
+# Dossier dupliques par accident (cp -r mal cible) — ne JAMAIS committer
+applications/erisclave/applications/
+
 # Dependances installees localement
 applications/erisclave/node_modules/
 

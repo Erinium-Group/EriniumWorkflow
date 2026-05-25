@@ -1,0 +1,25 @@
+{
+  "sections": {
+    "s4": {
+      "bonusFields": [
+        { "id": "currency",     "type": "text",     "label": "Monnaie utilisee",     "placeholder": "Eris ? Autre ?" },
+        {
+          "id": "prices",
+          "type": "table",
+          "label": "Grille de prix",
+          "columns": [
+            { "id": "item",  "label": "Item / Service", "type": "text" },
+            { "id": "buy",   "label": "Prix achat",     "type": "text" },
+            { "id": "sell",  "label": "Prix vente",     "type": "text" }
+          ]
+        },
+        { "id": "inflation",    "type": "longtext", "label": "Protection contre l'inflation" }
+      ]
+    },
+    "s11": {
+      "bonusFields": [
+        { "id": "moneyAbuse", "type": "longtext", "label": "Risques d'abus economique", "placeholder": "Dupe, flip infini, exploit prix..." }
+      ]
+    }
+  }
+}

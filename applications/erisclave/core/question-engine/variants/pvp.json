@@ -1,0 +1,15 @@
+{
+  "sections": {
+    "s4": {
+      "bonusFields": [
+        { "id": "pvpFlow",       "type": "longtext", "label": "Deroulement d'une session PvP", "placeholder": "Declaration -> deroulement -> resolution" },
+        { "id": "noAttackSpeed", "type": "longtext", "label": "Adaptation PvP 1.8",            "placeholder": "Rappel : pas de bonus/malus attack speed. Adapter via mouvement, degats, knockback." }
+      ]
+    },
+    "s11": {
+      "bonusFields": [
+        { "id": "abusePotential", "type": "longtext", "label": "Potentiel d'abus", "placeholder": "Combo brise, escape, alt account..." }
+      ]
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "sections": {
+    "s4": {
+      "bonusFields": [
+        { "id": "usage",       "type": "longtext", "label": "Comment l'item s'utilise", "placeholder": "Clic droit, hold, double-clic..." },
+        { "id": "stats",       "type": "table",    "label": "Stats de l'item",
+          "columns": [
+            { "id": "stat",  "label": "Stat",   "type": "text" },
+            { "id": "value", "label": "Valeur", "type": "text" }
+          ]
+        },
+        { "id": "durability",  "type": "text",     "label": "Durabilite (si applicable)" },
+        { "id": "stackable",   "type": "checklist","label": "Stackable ?", "options": ["Oui", "Non", "Stack de 16"] }
+      ]
+    },
+    "s5": {
+      "bonusFields": [
+        { "id": "iconTexture", "type": "longtext", "label": "Texture icone",        "placeholder": "64x64 recommande, source preset ou SVG fallback" },
+        { "id": "modelType",   "type": "checklist","label": "Type de modele",       "options": ["Plat 2D", "3D handheld", "Armor layer"] }
+      ]
+    }
+  }
+}

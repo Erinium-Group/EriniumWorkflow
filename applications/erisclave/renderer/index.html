@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Erisclave</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/components.css">
+<link rel="stylesheet" href="styles/animations.css">
+<link rel="stylesheet" href="styles/screens.css">
+</head>
+<body>
+
+<div class="ambient"></div>
+<div class="grain"></div>
+
+<header class="app-bar" id="app-bar" data-visible="false">
+  <div class="brand">
+    <img class="brand-grimoire" src="assets/grimoire-petit-96px.gif" alt="" draggable="false">
+    <span class="brand-name">Erisclave</span>
+  </div>
+  <div class="docs-status" id="docs-status">
+    <span class="docs-dot"></span>
+    <span class="docs-label">Detection du dossier docs/...</span>
+  </div>
+  <button class="ghost-btn" id="pick-docs-btn" type="button">
+    <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+    Definir le dossier
+  </button>
+</header>
+
+<main id="root" class="root"></main>
+
+<div id="toast-host" class="toast-host"></div>
+
+<canvas id="confetti-canvas" class="confetti-canvas"></canvas>
+
+<script src="../node_modules/canvas-confetti/dist/confetti.browser.js"></script>
+<script src="scripts/store.js"></script>
+<script src="scripts/utils.js"></script>
+<script src="scripts/components/hold-button.js"></script>
+<script src="scripts/components/inputs.js"></script>
+<script src="scripts/autosave.js"></script>
+<script src="scripts/screens/0-home.js"></script>
+<script src="scripts/screens/1-loading.js"></script>
+<script src="scripts/screens/2-project.js"></script>
+<script src="scripts/screens/3-questionnaire.js"></script>
+<script src="scripts/screens/4-tasks.js"></script>
+<script src="scripts/screens/5-preview.js"></script>
+<script src="scripts/screens/6-generate.js"></script>
+<script src="scripts/screens/7-final.js"></script>
+<script src="scripts/screens/8-manage.js"></script>
+<script src="scripts/app.js"></script>
+
+</body>
+</html>

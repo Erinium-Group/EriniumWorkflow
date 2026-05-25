@@ -1,0 +1,13 @@
+[
+  { "id": "bloc",     "label": "Bloc / Machine",          "icon": "cube",     "desc": "Un bloc placable, avec ou sans GUI, recettes, redstone" },
+  { "id": "item",     "label": "Item / Equipement",       "icon": "sword",    "desc": "Une arme, armure, accessoire, consommable" },
+  { "id": "gui",      "label": "Interface / GUI",         "icon": "window",   "desc": "Un nouvel ecran : profil, shop, menu config" },
+  { "id": "system",   "label": "Systeme de jeu",          "icon": "gears",    "desc": "Une mecanique transverse : faction, RPG, magie" },
+  { "id": "command",  "label": "Commande serveur",        "icon": "terminal", "desc": "Une commande /xxx avec permissions et auto-complete" },
+  { "id": "world",    "label": "Monde / Generation",      "icon": "tree",     "desc": "Biome, structure, ore, dimension" },
+  { "id": "mob",      "label": "Mob / Entite",            "icon": "spider",   "desc": "Mob hostile, passif, boss, PNJ" },
+  { "id": "pvp",      "label": "PvP / Combat",            "icon": "shield",   "desc": "Mecanique de combat : siege, raid, duel" },
+  { "id": "economie", "label": "Economie",                "icon": "coin",     "desc": "Shop, trade, monnaie, hotel des ventes" },
+  { "id": "eriapi",   "label": "API / Framework EriAPI",  "icon": "code",     "desc": "Ajout dans le framework partage EriAPI" },
+  { "id": "autre",    "label": "Autre",                   "icon": "star",     "desc": "Ce qui n'entre dans aucune categorie ci-dessus" }
+]

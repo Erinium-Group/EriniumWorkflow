@@ -1,0 +1,22 @@
+{
+  "sections": {
+    "s4": {
+      "bonusFields": [
+        { "id": "commandName", "type": "text", "label": "Nom de la commande", "placeholder": "/faction, /shop..." },
+        { "id": "aliases",     "type": "list", "label": "Aliases" },
+        {
+          "id": "args",
+          "type": "table",
+          "label": "Arguments",
+          "columns": [
+            { "id": "name",        "label": "Nom",         "type": "text" },
+            { "id": "type",        "label": "Type",        "type": "text" },
+            { "id": "required",    "label": "Obligatoire", "type": "text" },
+            { "id": "suggestions", "label": "Auto-complete", "type": "text" }
+          ]
+        },
+        { "id": "permission",  "type": "text", "label": "Permission requise", "placeholder": "eriniumfaction.command.xxx" }
+      ]
+    }
+  }
+}

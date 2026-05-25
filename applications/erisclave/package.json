@@ -1,0 +1,21 @@
+{
+  "name": "erisclave",
+  "version": "0.1.0",
+  "description": "Generateur de cahiers des charges EriniumFaction — Electron app, zero IA",
+  "main": "main.js",
+  "author": "EriniumGroup",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev --enable-logging"
+  },
+  "dependencies": {
+    "canvas-confetti": "^1.9.3",
+    "cheerio": "1.0.0-rc.12",
+    "marked": "^12.0.2",
+    "slugify": "^1.6.6"
+  },
+  "devDependencies": {
+    "electron": "^29.4.6"
+  }
+}

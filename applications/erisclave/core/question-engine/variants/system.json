@@ -1,0 +1,16 @@
+{
+  "sections": {
+    "s4": {
+      "bonusFields": [
+        { "id": "managers",     "type": "list",     "label": "Managers/Singletons crees", "itemLabel": "Manager" },
+        { "id": "events",       "type": "list",     "label": "Events Forge ecoutes",      "itemLabel": "Event" },
+        { "id": "dataStorage",  "type": "longtext", "label": "Stockage de donnees",       "placeholder": "EriData, capabilities, WorldSavedData..." }
+      ]
+    },
+    "s11": {
+      "bonusFields": [
+        { "id": "tickPerformance", "type": "longtext", "label": "Impact TPS (500-1000 joueurs)", "placeholder": "Mesure ms/tick, hot paths optimises..." }
+      ]
+    }
+  }
+}
