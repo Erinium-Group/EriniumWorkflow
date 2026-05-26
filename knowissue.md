@@ -5,6 +5,31 @@
 
 ---
 
+## 2026-05-26 — Erisclave P2b : autosave 500 + viewer structured non rendu
+
+### Probleme 1 : Autosave PATCH 500 sur edition champ
+
+**Symptome** : User edite un field dans l'editeur, autosave fire apres 1.5s, PATCH /specs/<slug> → 500. Log Neon : `violates check constraint "work_roadmap_specs_check"`. La row failing a kind=structured + raw_html=<!DOCTYPE html>...
+
+**Cause racine** : `updateSpec` dans `src/lib/work/erisclave/mutations.ts` regenere le HTML via `renderSpecHtml(answers)` et le stocke dans `raw_html`. Le CHECK constraint exige `(kind=structured AND raw_html IS NULL)`. Stocker du HTML viole cette contrainte.
+
+**Solution** : Retirer la regeneration et le stockage de raw_html dans updateSpec. Pour kind=structured, raw_html doit rester NULL en DB. Le HTML est rendu a la volee au read time (GET endpoint).
+
+### Probleme 2 : Viewer affiche placeholder pour specs structured
+
+**Symptome** : Page `/admin/work/specs/<slug>` montre "Le rendu HTML des specs structures sera disponible en Phase 2b" au lieu du HTML rendu.
+
+**Cause racine** : Le GET endpoint renvoyait `rawHtml=null` pour kind=structured (le rendering serveur n'avait pas ete branche). Le viewer en mode placeholder.
+
+**Solution** : Render le HTML cote serveur dans le GET endpoint via `renderSpecHtml(spec.answers)` quand kind=structured. Le viewer affiche le HTML via SpecLegacyRenderer (renommage du composant out-of-scope).
+
+### Lecons
+
+- Quand un CHECK constraint exige NULL, NE PAS stocker de valeur "vide" ou "calculee" — bien lire le constraint.
+- Le rendering peut etre serveur (au read) sans cache DB — moins de coherence a maintenir.
+
+---
+
 ## 2026-05-26 — Erisclave P2b : bugs smoke test prod (500 INSERT + CSS drawer)
 
 ### Probleme 1 : 500 sur POST /api/work/v1/roadmap/specs
