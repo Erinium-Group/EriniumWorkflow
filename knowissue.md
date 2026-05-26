@@ -221,6 +221,32 @@ La 1.8.3 a corrige le slot de texture mais le rendu item restait casse en pratiq
 2. **`ArmorCosmeticTEISR`** : ajout de `GlStateManager.enableTexture2D()` (au cas ou la pipeline GUI l'aurait desactive : item glint, debug overlay) + `disableAlpha()`/`enableAlpha()` autour du rendu pour neutraliser le test alpha a 0.1 applique par `renderItemModelIntoGUI` (cohabitation cohenrente avec le layer renderer joueur).
 3. **`BlockbenchRenderer.bindTexture`** : log diagnostique **one-shot par texture par session** affichant le `ResourceLocation`, le `glTextureId`, et un flag `missing=true/false`. Permet de confirmer ou infirmer rapidement, sur la base d'une seule ligne de console, si le bug residuel viendrait d'un cache `MISSING_TEXTURE` perimee.
 
+### 3e iteration &mdash; vraie cause trouvee en 1.8.5 (2026-05-26)
+
+Les iterations 1.8.3 et 1.8.4 ciblaient des hypotheses plausibles (slot de texture GL, cache MISSING_TEXTURE, alpha cull du GUI) mais la **vraie cause** etait differente. Identifiee grace aux logs client du user :
+
+```
+21:45:01 ResourceManager reload start
+21:45:01 EriAPI - PreInit
+21:45:06 [TextureMap] ERROR: Unable to parse metadata from eriniumfaction:textures/items/barry_mask.png
+   <- ModelBakeEvent fire ICI (entre preInit et init), atlas rejette la texture
+21:45:08 EriAPI - Init
+21:45:08 EriAPI - ArmorCosmeticManager: ModelBakeEvent handler registered  <- TROP TARD
+```
+
+Aucun log `swapped N cosmetic baked model(s)` n'apparait dans la session. Le handler `ModelBakeEvent` est enregistre PENDANT FMLInit, mais l'event lui-meme est dispatche pendant le rechargement de resource pack qui se produit ENTRE FMLPreInit et FMLInit. Resultat : notre `ArmorCosmeticBakedModel` n'est jamais installe dans le registry, vanilla rend le modele depuis la sprite atlas items &mdash; qui rejette la texture 121x152 non-POT comme `MISSING_TEXTURE` au stitching. Le rendu sur le joueur fonctionne car le `ArmorCosmeticLayer` charge la texture via `SimpleTexture` hors-atlas.
+
+**Solution 1.8.5** :
+- Extraction de la registration du `BakeHandler` dans `ArmorCosmeticManager.registerBakeHandler()` (methode publique separee de `bootstrap()`).
+- Appel de cette methode depuis `EriAPI.ClientProxy.preInit()` &mdash; AVANT que le premier `ModelBakeEvent` ne soit dispatche.
+- Nouveau point d'entree public `EriCosmetics.preInit()` (alias) pour que les mods consommateurs puissent appeler explicitement la registration depuis leur propre FMLPreInit.
+- Retro-compatibilite preservee : `bootstrap()` appelle defensivement `registerBakeHandler()`, et log un WARN explicite si zero swap n'a ete applique alors que des cosmetiques sont enregistres.
+
+### Lecons (cumulees)
+- **Les hypotheses plausibles ne valent rien sans verification par log**. Les fixes 1.8.3/1.8.4 traitaient des bugs reels mais pas LE bug observe. Toujours commencer par confirmer la chaine d'evenements (logs timeline) avant de patcher.
+- **`ModelBakeEvent` est dispatche pendant le pre-init resource reload**. Tout listener doit etre enregistre en FMLPreInit, jamais en FMLInit. Idem pour `TextureStitchEvent` et `ModelRegistryEvent` (deja enregistres correctement via `@EventBusSubscriber` cote consumer).
+- **L'absence d'un log attendu est une donnee aussi precieuse qu'un log d'erreur**. Si vous attendez `swapped N cosmetic baked model(s)` et qu'il n'apparait jamais, le probleme n'est pas le rendu mais l'enregistrement.
+
 ---
 
 ## 2026-05-25 — Web : CSS leak des specs legacy via `dangerouslySetInnerHTML` (sidebar/body casses)
