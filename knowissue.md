@@ -5,6 +5,31 @@
 
 ---
 
+## 2026-05-26 — Erisclave P2b : bugs smoke test prod (500 INSERT + CSS drawer)
+
+### Probleme 1 : 500 sur POST /api/work/v1/roadmap/specs
+
+**Symptome** : Clic "Nouveau spec" → 500. Log Neon : `violates check constraint "work_roadmap_specs_check"`.
+
+**Cause racine** : `createSpec` dans `src/lib/work/erisclave/mutations.ts` INSERT avec `raw_html = ''` (empty string). Le CHECK constraint table-level exige `raw_html IS NULL` pour `kind='structured'`. Empty string != NULL → fail.
+
+**Solution** : Remplacer `''` par `NULL` dans le VALUES du INSERT.
+
+### Probleme 2 : DraftsDrawer transparait sous la topbar globale
+
+**Symptome** : Drawer Brouillons s'ouvre, icones/textes de la topbar globale (FR/EN, Admin, panier, avatar) restent visibles au-dessus du drawer cream.
+
+**Cause racine** : `DraftsDrawer.tsx` utilise `fixed inset-0 z-40`. La topbar globale (`src/components/layout/Header.tsx`) utilise `fixed top-0 z-50`. Le drawer (z-40) est sous la topbar (z-50) → overlap visuel.
+
+**Solution** : Faire commencer le drawer sous la topbar via `top-16 lg:top-20 left-0 right-0 bottom-0` au lieu de `inset-0`.
+
+### Lecons
+
+- CHECK constraints stricts : preferer NULL explicite a empty string pour les colonnes nullable.
+- Z-index drawers : aligner sur le z-index pattern du projet (topbar z-50 = ceiling, drawers sous topbar).
+
+---
+
 ## 2026-05-26 — Erisclave P2b : limitations connues (multi-user, legacy, publié)
 
 **Systeme** : Builder structured spec (Phase 2b Erisclave migration) — `EriniumFactionWeb/src/app/(admin)/admin/work/specs/[slug]/edit/` + API `POST/PATCH /api/work/v1/roadmap/specs`.
