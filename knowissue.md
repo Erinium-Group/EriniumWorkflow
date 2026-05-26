@@ -214,6 +214,13 @@ Trois mesures cumulatives appliquees dans EriAPI 1.8.3 :
 - **Cache statique de binding texture = piege** : si plusieurs systemes de rendu (TESR, TEISR, LayerRenderer) partagent un cache de "derniere texture liee" sans coordination, un appel exterieur peut invalider silencieusement le cache. Toujours reset au debut de chaque entree publique du renderer.
 - **Pourquoi le LayerRenderer joueur n'etait pas affecte** : `RenderPlayer` setup explicitement `GL_TEXTURE0` avant les layers (via `bindEntityTexture()` qui passe par `setActiveTexture(0)` implicitement dans le rendu d'entity). Le TEISR n'a pas ce setup garanti.
 
+### 2e iteration &mdash; 1.8.3 insuffisante, fix complementaire en 1.8.4 (2026-05-26)
+La 1.8.3 a corrige le slot de texture mais le rendu item restait casse en pratique. La 1.8.4 ajoute trois mesures complementaires :
+
+1. **Preload des textures au `ModelBakeEvent`** &mdash; `ArmorCosmeticManager.BakeHandler` force desormais `TextureManager.loadTexture(rl, new SimpleTexture(rl))` pour chaque texture de chaque cosmetique au moment du resource-pack-load. Si la `SimpleTexture` echoue silencieusement au premier render-time (IOException, decode error), elle est cachee comme `TextureUtil.MISSING_TEXTURE` pour le reste de la session &mdash; impossible a recuperer. Preload elimine cette fenetre d'erreur silencieuse et trace toute defaillance d'I/O immediatement avec le chemin attendu.
+2. **`ArmorCosmeticTEISR`** : ajout de `GlStateManager.enableTexture2D()` (au cas ou la pipeline GUI l'aurait desactive : item glint, debug overlay) + `disableAlpha()`/`enableAlpha()` autour du rendu pour neutraliser le test alpha a 0.1 applique par `renderItemModelIntoGUI` (cohabitation cohenrente avec le layer renderer joueur).
+3. **`BlockbenchRenderer.bindTexture`** : log diagnostique **one-shot par texture par session** affichant le `ResourceLocation`, le `glTextureId`, et un flag `missing=true/false`. Permet de confirmer ou infirmer rapidement, sur la base d'une seule ligne de console, si le bug residuel viendrait d'un cache `MISSING_TEXTURE` perimee.
+
 ---
 
 ## 2026-05-25 — Web : CSS leak des specs legacy via `dangerouslySetInnerHTML` (sidebar/body casses)
