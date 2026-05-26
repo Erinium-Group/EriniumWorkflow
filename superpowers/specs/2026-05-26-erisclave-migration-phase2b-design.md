@@ -73,7 +73,7 @@ La Phase 2a a livré le CRUD complet de la roadmap (projects + tasks) avec DnD e
   - Header sticky : titre inline + badge draft/published + boutons Aperçu, Publier/Dépublier, Supprimer
   - Sidebar gauche : liste features avec DnD reorder + bouton "+ Feature" (dropdown 11 types) + delete au hover
   - Form zone : `FeatureFormPanel` dispatching vers `FieldRenderer` selon le type du champ
-  - 8 field components : `TextField`, `LongTextField`, `SelectField`, `ListField`, `TableField`, `ChecklistField`, `ImageField` (URL string MVP), `TagsField`
+  - 7 field components (1 par type Electron) : `TextField`, `LongTextField`, `SelectField`, `ListField`, `TableField`, `ChecklistField`, `ImageField` (URL string MVP)
   - `PreviewModal` : iframe sandboxed avec HTML rendu via endpoint preview
   - `AutosaveIndicator` : "Enregistré ✓ (il y a Xs)" / spinner / erreur
 - **Viewer `/admin/work/specs/[slug]`** (existant P1) : ajout d'un badge "brouillon" si `isDraft` + bouton "Éditer" visible si `canEdit && answers !== null` (legacy = caché)
@@ -220,7 +220,7 @@ CREATE INDEX IF NOT EXISTS work_roadmap_specs_draft_idx
 | `FeaturesSidebar` | `components/work/specs/editor/FeaturesSidebar.tsx` |
 | `FeatureFormPanel` | `components/work/specs/editor/FeatureFormPanel.tsx` |
 | `FieldRenderer` | `components/work/specs/editor/FieldRenderer.tsx` |
-| `TextField`, `LongTextField`, `SelectField`, `ListField`, `TableField`, `ChecklistField`, `ImageField`, `TagsField` | `components/work/specs/editor/fields/*.tsx` |
+| `TextField`, `LongTextField`, `SelectField`, `ListField`, `TableField`, `ChecklistField`, `ImageField` | `components/work/specs/editor/fields/*.tsx` |
 | `PreviewModal` | `components/work/specs/editor/PreviewModal.tsx` |
 | `AutosaveIndicator` | `components/work/specs/editor/AutosaveIndicator.tsx` |
 
@@ -309,7 +309,7 @@ beforeunload → prompt natif browser
 11. Page `/edit` scaffold (layout 3 zones + reducer + useSpec mount + redirect legacy)
 12. FeaturesSidebar (liste + add dropdown 11 types + DnD reorder + delete)
 13. FeatureFormPanel + FieldRenderer dispatch
-14. 8 FieldComponents (text, longtext, select, list, table, checklist, image URL, tags)
+14. 7 FieldComponents (text, longtext, select, list, table, checklist, image URL)
 15. SpecEditorHeader (titre inline + badges + boutons)
 16. useAutosave hook + AutosaveIndicator + beforeunload + navigation guard
 
