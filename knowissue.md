@@ -5,6 +5,52 @@
 
 ---
 
+## 2026-05-26 — Site Web : staff ajoute via Work Panel n'apparait pas comme staff (bouton Admin manquant + acces panel refuse)
+
+### Symptome
+
+Un utilisateur ajoute comme staff via le Work Panel (`/admin/work/staff` -> bouton "Ajouter un staff" -> POST `/api/work/v1/users/[id]/roles`) :
+
+- N'a PAS le bouton "Admin" dans la navbar (`components/layout/Header.tsx`).
+- Est redirige vers `/` quand il tente d'acceder a `/admin/*` (le layout `src/app/(admin)/layout.tsx` check `user?.isStaff` et redirect si false).
+- L'API `/api/auth/me` retourne `isStaff: false` et `staffRole: null` pour ce user.
+
+### Cause racine
+
+Deux systemes staff coexistent dans la DB :
+
+1. **Legacy** : table `staff` (colonnes `user_id`, `role`, `permissions` JSON). Alimentee par l'ancienne page `/admin/staff` via `addStaff()`.
+2. **Nouveau (Work Panel, Phase 1 Erisclave)** : tables `staff_roles` + `staff_user_roles` + `staff_role_permissions`. Alimentee par `/api/work/v1/users/[id]/roles` via `assignStaffRoleToUser()`.
+
+Le helper `isStaff(userId)` dans `src/lib/db/index.ts` lisait **uniquement la table legacy `staff`** (`SELECT id FROM staff WHERE user_id = $1`). Pareil pour `getStaffRole()` et `getStaffPermissions()` qui passaient par `getStaffMember()` (lit `staff`).
+
+Resultat : tout staff ajoute via Work Panel a une entree dans `staff_user_roles` mais PAS dans `staff` -> `isStaff()` retourne `false` -> navbar/admin layout/admin APIs refusent l'acces.
+
+Le backfill `initDb()` qui copie `staff` -> `staff_user_roles` ne fait l'inverse (Work Panel -> legacy) JAMAIS, donc les nouveaux ajouts via Work Panel ne sont jamais syncs.
+
+### Solution
+
+Refactoring de 3 helpers DB dans `src/lib/db/index.ts` pour lire `staff_user_roles` (nouveau systeme = source de verite) :
+
+- `isStaff(userId)` -> `SELECT 1 FROM staff_user_roles WHERE user_id = $1 LIMIT 1` (owner court-circuit conserve via `isOwner`).
+- `getStaffRole(userId)` -> jointure `staff_user_roles` + `staff_roles`, retourne le slug du role de plus haute priorite (priority ASC, id ASC).
+- `getStaffPermissions(userId)` -> union des permissions via `staff_user_roles` + `staff_role_permissions` (coherent avec `resolvePermissions` de `lib/work/permissions.ts`). Owner retourne `["*"]` pour matcher le wildcard.
+
+Adaptation correlative dans `src/lib/auth/admin-middleware.ts` : `requirePermission(req, "shop")` etc. utilisaient `staffPermissions.includes("shop")` (perm macro legacy). Le nouveau systeme stocke des perms granulaires (`shop.read`, `shop.update`, ...). Ajout d'un helper `hasLegacyPermission` qui matche :
+
+- wildcard `*`
+- perm exacte (`shop`)
+- wildcard de feature (`shop.*`)
+- N'importe quelle perm granulaire commencant par `shop.` (ex : `shop.read`).
+
+### Lecons
+
+- Quand on migre vers un nouveau systeme, **chercher TOUS les call sites de l'ancien systeme** et migrer chacun explicitement (pas juste les nouveaux endpoints).
+- Eviter de garder une compat retro silencieuse (lire l'ancienne table) qui marche pour les anciens users mais casse silencieusement les nouveaux.
+- Quand un user dit "rien n'apparait dans la navbar" : remonter la chaine `composant -> store -> API -> helper DB -> requete SQL` et verifier que la requete cible bien la table source de verite actuelle.
+
+---
+
 ## 2026-05-26 — Work Panel /admin/work/staff : boutons Add+Remove oublies a la migration
 
 ### Symptome
