@@ -5,6 +5,69 @@
 
 ---
 
+## 2026-05-26 — Phase 6a Annonces : migration SQL casse en prod (column "deleted_at" does not exist) + 500 sur /api/work/v1/announcements
+
+### Symptome
+
+Apres deploiement Phase 6a (annonces) sur Vercel :
+
+1. Migration manuelle `migrations/phase7-announcements-kb.sql` lancee dans le Neon SQL editor renvoie :
+   ```
+   ERROR: column "deleted_at" does not exist (SQLSTATE 42703)
+   ```
+   sur le `CREATE INDEX IF NOT EXISTS idx_announcements_pin_created ON announcements(pinned DESC, created_at DESC) WHERE deleted_at IS NULL`.
+
+2. Front renvoie `500 internal_error` sur `GET /api/work/v1/announcements?active_only=true&limit=100`.
+
+### Cause racine
+
+`_initDbInternal()` dans `src/lib/db/index.ts` contenait un **leftover DDL Phase 5 prototype** qui creait les tables `announcements` et `kb_articles` AVANT le bloc Phase 6 :
+
+```ts
+// Code legacy supprime :
+await exec(`CREATE TABLE IF NOT EXISTS announcements (
+  id           SERIAL PRIMARY KEY,
+  title        TEXT NOT NULL,
+  body         TEXT NOT NULL,        -- !!! pas body_html
+  priority     TEXT NOT NULL,        -- !!! pas severity
+  visibility   TEXT NOT NULL,        -- !!! YAGNI scope retire
+  visibility_data JSONB,
+  expires_at   TIMESTAMPTZ,          -- !!! pas ends_at
+  ...
+)`);
+```
+
+Au cold start Vercel, ce DDL s'executait avant la nouvelle DDL Phase 6. Resultat :
+
+- La table `announcements` existait deja avec le schema prototype.
+- Le `CREATE TABLE IF NOT EXISTS announcements (...)` Phase 6 etait skip silencieusement (Postgres ne valide PAS la compatibilite du schema).
+- Les requetes Phase 6a `WHERE deleted_at IS NULL` cassaient car la colonne n'existait pas dans l'ancienne structure.
+- Le `CREATE INDEX ... WHERE deleted_at IS NULL` cassait pour la meme raison.
+
+En plus, les seeds de permissions utilisaient des slugs fictifs (`'admin', 'lead'` et `'mod', 'support'`) qui ne correspondaient pas aux SYSTEM_ROLES reels (`admin`, `moderator`, `event_team`, `support`, `builder`, `default_staff`). Du coup `moderator`, `event_team`, `builder`, `default_staff` n'avaient PAS les perms `announcements.read` + `announcements.ack` apres seed.
+
+### Solution
+
+1. Supprime le bloc DDL legacy `CREATE TABLE IF NOT EXISTS announcements (...)` et `CREATE TABLE IF NOT EXISTS kb_articles (...)` de `_initDbInternal()` (`src/lib/db/index.ts` lignes ~685-711).
+2. Supprime les `ALTER TABLE announcements ADD COLUMN tsv` et `ALTER TABLE kb_articles ADD COLUMN tsv` (legacy Phase 5, plus utilises).
+3. Aligne les seeds de permissions sur les vrais slugs SYSTEM_ROLES (`'admin'` pour CRUD, `'moderator', 'event_team', 'support', 'builder', 'default_staff'` pour read+ack).
+4. **Cleanup prod manuel obligatoire** : avant le prochain cold start, drop les tables legacy en prod :
+   ```sql
+   DROP TABLE IF EXISTS announcement_acks CASCADE;
+   DROP TABLE IF EXISTS announcements CASCADE;
+   DROP TABLE IF EXISTS kb_articles CASCADE;
+   ```
+   Puis rerun `migrations/phase7-announcements-kb.sql` (idempotent, recreera tout avec le bon schema).
+
+### Lecons
+
+- `CREATE TABLE IF NOT EXISTS` est **dangereux apres une evolution de schema** : Postgres skip silencieusement si la table existe, meme si les colonnes sont totalement differentes. Pas d'erreur, pas de warning -> on croit que la migration est passee alors qu'elle n'a rien fait.
+- Quand on remplace un prototype par une vraie implementation, **chercher TOUS les leftover DDL dans `_initDbInternal()`** et les supprimer avant d'ajouter le nouveau. Pas juste ajouter le nouveau a cote.
+- Toujours **aligner les seeds de roles sur la source de verite** (`SYSTEM_ROLES` dans `lib/work/system-roles.ts`) plutot que d'inventer des slugs au feeling (`'lead'`, `'mod'` n'existent pas).
+- Apres une migration qui touche `_initDbInternal()`, **prevoir un cleanup script** pour purger les structures legacy en prod (pas juste compter sur l'idempotence des CREATE IF NOT EXISTS).
+
+---
+
 ## 2026-05-26 — Site Web : staff ajoute via Work Panel n'apparait pas comme staff (bouton Admin manquant + acces panel refuse)
 
 ### Symptome
