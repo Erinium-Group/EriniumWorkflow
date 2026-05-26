@@ -5,6 +5,55 @@
 
 ---
 
+## 2026-05-26 — Phase 6b KB : migration SQL casse sur kb_articles (generation expression is not immutable)
+
+### Symptome
+
+Apres avoir purge les tables legacy et relance `migrations/phase7-announcements-kb.sql`, 8 CREATE passent (announcements + indexes + announcement_acks + kb_spaces + kb_categories) puis erreur sur le 9eme :
+
+```
+ERROR: generation expression is not immutable (SQLSTATE 42P17)
+```
+
+sur le `CREATE TABLE kb_articles (...)` qui contient `search_tsv TSVECTOR GENERATED ALWAYS AS (... to_tsvector('french', ...) ...) STORED`.
+
+### Cause racine
+
+Postgres impose que les expressions dans une colonne `GENERATED ALWAYS AS (...) STORED` soient `IMMUTABLE`. Or `to_tsvector(text, text)` est marquee `STABLE` (pas `IMMUTABLE`) car le resultat depend du `search_path` au moment du lookup du dictionary `'french'`. Meme passer un literal qui semble constant ne suffit pas — Postgres regarde la signature de la fonction.
+
+`to_tsvector(regconfig, text)` (autre overload) EST `IMMUTABLE` mais on ne peut pas le forcer fiablement depuis du SQL inline.
+
+### Solution
+
+Encapsuler la logique de calcul de `search_tsv` dans une fonction SQL declarative marquee `IMMUTABLE` :
+
+```sql
+CREATE OR REPLACE FUNCTION kb_articles_compute_search_tsv(
+  p_title     TEXT,
+  p_body_html TEXT,
+  p_tags      TEXT[]
+) RETURNS TSVECTOR
+LANGUAGE SQL
+IMMUTABLE
+AS $$
+  SELECT
+    setweight(to_tsvector('french', coalesce(p_title, '')), 'A') ||
+    setweight(to_tsvector('french', coalesce(regexp_replace(p_body_html, '<[^>]+>', ' ', 'g'), '')), 'B') ||
+    setweight(to_tsvector('french', coalesce(array_to_string(p_tags, ' '), '')), 'A')
+$$;
+```
+
+Postgres ne valide PAS le contenu — il fait confiance au declarator. Comme on hardcode `'french'`, la fonction est genuinely immutable (sortie depend uniquement des inputs). On peut ensuite l'utiliser dans `GENERATED ALWAYS AS (kb_articles_compute_search_tsv(title, body_html, tags)) STORED`.
+
+### Lecons
+
+- Les colonnes `GENERATED ALWAYS AS (...) STORED` exigent `IMMUTABLE` strict — tout call de fonction `STABLE`/`VOLATILE` casse.
+- `to_tsvector('french', text)` et la plupart des fonctions de recherche textuelle Postgres sont `STABLE`, pas `IMMUTABLE`.
+- La workaround standard est une fonction wrapper SQL `IMMUTABLE` qui hardcode tous les parametres non-input (config dictionnaire, etc.).
+- A retenir pour toute future colonne generee qui touche au full-text search ou aux fonctions de date/timezone.
+
+---
+
 ## 2026-05-26 — Phase 6a Annonces : migration SQL casse en prod (column "deleted_at" does not exist) + 500 sur /api/work/v1/announcements
 
 ### Symptome
