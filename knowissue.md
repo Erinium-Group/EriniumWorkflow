@@ -5,6 +5,28 @@
 
 ---
 
+## 2026-05-26 — Erisclave P2b : bugs CSS texte invisible (light + dark theme)
+
+### Spec editor : placeholders + bouton "Apercu" blancs sur fond clair
+
+**Symptome** : Dans le builder structured (/admin/work/specs/<slug>/edit), tous les inputs TextField/LongTextField/SelectField/ListField/TableField/ImageField + le titre feature inline + le bouton "Apercu" du header ont du texte invisible (blanc sur fond cream/blanc). Impossible de voir ce qu'on tape ou les placeholders.
+
+**Cause racine** : Le body globals.css definit `color: #E8E8F0` (light text, design dark theme). Les composants Erisclave (cream/light theme) utilisent `bg-white` ou `bg-cream-*` sans override de `color` -> les inputs heritent #E8E8F0 -> blanc sur blanc.
+
+**Solution** : Ajouter `text-erisclave-ink placeholder:text-erisclave-ink-soft/50` (ou juste `text-erisclave-ink` pour les non-placeholders) sur les className de tous les composants du spec editor : 7 FieldComponents + FeatureFormPanel title input + SpecEditorHeader edit-title input + bouton Apercu.
+
+### Calendar et dark theme : dropdown options blanches sur fond blanc
+
+**Symptome** : Sur les pages dark theme (Calendar, EventModal, Templates, Shop, ColumnDeleteModal), quand on ouvre un `<select>` native, les `<option>` apparaissent en texte blanc sur fond blanc OS -> illisibles. Ex : dropdown "Toutes categories" du calendrier.
+
+**Cause racine** : Les `<select>` dark theme ont `text-text-primary` (= light color #E8E8F0). Les options natives heritent cette couleur. Le navigateur affiche le dropdown OS avec bg blanc par defaut -> blanc sur blanc.
+
+**Solution** : Ajouter `[&_option]:bg-bg-surface [&_option]:text-text-primary` (Tailwind arbitrary variant) sur chaque `<select>` dark theme. Cela force background+color sur tous les `<option>` descendants, contournant le styling OS par defaut.
+
+**Note technique** : Le styling de `<option>` native est limite par les navigateurs mais `background-color` + `color` sont supportes sur Chrome/Firefox/Edge depuis longtemps.
+
+---
+
 ## 2026-05-26 — Erisclave P2b : autosave 500 + viewer structured non rendu
 
 ### Probleme 1 : Autosave PATCH 500 sur edition champ
