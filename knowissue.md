@@ -5,6 +5,36 @@
 
 ---
 
+## 2026-05-26 — Erisclave P2b : limitations connues (multi-user, legacy, publié)
+
+**Systeme** : Builder structured spec (Phase 2b Erisclave migration) — `EriniumFactionWeb/src/app/(admin)/admin/work/specs/[slug]/edit/` + API `POST/PATCH /api/work/v1/roadmap/specs`.
+
+### Probleme 1 — Concurrence multi-user
+
+Si 2 staffs editent le meme spec simultanement, le dernier qui sauvegarde ecrase l'autre. Pas de lock optimiste ni de versioning en MVP. L'autosave de 1.5s rend le risque non negligeable sur les specs partages.
+
+**Mitigation MVP** : Communiquer en interne (Discord staff) avant d'editer un spec partage. V2 prevue avec versioning + diff visuel + resolution de conflit (champ `version` en DB + check `If-Match`).
+
+### Probleme 2 — Specs legacy non-editables
+
+Les 54 specs importes depuis l'app Electron Erisclave (Phase 1, import P1-T7) ont `answers IS NULL` en DB et seulement `raw_html` rempli. Le bouton "Editer" est masque sur ces specs (condition `canEdit && spec.answers !== null` dans le viewer T23). Le builder structured ne peut pas les convertir automatiquement (parsing HTML maison trop variable, l'effort depasse le ROI).
+
+**Workaround** : Creer un nouveau spec structured pour remplacer un legacy via le bouton "+ Brouillon" sur la card du project, puis supprimer le legacy via le bouton "Supprimer ce spec" du viewer.
+
+### Probleme 3 — Edition d'un spec publie ecrase la version live
+
+Un spec publie (`is_draft = false`) reste editable depuis `/admin/work/specs/<slug>/edit`. Chaque autosave reecrit directement la version live (pas de branchement "draft d'une publication"). Si vous voulez tester de gros changements, depubliez d'abord via le toggle "Publier"/"Depublier" dans le header de l'editeur.
+
+**V2 prevue** : workflow draft-of-published — clone du spec en draft sur "Edit publie", merge explicite sur "Publier". Sans ca, pas de moyen propre de tester sans impact prod.
+
+### Lecons
+
+- **Multi-user editing sans versioning = guaranteed data loss** : meme avec un autosave debounce, 2 sessions concurrentes finiront par s'ecraser. Le check `updated_at` cote client n'est PAS suffisant si on ecrit l'`answers` entier a chaque save (pas de merge de champs).
+- **Convertir du HTML legacy en structured est un piege ROI** : si chaque spec a son propre layout HTML (Quill, exports varies), l'effort de parser depasse l'effort de re-saisir manuellement (54 specs ~= 1-2 jours de travail manuel vs. 1 semaine pour un parser fiable + tests).
+- **Toggle publish ≠ branchement draft/live** : un toggle isDraft sur la meme ligne DB ne donne PAS de branche. La feature "test publishing changes" demande une vraie structure draft_of (FK self-reference ou table revisions).
+
+---
+
 ## 2026-05-26 — EriAPI cosmetic : texture missing-texture (rose/noir) en contexte item (TEISR)
 
 **Systeme** : `EriAPI/cosmetic` &mdash; `ArmorCosmeticTEISR` + `BlockbenchRenderer`. Bug visible sur le cosmetique de test `BARRY_MASK` d'EriniumFaction.
