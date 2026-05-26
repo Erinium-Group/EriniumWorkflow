@@ -592,14 +592,23 @@ L'Owner court-circuite la resolution DB et obtient toujours `*` sans entree en b
 | `tickets.update` | Assigner / changer statut / repondre |
 | `tickets.delete` | Supprimer un ticket (apres resolution) |
 
-#### `announcements.*` — annonces internes (Phase 6, **a venir**)
+#### `announcements.*` — annonces internes (Phase 6a, **implementee**)
 
 | Permission | Description |
 |------------|-------------|
-| `announcements.create` | Publier une annonce staff (epinglee / par audience) |
-| `announcements.read` | Lire les annonces |
-| `announcements.update` | Modifier une annonce |
-| `announcements.delete` | Supprimer une annonce |
+| `announcements.create` | Publier une annonce staff (audience = tout le staff actif). Genere une notification de masse + un mention specifique pour les users @-mentionnes dans le body. Si `post_to_discord=true`, diffuse aussi via webhook. |
+| `announcements.read` | Lire les annonces sur `/admin/work/announcements`. Sans cette perm, la page renvoie AccessDenied (403). |
+| `announcements.update` | Modifier une annonce existante (titre, body, severity, dates, pinned). Couvre aussi le toggle pin/unpin via le bouton dedie. |
+| `announcements.delete` | Supprimer une annonce (soft delete, `deleted_at`). |
+| `announcements.ack` | Acquitter ("J'ai vu") une annonce. Idempotent : un user ne peut ack qu'une seule fois. Le compteur d'acks + la liste sont visibles dans le detail. |
+| `announcements.pin` | Reserve : techniquement le toggle pin est sous `announcements.update` (cf. ci-dessus). Cette perm existe pour permettre une separation future (ex : retirer le pin sans accorder l'edition complete). |
+
+> **Seed** :
+> - `admin` et `lead` -> les 6 perms (CRUD + ack + pin) via un seed SQL post-bootstrap.
+> - `mod` et `support` -> `announcements.read` + `announcements.ack` uniquement.
+> - `event_team` -> `announcements.create` + `announcements.update` (defini dans `SYSTEM_ROLES`, sans `read` ni `ack` — un admin doit ajouter `read` si l'event team doit naviguer sur la page).
+> - `default_staff` -> `announcements.read` uniquement (lecture seule, pas d'ack par defaut).
+> - Tout autre role custom doit recevoir les perms manuellement via `/admin/work/roles`.
 
 #### `kb_articles.*` — Knowledge Base interne (Phase 6, **a venir**)
 
