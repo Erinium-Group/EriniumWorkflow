@@ -5,6 +5,34 @@
 
 ---
 
+## 2026-05-26 — EriAPI cosmetic : texture missing-texture (rose/noir) en contexte item (TEISR)
+
+**Systeme** : `EriAPI/cosmetic` &mdash; `ArmorCosmeticTEISR` + `BlockbenchRenderer`. Bug visible sur le cosmetique de test `BARRY_MASK` d'EriniumFaction.
+
+### Probleme
+Le modele 3D Blockbench des cosmetiques d'armure s'affichait correctement (geometrie + transforms du `display` field OK) dans **tous** les contextes d'item (inventaire, hotbar, premiere/troisieme personne, sol, item frame, GUI), MAIS la texture etait remplacee par le pattern missing-texture rose/noir caracteristique. Sur le joueur via `ArmorCosmeticLayer`, la texture s'affichait correctement &mdash; le bug etait specifique au TEISR.
+
+### Cause racine
+Deux problemes cumulatifs cote rendu OpenGL :
+
+1. **Slot de texture incorrect** : la pipeline vanilla `RenderItem.renderItem(stack, IBakedModel)` peut laisser `GL_TEXTURE1` (utilise pour le lightmap) comme unite de texture **active** lorsqu'elle delegue au `TileEntityItemStackRenderer.renderByItem`. `Minecraft.getTextureManager().bindTexture(rl)` bind la texture sur l'unite *actuellement* active. Si c'est le slot 1, le shader fragment continue d'echantillonner le slot 0 (qui contient encore l'item atlas ou n'importe quelle texture residuelle laissee par le rendu precedent), d'ou le rendu casse en rose/noir.
+
+2. **Cache statique potentiellement perime** : le champ `BlockbenchRenderer.lastBoundTexture` court-circuite le rebind lorsque la meme ResourceLocation a deja ete liee. Mais entre deux appels (player layer puis TEISR, ou deux TEISR successifs), un autre systeme de rendu peut avoir lie une texture differente sur le slot 0 &mdash; le cache devient un mensonge et le rendu est dessine avec la mauvaise texture.
+
+### Solution
+Trois mesures cumulatives appliquees dans EriAPI 1.8.3 :
+
+1. **`ArmorCosmeticTEISR.renderByItem`** : force `GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit)` AVANT tout dessin, et restaure ce slot a la sortie (defensif).
+2. **`BlockbenchRenderer.bindTexture`** : force `setActiveTexture(defaultTexUnit)` juste AVANT chaque `TextureManager.bindTexture()`, comme safety net peu importe le contexte d'appel.
+3. **Reset du cache** : `lastBoundTexture = null` au debut de chaque methode publique de `BlockbenchRenderer` &mdash; deja en place, confirme correct pour eviter les caches perimes entre appels successifs.
+
+### Lecons
+- **Toujours `setActiveTexture(defaultTexUnit)` avant un `bindTexture()` dans un TEISR** : RenderItem ne garantit pas que `GL_TEXTURE0` est le slot actif lors de l'invocation d'un `TileEntityItemStackRenderer`. Le bug se manifeste UNIQUEMENT dans certains contextes (inventaire/main/sol/GUI) parce que le lightmap est setup differemment selon le pipeline qui appelle le TEISR.
+- **Cache statique de binding texture = piege** : si plusieurs systemes de rendu (TESR, TEISR, LayerRenderer) partagent un cache de "derniere texture liee" sans coordination, un appel exterieur peut invalider silencieusement le cache. Toujours reset au debut de chaque entree publique du renderer.
+- **Pourquoi le LayerRenderer joueur n'etait pas affecte** : `RenderPlayer` setup explicitement `GL_TEXTURE0` avant les layers (via `bindEntityTexture()` qui passe par `setActiveTexture(0)` implicitement dans le rendu d'entity). Le TEISR n'a pas ce setup garanti.
+
+---
+
 ## 2026-05-25 — Web : CSS leak des specs legacy via `dangerouslySetInnerHTML` (sidebar/body casses)
 
 **Systeme** : `EriniumFactionWeb/src/components/work/roadmap/SpecLegacyRenderer.tsx` (Phase 6 Erisclave migration — viewer roadmap read-only).
