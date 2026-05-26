@@ -5,6 +5,41 @@
 
 ---
 
+## 2026-05-26 — Work Panel /admin/work/staff : boutons Add+Remove oublies a la migration
+
+### Symptome
+
+Apres la migration de l'ancienne page `/admin/staff` vers le nouveau Work Panel `/admin/work/staff`, deux fonctionnalites critiques manquaient :
+
+1. **Aucun bouton "Ajouter un staff"** : impossible de promouvoir un user OAuth-connecte en staff via l'UI. La seule facon de creer un staff etait de lui assigner un role manuellement via la table users en DB.
+2. **Aucun bouton "Retirer du staff"** : on pouvait retirer les roles un par un (via la liste des roles assignes), mais pas faire un bulk-remove en une operation pour entierement deprivilegier un user.
+
+### Cause racine
+
+La migration s'est concentree sur l'affichage de la liste + le panneau lateral des roles. Les actions write top-level (ajouter user / retirer user) n'ont pas ete portees car elles existaient avant sous forme de modals dedies (`/admin/staff/AddStaffModal` ancien) qui n'ont pas ete migres.
+
+### Solution
+
+**Backend (2 nouveaux endpoints + 2 DB helpers)** :
+
+- `GET /api/work/v1/users/search?q=&limit=` : cherche users non-staff par discord_name (LIKE) ou discord_id (egalite stricte si full numeric). Exclut l'owner. Permission `staff.update`.
+- `DELETE /api/work/v1/staff/[id]` : bulk remove de tous les staff_user_roles d'un user (sauf role "owner" defensif). Audit log granulaire (1 entry `user.role.unassign` par role retire, `bulk_remove:true` dans le diff). Defensif via `isOwnerDiscordId(user.discord_id)` -> 403 owner_protected. Permission `staff.update`.
+- DB helpers `searchNonStaffUsers` et `removeAllStaffRolesFromUser` dans `src/lib/db/index.ts`.
+
+**Frontend (1 modal + 2 boutons)** :
+
+- `AddStaffModal.tsx` : search debounced (250ms), liste resultats clicables, dropdown de roles (exclut owner via slug ET permissions wildcard `*`), POST sur `/api/work/v1/users/[userId]/roles` apres choix. Style cohérent Work Panel dark.
+- Bouton "+ Ajouter un staff" dans le header de la page (a cote du compteur "X membres").
+- Bouton "Retirer du staff" rouge dans le panneau lateral droit (sous "Roles assignes"). Hidden si user est owner (detection multi-source : slug "owner" OU role avec permission `*`). Confirmation via `ConfirmDialog`.
+
+### Lecons
+
+- Verifier l'exhaustivite des features lors d'une migration : lister toutes les actions de l'ancienne page, mapper chaque action vers la nouvelle.
+- Pour les operations bulk : preserver la granularite dans l'audit log (1 entry par sous-action) facilite le traceback meme si l'API expose une seule operation.
+- Defense en profondeur sur l'owner : check cote UI (hide bouton) + check cote serveur (`isOwnerDiscordId`). L'UI peut faire un faux-negatif si les donnees sont incoherentes — le serveur reste la source de verite.
+
+---
+
 ## 2026-05-26 — Erisclave P2b : bugs CSS texte invisible (light + dark theme)
 
 ### Spec editor : placeholders + bouton "Apercu" blancs sur fond clair
