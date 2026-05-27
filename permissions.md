@@ -610,14 +610,20 @@ L'Owner court-circuite la resolution DB et obtient toujours `*` sans entree en b
 > - `default_staff` -> `announcements.read` uniquement (lecture seule, pas d'ack par defaut).
 > - Tout autre role custom doit recevoir les perms manuellement via `/admin/work/roles`.
 
-#### `kb_articles.*` — Knowledge Base interne (Phase 6, **a venir**)
+#### `kb.*` — Knowledge Base interne (Phase 6b, **implementee**)
 
-| Permission | Description |
-|------------|-------------|
-| `kb_articles.create` | Creer un article (procedure, runbook, FAQ) |
-| `kb_articles.read` | Consulter la KB |
-| `kb_articles.update` | Editer un article (avec versions) |
-| `kb_articles.delete` | Supprimer un article |
+| Permission | Description | Roles seedes |
+|------------|-------------|--------------|
+| `kb.read` | Lire les articles | `admin`, `moderator`, `event_team`, `support`, `builder`, `default_staff` |
+| `kb.create` | Creer space / category / article | `admin` |
+| `kb.update` | Editer (versioning auto) | `admin` |
+| `kb.delete` | Soft-delete article / restore version | `admin` |
+
+> **Seed** :
+> - `admin` -> les 4 perms (CRUD complet).
+> - `moderator`, `event_team`, `support`, `builder`, `default_staff` -> `kb.read` uniquement.
+> - Tout autre role custom doit recevoir les perms manuellement via `/admin/work/roles`.
+> - Note : les anciens seeds `kb_articles.*` (feature stub jamais buildee) ont ete supprimes — les vraies perms du systeme Knowledge Base sont `kb.*`.
 
 #### `work.roadmap.*` — Roadmap & specs (Phase 6 — Erisclave migration)
 
@@ -681,11 +687,11 @@ L'Owner court-circuite la resolution DB et obtient toujours `*` sans entree en b
 |------|-------------|---------|----------|------------------------|
 | `owner` | Owner | `#FFD700` | 1 | `*` — bypass total |
 | `admin` | Administrateur | `#9B4FCF` | 10 | Toutes les perms **sauf** `roles.delete` (reserve Owner) |
-| `moderator` | Moderateur | `#3498DB` | 20 | `cards.*`, `comments.*`, `tickets.*`, lectures (boards/workspaces/events/announcements/kb), `audit_log.read`, `staff.read`, `mc.player.view/kick/mute` |
-| `builder` | Builder | `#2ECC71` | 30 | Read workspaces/boards/events/kb + CRUD `cards.*` + CRUD `comments.*` |
-| `event_team` | Event Team | `#E67E22` | 40 | Read workspaces/boards/kb + CRUD `cards.*` + CRUD `events.*` + `announcements.create/update` + `mc.command.exec` |
-| `support` | Support | `#00E5FF` | 50 | CRUD `tickets.*` + `cards.read` + `kb_articles.read` + `mc.player.view` + `announcements.read` |
-| `default_staff` | Staff (defaut) | `#8892A4` | 100 | Lectures seulement (workspaces/boards/cards/comments/events/announcements/kb) + `comments.create` |
+| `moderator` | Moderateur | `#3498DB` | 20 | `cards.*`, `comments.*`, `tickets.*`, lectures (boards/workspaces/events/announcements) + `kb.read`, `audit_log.read`, `staff.read`, `mc.player.view/kick/mute` |
+| `builder` | Builder | `#2ECC71` | 30 | Read workspaces/boards/events + `kb.read` + CRUD `cards.*` + CRUD `comments.*` |
+| `event_team` | Event Team | `#E67E22` | 40 | Read workspaces/boards + `kb.read` + CRUD `cards.*` + CRUD `events.*` + `announcements.create/update` + `mc.command.exec` |
+| `support` | Support | `#00E5FF` | 50 | CRUD `tickets.*` + `cards.read` + `kb.read` + `mc.player.view` + `announcements.read` |
+| `default_staff` | Staff (defaut) | `#8892A4` | 100 | Lectures seulement (workspaces/boards/cards/comments/events/announcements) + `kb.read` + `comments.create` |
 
 > **Migration legacy** : tous les utilisateurs ayant un grade in-game `staff`/`mod`/`admin` au premier boot recoivent automatiquement le role `default_staff` (cf. `EriniumFactionWeb/src/lib/auth/ensure-owner-role.ts`).
 
