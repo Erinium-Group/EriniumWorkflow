@@ -604,10 +604,9 @@ L'Owner court-circuite la resolution DB et obtient toujours `*` sans entree en b
 | `announcements.pin` | Reserve : techniquement le toggle pin est sous `announcements.update` (cf. ci-dessus). Cette perm existe pour permettre une separation future (ex : retirer le pin sans accorder l'edition complete). |
 
 > **Seed** :
-> - `admin` et `lead` -> les 6 perms (CRUD + ack + pin) via un seed SQL post-bootstrap.
-> - `mod` et `support` -> `announcements.read` + `announcements.ack` uniquement.
-> - `event_team` -> `announcements.create` + `announcements.update` (defini dans `SYSTEM_ROLES`, sans `read` ni `ack` — un admin doit ajouter `read` si l'event team doit naviguer sur la page).
-> - `default_staff` -> `announcements.read` uniquement (lecture seule, pas d'ack par defaut).
+> - `admin` -> les 6 perms (CRUD + ack + pin) via un seed SQL post-bootstrap.
+> - `moderator`, `event_team`, `support`, `builder`, `default_staff` -> `announcements.read` + `announcements.ack` via le meme seed post-bootstrap.
+> - `event_team` recoit en plus `announcements.create` + `announcements.update` via `SYSTEM_ROLES` (seed initial), donc finit avec `read + ack + create + update`.
 > - Tout autre role custom doit recevoir les perms manuellement via `/admin/work/roles`.
 
 #### `kb.*` — Knowledge Base interne (Phase 6b, **implementee**)
@@ -633,7 +632,7 @@ L'Owner court-circuite la resolution DB et obtient toujours `*` sans entree en b
 | `work.roadmap.edit` | Toggle tasks done, editer status/tags, creer & editer specs, editer projects. (P2) |
 | `work.roadmap.delete` | Supprimer specs / projects / tasks. (P2) |
 
-> **Seed** : ces 3 perms sont attribuees aux roles `admin` et `lead` au boot via `_initDbInternal()`. Les autres roles staff (incluant `default_staff`, `moderator`, `builder`, `event_team`, `support`) n'ont pas acces a la roadmap par defaut — un Admin doit les attribuer manuellement via `/admin/work/roles`.
+> **Seed** : ces 3 perms sont attribuees au role `admin` au boot via `_initDbInternal()`. Les autres roles staff (`moderator`, `builder`, `event_team`, `support`, `default_staff`) n'ont pas acces a la roadmap par defaut — un Admin doit les attribuer manuellement via `/admin/work/roles`. (Note : le SQL seed inclut historiquement un slug `lead` qui n'existe pas dans `SYSTEM_ROLES`, il est ignore silencieusement par le `WHERE r.slug IN (...)` — bug latent inoffensif.)
 
 #### `roles.*` — gestion des roles staff (Phase 2)
 
