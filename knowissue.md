@@ -5,6 +5,220 @@
 
 ---
 
+## 2026-05-28 — Player kick au login : NPE sur data.overlay.currentGUI (PlayerOverlayData non initialise)
+
+### Symptome
+
+Apres les fix capability precedents (commits 511e29c + 6777b2c), plus de crash client mais le joueur etait kick instantanement a la connexion avec :
+
+```
+[Server thread/INFO] [NetHandlerPlayServer]: JLSkyzer lost connection: Internal server error
+```
+
+Avec en amont dans le log serveur :
+
+```
+[Server thread/ERROR] [FML]: Exception caught during firing event TickEvent$PlayerTickEvent
+java.lang.NullPointerException: Cannot invoke "String.equalsIgnoreCase(String)" because "data.overlay.currentGUI" is null
+    at noppes.npcs.ServerTickHandler.cnpcPlayerTick(ServerTickHandler.java:94)
+```
+
+Le log au boot confirmait que `forceCapabilityWiring()` marchait bien (4 hashcodes distincts pour les 4 capabilities), mais le warning `WrapperEntityData.get() "getCapability returned ... PlayerData instead of WrapperEntityData (capability collision)"` apparaissait encore plusieurs fois.
+
+### Cause racine
+
+`PlayerData.get(player)` a un fallback vers une instance statique `backup` (un `PlayerData` vide) quand `getCapability` retourne un type incompatible (collision detectee par le `instanceof` defensif mis en place dans le fix precedent). Ce `backup` a bien son `overlay = new PlayerOverlayData()`, mais le champ `public String currentGUI` n'est jamais initialise par defaut. Il n'est sette que via `EventHooks.onPlayerScreen()` quand le joueur ouvre un ecran.
+
+Donc des le premier tick serveur d'un joueur dont le `getCapability` rate le typage exact, le code `data.overlay.currentGUI.equalsIgnoreCase("guichat")` faisait NPE et Forge interpretait l'exception dans `TickEvent.PlayerTickEvent` comme une erreur fatale -> kick "Internal server error".
+
+### Solution
+
+Fix en deux temps dans le repo `Erinium-Group/eriniumworld` (commit `a10c7ab`) :
+
+**1. Null guard inline dans `ServerTickHandler.java:94`** :
+
+```java
+String currentGUI = data.overlay != null ? data.overlay.currentGUI : null;
+if (currentGUI != null && (currentGUI.equalsIgnoreCase("guichat") || currentGUI.equalsIgnoreCase("guiingame"))) {
+    // ...
+}
+```
+
+Une seule occurrence dans tout le codebase (verifie par grep sur `currentGUI\.(equals|equalsIgnoreCase|contains|startsWith|...)`).
+
+**2. Defense in depth — initialisation defensive dans `PlayerOverlayData.java:25`** :
+
+```java
+public String currentGUI = "";
+```
+
+Verifie qu'aucun code ne compare `currentGUI == null` / `!= null` ailleurs (`grep` sans match), donc passer de `null` a `""` est safe.
+
+### Investigation Fix 4 (capability collision warning, non bloquant)
+
+Le warning `WrapperEntityData.get() "getCapability returned ... PlayerData instead of WrapperEntityData (capability collision)"` persiste meme avec `forceCapabilityWiring()` actif (les 4 hashcodes des capabilities sont distincts au boot).
+
+Hypothese investiguee : les interfaces `IPlayerDataHandler` et `IWrapperEntityDataHandler` sont **structurellement identiques** (memes methodes `NBTTagCompound getNBT()` + `void setNBT(NBTTagCompound)`). Sous Cleanroom + Java 25, le scan de `@CapabilityInject` peut considerer un provider attaché a l'entite comme valide pour les deux capabilities si la signature des handlers est identique — bien que les `Capability` instances Java soient distinctes apres le wiring force.
+
+Diagnostic concret : `PlayerData implements IPlayerDataHandler, ICapabilityProvider, ICustomPlayerData`. `ICustomPlayerData` est une interface vide (marker). Le warning vient probablement de Forge qui itere les `ICapabilityProvider` attaches a l'entite et appelle leur `hasCapability(WRAPPER_ENTITY_DATA_CAPABILITY, ...)` — celui de `PlayerData` retourne `false` correctement (test `capability == PlayerData.PLAYERDATA_CAPABILITY`), mais un autre provider attache (peut-etre un attach Forge tiers ou un AttachCapabilitiesEvent listener concurrent) retourne le PlayerData par erreur.
+
+Le warning est **non bloquant** grace au `instanceof` defensif qui force le fallback vers `WrapperEntityData.getData(entity)`. Pas de fix necessaire pour le moment. A surveiller : si le warning explose en volume (1000+ par seconde), creuser.
+
+### Lecons
+
+- Toujours **null-checker** les champs d'overlay/state qui peuvent provenir d'un backup non-initialise — meme si en theorie ils sont settes par un autre event handler.
+- Les NPE dans `TickEvent.PlayerTickEvent` sont remontees par FML comme erreurs fatales -> kick "Internal server error" automatique. Toujours wrapper le code dans des null guards pour eviter le kick.
+- Un fallback statique (`backup`) ne doit jamais avoir de champs critiques `null` par defaut — initialiser a `""`, `0`, `false`, ou `new XxxData()` selon le contexte.
+- Pattern Cleanroom-safe : init defensive a `""` pour les String, `instanceof` pour les casts, null guards explicites au lieu de se fier a `==` sur des refs potentiellement non-initialisees.
+
+---
+
+## 2026-05-28 — Suite : ClassCastException persiste apres null guards — @CapabilityInject injecte la meme instance
+
+### Symptome
+
+Apres le fix precedent (commit 511e29c, null guards + bail out), nouveau crash sous Cleanroom + Java 25 — ligne du crash change (49 -> 56 dans `WrapperEntityData.java`) mais le cast echoue toujours :
+
+```
+java.lang.ClassCastException: class noppes.npcs.controllers.data.PlayerData cannot be cast to class noppes.npcs.api.wrapper.WrapperEntityData
+    at noppes.npcs.api.wrapper.WrapperEntityData.get(WrapperEntityData.java:56)
+```
+
+Cela prouve que `WRAPPER_ENTITY_DATA_CAPABILITY` n'est PAS `null` (sinon le bail out aurait fire), mais `entity.getCapability(WRAPPER_ENTITY_DATA_CAPABILITY, null)` retourne quand meme un `PlayerData`.
+
+### Cause racine
+
+Sous Cleanroom + Java 25, le scan de `@CapabilityInject` a un bug : il injecte la **MEME instance** `Capability<?>` dans plusieurs champs static a la fois. Donc `PlayerData.PLAYERDATA_CAPABILITY == WrapperEntityData.WRAPPER_ENTITY_DATA_CAPABILITY` (meme reference Java). Resultat :
+- Forge itere les `ICapabilityProvider` attaches a l'entite
+- `PlayerData.hasCapability(WRAPPER_ENTITY_DATA_CAPABILITY, ...)` retourne `true` (car la reference est identique a `PLAYERDATA_CAPABILITY`)
+- Forge retourne le `PlayerData`
+- Le cast `(WrapperEntityData)` crash
+
+Les null guards mis en place precedemment n'attrapent pas ce cas car les capabilities **sont** non-null — elles sont juste toutes egales entre elles.
+
+### Solution
+
+Fix en deux temps dans le repo `Erinium-Group/eriniumworld` (commit `6777b2c`) :
+
+**1. `CustomNpcs.forceCapabilityWiring()`** : juste apres les 4 `CapabilityManager.INSTANCE.register(...)` dans `preload()`, on lit le champ private `CapabilityManager.providers` (`IdentityHashMap<String, Capability<?>>`) par reflection, puis on reassigne les 4 champs static aux vraies `Capability` instances :
+
+```java
+private void forceCapabilityWiring() {
+    java.lang.reflect.Field providersField = CapabilityManager.class.getDeclaredField("providers");
+    providersField.setAccessible(true);
+    IdentityHashMap<String, Capability<?>> providers = (IdentityHashMap<...>) providersField.get(CapabilityManager.INSTANCE);
+
+    Capability<?> playerDataCap = providers.get(IPlayerDataHandler.class.getName().intern());
+    Capability<?> markDataCap = providers.get(IMarkDataHandler.class.getName().intern());
+    Capability<?> wrapperEntityDataCap = providers.get(IWrapperEntityDataHandler.class.getName().intern());
+    Capability<?> itemStackWrapperCap = providers.get(IItemStackWrapperHandler.class.getName().intern());
+
+    setStaticField(PlayerData.class, "PLAYERDATA_CAPABILITY", playerDataCap);
+    setStaticField(MarkData.class, "CNPCS_MARKDATA_CAPABILITY", markDataCap);
+    setStaticField(WrapperEntityData.class, "WRAPPER_ENTITY_DATA_CAPABILITY", wrapperEntityDataCap);
+    setStaticField(ItemStackWrapper.class, "ITEMSCRIPTEDDATA_CAPABILITY", itemStackWrapperCap);
+
+    LogWriter.info("Forced capability wiring: PlayerData=" + System.identityHashCode(playerDataCap) + ...);
+}
+```
+
+Le log au boot doit montrer 4 `identityHashCode` **differents** — si identiques, le bug est ailleurs.
+
+**2. Defense in depth — `instanceof` au lieu de cast aveugle** dans les 4 endroits qui castent le resultat de `getCapability` :
+- `WrapperEntityData.java:56` (`get(Entity)`)
+- `PlayerData.java:255` (`get(EntityPlayer)`)
+- `MarkData.java:87` (`get(EntityLivingBase)`)
+- `WrapperNpcAPI.java:223` (`getIItemStack(ItemStack)`)
+
+Pattern :
+```java
+Object capObject = entity.getCapability(THE_CAPABILITY, null);
+if (capObject instanceof ExpectedType) {
+    data = (ExpectedType) capObject;
+} else {
+    if (capObject != null) {
+        LogWriter.warn("getCapability returned " + capObject.getClass().getName() + " instead of ExpectedType (capability collision) - using fallback");
+    }
+    data = null;
+}
+// fallback path...
+```
+
+Le cast vers `Object` n'emet pas de checkcast bytecode (le retour generique est efface vers `Object`), donc aucune ClassCastException meme si Forge retourne un type incompatible.
+
+### Lecons
+
+- Sous Cleanroom + Java 25, ne **jamais** se fier a `==` pour comparer des `Capability` instances issues de `@CapabilityInject` — toujours `instanceof` sur le resultat de `getCapability`.
+- L'annotation `@CapabilityInject` n'est pas fiable sur Cleanroom + Java 25 : elle peut soit ne pas firer (cause precedente, fix 511e29c), soit injecter la meme reference dans plusieurs champs (cause actuelle, fix 6777b2c). Toujours **wiring manuel** via reflection sur `CapabilityManager.providers` apres les `register(...)`.
+- Reflection sur `setAccessible(true)` pour des champs Forge prives est OK sous Cleanroom car on est dans l'unnamed module via `LaunchClassLoader` (confirme par le crash log : `in unnamed module of loader net.minecraft.launchwrapper.LaunchClassLoader`).
+- Cleanroom-safe : pas de `sun.*`, pas de `Unsafe`, pas de cast `AppClassLoader`, pas d'ASM brut — uniquement de la reflection standard sur des champs internes Forge.
+
+---
+
+## 2026-05-28 — Client ClassCastException PlayerData -> WrapperEntityData (Cleanroom + Java 25 + @CapabilityInject not firing)
+
+### Symptome
+
+Client crash immediat a la connexion serveur sous Cleanroom 0.5.12-alpha + OptiFine G6_pre1 + LoliASM 5.31 + Java 25 Oracle + Forge 1.12.2 :
+
+```
+java.lang.ClassCastException: class noppes.npcs.controllers.data.PlayerData cannot be cast to class noppes.npcs.api.wrapper.WrapperEntityData
+    at noppes.npcs.api.wrapper.WrapperEntityData.get(WrapperEntityData.java:49)
+    at noppes.npcs.api.wrapper.WrapperNpcAPI.getIEntity(WrapperNpcAPI.java:217)
+    at noppes.npcs.controllers.data.PlayerScriptData.getPlayer(PlayerScriptData.java:144)
+    at noppes.npcs.client.ClientEventHandler.cnpcRenderWorldLast(ClientEventHandler.java:1001)
+```
+
+### Cause racine
+
+Sous Cleanroom + Java 25, l'annotation `@CapabilityInject(IWrapperEntityDataHandler.class)` ne fire pas correctement pour le champ statique `WRAPPER_ENTITY_DATA_CAPABILITY` qui reste a `null`. Quand `WrapperEntityData.get(entity)` appelle `entity.getCapability(null, null)`, Forge itere les providers attaches a l'entite et appelle `hasCapability(null, ...)` sur chacun. Le code original etait :
+
+```java
+public boolean hasCapability(@Nonnull Capability<?> capability, EnumFacing facing) {
+    return capability == PlayerData.PLAYERDATA_CAPABILITY;
+}
+```
+
+Si `PLAYERDATA_CAPABILITY` est aussi `null` (meme cause d'echec d'injection), alors `null == null = true` -> `getCapability` retourne `(T) this` (PlayerData) -> ClassCastException quand le code consommateur cast vers WrapperEntityData.
+
+### Solution
+
+Defense in depth en deux temps dans le repo `Erinium-Group/eriniumworld` (commit 511e29cd) :
+
+**1. Null guards dans les 4 `hasCapability` qui comparent un champ statique injecte via `@CapabilityInject`** :
+- `noppes/npcs/controllers/data/PlayerData.java:178`
+- `noppes/npcs/controllers/data/MarkData.java:133`
+- `noppes/npcs/api/wrapper/WrapperEntityData.java:171`
+- `noppes/npcs/api/wrapper/ItemStackWrapper.java:327`
+
+Pattern applique :
+```java
+public boolean hasCapability(@Nonnull Capability<?> capability, EnumFacing facing) {
+    return capability != null && FIELD_CAPABILITY != null && capability == FIELD_CAPABILITY;
+}
+```
+
+Empeche le faux match `null == null = true` quand l'injection a foire.
+
+**2. Bail out explicite dans `WrapperEntityData.get()`** : juste avant l'appel `entity.getCapability(WRAPPER_ENTITY_DATA_CAPABILITY, null)`, on guard sur le null de la capability et on bypass directement vers le fallback `getData(entity)` :
+
+```java
+if (WrapperEntityData.WRAPPER_ENTITY_DATA_CAPABILITY == null) {
+    LogWriter.warn("WRAPPER_ENTITY_DATA_CAPABILITY is null (injection failed) - using direct fallback for " + entity);
+    WrapperEntityData ret = WrapperEntityData.getData(entity);
+    return ret != null ? ret.base : null;
+}
+```
+
+### Lecons
+
+- Sur Cleanroom + Java 25, les annotations `@CapabilityInject` peuvent silencieusement ne pas fire. Toujours guard contre `null` les champs statiques de capability AVANT de les comparer.
+- `null == null` evalue a `true` en Java — pattern dangereux pour les comparaisons de reference quand un cote peut etre non-initialise.
+- Defense in depth : 1) prevenir les faux match dans `hasCapability`, 2) bail out avant l'appel a `getCapability(null, ...)` qui declenche l'iteration des providers.
+- Cleanroom-safe : le fix utilise uniquement Forge API standard (pas de sun.*, Unsafe, ASM, reflection sur final).
+
+---
+
 ## 2026-05-26 — Phase 6b KB : migration SQL casse sur kb_articles (generation expression is not immutable)
 
 ### Symptome
