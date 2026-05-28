@@ -5,6 +5,75 @@
 
 ---
 
+## 2026-05-28 — Server crash en cascade : NPE sur EntityNPCInterface (job/role/ais/... non initialises au premier tick)
+
+### Symptome
+
+Apres les fix capability/currentGUI precedents, nouveau crash serveur recurrent — un NPC (Selenus, id 139) crash le serveur quand il est ticke, instant kick des joueurs avec "Internal server error" et cascade vers crash client au prochain lag-tick lecture :
+
+```
+[Server thread/ERROR] [minecraft/MinecraftServer]: Encountered an unexpected exception
+java.lang.NullPointerException: Cannot read field "overrideMainHand" because "this.job" is null
+    at noppes.npcs.entity.EntityNPCInterface.getHeldItemMainhand(EntityNPCInterface.java:873)
+    at noppes.npcs.entity.EntityNPCInterface.getItemStackFromSlot(EntityNPCInterface.java:895)
+    at net.minecraft.entity.EntityLivingBase.onUpdate(EntityLivingBase.java:...)
+    at net.minecraft.world.World.updateEntity(World.java:...)
+```
+
+### Cause racine
+
+Sous Cleanroom + Java 25, l'ordre d'execution diverge de Forge vanilla : un NPC peut etre **ticke par le serveur AVANT que `readEntityFromNBT()` ait fini** de desserialiser ses champs. Concretement, l'ordre normal etait :
+
+1. `applyEntityAttributes()` (depuis `super(World)`)
+2. Constructeur body
+3. `readEntityFromNBT()` -> `advanced.load()` -> `DataAdvanced.setRole/setJob()` -> `JobType/RoleType.setToNpc()` -> `npc.job = new JobX(npc)`
+4. Premier tick
+
+Sous Cleanroom+Java25, le **tick #1 fire entre l'etape 2 et 3**, donc `this.job == null`, `this.role == null`, et potentiellement aussi `ais/stats/inventory/display/advanced/combatHandler/animation/bossInfo/faction/timers/transform/lookAi/puppet/script` selon le timing.
+
+Le champ `job` est accede sans null check dans `getHeldItemMainhand()` ligne 873 (`job.overrideMainHand`) -> NPE. Vanilla `EntityLivingBase.onUpdate()` appelle `getItemStackFromSlot(MAINHAND)` chaque tick -> crash chaque tick -> serveur kill.
+
+### Solution
+
+Defense in depth en deux temps dans le repo `Erinium-Group/eriniumworld` (commit `faadc91`) :
+
+**1. Init defensive dans `applyEntityAttributes()`** :
+
+Utilisation des singletons no-op pre-existants `JobInterface.NONE` et `RoleInterface.NONE` (zero allocation overhead, methodes neutres) :
+
+```java
+@Override
+protected void applyEntityAttributes() {
+    super.applyEntityAttributes();
+    // ... existing attribute setup ...
+    if (job == null)  { job = JobInterface.NONE; }
+    if (role == null) { role = RoleInterface.NONE; }
+}
+```
+
+`applyEntityAttributes()` est appelee depuis `super(World)` dans le constructeur, AVANT que tout tick puisse fire. Donc apres la sortie du `super()`, `job`/`role` sont garantis non-null.
+
+**2. Sweep defensif comprehensif des 60+ methodes hot-path de `EntityNPCInterface.java`** :
+
+Toutes les methodes accedant directement aux champs null-prone wrapees avec null guards. Pattern :
+- Early-return : `if (field == null) { return defaultValue; }`
+- Skip side effects : `if (field != null) { field.method(); }`
+- Ternaire avec fallback : `cond ? field.x : default`
+
+Methodes patchees (liste non-exhaustive) : `onUpdate`, `onLivingUpdate`, `onDeath`, `onDeathUpdate`, `getHeldItemMainhand`, `getHeldItemOffhand`, `getItemStackFromSlot`, `getArmorInventoryList`, `getHeldEquipment`, `getSpeed`, `getStartXPos/YPos/ZPos`, `isInvisible`, `isOnSameTeam`, `isFriend`, `isPotionApplicable`, `isPushedByWater`, `isWalking`, `canBlockDamageSource`, `canBreatheUnderwater`, `canDespawn`, `canBeCollidedWith`, `canBePushed`, `canAttackClass`, `canEntityBeSeen`, `attackEntityFrom`, `customAttackEntityFrom`, `attackEntityWithRangedAttack`, `tryAttackEntityAsMob`, `damageEntity`, `decreaseAirSupply`, `doorInteractType`, `knockBack`, `collideWithEntity`, `applyEntityCollision`, `onCollide`, `onAttack`, `setAttackTarget`, `seekShelter`, `setDead`, `setImmuneToFire`, `setInWeb`, `setItemStackToSlot`, `setMoveType`, `setResponse`, `shoot`, `processInteract`, `playHurtSound`, `playLivingSound`, `playStepSound`, `getBlockPathWeight`, `getControllingPassenger`, `getCollisionBoundingBox`, `getPushReaction`, `getVoicePitch`, `addInteract`, `addRegularEntries`, `addTrackingPlayer`, `addRidingEntity`, `removeTrackingPlayer`, `reset`, `updateHitbox`, `updateTasks`, `calculateStartYPos`, `givePlayerItem`, `isInteracting`, `isInvisibleToPlayer`, `readEntityFromNBT`, `readSpawnData`, `writeEntityToNBT`, `writeSpawnData`, constructeur body.
+
+Egalement patches dans `EntityAIJob`/`EntityAIRole` : null guards sur `startExecuting`/`updateTask`/`resetTask`/`shouldExecute`/`shouldContinueExecuting`.
+
+### Lecons
+
+- **Sous Cleanroom + Java 25, ne JAMAIS supposer qu'un champ initialise par `readEntityFromNBT()` est non-null lors d'un tick**. L'ordre constructeur -> NBT load -> tick peut etre desequilibre.
+- **Toujours initialiser les champs critiques** (job/role/data/state objects) a un singleton no-op dans `applyEntityAttributes()` ou directement dans la declaration du champ. C'est mieux qu'un `null` + 60 guards eparses.
+- **Defense in depth** : un seul null guard suffit en theorie (le root cause `getHeldItemMainhand`), mais sweeper toute la classe evite le whack-a-mole quand un autre tick path est decouvert plus tard.
+- **`JobInterface.NONE` / `RoleInterface.NONE`** sont des singletons no-op pre-existants — pas besoin de creer des wrappers. Verifier toujours si un sentinel existe deja avant d'en creer un nouveau.
+- **Identifier les hot paths** : un crash dans `getItemStackFromSlot` ou `getHeldItemMainhand` est mortel car appele par vanilla `EntityLivingBase.onUpdate()` chaque tick. Prioriser les guards sur les methodes overridees de classes vanilla appelees chaque tick.
+
+---
+
 ## 2026-05-28 — Player kick au login : NPE sur data.overlay.currentGUI (PlayerOverlayData non initialise)
 
 ### Symptome
