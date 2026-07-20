@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doc CmdCam & Aperture</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #1a1d24;
+    color: #e6e8eb;
+    line-height: 1.6;
+    padding: 40px 20px;
+  }
+  .container { max-width: 920px; margin: 0 auto; }
+  h1 {
+    font-size: 2.4em;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #6ab7ff 0%, #b388ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subtitle { color: #8a93a3; margin-bottom: 32px; font-size: 1.05em; }
+  h2 {
+    font-size: 1.8em;
+    margin-top: 48px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #2d3340;
+  }
+  h2.cmdcam { color: #6ab7ff; border-color: #6ab7ff44; }
+  h2.aperture { color: #ff9a4d; border-color: #ff9a4d44; }
+  h2.versus { color: #b388ff; border-color: #b388ff44; }
+  h3 {
+    font-size: 1.25em;
+    margin-top: 28px;
+    margin-bottom: 12px;
+    color: #c5cad4;
+  }
+  p { margin-bottom: 14px; }
+  .warning {
+    background: #3d2c1a;
+    border-left: 4px solid #ff9a4d;
+    padding: 14px 18px;
+    border-radius: 4px;
+    margin: 20px 0;
+  }
+  .info {
+    background: #1a2d3d;
+    border-left: 4px solid #6ab7ff;
+    padding: 14px 18px;
+    border-radius: 4px;
+    margin: 20px 0;
+  }
+  .tip {
+    background: #1d3326;
+    border-left: 4px solid #5ed598;
+    padding: 14px 18px;
+    border-radius: 4px;
+    margin: 20px 0;
+  }
+  code, .key {
+    font-family: 'SF Mono', Monaco, Consolas, monospace;
+    background: #2a2f3a;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+    color: #f0c674;
+  }
+  .key {
+    display: inline-block;
+    background: #3a4151;
+    color: #ffffff;
+    padding: 3px 9px;
+    border: 1px solid #4a5161;
+    border-bottom: 2px solid #2a2f3a;
+    font-weight: 600;
+    min-width: 28px;
+    text-align: center;
+  }
+  pre {
+    background: #14161c;
+    border: 1px solid #2d3340;
+    padding: 16px 18px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 14px 0;
+    font-family: 'SF Mono', Monaco, Consolas, monospace;
+    font-size: 0.9em;
+    color: #c5cad4;
+  }
+  pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    background: #21252e;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid #2d3340;
+  }
+  th {
+    background: #2a2f3a;
+    color: #b8bdc7;
+    font-weight: 600;
+    font-size: 0.95em;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #262b36; }
+  ul, ol { margin: 12px 0 16px 22px; }
+  li { margin-bottom: 6px; }
+  .step {
+    background: #21252e;
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 14px 0;
+    border-left: 3px solid #6ab7ff;
+  }
+  .step-num {
+    display: inline-block;
+    background: #6ab7ff;
+    color: #14161c;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 26px;
+    font-weight: 700;
+    margin-right: 10px;
+  }
+  .step.orange { border-left-color: #ff9a4d; }
+  .step.orange .step-num { background: #ff9a4d; }
+  .keyboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .keyboard-card {
+    background: #21252e;
+    padding: 16px;
+    border-radius: 8px;
+  }
+  .keyboard-card h4 {
+    margin-bottom: 10px;
+    color: #6ab7ff;
+    font-size: 0.95em;
+  }
+  .badge {
+    display: inline-block;
+    background: #5ed598;
+    color: #14161c;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: 600;
+    margin-left: 6px;
+  }
+  .tldr {
+    background: linear-gradient(135deg, #2a2f3a 0%, #21252e 100%);
+    padding: 20px 24px;
+    border-radius: 10px;
+    margin: 24px 0;
+    border: 1px solid #3a4151;
+  }
+  .tldr strong { color: #b388ff; }
+  hr {
+    border: none;
+    border-top: 1px solid #2d3340;
+    margin: 40px 0;
+  }
+  .emoji { font-size: 1.1em; }
+  .footer {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid #2d3340;
+    color: #6b7280;
+    font-size: 0.9em;
+    text-align: center;
+  }
+  .footer a { color: #6ab7ff; text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+  .concept {
+    background: linear-gradient(135deg, #2d1f3a 0%, #1f2230 100%);
+    border: 1px solid #4a3d5e;
+    padding: 22px 26px;
+    border-radius: 10px;
+    margin: 20px 0;
+  }
+  .concept h4 {
+    color: #d4a3ff;
+    font-size: 1.15em;
+    margin-bottom: 10px;
+  }
+  .timeline-visual {
+    background: #14161c;
+    border-radius: 8px;
+    padding: 18px;
+    margin: 16px 0;
+    overflow-x: auto;
+  }
+  .timeline-track {
+    display: flex;
+    gap: 4px;
+    align-items: stretch;
+    min-width: min-content;
+  }
+  .timeline-clip {
+    padding: 14px 12px;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 0.88em;
+    text-align: center;
+    min-width: 110px;
+    font-weight: 500;
+  }
+  .clip-idle { background: #4a6fa5; }
+  .clip-path { background: #c97844; flex-grow: 2; min-width: 200px; }
+  .clip-circular { background: #6b8e4e; flex-grow: 1.5; }
+  .clip-label {
+    display: block;
+    font-size: 0.75em;
+    opacity: 0.8;
+    margin-top: 4px;
+  }
+  .index-badge {
+    display: inline-block;
+    background: #ff9a4d;
+    color: #14161c;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-weight: 700;
+    font-size: 0.85em;
+    margin-right: 6px;
+    font-family: 'SF Mono', Monaco, Consolas, monospace;
+  }
+  .example-block {
+    background: #1a1e26;
+    border: 1px solid #2d3340;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 18px 0;
+  }
+  .example-block h4 {
+    color: #ff9a4d;
+    margin-bottom: 12px;
+    font-size: 1.1em;
+  }
+  .example-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 14px 0;
+    padding: 10px 0;
+    border-top: 1px dashed #2d3340;
+  }
+  .example-step:first-of-type { border-top: none; padding-top: 0; }
+  .example-step-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background: #2a2f3a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1em;
+  }
+  .example-step-content { flex: 1; }
+  .example-step-content p { margin-bottom: 8px; }
+  .example-step pre { margin: 8px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>🎬 Doc simple : CmdCam &amp; Aperture</h1>
+<p class="subtitle">Deux mods Minecraft pour faire de <strong>belles caméras cinématiques</strong> (travellings, zooms, plans de cinéma). Parfait pour les intros, cinématiques et machinimas.</p>
+
+<div class="warning">
+  <strong>⚠️ À savoir :</strong> ces mods ne <em>filment</em> pas. Ils bougent juste la caméra. Pour enregistrer la vidéo, il te faut un logiciel à côté (OBS, ShareX, ReplayMod…).
+</div>
+
+<div class="info">
+  <strong>⌨️ AZERTY / QWERTY — bonne nouvelle :</strong> Minecraft détecte les touches par <strong>position physique</strong>, pas par caractère. Toutes les touches par défaut de CmdCam (P, U, V, N, B, G, J, H) sont aux <strong>mêmes endroits</strong> sur les deux claviers. Donc <strong>aucune différence</strong> pour toi. Le seul piège classique (W/Z pour avancer) ne concerne pas ces mods.
+</div>
+
+<hr>
+
+<h2 class="cmdcam">🟦 Partie 1 — CmdCam (le simple, le rapide)</h2>
+
+<p>CmdCam, c'est le mod <strong>facile à prendre en main</strong>. Tu poses des points, tu lances l'animation, la caméra fait un trajet fluide entre tes points. Voilà.</p>
+
+<div class="warning">
+  <strong>⚙️ Pré-requis :</strong> CmdCam dépend du mod <strong>CreativeCore</strong>. Installe les deux sinon ça plante.
+</div>
+
+<h3>🎮 Les touches du clavier (tout le quotidien est là)</h3>
+
+<table>
+  <thead>
+    <tr><th>Touche</th><th>Position sur clavier</th><th>Action</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><span class="key">P</span></td><td>AZERTY = QWERTY <span class="badge">OK</span></td><td>Ajouter un point de caméra à ta position actuelle</td></tr>
+    <tr><td><span class="key">U</span></td><td>AZERTY = QWERTY <span class="badge">OK</span></td><td>Lancer l'animation (10 sec par défaut)</td></tr>
+    <tr><td><span class="key">Suppr</span></td><td>—</td><td>Effacer tous les points</td></tr>
+    <tr><td><span class="key">V</span></td><td>AZERTY = QWERTY <span class="badge">OK</span></td><td>Zoomer</td></tr>
+    <tr><td><span class="key">N</span></td><td>AZERTY = QWERTY <span class="badge">OK</span></td><td>Dézoomer</td></tr>
+    <tr><td><span class="key">B</span></td><td>AZERTY = QWERTY <span class="badge">OK</span></td><td>Reset le zoom</td></tr>
+    <tr><td><span class="key">G</span></td><td>AZERTY = QWERTY <span class="badge">OK</span></td><td>Roll vers la gauche (incliner la caméra)</td></tr>
+    <tr><td><span class="key">J</span></td><td>AZERTY = QWERTY <span class="badge">OK</span></td><td>Roll vers la droite</td></tr>
+    <tr><td><span class="key">H</span></td><td>AZERTY = QWERTY <span class="badge">OK</span></td><td>Reset le roll</td></tr>
+  </tbody>
+</table>
+
+<h3>🚀 Workflow de base (3 minutes pour un travelling)</h3>
+
+<div class="step">
+  <span class="step-num">1</span><strong>Va à ton point de départ</strong> → appuie sur <span class="key">P</span>
+</div>
+<div class="step">
+  <span class="step-num">2</span><strong>Déplace-toi, change l'angle</strong> → appuie sur <span class="key">P</span> encore
+</div>
+<div class="step">
+  <span class="step-num">3</span><strong>Recommence</strong> pour 3, 4, 5 points (autant que tu veux)
+</div>
+<div class="step">
+  <span class="step-num">4</span><strong>Reviens où tu veux</strong> et appuie sur <span class="key">U</span> → la caméra suit ton chemin en fluide
+</div>
+
+<p>Et voilà. C'est tout.</p>
+
+<h3>📋 Commandes utiles (quand tu veux plus de contrôle)</h3>
+
+<pre><code>/cam add                          → ajoute un point (comme P)
+/cam start 30s                    → lance l'animation sur 30 secondes
+/cam start 2m                     → lance sur 2 minutes
+/cam clear                        → efface tous les points
+/cam goto &lt;numéro_du_point&gt;       → téléporte au point numéroté</code></pre>
+
+<p><strong>Faire suivre un personnage à la caméra :</strong></p>
+<pre><code>/cam target self                  → la caméra te suit toi
+/cam target none                  → annule le suivi
+/cam follow self                  → la caméra suit ta position</code></pre>
+
+<p><strong>Mode "outside" (être devant ET derrière la caméra en même temps) :</strong></p>
+<pre><code>/cam mode outside                 → tu vois ton perso bouger pendant que la caméra filme
+/cam mode default                 → mode normal</code></pre>
+<p>👉 Hyper utile pour te filmer en train de jouer.</p>
+
+<p><strong>Changer le type de transition entre les points :</strong></p>
+<pre><code>/cam interpolation linear         → mouvement droit, un peu sec
+/cam interpolation hermite        → mouvement courbe, plus cinématique (recommandé)</code></pre>
+
+<div class="tip">
+  <strong>💡 Astuces CmdCam</strong>
+  <ul>
+    <li>Plus tu mets de points, plus le trajet est précis (mais aussi plus saccadé si mal placés).</li>
+    <li>Pour un <strong>plan lent et stylé</strong> : 3-4 points seulement, et <code>/cam start 30s</code>.</li>
+    <li>Le zoom et le roll se règlent <strong>avant de poser le point</strong> : appuie sur V/G/etc., puis P.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 class="aperture">🟧 Partie 2 — Aperture (le puissant, le pro)</h2>
+
+<p>Aperture, c'est <strong>CmdCam mais 10x plus complet</strong>. C'est l'outil de <strong>McHorse</strong>, fait pour les machinimas sérieux.</p>
+
+<div class="concept">
+  <h4>🎬 L'image mentale à avoir avant tout</h4>
+  <p><strong>Aperture, c'est un logiciel de montage vidéo, mais dans Minecraft.</strong></p>
+  <p>Imagine Adobe Premiere ou DaVinci Resolve : tu as une <strong>timeline</strong> en bas, et tu poses des <strong>clips vidéo</strong> les uns après les autres pour faire ton film.</p>
+  <p>Bah Aperture c'est pareil. Sauf qu'au lieu de clips vidéo, tu poses des <strong>mouvements de caméra</strong>. Une fois que ta timeline est prête, tu cliques sur "lecture" et la caméra joue tout dans l'ordre.</p>
+  <div class="timeline-visual">
+    <div class="timeline-track">
+      <div class="timeline-clip clip-idle">Plan fixe<span class="clip-label">2 sec</span></div>
+      <div class="timeline-clip clip-path">Travelling vers le spawn<span class="clip-label">8 sec</span></div>
+      <div class="timeline-clip clip-circular">Tour de la statue<span class="clip-label">10 sec</span></div>
+    </div>
+    <p style="text-align:center; color:#6b7280; font-size:0.85em; margin-top:10px; margin-bottom:0;">↑ Une "timeline" Aperture, c'est juste ça : des plans qui s'enchaînent.</p>
+  </div>
+</div>
+
+<h3>🧱 "Fixture" = un clip sur ta timeline</h3>
+
+<p><strong>Une fixture, c'est UN plan de ta scène.</strong> Un seul plan = une seule fixture. Pas plus.</p>
+
+<p>Chaque fixture a deux infos :</p>
+<ul>
+  <li>🎬 <strong>Un type</strong> → ce que la caméra fait pendant ce plan</li>
+  <li>⏱️ <strong>Une durée</strong> → combien de temps ce plan dure (en ticks, 20 ticks = 1 seconde)</li>
+</ul>
+
+<p>Les 5 types, c'est juste <strong>5 façons que peut prendre un plan</strong> :</p>
+
+<table>
+  <thead>
+    <tr><th>Type</th><th>En vrai c'est quoi</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>idle</code></td><td><strong>Plan fixe</strong> — la caméra ne bouge pas, comme un trépied</td></tr>
+    <tr><td><code>path</code></td><td><strong>Travelling</strong> — la caméra se déplace d'un point A à B (et C, D, E…)</td></tr>
+    <tr><td><code>look</code></td><td><strong>Plan fixe qui regarde quelqu'un</strong> — caméra immobile qui suit un perso des yeux</td></tr>
+    <tr><td><code>follow</code></td><td><strong>Caméra accrochée à un perso</strong> — comme un drone qui le suit</td></tr>
+    <tr><td><code>circular</code></td><td><strong>Tour de présentation</strong> — la caméra tourne autour d'un point (genre pub de voiture)</td></tr>
+  </tbody>
+</table>
+
+<h3>🔢 "Index" = le numéro du clip sur ta timeline</h3>
+
+<p>Quand tu ajoutes plusieurs fixtures, Aperture les <strong>numérote automatiquement</strong> dans l'ordre où tu les ajoutes. <strong>C'est juste ça, l'index.</strong></p>
+
+<div class="timeline-visual">
+  <div class="timeline-track">
+    <div class="timeline-clip clip-idle"><span class="index-badge">0</span>idle<span class="clip-label">3 sec</span></div>
+    <div class="timeline-clip clip-path"><span class="index-badge">1</span>path<span class="clip-label">10 sec</span></div>
+    <div class="timeline-clip clip-circular"><span class="index-badge">2</span>circular<span class="clip-label">5 sec</span></div>
+  </div>
+</div>
+
+<div class="warning">
+  ⚠️ <strong>Ça commence à 0</strong>, pas à 1 (truc de dev classique).
+</div>
+
+<p>Donc quand tu vois <code>/camera remove 1</code>, ça veut dire <strong>"supprime le deuxième plan de ma timeline"</strong>.</p>
+<p>Et <code>/camera path add 1</code>, ça veut dire <strong>"ajoute un point au trajet qui est en deuxième position sur ma timeline"</strong>.</p>
+
+<h3>🎯 Exemple concret : faire une intro pour ta map</h3>
+
+<p>Imaginons que tu veuilles filmer ton spawn. Tu veux :</p>
+<ol>
+  <li>Un plan fixe sur le ciel (2 secondes)</li>
+  <li>Un travelling qui descend vers ton spawn (8 secondes)</li>
+  <li>Une caméra qui tourne autour de ta statue (10 secondes)</li>
+</ol>
+
+<div class="example-block">
+  <h4>📝 Étape par étape :</h4>
+
+  <div class="example-step">
+    <div class="example-step-icon">🆕</div>
+    <div class="example-step-content">
+      <p><strong>Démarrer avec une timeline vide :</strong></p>
+      <pre><code>/camera new mon_intro</code></pre>
+    </div>
+  </div>
+
+  <div class="example-step">
+    <div class="example-step-icon">☁️</div>
+    <div class="example-step-content">
+      <p><strong>Plan 1 — le ciel fixe :</strong></p>
+      <p style="color:#8a93a3; font-size:0.9em;">→ Téléporte-toi très haut, regarde le ciel, puis :</p>
+      <pre><code>/camera add idle 40</code></pre>
+      <p>✅ Une fixture <code>idle</code> de 40 ticks (= 2 sec) est créée à ta position actuelle. <strong>C'est devenu la fixture index 0.</strong></p>
+    </div>
+  </div>
+
+  <div class="example-step">
+    <div class="example-step-icon">🎥</div>
+    <div class="example-step-content">
+      <p><strong>Plan 2 — le travelling vers le spawn :</strong></p>
+      <pre><code>/camera add path 160</code></pre>
+      <p>✅ Fixture <code>path</code> de 160 ticks (= 8 sec) ajoutée. <strong>C'est la fixture index 1.</strong></p>
+      <p style="color:#8a93a3; font-size:0.9em; margin-top:8px;">Mais un trajet vide ne sert à rien, faut lui donner des points :</p>
+      <pre><code>[tu te mets en haut]
+/camera path add 1     ← j'ajoute un point à la fixture n°1
+
+[tu descends de quelques blocs]
+/camera path add 1     ← un autre point
+
+[tu arrives près du sol]
+/camera path add 1     ← dernier point</code></pre>
+    </div>
+  </div>
+
+  <div class="example-step">
+    <div class="example-step-icon">🗿</div>
+    <div class="example-step-content">
+      <p><strong>Plan 3 — le tour de la statue :</strong></p>
+      <p style="color:#8a93a3; font-size:0.9em;">→ Place-toi à côté de la statue, en regardant vers elle, puis :</p>
+      <pre><code>/camera add circular 200</code></pre>
+      <p>✅ Fixture index 2, durée 10 sec.</p>
+    </div>
+  </div>
+
+  <div class="example-step">
+    <div class="example-step-icon">▶️</div>
+    <div class="example-step-content">
+      <p><strong>Lance le tout :</strong></p>
+      <pre><code>/camera start</code></pre>
+      <p>La caméra va faire : <strong>ciel fixe 2s → descente fluide 8s → tour de statue 10s</strong>.</p>
+    </div>
+  </div>
+
+  <div class="example-step">
+    <div class="example-step-icon">💾</div>
+    <div class="example-step-content">
+      <p><strong>Sauvegarde :</strong></p>
+      <pre><code>/camera save</code></pre>
+      <p>Tu peux recharger ta scène plus tard avec <code>/camera load mon_intro</code>.</p>
+    </div>
+  </div>
+</div>
+
+<h3>💡 Le truc qui clique</h3>
+
+<div class="tip">
+  <ul style="margin-bottom:0;">
+    <li><strong>Fixture</strong> = un plan</li>
+    <li><strong>Type de fixture</strong> = ce que la caméra fait pendant ce plan</li>
+    <li><strong>Index</strong> = le numéro du plan dans l'ordre (commence à 0)</li>
+    <li><strong>Durée</strong> = combien de temps il dure (en ticks, 20 = 1 seconde)</li>
+    <li><strong>Profile</strong> = la timeline complète (= ton "projet" sauvegardé)</li>
+  </ul>
+  <p style="margin-top:12px; margin-bottom:0;">Tu enchaînes les fixtures comme des Lego, et Aperture lit tout dans l'ordre quand tu fais <code>/camera start</code>.</p>
+</div>
+
+<h3>🧪 Les "modifiers" (effets bonus sur tes plans)</h3>
+
+<p>Ça c'est l'étage du dessus : tu peux <strong>ajouter des effets</strong> sur n'importe quelle fixture. Genre, prendre un travelling et lui ajouter un tremblement façon "caméra à l'épaule".</p>
+
+<p>Tu n'es <strong>pas obligé</strong> d'en utiliser pour commencer, mais c'est bon à savoir :</p>
+
+<ul>
+  <li><strong>Shake</strong> → fait trembler la caméra (caméra à l'épaule, façon film d'action)</li>
+  <li><strong>Look</strong> → force la caméra à toujours regarder un perso, même en mouvement</li>
+  <li><strong>Follow</strong> → fait suivre un perso pendant le plan</li>
+  <li><strong>Orbit</strong> → tourne autour d'un perso façon drone GoPro</li>
+  <li><strong>Translate</strong> → décale la caméra en x/y/z</li>
+  <li><strong>Angle</strong> → ajoute un offset de rotation</li>
+  <li><strong>Math</strong> → trucs avancés avec des formules mathématiques (pour les warriors)</li>
+</ul>
+
+<p style="color:#8a93a3; font-size:0.9em;">Les modifiers s'ajoutent via le GUI in-game d'Aperture (touche pour ouvrir l'éditeur), c'est plus simple qu'en ligne de commande.</p>
+
+<h3>📋 Les commandes Aperture (cheat sheet)</h3>
+
+<h4 style="color:#ff9a4d; margin-top:18px;">Gérer le profil</h4>
+<pre><code>/camera new &lt;nom&gt;             → créer un nouveau profil vide
+/camera save [nom]            → sauvegarder
+/camera load &lt;nom&gt;            → charger un profil existant
+/camera clear                 → vider toutes les fixtures (garde le nom)
+/camera start                 → lancer la scène
+/camera stop                  → arrêter</code></pre>
+
+<h4 style="color:#ff9a4d; margin-top:18px;">Régler la caméra</h4>
+<pre><code>/camera step &lt;x&gt; &lt;y&gt; &lt;z&gt;      → téléporter (utilise + ou - pour relatif, ex: +10 -5 +0)
+/camera rotate &lt;yaw&gt; &lt;pitch&gt;  → rotation (relatif accepté)
+/camera fov &lt;angle&gt;           → changer le FOV (70 par défaut, 50 = cinéma)
+/camera roll &lt;angle&gt;          → incliner la caméra
+/camera default               → reset FOV et roll</code></pre>
+
+<h4 style="color:#ff9a4d; margin-top:18px;">Gérer les fixtures</h4>
+<pre><code>/camera add &lt;type&gt; &lt;durée&gt;    → ajouter une fixture (idle/path/look/follow/circular)
+/camera edit &lt;index&gt;          → modifier la fixture n°index (à ta position actuelle)
+/camera remove &lt;index&gt;        → supprimer une fixture
+/camera move &lt;de&gt; &lt;vers&gt;      → déplacer une fixture (ex: /camera move 2 0)
+/camera duration &lt;index&gt; &lt;ticks&gt; → changer la durée
+/camera goto &lt;index&gt;          → se téléporter à la fixture pour la voir</code></pre>
+
+<h4 style="color:#ff9a4d; margin-top:18px;">Spécifique au path (les trajets)</h4>
+<pre><code>/camera path add &lt;index&gt;              → ajouter un point au trajet n°index
+/camera path edit &lt;index&gt; &lt;point&gt;     → modifier un point
+/camera path remove &lt;index&gt; &lt;point&gt;   → supprimer un point
+/camera path goto &lt;index&gt; &lt;point&gt;     → se téléporter sur un point</code></pre>
+
+<h3>🎯 Lancer une scène sur un autre joueur (serveur)</h3>
+<pre><code>/aperture play &lt;joueur&gt; &lt;nom_du_profil&gt;</code></pre>
+<p>Pratique pour les serveurs ou les command blocks dans les maps.</p>
+
+<hr>
+
+<h2 class="versus">🆚 Lequel choisir ?</h2>
+
+<table>
+  <thead>
+    <tr><th>Situation</th><th>Mod recommandé</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Tu veux juste un travelling rapide en 2 min</td><td style="color:#6ab7ff;"><strong>CmdCam</strong></td></tr>
+    <tr><td>Tu veux te filmer en train de jouer (mode outside)</td><td style="color:#6ab7ff;"><strong>CmdCam</strong></td></tr>
+    <tr><td>Tu fais une cinématique avec plusieurs plans enchaînés</td><td style="color:#ff9a4d;"><strong>Aperture</strong></td></tr>
+    <tr><td>Tu veux une caméra qui suit un mob, tourne autour, tremble…</td><td style="color:#ff9a4d;"><strong>Aperture</strong></td></tr>
+    <tr><td>Tu fais un projet de machinima sérieux</td><td style="color:#ff9a4d;"><strong>Aperture</strong></td></tr>
+  </tbody>
+</table>
+
+<div class="tldr">
+  <strong>TL;DR :</strong> commence par <strong style="color:#6ab7ff;">CmdCam</strong> pour t'amuser, passe à <strong style="color:#ff9a4d;">Aperture</strong> quand tu veux faire des trucs propres.
+</div>
+
+<hr>
+
+<h3>🎥 Conseil bonus : pour enregistrer</h3>
+<div class="tip">
+  <p>Mets ton FOV à <strong>50</strong> dans les deux mods (au lieu de 70), ça donne un rendu "cinéma" beaucoup plus stylé.</p>
+  <p style="margin-top:10px;">Et pense à désactiver l'HUD avec <span class="key">F1</span> avant de lancer la scène ! 🎬</p>
+</div>
+
+<div class="footer">
+  Sources : <a href="https://www.curseforge.com/minecraft/mc-mods/cmdcam">CurseForge CmdCam</a> · <a href="https://modrinth.com/mod/cmdcam">Modrinth CmdCam</a> · <a href="https://github.com/mchorse/aperture/wiki">Wiki Aperture (McHorse)</a>
+</div>
+
+</div>
+</body>
+</html>
